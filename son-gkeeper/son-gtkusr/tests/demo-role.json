@@ -1,0 +1,9 @@
+{
+  "name": "guests",
+  "description": "$role_guests",
+  "scopeParamRequired": false,
+  "composite": false,
+  "clientRole": false
+}
+
+

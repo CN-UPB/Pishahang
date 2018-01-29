@@ -1,0 +1,5 @@
+---
+# tasks file for docker-dns
+
+- name: deploy Docker DNS
+  shell: docker run --name dns -v /var/run/docker.sock:/docker.sock phensley/docker-dns

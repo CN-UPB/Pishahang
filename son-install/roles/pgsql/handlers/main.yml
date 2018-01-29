@@ -1,0 +1,15 @@
+---
+# handlers file for postgresql
+
+- name: restart postgresql 
+  service: name=postgresql state=reloaded sleep=5
+# when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "14" 
+
+#- name: restart postgresql
+#  systemd: name=postgresql enabled=yes state=reloaded daemon_reload=yes
+#  when: (ansible_distribution == "CentOS" and ansible_distribution_major_version == "7") or (ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "16")
+
+
+- name: reload firewalld
+  service: name=firewalld state=reloaded sleep=2
+

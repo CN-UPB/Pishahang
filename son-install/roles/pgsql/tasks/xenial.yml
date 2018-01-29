@@ -1,0 +1,40 @@
+---
+
+- file: path="/var/lib/postgresql/{{ tarball }}" state=directory mode=0777
+
+- apt: update_cache=yes
+
+# FW
+
+- apt: name=firewalld state=present
+
+- name: ensure the Firewall service is running
+  service: name=firewalld state=started enabled=yes
+
+# PGSQL
+
+- name: installing PostgreSQL
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+  - postgresql
+  - postgresql-contrib
+  - phppgadmin
+  - python-psycopg2
+  - libpq-dev
+  tags: postgresql
+  #notify: restart postgresql
+
+- name: ensure the PostgreSQL service is running
+  service: name=postgresql state=started enabled=yes sleep=5
+
+# Managing firewall
+
+- name: open PostgreSQL port at firewall
+  firewalld:
+    port: 5432/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  #when: not ( security_firewall is defined and not security_firewall )
+  notify: reload firewalld
+

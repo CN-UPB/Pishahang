@@ -1,0 +1,18 @@
+---
+- debug: msg="##### SP INFLUXDB DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+- name: MONIT InfluxDB  - running Docker containers
+  docker_container:
+    name: son-monitor-influxdb
+    image: tdierich/son-monitor-influxdb
+    state: started
+    restart_policy: "always"
+    network_mode: bridge
+    networks:
+    - name: "{{ docker_network_name }}"
+      aliases:
+        - son-monitor-influxdb
+        - influxdb
+        - influx
+    published_ports: 8086:8086
+

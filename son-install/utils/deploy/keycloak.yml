@@ -1,0 +1,11 @@
+---
+- name: "deploy KEYCLOAK Identity Management Server to the VM appliance"
+  hosts: "{{ target }}"
+  become: true
+  vars:
+    tarball_version: "2.5.4.Final"
+  roles:
+  - common
+  - jdk
+  - firewall
+  - keycloak

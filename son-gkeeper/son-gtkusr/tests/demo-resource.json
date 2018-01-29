@@ -1,0 +1,139 @@
+{
+  "clientId" : "son-catalogue",
+  "resource_owner_name" : "catalogue",
+  "role" : "son-catalogue",
+  "resources" : [
+    {
+      "resource_name": "services",
+      "description": null,
+      "type": "resource",
+      "URI": "services",
+      "owner" : "catalogue",
+      "scopes": null,
+      "associated_permissions": [
+        {
+          "name": "read",
+          "description": "Read a catalogue service resource",
+          "apply_policy": ["developer", "slm"],
+          "action": "GET"
+        },
+        {
+          "name": "write",
+          "description": "Store a catalogue service resource",
+          "apply_policy": ["developer", "owner"],
+          "action": "POST"
+        },
+        {
+          "name": "update",
+          "description": "Update a catalogue service resource",
+          "apply_policy": ["developer", "owner"],
+          "action": "PUT"
+        },
+        {
+          "name": "delete",
+          "description": "Remove a catalogue service resource",
+          "apply_policy": ["developer", "owner"],
+          "action": "DELETE"
+        }
+      ]
+    },
+    {
+      "resource_name": "functions",
+      "description": null,
+      "type": "resource",
+      "URI": "functions",
+      "owner" : "catalogue",
+      "scopes": null,
+      "associated_permissions": [
+        {
+          "name": "read",
+          "description": "Read a catalogue function resource",
+          "apply_policy": ["developer", "slm"],
+          "action": "GET"
+        },
+        {
+          "name": "write",
+          "description": "Store a catalogue function resource",
+          "apply_policy": ["developer"],
+          "action": "POST"
+        },
+        {
+          "name": "update",
+          "description": "Update a catalogue function resource",
+          "apply_policy": ["developer"],
+          "action": "PUT"
+        },
+        {
+          "name": "delete",
+          "description": "Remove a catalogue function resource",
+          "apply_policy": ["developer"],
+          "action": "DELETE"
+        }
+      ]
+    },
+    {
+      "resource_name": "packages",
+      "description": null,
+      "type": "resource",
+      "URI": "packages",
+      "owner" : "catalogue",
+      "scopes": null,
+      "associated_permissions": [
+        {
+          "name": "read",
+          "description": "Read a catalogue package resource",
+          "apply_policy": ["developer", "slm"],
+          "action": "GET"
+        },
+        {
+          "name": "download",
+          "description": "Download a catalogue package resource",
+          "apply_policy": ["developer", "slm"],
+          "action": "GET"
+        },
+        {
+          "name": "write",
+          "description": "Submit a catalogue package resource",
+          "apply_policy": ["developer"],
+          "action": "POST"
+        },
+        {
+          "name": "update",
+          "description": "Update a catalogue package resource",
+          "apply_policy": ["developer"],
+          "action": "PUT"
+        },
+        {
+          "name": "delete",
+          "description": "Remove a catalogue package resource",
+          "apply_policy": ["developer"],
+          "action": "DELETE"
+        }
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "name": "developer",
+      "description": "SONATA Realm role authorized to request the resource",
+      "type": "role",
+      "logic": "positive",
+      "scopes": null
+    },
+    {
+      "name": "slm",
+      "description": "SONATA Realm role authorized to request the resource",
+      "type": "role",
+      "logic": "positive",
+      "scopes": null
+    },
+    {
+      "name": "owner",
+      "description": "SONATA Realm user owner of the resource",
+      "type": "user",
+      "logic": "positive",
+      "scopes": null
+    }
+  ],
+  "scopes": null
+}

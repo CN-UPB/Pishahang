@@ -1,0 +1,29 @@
+---
+
+- name: restarting GTK LIC Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: GATEKEEPER LICENSE MANAGER (GTKLIC) (Docker container)
+    docker_container:
+      name: son-gtklic
+      image: sonatanfv/son-gtklic
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        DATABASE_HOST: "{{ public_ip }}"
+        DATABASE_PORT: 5432
+        POSTGRES_PASSWORD: sonata
+        POSTGRES_USER: sonatatest
+        POSTGRES_DB: gatekeeper
+        #SECRET_KEY: son-install
+      exposed_ports: 5900
+      ports: "5900:5900"
+      volumes:
+        - /var/log/sonata/son-gtklic:/var/log/son-gtklic
+      log_driver: syslog # gelf
+
+  - wait_for: host=0.0.0.0 port=5900 timeout=120 delay=10 state=started
+

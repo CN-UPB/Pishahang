@@ -1,0 +1,7 @@
+---
+
+##
+## A very simple descriptor that meets the
+## test-schema.
+##
+image_format: "bare"

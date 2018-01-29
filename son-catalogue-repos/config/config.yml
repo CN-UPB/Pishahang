@@ -1,0 +1,9 @@
+---
+servicename: son-catalogue-repository
+environment: production
+address: 0.0.0.0
+port: 4011
+max_conns: 1024
+timeout: 30
+max_persistent_conns: 512
+daemonize: false

@@ -1,0 +1,8 @@
+package:
+  description: "Example service with three chained empty VNFs"
+  maintainer: "Manuel Peuster, Paderborn University, manuel.peuster@uni-paderborn.de"
+  name: sonata-empty-service
+  vendor: eu.sonata-nfv.package
+  version: '0.4'
+descriptor_extension: "yml"
+version: '0.5'

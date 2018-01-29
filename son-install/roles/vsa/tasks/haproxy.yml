@@ -1,0 +1,13 @@
+- name: Start 4 load-balanced containers
+  docker_container:
+    name: "haprx-1.7"
+    recreate: yes
+    image:  haproxy
+    command: sleep 1m
+    volumes:
+      - /var/log/sonata/haproxy:/var/log/haproxy
+    log_driver: syslog # gelf
+    #log_options:
+    #  syslog-address: tcp://my-syslog-server:514
+    #  syslog-facility: daemon
+

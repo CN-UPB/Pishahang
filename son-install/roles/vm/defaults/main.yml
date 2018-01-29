@@ -1,0 +1,5 @@
+---
+# defaults file for vm
+domain_name: sonata-nfv.eu
+plat: vm
+flavor: m1.small

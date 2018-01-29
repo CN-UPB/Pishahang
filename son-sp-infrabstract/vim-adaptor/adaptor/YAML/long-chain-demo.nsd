@@ -1,0 +1,144 @@
+##
+## This is the network service descriptor of the
+## SONATA demo example that comprises a virtual traffic
+## classifier (vTC)
+##
+## @author Felipe Vicens
+##
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv.service-descriptor"
+name: "sonata-demo-1"
+version: "0.1"
+author: "Felipe Vicens, Atos IT Solutions and Services Iberia"
+description: >
+  "The network service descriptor for the SONATA demo,
+   comprising a Virtual Traffic Classifier"
+
+##
+## The various network functions this service
+## is composed of.
+##
+network_functions:
+  - vnf_id: "vnf_1"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "1-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_2"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "2-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_3"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "3-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_4"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "4-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_5"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "5-vnf"
+    vnf_version: "0.1"
+##
+## The NS connection points to the
+## outside world.
+##
+connection_points:
+  - id: "mgmt"
+    type: "management"
+  - id: "input"
+    type: "internal"
+  - id: "output"
+    type: "internal"
+
+##
+## The virtual links that interconnect
+## the different connections points.
+##
+virtual_links:
+  - id: "mgmt"
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+      - "vnf_1:mgmt"
+      - "vnf_2:mgmt"
+      - "vnf_3:mgmt"
+      - "vnf_4:mgmt"
+      - "vnf_5:mgmt"
+      - "mgmt"
+  - id: "input-to-1"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "input"
+      - "vnf_1:input"
+  - id: "1-to-2"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_1:output"
+      - "vnf_2:input"
+  - id: "2-to-3"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_2:output"
+      - "vnf_3:input"
+  - id: "3-to-4"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_3:output"
+      - "vnf_4:input"
+  - id: "4-to-5"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_4:output"
+      - "vnf_5:input"
+  - id: "5-to-output"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_5:output"
+      - "output"
+##
+## The forwarding graphs.
+##
+forwarding_graphs:
+  - fg_id: "fg01"
+    number_of_endpoints: 2
+    number_of_virtual_links: 3
+    constituent_vnfs:
+      - "vnf_1"
+      - "vnf_2"
+      - "vnf_3"
+      - "vnf_4"
+      - "vnf_5"
+    network_forwarding_paths:
+      - fp_id: "fg01:fp01"
+        policy: "none"
+        connection_points:
+          - connection_point_ref: "input"
+            position: 1
+          - connection_point_ref: "vnf_1:input"
+            position: 2
+          - connection_point_ref: "vnf_1:output"
+            position: 3
+          - connection_point_ref: "vnf_2:input"
+            position: 4
+          - connection_point_ref: "vnf_2:output"
+            position: 5
+          - connection_point_ref: "vnf_3:input"
+            position: 6
+          - connection_point_ref: "vnf_3:output"
+            position: 7
+          - connection_point_ref: "vnf_4:input"
+            position: 8
+          - connection_point_ref: "vnf_4:output"
+            position: 9
+          - connection_point_ref: "vnf_5:input"
+            position: 10
+          - connection_point_ref: "vnf_5:output"
+            position: 11
+          - connection_point_ref: "output"
+            position: 12
+
+uuid: 9df6a98f-9e11-4cb7-b3c0-b1375e7ca1a1
+instance_uuid: 9df6a98f-9e11-4cb7-b3c0-InAdUnitTest
+

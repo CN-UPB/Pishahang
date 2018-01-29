@@ -1,0 +1,17 @@
+---
+
+- name: MANO Placement Plugin (Docker container)
+  docker_container:
+    name: placementplugin
+    image: "tdierich/placementplugin"
+    env:
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    restart_policy: "always"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - placementplugin
+        links:
+          - son-broker
+    state: started

@@ -1,0 +1,22 @@
+---
+- hosts: "{{ plat }}"
+  become: true
+  connection: ssh
+  vars_files:
+    - "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+    - "{{ lookup('env','PWD') }}/roles/{{ plat }}/vars/main.yml"
+  remote_user: "{{ vm_user }}"
+
+  pre_tasks:
+    - debug:
+        msg: "{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+    - include_vars: "{{ lookup('env','PWD') }}/roles/{{ plat }}/vars/main.yml"
+    - lineinfile:
+        path: "/etc/hosts"
+        line: "{{ public_ip }} {{ plat_hostname }}"
+        create: yes
+        state: present
+
+  roles:
+    - snort
+

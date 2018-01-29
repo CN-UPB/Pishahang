@@ -1,0 +1,22 @@
+---
+
+- name: MANO Cloud Service Life-cycle Management (CLM) (Docker container)
+  docker_container:
+    name: cloudservicelifecyclemanagement
+    image: "tdierich/cloudservicelifecyclemanagement"
+    env:
+      url_gk_api: "http://son-gtkapi:5000/api/v2/"
+      url_cosr_repository: "http://son-catalogue-repos:4011/records/cosr/"
+      url_vnfr_repository: "http://son-catalogue-repos:4011/records/csr/"
+      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - cloudservicelifecyclemanagement
+        links:
+          - son-broker
+    restart_policy: "always"
+    state: started
+

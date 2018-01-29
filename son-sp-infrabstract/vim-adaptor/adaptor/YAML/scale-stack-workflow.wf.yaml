@@ -1,0 +1,50 @@
+version: '2.0'
+
+scale_stack:
+  input:
+    - stack_id
+    - count
+    - openstack_url
+    - openstack_tenant_name
+    - openstack_tenant_user
+    - openstack_tenant_password
+
+  tasks:
+    keystone_login:
+      action: std.http
+      input:
+        method: POST
+        url: "http://<% $.openstack_url %>:5000/v2.0/tokens"
+        headers:
+          content-type: "application/json"
+          accept: "application/json"
+        body:
+          auth:
+            tenantName: <% $.openstack_tenant_name %>
+            passwordCredentials:
+              username: <% $.openstack_tenant_user %>
+              password: <% $.openstack_tenant_password %>
+      publish:
+        auth_token: <% task(keystone_login).result.content.access.token.id %>
+        heat_public_url: <% task(keystone_login).result.content.access.serviceCatalog.where($.type='orchestration').endpoints.first().first().publicURL %>
+      on-success:
+        - update_stack
+
+    update_stack:
+      action: std.http
+      input:
+        method: PATCH
+        url: "<% $.heat_public_url %>/stacks/<% $.stack_name %>/<% $.stack_id %>"
+        allow_redirects: true
+        headers:
+          content-type: "application/json"
+          accept: "application/json"
+          x-auth-token: <% $.auth_token %>
+        body:
+          files: {}
+          environment: {}
+          template: null
+          parameters:
+            count: <% int($.count) %>
+      publish:
+        stack_update_response: <% task(update_stack).result %>

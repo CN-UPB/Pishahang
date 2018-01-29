@@ -1,0 +1,5 @@
+---
+# tasks file for openstackclients
+
+- include: "{{ ansible_distribution_release }}.yml"
+

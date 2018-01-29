@@ -1,0 +1,51 @@
+version: '2'
+services:
+
+ influx:
+  build: ./influxDB
+  restart: always
+  ports:
+   - "8086:8086"
+
+ mysql:
+  build: ./mysql
+  restart: always
+  ports:
+   - "3306:3306"
+  environment:
+   - MYSQL_ROOT_PASSWORD=1234
+   - MYSQL_USER=monitoringuser
+   - MYSQL_PASSWORD=sonata
+   - MYSQL_DATABASE=monitoring
+
+ pushgateway:
+  build: ./pushgateway
+  restart: always
+  ports:
+   - "9091:9091"
+
+ prometheus:
+  build: ./prometheus
+  restart: always
+  volumes:
+   - /tmp/monitoring/prom/apache:/var/log/apache2
+  ports:
+   - "9090:9090"
+   - "9089:9089"
+  depends_on:
+   - pushgateway
+   - influx
+  environment:
+   - RABBIT_URL=192.168.1.50:5672
+   - EMAIL_PASS=czBuQHRAX21vbl9zeXNfMTY=
+
+ manager:
+  build: ./manager
+  restart: unless-stopped
+  volumes:
+   - /tmp/monitoring/mgr:/var/log/apache2
+  ports:
+   - "8000:8000"
+  depends_on:
+   - mysql
+

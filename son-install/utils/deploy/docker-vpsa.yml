@@ -1,0 +1,25 @@
+---
+
+- name: deploy dockerized VPSA to the local machine
+  hosts: localhost
+  become: true
+  connection: local
+  vars_files:
+    #- "{{ lookup('env','PWD') }}/roles/{{ plat | default(docker-vpsa) }}/defaults/main.yml"
+    - "{{ lookup('env','PWD') }}/roles/docker-vpsa/defaults/main.yml"
+  pre_tasks:
+    - debug: msg="{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+    - file:
+        path: /var/log/ansible.log
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+  roles:
+    - firewall
+    - docker
+    - docker-squid
+    - docker-snort
+    #- { role: docker-vpn, become: true }
+
+#- include: "{{ lookup('env','PWD') }}/common.yml"

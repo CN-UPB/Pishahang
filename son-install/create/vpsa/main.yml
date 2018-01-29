@@ -1,0 +1,22 @@
+- hosts: "{{ plat }}"
+  become: true
+  connection: ssh
+  vars:
+    localhome: "{{ lookup('env','PWD') }}"
+
+  pre_tasks:
+
+    - local_action: shell date +'%F %T'
+      register: timestamp
+
+    - debug:
+        msg: "{{ timestamp.stdout }}"
+
+  roles:
+#    - vpsa
+    - haproxy
+    #- openvpn
+    - nginx
+    - pfsense
+    - snort
+    - squid

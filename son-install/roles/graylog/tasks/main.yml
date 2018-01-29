@@ -1,0 +1,5 @@
+---
+# tasks file for graylog
+
+- debug:
+    msg: "NOT IMPLEMENTED - use 'docker-graylog' instead"

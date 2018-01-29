@@ -1,0 +1,26 @@
+### FW - set Iptables configuration
+
+- apt: name=ufw state=present
+
+- name: ensure the Firewall service is running
+  service: name=ufw state=started enabled=yes
+
+- name: open Squid port at firewall
+  ufw:
+    rule: allow
+    port: 3128
+    proto: tcp
+  notify: reload ufw
+
+- ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+  notify: reload ufw
+
+- ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+  notify: reload ufw
+

@@ -1,0 +1,8 @@
+---
+- name: installing a MySQL database server
+  hosts: "{{ target }}"
+  become: true 
+  vars_files:
+  - roles/mysql/vars/main.yml 
+  roles:
+  - mysql

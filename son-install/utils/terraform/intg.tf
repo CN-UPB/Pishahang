@@ -1,0 +1,4 @@
+module "intg" {
+  source = "./intg"
+}
+

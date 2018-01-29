@@ -1,0 +1,6 @@
+---
+# tasks file for JDK
+
+- name: installing JDK
+  include: "{{ ansible_os_family }}.yml"
+

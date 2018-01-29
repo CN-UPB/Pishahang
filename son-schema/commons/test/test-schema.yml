@@ -1,0 +1,13 @@
+---
+$schema: "http://json-schema.org/draft-04/schema#"
+description: "A very simple test schema that uses the commons.definitions file."
+
+##
+## The actual document description.
+##
+type: "object"
+properties:
+  image_format:
+    description: "The format of the virtual machine image."
+    $ref: "https://raw.githubusercontent.com/sonata-nfv/son-schema/master/commons/definitions.json#/images_formats"
+additionalProperties: false

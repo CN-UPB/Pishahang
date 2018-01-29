@@ -1,0 +1,11 @@
+---
+- name: Install elasticsearch.org yum key
+  rpm_key: state=present key=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+
+- name: Install elasticsearch.org yum repo
+  copy: src=elasticsearch.repo dest=/etc/yum.repos.d/elasticsearch.repo
+  become: true
+
+- name: Install Elasticsearch
+  yum: name=elasticsearch state=latest
+

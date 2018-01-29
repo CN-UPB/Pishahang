@@ -1,0 +1,16 @@
+require 'rspec/core/rake_task'
+require 'ci/reporter/rake/rspec'
+require 'sinatra/activerecord/rake'
+require './gtk_vim'
+
+task default: ['ci:all']
+
+desc 'Run Unit Tests'
+RSpec::Core::RakeTask.new :specs do |task|
+  task.pattern = Dir['spec/**/*_spec.rb']
+end
+
+# use like in
+#   rake ci:all
+desc 'Runs all test tasks'
+task 'ci:all' => ['ci:setup:rspec', 'specs']

@@ -1,0 +1,44 @@
+---
+
+#- file: path=/usr/local/pgsql/data state=directory owner=postgres group=postgres mode=0777 # for CentOS 6.x
+- file: path=/var/lib/pgsql state=directory owner=postgres group=postgres mode=0775
+
+- name: installing PostgreSQL on CentOS7 distro
+  yum:
+    name: 'https://download.postgresql.org/pub/repos/yum/{{ tarball }}/redhat/rhel-7-x86_64/pgdg-centos{{ pg_ver }}-{{ tarball }}-3.noarch.rpm'
+    state: present
+    update_cache: yes
+
+- name: installing PostgreSQL
+  yum: name={{ item }} update_cache=true state=installed
+  with_items:
+  - postgresql96
+  - postgresql96-server
+  - postgresql96-contrib
+  - postgresql96-libs
+#  - libpq-dev
+  - python-devel
+  - python-psycopg2
+  - firewalld
+
+- name: initialize postgresql
+  shell: '/usr/pgsql-{{ tarball }}/bin/postgresql{{ pg_ver }}-setup initdb'
+
+- name: Ensure the PostgreSQL service is running
+  service: name=postgresql-{{ tarball }} state=started enabled=yes
+
+# Managing firewall
+
+- name: Ensure the Fierwall service is running
+  service: name=firewalld state=started enabled=yes
+
+- name: open PostgreSQL port at firewall
+  firewalld:
+    port: 5432/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  #when: not ( security_firewall is defined and not security_firewall )
+  notify: reload firewalld
+
+#- shell: /usr/pgsql-{{ tarball }}/bin/postgresql{{ pg_ver }}-setup initdb

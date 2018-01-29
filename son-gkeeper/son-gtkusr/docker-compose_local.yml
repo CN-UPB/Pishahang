@@ -1,0 +1,45 @@
+# OUTDATED!
+version: '2'
+
+services:
+  adapter:
+    build:
+      context: ./
+      dockerfile: dockerfile-gtkusr
+    ports: 
+      - "4021:4021"
+    links:
+    #  - keycloak
+      - mongo:mongo
+    environment:
+      - KEYCLOAK_ADDRESS=keycloak
+      - KEYCLOAK_PORT=8080
+      - KEYCLOAK_PATH=auth
+      - SONATA_REALM=sonata
+      - CLIENT_NAME=adapter
+    container_name: sonata-gk-usr
+  keycloak:
+    build:
+      context: ./
+      dockerfile: dockerfile-keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+    links:
+      - adapter
+    container_name: sonata-keycloak
+  mongodata-gtk:
+    image: mongo:3.0.4
+    volumes:
+      - /data/db
+    command: --break-mongo
+  mongo:
+    image: mongo:3.0.4
+    volumes_from:
+      - mongodata-gtk
+    ports:
+      - "27017"
+    command: --smallfiles --rest
+    restart: always

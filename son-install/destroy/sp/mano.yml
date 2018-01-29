@@ -1,0 +1,31 @@
+---
+- name: remove MANO FRAMEWORK Docker containers from the SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Running the Sonata MANO Docker Images
+
+  - name: MANO Specific Manager Registry - removing Docker containers
+    docker_container:
+      name: specificmanagerregistry
+      state: absent
+
+  - name: MANO Plug-in Manager - removing Docker containers
+    docker_container:
+      name: pluginmanager
+      state: absent
+  - wait_for: host=0.0.0.0 port=8001 timeout=30 delay=10 state=drained
+
+#  - pause: seconds=15
+
+  - name: MANO Service Life-cycle Management (SLM) - removing Docker containers
+    docker_container:
+      name: svclifecyclemanagement
+      state: absent
+
+#  - name: MANO Function Life-cycle Management (FML) - removing Docker containers
+#    docker_container:
+#      name: functionlifecyclemanagement
+#      state: absent
+

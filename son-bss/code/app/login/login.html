@@ -1,0 +1,27 @@
+<div class="modal-body">
+    <div class="row">        
+        <div class="col-md-8 col-md-offset-2">
+            <div class="alert alert-danger" ng-show="vm.error">
+                <strong>Failed to sign in!</strong> Please check your credentials and try again.
+            </div>
+        </div>
+        <div class="col-md-8 col-md-offset-2">
+            <form class="form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Your username" ng-model="vm.username" required>
+                    <div ng-messages="form.$submitted && form.username.$error" class="help-block"></div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Your password" ng-model="vm.password" required>
+                    <div ng-messages="form.$submitted && form.password.$error" class="help-block"></div>
+                </div>                         
+                    <button class="btn btn-primary" ng-click="vm.login()">Login</button>
+                    <!--button class="btn btn-primary" ng-click="vm.register()">Register</button-->
+                    <a href="#/register" class="btn btn-link" ng-class="{'active':currentState.name=='Register'}">Register</a>
+                </div>                
+            </form>
+        </div>
+    </div>
+</div>

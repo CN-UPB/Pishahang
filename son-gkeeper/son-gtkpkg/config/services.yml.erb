@@ -1,0 +1,18 @@
+---
+development: &common_settings
+  catalogues: <%= ENV['CATALOGUES_URL'] %>
+  manifest_schema: 'assets/schemas/manifest.json'
+  logger_level: <%= ENV['LOGGER_LEVEL'] %> 
+
+test:
+  <<: *common_settings
+
+integration:
+  <<: *common_settings
+
+qualification:
+  <<: *common_settings
+
+demonstration:
+  <<: *common_settings
+ 

@@ -1,0 +1,6 @@
+---
+# vars file for nginx
+public_ip: 172.31.6.118
+plat_hostname: nginx-alabs-demo-xenial-01-1498648522
+public_ip: 172.31.6.109
+plat_hostname: nginx-alabs-demo-xenial-01-1498649442

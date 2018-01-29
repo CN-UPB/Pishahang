@@ -1,0 +1,5 @@
+---
+# vars file for docker-grafana
+
+grafana_port_min: 3000
+grafana_port_max: 3000

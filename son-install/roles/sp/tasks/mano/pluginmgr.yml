@@ -1,0 +1,25 @@
+---
+
+- name: MANO Plug-in Manager (Docker container)
+  docker_container:
+    name: pluginmanager
+    image: "sonatanfv/pluginmanager:{{ sp_ver }}"
+    env:
+      mongo_host: son-mongo
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - pluginmanager
+        links:
+          - son-broker
+          - son-mongo
+    restart_policy: "always"
+    state: started
+    published_ports: 8001:8001
+
+- wait_for: host=0.0.0.0 port=8001 timeout=30 delay=10 state=started
+
+- pause:
+    seconds: 10

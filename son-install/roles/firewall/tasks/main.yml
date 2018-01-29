@@ -1,0 +1,5 @@
+---
+# tasks file for firewall
+
+- name: Installing FIREWALL daemon
+  include: "{{ ansible_os_family }}.yml"

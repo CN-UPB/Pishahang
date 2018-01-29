@@ -1,0 +1,23 @@
+WIM Adaptor for SONATA project.
+ 
+ This version of WIM Adaptor creates a Rest API where the IA can request to add a new flow with a new request. 
+
+ At the moment WIM Adaptor can be contacted in the following resources: 
+
+
+ http://host_IP:5000/flowchart/ 
+
+ GET: Return flowchart added 
+
+ POST: Send a json request to add a new flowchart. In the same time, a new condition is set, along with the flow redirections.
+The json message at the moment is: {"instance_id": "instance", "in_seg": "xxx.xxx.xxx.xxx/xx", "out_seg": "xxx.xxx.xxx.xxx/xx", "ports": [{"port":"xxx.xxx.xxx.xxx/xx", "order":"1"},{"port":"xxx.xxx.xxx.xxx/xx", "order":"2"}]}
+
+
+http://host_IP:5000/flowchart/<instance_id>
+
+GET: Return specific flowchart 
+
+DELETE: Delete the flowchart and the condition in VTN
+
+
+In the Database Folder, there are automated tools to create the Database for WIM_INFO, along with a script providing an easy way to populate it. 

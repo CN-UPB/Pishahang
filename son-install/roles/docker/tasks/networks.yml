@@ -1,0 +1,8 @@
+- name: Docker User Defined Network
+  shell: 'if ! [[ "$(docker network inspect {{ docker_network_name }} 2> /dev/null)" == "" ]]; then docker network rm {{ docker_network_name }} ; fi & service docker restart'
+  become: true
+
+- name: Docker creating network
+  shell: 'docker network create --driver=bridge --subnet=172.20.1.0/24 --gateway=172.20.1.1 --ip-range=172.20.1.128/25 "{{ docker_network_name }}"'
+  become: true
+

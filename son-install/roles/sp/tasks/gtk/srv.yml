@@ -1,0 +1,36 @@
+---
+
+- debug: msg="##### SP GTK-SERVICES DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Ensure son-gtksrv is not present
+- name: DELETE GATEKEEPER SERVICES (GTKSRV) (Docker container)
+  docker_container:
+    name: son-gtksrv
+    state: absent
+
+# Populate pgSQL database SRV
+- name: create data model and populate db
+  shell: /usr/bin/docker run -i --net={{ docker_network_name }} -e DATABASE_HOST=son-postgres -e RACK_ENV=integration -e CATALOGUES_URL=http://son-catalogue-repos:4002/catalogues/api/v2  -e DATABASE_PORT=5432 -e POSTGRES_PASSWORD={{ gtk_db_pass }} -e POSTGRES_USER={{ gtk_db_user }} -e POSTGRES_DB={{ gtk_db_name }} -e MQSERVER=amqp://guest:guest@son-broker:5672 --rm=true tdierich/son-gtksrv bundle exec rake db:migrate
+
+# Running the Sonata GK SERVICES (GTKSRV) (Docker container)
+- name: GATEKEEPER SERVICES - running Docker containers
+  docker_container:
+    name: son-gtksrv
+    image: "tdierich/son-gtksrv"
+    env:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+      MQSERVER: amqp://guest:guest@son-broker:5672
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: 5432
+      POSTGRES_PASSWORD: "{{ gtk_db_pass }}"
+      POSTGRES_USER: "{{ gtk_db_user }}"
+      POSTGRES_DB: "{{ gtk_db_name }}"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtksrv
+    state: started
+    restart_policy: "always"
+    published_ports: "5300:5300"

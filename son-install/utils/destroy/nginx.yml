@@ -1,0 +1,18 @@
+---
+- name: destroy NGINX from the 'target' machine'
+  hosts: "{{ target }}"
+  become: true
+  tasks:
+
+  - name: check if service is running
+    stat: path=/etc/init.d/nginx
+    register: service_status
+
+  - name: stop NGINX service
+    service: name=nginx state=stopped
+    when: service_status.stat.exists
+    register: service_stopped
+
+  - name: remove NGINX package
+    apt: name=nginx state=absent update_cache=yes
+

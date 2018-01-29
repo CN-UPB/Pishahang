@@ -1,0 +1,33 @@
+---
+
+- name: previous install APTitude
+  apt: name=aptitude state=latest
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+
+- name: install required libraries and tools for PIP
+  apt: name={{ item }} state=latest
+  with_items:
+  - build-essential
+  - python-dev
+  - python-pip
+  - libssl-dev
+  - libffi-dev
+
+- name: install Open vSwitch 
+  apt: name={{ item }} state=latest
+  with_items:
+  - openvswitch-switch
+  - openvswitch-common
+
+- name: start OVS service
+  service: name=openvswitch-switch state=started
+
+- name: enable IPv4 forwarding
+  shell: echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+  become: true
+- command: sysctl -p /etc/sysctl.conf
+  become: true
+  notify: reload openvswitch
+  

@@ -1,0 +1,30 @@
+---
+
+- name: set external name servers for DNS resolution
+  copy:
+    src: "{{ lookup('env','PWD') }}/roles/common/files/resolvconf"
+    dest: /etc/resolvconf/resolv.conf.d/base
+    owner: root
+    group: root
+    mode: 0644
+  become_user: root
+
+- name: previous install APTitude
+  apt: name=aptitude state=present
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+
+- name: install Python 2.7
+  apt: name=python state=present
+
+- name: install useful operating system tools
+  apt: name={{ item }} state=latest
+  with_items:
+  - sysstat
+  - nmap
+  - tree
+  - htop
+  - policycoreutils
+  - dialog
+  - nscd

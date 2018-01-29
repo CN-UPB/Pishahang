@@ -1,0 +1,75 @@
+---
+- name: stopping SP GATEKEEPER 
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  # Stopping the Sonata GK Docker Images
+
+  - name: GATEKEEPER GUI - stopping
+    docker_container:
+      name: son-gui
+      state: stopped
+  - wait_for: host=0.0.0.0 port=80 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER BSS - stopping
+    docker_container:
+      name: son-bss
+      state: stopped
+  - wait_for: host=0.0.0.0 port=1337 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER PACKAGES - stopping
+    docker_container:
+      name: son-gtkpkg
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5100 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER SERVER - stopping
+    docker_container:
+      name: son-gtksrv
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5300 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER CLOUD SERVICES - stopping
+    docker_container:
+      name: son-gtkcsrv
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5250 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER FUNCTIONS - stopping
+    docker_container:
+      name: son-gtkfnct
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5500 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER RECORDS - stopping
+    docker_container:
+      name: son-gtkrec
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5800 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER VIM - stopping
+    docker_container:
+      name: son-gtkvim
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5700 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER API - stopping
+    docker_container:
+      name: son-gtkapi
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5000 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER LIC - stopping
+    docker_container:
+      name: son-gtklic
+      state: stopped
+  - wait_for: host=0.0.0.0 port=5900 timeout=30 delay=10 state=drained
+
+  - name: GATEKEEPER KPI - stopping
+    docker_container:
+      name: son-gtkkpi
+      state: started
+
+  - wait_for: host=0.0.0.0 port=5400 timeout=30 delay=10 state=drained
+

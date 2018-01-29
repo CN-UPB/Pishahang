@@ -1,0 +1,5 @@
+docker-compose_local.yml
+Gemfile.lock
+reports
+log
+.idea/

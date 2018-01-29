@@ -1,0 +1,10 @@
+---
+# handlers file for Apache
+- name: restart Apache
+  action: name=apache2 state=restarted
+  when: ansible_os_family == "Debian"
+
+- name: restart Apache
+  action: name=httpd state=restarted
+  when: ansible_os_family == "RedHat"
+

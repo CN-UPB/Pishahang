@@ -1,0 +1,16 @@
+- hosts: ci
+  become: true
+  connection: ssh
+  pre_tasks:
+    - debug: msg="{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+  roles:
+  - ntp
+  - common
+  - jdk
+  - firewall
+  - nginx
+  - jenkins
+
+  post_tasks:
+    - debug: msg="{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+

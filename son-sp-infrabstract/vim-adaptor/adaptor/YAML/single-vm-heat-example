@@ -1,0 +1,13 @@
+heat_template_version: '2013-05-23'
+resources:
+  server1_hot:
+    properties:
+      flavor: m1.small
+      image: TestVM
+      name: fe
+      networks:
+      - port: {get_resource: server_port_1}
+    type: OS::Nova::Server
+  server_port_1:
+    properties: {network_id: 9f9b3f62-4890-4cf1-88b4-721e84a3ed36}
+    type: OS::Neutron::Port

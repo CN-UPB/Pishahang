@@ -1,0 +1,9 @@
+Flask==0.11
+uuid==1.30
+flask_SQLAlchemy==2.1
+flask_restful==0.3.5
+flask_script==2.0.5
+flask_migrate==2.0.0
+psycopg2==2.6.2
+xmlrunner==1.7.7
+requests==2.13.0

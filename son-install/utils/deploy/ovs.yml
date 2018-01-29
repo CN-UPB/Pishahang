@@ -1,0 +1,26 @@
+---
+- name: deploy OVS to the target machine
+  hosts: "{{ target }}"
+  become: true
+  connection: local
+  pre_tasks:
+    - debug: msg="OVS start deployment at: {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+    - file:
+        path: /var/log/ansible.log
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+    #- group:
+    #    name: ovs
+    #    state: present
+    #- user:
+    #    name: ovs
+    #    comment: "OVS user"
+    #    shell: /bin/bash
+    #    groups: ovs
+    #    append: yes
+
+  roles:
+  - openvswitch
+

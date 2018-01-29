@@ -1,0 +1,39 @@
+- name: create PUBLIC (internal) VLAN
+  os_network:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    state: present
+    name: int-net
+    shared: false
+    external: false
+  register: int_net
+
+#- lineinfile:
+#    path: "{{ lookup('env','PWD') }}/roles/{{ plat }}/vars/main.yml"
+#    line: "int_net_id: '{{ int_net.id }}'"
+#    create: yes
+#    state: present
+#  with_items: "{{ int_net }}"
+
+#- lineinfile:
+#    path: "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+#    regexp: '^int_net_id='
+#    line: "int_net_id: '{{ int_net.id }}'"
+
+- os_subnet:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    state: present
+    network_name: "{{ int_net.id }}"
+    name: sonata.dem-net
+    cidr: 192.168.10.0/24
+    gateway_ip: 192.168.10.1
+    enable_dhcp: true
+    allocation_pool_start: 192.168.10.100
+    allocation_pool_end: 192.168.10.200
+    dns_nameservers:
+       - 8.8.8.7
+       - 8.8.8.8
+    host_routes:
+       #- destination: 0.0.0.0/0
+       #  nexthop: 172.31.6.1
+       - destination: 192.168.10.0/24
+         nexthop: 192.168.10.1

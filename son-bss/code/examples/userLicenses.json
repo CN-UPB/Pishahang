@@ -1,0 +1,10 @@
+[{
+        "status": "ACTIVE",
+        "validation_url": null,
+        "description": "Default description",
+        "license_uuid": "d8057e2f-9201-4c13-9edb-0c6038186739",
+        "service_uuid": "8e114dcd-339d-4f9a-a6b6-b08641228484",
+        "license_type": "PUBLIC",
+        "user_uuid": "9491158b-44fd-4dea-8cf1-0d02820ddab5"
+    }
+]

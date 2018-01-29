@@ -1,0 +1,29 @@
+---
+
+- name: SONATA CMUD v2.1
+  hosts: localhost
+  become: false
+  connection: local
+
+  pre_tasks:
+    - debug: msg="##### ACC PREPARE {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+    - file:
+        path: "{{ lookup('env','PWD') }}/ansible.log"
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+    - file:
+        path: "{{ lookup('env','PWD') }}/group_vars/{{ plat }}/hosts"
+        state: absent
+      when: ops == "create"
+
+  roles:
+    - { role: common, become: true }
+    - { role: openstackclients, become: true }
+    - vm
+
+- include: "{{ lookup('env','PWD') }}/common.yml"
+
+- include: "{{ lookup('env','PWD') }}/{{ ops }}/{{ plat }}/main.yml"
+

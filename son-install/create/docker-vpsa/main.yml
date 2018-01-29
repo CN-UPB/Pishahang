@@ -1,0 +1,23 @@
+- hosts: "{{ plat }}"
+  become: true
+  connection: ssh
+  vars_files:
+    - "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+    - "{{ lookup('env','PWD') }}/roles/{{ plat }}/defaults/main.yml"
+  remote_user: "{{ vm_user }}"
+  pre_tasks:
+    - debug:
+        msg: "{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+  roles:
+    - docker
+    - docker-nginx
+    #- docker-pfsense
+    #- docker-openvpn
+    - docker-snort
+    #- docker-addblk
+    #- docker-openldap
+    - docker-squid
+
+  tasks:
+    - include: "{{ lookup('env','PWD') }}/roles/{{ plat }}/tasks/docker-vpsa-client.yml"

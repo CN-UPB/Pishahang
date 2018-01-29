@@ -1,0 +1,7 @@
+---
+- name: deploy DOCKER to the target machine
+  hosts: "{{ target }}"
+  become: true
+  roles:
+  - docker
+

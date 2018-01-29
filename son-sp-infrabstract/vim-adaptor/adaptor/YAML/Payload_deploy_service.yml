@@ -1,0 +1,302 @@
+---
+vim_uuid: 4f52ad2d-6c17-4690-bb53-94ebd7e469e6
+nsd:
+  vendor: "eu.sonata-nfv.service-descriptor"
+  uuid: "9df6a98f-9e11-4cb7-b3c0-b1375e7cb0b0"
+  status: "Inactive"
+  name: "sonata-demo"
+  version: "0.2"
+  author: "Michael Bredel, NEC Labs Europe"
+  description: "\n\"The network service descriptor for the SONATA demo,\n\n comprising\
+    \ iperf, a firewall, and tcpump.\"\n"
+  descriptor_version: "1.0"
+  created_at: "2016-04-28T14:25:47.309+00:00"
+  updated_at: "2016-04-28T14:25:47.309+00:00"
+  instance_uuid: "9df6a98f-9e11-4cb7-b3c0-b1375e7c0000"
+  network_functions:
+  - vnf_id: "vnf_firewall"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "firewall-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_iperf"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "iperf-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vnf_tcpdump"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "tcpdump-vnf"
+    vnf_version: "0.1"
+  connection_points:
+  - id: "mgmt"
+    type: "public"
+  - id: "input"
+    type: "internal"
+  - id: "output"
+    type: "internal"
+  virtual_links:
+  - id: "mgmt"
+    access: false
+    dhcp: false
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+    - "vnf_iperf:mgmt"
+    - "vnf_firewall:mgmt"
+    - "vnf_tcpdump:mgmt"
+    - "mgmt"
+    external_access: false
+  - id: "input-2-iperf"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "input"
+    - "vnf_iperf:input"
+    external_access: false
+  - id: "iperf-2-firewall"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vnf_iperf:output"
+    - "vnf_firewall:input"
+    external_access: false
+  - id: "firewall-2-tcpdump"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vnf_firewall:output"
+    - "vnf_tcpdump:input"
+    external_access: false
+  - id: "tcpdump-2-output"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vnf_tcpdump:output"
+    - "output"
+    external_access: false
+  forwarding_graphs:
+  - fg_id: "ns:fg01"
+    number_of_endpoints: 2
+    number_of_virtual_links: 4
+    constituent_vnfs:
+    - "vnf_iperf"
+    - "vnf_firewall"
+    - "vnf_tcpdump"
+    network_forwarding_paths:
+    - policy: "none"
+      fp_id: "ns:fg01:fp01"
+      connection_points:
+      - position: 1
+        connection_point_ref: "input"
+      - position: 2
+        connection_point_ref: "vnf_iperf:input"
+      - position: 3
+        connection_point_ref: "vnf_iperf:output"
+      - position: 4
+        connection_point_ref: "vnf_firewall:input"
+      - position: 5
+        connection_point_ref: "vnf_firewall:output"
+      - position: 6
+        connection_point_ref: "vnf_tcpdump:input"
+      - position: 7
+        connection_point_ref: "vnf_tcpdump:output"
+      - position: 8
+        connection_point_ref: "output"
+vnfdList:
+- vendor: "eu.sonata-nfv"
+  name: "iperf-vnf"
+  version: "0.2"
+  uuid: "645db4fa-a714-4cba-9617-4001477d1281"
+  author: "Steven van Rossem, iMinds"
+  description: "\n\"A first iperf VNF descriptor. The iperf VNF\n\n acts as a traffic\
+    \ source.\"\n"
+  descriptor_version: "vnfd-schema-01"
+  created_at: "2016-04-28T14:25:47.470+00:00"
+  updated_at: "2016-04-28T14:25:47.470+00:00"
+  instance_uuid: "645db4fa-a714-4cba-9617-4001477d0000"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "sonata_firewall_VM"
+    vm_image_format: "qcow2"
+    resource_requirements:
+      cpu:
+        vcpus: 1
+      memory:
+        size: 2.0
+        size_unit: "GB"
+        large_pages_required: false
+      storage:
+        size: 10.0
+        persistence: false
+        size_unit: "GB"
+    connection_points:
+    - id: "cp01"
+      type: "public"
+    - id: "cp02"
+      type: "internal"
+    - id: "cp03"
+      type: "internal"
+  connection_points:
+  - id: "mgmt"
+    type: "public"
+  - id: "input"
+    type: "internal"
+  - id: "output"
+    type: "internal"
+  virtual_links:
+  - id: "mgmt"
+    access: false
+    dhcp: false
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+    - "vdu01:cp01"
+    - "mgmt"
+    external_access: false
+  - id: "input"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp02"
+    - "input"
+    external_access: false
+  - id: "output"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp03"
+    - "output"
+    external_access: false
+- vendor: "eu.sonata-nfv"
+  name: "firewall-vnf"
+  version: "0.2"
+  uuid: "6a15313f-cb0a-4540-baa2-77cc6b3f5b68"
+  author: "Steven van Rossem, iMinds"
+  description: "\n\"A first firewall VNF descriptor\"\n"
+  descriptor_version: "vnfd-schema-01"
+  created_at: "2016-04-28T14:25:47.392+00:00"
+  updated_at: "2016-04-28T14:25:47.392+00:00"
+  instance_uuid: "6a15313f-cb0a-4540-baa2-77cc6b3f0000"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "sonata_firewall_VM"
+    vm_image_format: "qcow2"
+    resource_requirements:
+      cpu:
+        vcpus: 1
+      memory:
+        size: 2.0
+        size_unit: "GB"
+        large_pages_required: false
+      storage:
+        size: 10.0
+        persistence: false
+        size_unit: "GB"
+    connection_points:
+    - id: "cp01"
+      type: "public"
+    - id: "cp02"
+      type: "internal"
+    - id: "cp03"
+      type: "internal"
+  connection_points:
+  - id: "mgmt"
+    type: "public"
+  - id: "input"
+    type: "internal"
+  - id: "output"
+    type: "internal"
+  virtual_links:
+  - id: "mgmt"
+    access: false
+    dhcp: false
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+    - "vdu01:cp01"
+    - "mgmt"
+    external_access: false
+  - id: "input"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp02"
+    - "input"
+    external_access: false
+  - id: "output"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp03"
+    - "output"
+    external_access: false
+- vendor: "eu.sonata-nfv"
+  name: "tcpdump-vnf"
+  version: "0.2"
+  uuid: "8a0aa837-ec1c-44e5-9907-898f6401c3ae"
+  author: "Steven van Rossem, iMinds"
+  description: "\n\"A first tcpdump VNF descriptor. The tcpdump\n\n VNF acts as a\
+    \ traffic sink.\"\n"
+  descriptor_version: "vnfd-schema-01"
+  created_at: "2016-04-28T14:25:47.548+00:00"
+  updated_at: "2016-04-28T14:25:47.548+00:00"
+  instance_uuid: "8a0aa837-ec1c-44e5-9907-898f64010000"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "sonata_firewall_VM"
+    vm_image_format: "qcow2"
+    resource_requirements:
+      cpu:
+        vcpus: 1
+      memory:
+        size: 2.0
+        size_unit: "GB"
+        large_pages_required: false
+      storage:
+        size: 10.0
+        persistence: false
+        size_unit: "GB"
+    connection_points:
+    - id: "cp01"
+      type: "public"
+    - id: "cp02"
+      type: "internal"
+    - id: "cp03"
+      type: "internal"
+  connection_points:
+  - id: "mgmt"
+    type: "public"
+  - id: "input"
+    type: "internal"
+  - id: "output"
+    type: "internal"
+  virtual_links:
+  - id: "mgmt"
+    access: false
+    dhcp: false
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+    - "vdu01:cp01"
+    - "mgmt"
+    external_access: false
+  - id: "input"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp02"
+    - "input"
+    external_access: false
+  - id: "output"
+    access: false
+    dhcp: false
+    connectivity_type: "E-Line"
+    connection_points_reference:
+    - "vdu01:cp03"
+    - "output"
+    external_access: false
+

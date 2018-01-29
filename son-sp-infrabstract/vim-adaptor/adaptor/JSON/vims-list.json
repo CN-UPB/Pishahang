@@ -1,0 +1,52 @@
+[
+	{
+		"vim_uuid": "1111-22222222-33333333-4441",
+		"vim_city": "Athens",
+		"vim_name": "Athens-200",
+		"vim_endpoint": "10.100.32.200",
+		"memory_used": 12288,
+		"memory_total": 51200,
+		"core_used": 6,
+		"core_total": 20
+	},
+	{
+		"vim_uuid": "1111-22222222-33333333-4441",
+		"vim_city": "Aveiro",
+		"vim_name": "Aveiro-200",
+		"vim_endpoint": "10.100.32.200",
+		"memory_used": 12288,
+		"memory_total": 51200,
+		"core_used": 6,
+		"core_total": 20
+	},
+	{
+		"vim_uuid": "1111-22222222-33333333-4441",
+		"vim_city": "London",
+		"vim_name": "London-200",
+		"vim_endpoint": "10.100.32.200",
+		"memory_used": 12288,
+		"memory_total": 51200,
+		"core_used": 6,
+		"core_total": 20
+	},
+	{
+		"vim_uuid": "1111-22222222-33333333-4441",
+		"vim_city": "Paderborn",
+		"vim_name": "Paderborn-200",
+		"vim_endpoint": "10.100.32.200",
+		"memory_used": 12288,
+		"memory_total": 51200,
+		"core_used": 6,
+		"core_total": 20
+	},
+	{
+		"vim_uuid": "1111-22222222-33333333-4441",
+		"vim_city": "Tel Aviv",
+		"vim_name": "TelAviv-200",
+		"vim_endpoint": "10.100.32.200",
+		"memory_used": 12288,
+		"memory_total": 51200,
+		"core_used": 6,
+		"core_total": 20
+	}
+]

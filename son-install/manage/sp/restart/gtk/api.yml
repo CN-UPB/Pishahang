@@ -1,0 +1,37 @@
+---
+# Re-starting the Sonata GTK API Docker container
+
+- name: restarting GTK API Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: re-starting GATEKEEPER API (Docker containers)
+    docker_container:
+      name: son-gtkapi
+      image: tdierich/son-gtkapi
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        RACK_ENV: integration
+        PACKAGE_MANAGEMENT_URL: http://{{ public_ip }}:5100
+        SERVICE_MANAGEMENT_URL: http://{{ public_ip }}:5300
+        FUNCTION_MANAGEMENT_URL: http://{{ public_ip }}:5500
+        VIM_MANAGEMENT_URL: http://{{ public_ip }}:5700 
+        RECORD_MANAGEMENT_URL: http://{{ public_ip }}:5800
+        CLOUD_SERVICE_MANAGEMENT_URL: http://{{ public_ip }}:5250
+        #SECRET_KEY: son-install
+      links:
+        - son-gtkpkg
+        - son-gtkfnct
+        - son-gtkrec
+        - son-gtksrv
+        - son-gtkvim
+        - son-gtkcsrv
+      ports: "32001:5000"
+      volumes:
+        - /var/log/sonata:/var/log/son-gtkapi
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=5000 timeout=120 delay=10 state=started

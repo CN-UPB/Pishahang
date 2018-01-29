@@ -1,0 +1,391 @@
+<!--
+Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+ALL RIGHTS RESERVED.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+nor the names of its contributors may be used to endorse or promote 
+products derived from this software without specific prior written 
+permission.
+
+This work has been performed in the framework of the SONATA project,
+funded by the European Commission under Grant number 671517 through 
+the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+acknowledge the contributions of their colleagues of the SONATA 
+partner consortium (www.sonata-nfv.eu).
+-->
+
+  <div class="row" ng-controller="KpisController">
+    <div class="col s12">
+        <div class="col s12 m6 l4" style="margin-top:10px" ng-click="getPackageOnBoardingDetails()">
+          <div class="kpi">
+            <div class="kpi-subtitle">How many packages have been on-boarded</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_packages_on_board}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline8"  class="hide-on-small-only"></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12 m6 l4" style="margin-top:10px" ng-click="getInstatiationTimeDetails()">
+          <div class="kpi">
+            <div class="kpi-subtitle">Services instantiation time</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_services}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline_inst_time_requests"  class="hide-on-small-only"></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        
+
+        <div class="col s12 m6 l4" style="margin-top:10px" ng-click="getRegisteredUsersDetails()">
+          <div class="kpi">
+            <div class="kpi-subtitle">How many users have been registered</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_registered_users}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline_registered_users"  class="hide-on-small-only"></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12 m6 l4" style="margin-top:10px"  ng-click="getSyncDetails(sync_requests_kpi)">
+          <div class="kpi">
+            <div class="kpi-subtitle">Synchronous monitoring data requests</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_sync_requests}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline_sync_requests"  class="hide-on-small-only"></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12 m6 l4" style="margin-top:10px" ng-click="getHttPTotalsDetails()">
+          <div class="kpi">
+            <div class="kpi-subtitle">Total number of HTTP requests made.</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_http_requests_text}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline_http_requests" class="hide-on-small-only"></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12 m6 l4" style="margin-top:10px" ng-click="getVMsDetails()">
+          <div class="kpi">
+            <div class="kpi-subtitle">Total number of VMs</div>
+            <div class="row">
+              <div class="col s12 m6">
+                <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{total_vms}}</div>
+              </div>
+              <div class="col s12 m6" style="top: 29px;position: relative;line-height: 53px;">
+                <div id="sparkline_vms" class="hide-on-small-only" ></div>                    
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+     <!--  <div class="col s12 m6 l4" ng-repeat="kpi in kpis" ng-click="getKPIDetails(kpi)" style="margin-top:10px">
+        <div class="kpi" ng-class="kpi.class">
+          <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{kpi.sum}}</div>
+          <div class="kpi-subtitle">{{kpi.description}}</div>
+        </div>
+      </div> -->
+
+     <!--  <div class="col s12 m6 l4" ng-click="getVMsDetails()" style="margin-top:10px">
+        <div class="kpi" ng-class="vms_sum.class">
+          <div class="kpi-number" style="font-size: 500%!important;word-wrap: normal">{{vms_sum.sum}}</div>
+          <div class="kpi-subtitle">{{vms_sum.description}}</div>
+        </div>
+      </div> -->
+
+      <!-- <div class="col s12 m6 l4" ng-click="getHttPTotalsDetails()" style="margin-top:10px">
+        <div class="kpi" ng-class="http_sum.class">
+          <div class="kpi-number" >{{http_sum.sum}}</div>
+          <div class="kpi-subtitle" >{{http_sum.description}}</div>
+        </div>
+      </div> -->
+
+     
+
+
+
+    </div>
+    
+
+    <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+    
+   
+      
+
+        <div id="modal_instatiation_details" class="modal modal-fixed-footer">
+          <div class="modal-content">
+             <h4>Instatiation time board</h4>
+              <div class="col s12">
+                  <div id="instatiation_bar_chart" style="width: 100%"></div>
+              </div>
+                <div class="col s12">
+                    <div id="InstationPieChart" style="width: 100%"></div>
+                </div>
+                <div class="col s12">                  
+                    <span class="tags" ng-repeat="tag in tags">{{tag.name+" ("+tag.counter+")"}}</span>                    
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Uuid</th>
+                          <th>Instance</th>
+                          <th>Result</th>
+                          <th>Elapsed Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in resl">
+                          <td>{{result.labels.uuid}}</td>
+                          <td>{{result.labels.instance}}</td>
+                          <td>{{result.labels.result}}</td>
+                          <td>{{result.labels.elapsed_time}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                </div>
+                
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closePackagesModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+
+        <div id="modal_packages_details" class="modal modal-fixed-footer">
+          <div class="modal-content">
+             <h4>Packages On Board</h4>
+              <div class="col s12 m6">
+                  <div id="packages_bar_chart" style="width: 100%"></div>
+              </div>
+                <div class="col s12 m6">
+                    <div id="PackagesPieChart" style="width: 100%"></div>
+                </div>
+                <div class="col s12">                  
+                    <span class="tags" ng-repeat="tag in tags">{{tag.name+" ("+tag.counter+")"}}</span>                    
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Uuid</th>
+                          <th>Instance</th>
+                          <th>Result</th>
+                          <th>Elapsed Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in resl">
+                          <td>{{result.labels.uuid}}</td>
+                          <td>{{result.labels.instance}}</td>
+                          <td>{{result.labels.result}}</td>
+                          <td>{{result.labels.elapsed_time}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                </div>
+                
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closePackagesModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+
+
+        <div id="modal_user_details" class="modal modal-fixed-footer">
+          <div class="modal-content">
+             <h4>Registered Users</h4>
+              <div class="col s12 m6">
+                  <div id="user_bar_chart" style="width: 100%"></div>
+              </div>
+                <div class="col s12 m6">
+                    <div id="UserPieChart" style="width: 100%"></div>
+                </div>
+                <div class="col s12">                  
+                    <span class="tags" ng-repeat="tag in tags">{{tag.name+" ("+tag.counter+")"}}</span>                    
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Uuid</th>
+                          <th>Instance</th>
+                          <th>Result</th>
+                          <th>Elapsed Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in resl">
+                          <td>{{result.labels.uuid}}</td>
+                          <td>{{result.labels.instance}}</td>
+                          <td>{{result.labels.result}}</td>
+                          <td>{{result.labels.elapsed_time}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                </div>
+                
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closeUserModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+
+
+        <div id="modal_sync_requests_details" class="modal modal-fixed-footer">
+          <div class="modal-content">
+             <h4>Synchronous monitoring data requests</h4>
+              <div class="col s12 m6">
+                  <div id="sync_bar_chart" style="width: 100%"></div>
+              </div>
+                <div class="col s12 m6">
+                    <div id="SyncPieChart" style="width: 100%"></div>
+                </div>
+                <div class="col s12">                  
+                    <span class="tags" ng-repeat="tag in tags">{{tag.name+" ("+tag.counter+")"}}</span>                    
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Uuid</th>
+                          <th>Instance</th>
+                          <th>Result</th>
+                          <th>Elapsed Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in resl">
+                          <td>{{result.labels.uuid}}</td>
+                          <td>{{result.labels.instance}}</td>
+                          <td>{{result.labels.result}}</td>
+                          <td>{{result.labels.elapsed_time}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                </div>
+                
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closeSyncModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+
+    <div id="modalhttps_details" class="modal modal-fixed-footer">
+      <div class="modal-content">
+            <div class="col s12">
+             <div id="http_chart_container" style="width: 100%"></div>
+             <div id="http_chart_container_large" style="width: 100%"></div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <a href="javascript:void(0)" ng-click="closeModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+      </div>
+    </div>
+
+    <div id="modalvms_details" class="modal modal-fixed-footer">
+          <div class="modal-content">
+            
+           
+            <div class="row" ng-repeat="instance in instances_list" style="background: white;padding: 20px;border-top: 2px solid #CCC;">
+                <div class="col s12 m3">
+                  <h2 style="font-size: 20px">{{instance.instance}}</h2>
+                  <table>
+                    <tr ng-repeat="dat in instance.state">
+                      <td>{{dat.name}}</td>
+                      <td>{{dat.value}}</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col s12 m9">
+                    <div id="{{'chart_'+instance.instance}}" style="height: 100%"></div>
+
+                </div>
+                  <div class="n" ng-init="setChartHere(instance)"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closeModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+      <div id="modal1" class="modal modal-fixed-footer">
+          <div class="modal-content">
+             <h4>{{modal.title}}</h4>
+              <div class="col s12 m6">
+                  <div id="kpi_timeline"></div>
+              </div>
+                <div class="col s12 m6">
+                    <div id="resultChart" style="width: 100%"></div>
+                </div>
+                <div class="col s12">                  
+                    <span class="tags" ng-repeat="tag in tags">{{tag.name+" ("+tag.counter+")"}}</span>                    
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Uuid</th>
+                          <th>Instance</th>
+                          <th>Result</th>
+                          <th>Elapsed Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in resl">
+                          <td>{{result.labels.uuid}}</td>
+                          <td>{{result.labels.instance}}</td>
+                          <td>{{result.labels.result}}</td>
+                          <td>{{result.labels.elapsed_time}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                </div>
+                
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closeModal()" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+          </div>
+        </div>
+
+
+
+  </div>
+          
+<style>
+.jqstooltip {
+    width: auto!important;
+    height: 33px!important;
+}
+</style>

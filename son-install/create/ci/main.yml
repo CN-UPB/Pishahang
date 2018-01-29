@@ -1,0 +1,6 @@
+---
+
+- include: ../../infra.yml
+- include: ../../common.yml
+- include: ci.yml
+

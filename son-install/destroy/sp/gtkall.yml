@@ -1,0 +1,86 @@
+---
+- name: remove ALL SP Docker containers from VM
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: GATEKEEPER API - removing Docker container
+    docker_container:
+      name: son-gtkapi
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5000 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER VIM - removing Docker container
+    docker_container:
+      name: son-gtkvim
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5700 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER SERVER - removing Docker container
+    docker_container:
+      name: son-gtksrv
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5300 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER CLOUD SERVICES - removing Docker container
+    docker_container:
+      name: son-gtkcsrv
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5250 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER GUI - removing Docker container
+    docker_container:
+      name: son-gui
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=80 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER BSS - removing Docker container
+    docker_container:
+      name: son-bss
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=1337 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER PACKAGES - removing Docker container
+    docker_container:
+      name: son-gtkpkg
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5100 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER FUNCTIONS - removing Docker container
+    docker_container:
+      name: son-gtkfnct
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5500 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER RECORDS - removing Docker container
+    docker_container:
+      name: son-gtkrec
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5800 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER LICENSE - removing Docker container
+    docker_container:
+      name: son-gtkrec
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5900 timeout=120 delay=10 state=drained
+
+  - name: GATEKEEPER KEY PERFORMANCE INDICATORs (KPI) - removing Docker container
+    docker_container:
+      name: son-gtkkpi
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5400 timeout=120 delay=10 state=drained
+
+
+# wait 120 seconds for port 8000 of any IP to close active connections, don't start checking for 10 seconds
+

@@ -1,0 +1,8 @@
+---
+- name: installing a PostgreSQL database server
+  hosts: "{{ target }}"
+  become: true 
+  vars_files:
+  - roles/pgsql/vars/main.yml 
+  roles:
+  - pgsql

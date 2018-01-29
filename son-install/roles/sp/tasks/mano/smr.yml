@@ -1,0 +1,18 @@
+- name: MANO Specific Manager Registry (SMR) (Docker container)
+  docker_container:
+    name: specificmanagerregistry
+    image: "sonatanfv/specificmanagerregistry:{{ sp_ver }}"
+    env:
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      broker_name: son-broker,broker
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - specificmanagerregistry
+        links:
+          - son-broker
+    restart_policy: "always"
+    state: started
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

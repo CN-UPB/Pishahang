@@ -1,0 +1,37 @@
+- name: start proxy container
+  docker_container:
+    name: "squid"
+    recreate: yes
+    image:  sameersbn/squid
+    command: sleep 1m
+    exposed_ports:
+     - "3128:3128"
+     - 3129:3129
+    volumes:
+      - /var/log/sonata/squid:/var/log/squid
+    log_driver: syslog # gelf
+    #log_options:
+    #  syslog-address: tcp://my-syslog-server:514
+    #  syslog-facility: daemon
+
+- wait_for: host=0.0.0.0 port=3128 timeout=30 delay=10 state=started
+
+
+- name: start proxy container
+  docker_container:
+    name: "squid"
+    recreate: yes
+    image:  sameersbn/squid # just for PoC - to retrieve private image
+    command: sleep 1m
+    exposed_ports:
+     - "3130:3128"
+     - 3131:3129
+    volumes:
+      - /var/log/sonata/squid:/var/log/squid
+    log_driver: syslog # gelf
+    #log_options:
+    #  syslog-address: tcp://my-syslog-server:514
+    #  syslog-facility: daemon
+
+- wait_for: host=0.0.0.0 port=3130 timeout=30 delay=10 state=started
+

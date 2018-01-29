@@ -1,0 +1,21 @@
+---
+
+- debug: msg="##### SP GTK-RECORDs DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Running the Sonata GK RECORDs (Docker container)
+
+- name: GATEKEEPER RECORDS - running Docker containers
+  docker_container:
+    name: son-gtkrec
+    image: "tdierich/son-gtkrec"
+    env:
+      REPOSITORIES_URL: http://son-catalogue-repos:4011/records
+      RACK_ENV: integration
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtkrec
+    published_ports: "5800:5800"
+    restart_policy: "always"

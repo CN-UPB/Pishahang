@@ -1,0 +1,34 @@
+---
+
+- debug: msg="##### SP GTK-LICENSING DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Ensure son-gtklic is not present
+- name: DELETE GATEKEEPER LICENSE MANAGER (GTKLIC) (Docker container)
+  docker_container:
+    name: son-gtklic
+    state: absent
+
+# Populate pgSQL database LIC
+- name: create data model and populate db
+  shell: /usr/bin/docker run --name son-gtklic --net={{ docker_network_name }} --network-alias=son-gtklic -i -e DATABASE_HOST=son-postgres -e DATABASE_PORT=5432 -e POSTGRES_PASSWORD={{ gtk_db_pass }} -e POSTGRES_USER={{ gtk_db_user }} -e POSTGRES_DB={{ gtk_db_name }} --rm=true sonatanfv/son-gtklic:{{ sp_ver }} python manage.py db upgrade
+
+# Running the Sonata GK SERVICES (Docker container)
+- name: GATEKEEPER LICENSE MANAGER (GTKLIC) (Docker container)
+  docker_container:
+    name: son-gtklic
+    image: "sonatanfv/son-gtklic:{{ sp_ver }}"
+    env:
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: 5432
+      POSTGRES_PASSWORD: "{{ gtk_db_pass }}"
+      POSTGRES_USER: "{{ gtk_db_user }}"
+      POSTGRES_DB: "{{ gtk_db_name }}"
+    state: started
+    restart_policy: "always"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtklic
+    exposed_ports: 5900
+    published_ports: "5900:5900"

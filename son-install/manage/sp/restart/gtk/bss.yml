@@ -1,0 +1,25 @@
+---
+# Re-starting the Sonata GTK BSS Docker container
+
+- name: restarting GTK BSS Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+
+  - name: deploying GATEKEEPER BSS (Docker containers)
+    docker_container:
+      name: son-bss
+      image: tdierich/son-yo-gen-bss
+      command: grunt serve:integration --gkApiUrl=http://{{ public_ip }}:32001
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      #env:
+        #SECRET_KEY: son-install
+      ports: "25001:1337"
+      volumes:
+        - /var/log/sonata:/var/log/son-bss
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=1337 timeout=120 delay=10 state=started

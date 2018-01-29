@@ -1,0 +1,4 @@
+---
+- name: install 'firewalld' to manage arbitrary ports/services
+  yum: name=firewalld state=latest
+

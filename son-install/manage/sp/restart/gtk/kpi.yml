@@ -1,0 +1,26 @@
+---
+
+- name: restarting GTK KPI Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: GATEKEEPER KEY PERFORMANCE INDICATORs (GTKKPI) (Docker container)
+    docker_container:
+      name: son-gtkkpi
+      image: sonatanfv/son-gtkkpi
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        PUSHGATEWAY_HOST: prometheus
+        PUSHGATEWAY_PORT: 9091
+        #SECRET_KEY: son-install
+      exposed_ports: 5400
+      ports: "5400:5400"
+      volumes:
+        - /var/log/sonata/son-gtkkpi:/var/log/son-gtkkpi
+      log_driver: syslog # gelf
+
+  - wait_for: host=0.0.0.0 port=5400 timeout=120 delay=10 state=started
+

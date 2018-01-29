@@ -1,0 +1,118 @@
+<!--
+Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+ALL RIGHTS RESERVED.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+nor the names of its contributors may be used to endorse or promote 
+products derived from this software without specific prior written 
+permission.
+
+This work has been performed in the framework of the SONATA project,
+funded by the European Commission under Grant number 671517 through 
+the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+acknowledge the contributions of their colleagues of the SONATA 
+partner consortium (www.sonata-nfv.eu).
+-->
+
+     <ul id="slide-out" class="side-nav fixed" ng-controller="MainController">
+      <li class="logo"><img src="media/sonata.png" style="max-width: 100%" /></li>
+      <li class="no-padding menu_item_li">
+        <a class="collapsible-header waves-effect waves-teal" href="#/home"><i class="fa fa-home"></i>Dashboard</a>
+      </li>
+      <li class="no-padding">
+         <ul class="collapsible">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal menu_item_li" href="#/user/profile" ><i class="fa fa-user"></i> User Profile</a>
+          </li>
+          </ul>         
+      </li>
+     
+        <li class="no-padding">
+         <ul class="collapsible collapsible-accordion">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal" ng-class="menu['catalogue'].class"><i class="fa fa-list"></i> Catalogue</a>
+            <div class="collapsible-body">
+              <ul>
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/catalogue/packages">Packages</a></li>
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/catalogue/allServices">Services</a></li>               
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/catalogue/functions">Functions</a></li>
+              <li class="waves-effect waves-teal menu_item_li"><a href="#/catalogue/cloudServices">Cloud Services</a></li>
+              </ul>
+            </div>
+          </li>
+          </ul> 
+      </li>
+
+      <li class="no-padding">
+         <ul class="collapsible">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal menu_item_li" href="#/vim_settings"><i class="fa fa-cogs"></i> WIM/VIM Settings</a>
+          </li>
+          </ul>         
+      </li>
+      <li class="no-padding">
+         <ul class="collapsible collapsible-accordion">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal menu_item_li"><i class="fa fa-area-chart"></i> Monitoring</a>
+            <div class="collapsible-body">
+              <ul>
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/monitoring/platform">Service Platform</a></li>
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/monitoring/vnfs">VNFs</a></li>
+                <li class="waves-effect waves-teal menu_item_li"><a href="#/monitoring/css">Cloud Services</a></li>
+              </ul>
+            </div>
+          </li>
+          </ul>         
+        
+      </li>
+
+      <li class="no-padding">
+         <ul class="collapsible">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal menu_item_li" href="#/alerts"><i class="fa fa-bell-o"></i> Alerts  <i ng-show="alerts_visibility" style="color:red" class="right large material-icons">info_outline</i></a>
+          </li>
+          </ul>                 
+      </li>
+      <li class="no-padding">
+         <ul class="collapsible">
+          <li>
+            <a class="collapsible-header waves-effect waves-teal menu_item_li" href="#/catalogue/kpis"><i class="fa fa-dot-circle-o"></i> KPIs</a>
+          </li>
+          </ul>                 
+      </li>
+
+    </ul>
+
+
+<script>
+$('.menu_item_li').click(function(){
+  $('.button-collapse').sideNav('hide');
+});
+
+</script>
+
+
+
+<style>
+ header, main, footer {
+      
+    }
+
+    @media only screen and (max-width : 992px) {
+      header, main, footer {
+        padding-left: 0;
+      }
+    }
+</style>

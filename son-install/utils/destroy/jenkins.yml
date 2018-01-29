@@ -1,0 +1,32 @@
+---
+- name: "destroy JENKINS CI server from the VM appliance"
+  hosts: "{{ target }}"
+  become: true
+  tasks:
+
+  - name: check if service is running
+    stat: path=/etc/init.d/jenkins
+    register: service_status
+
+  - name: stop Jenkins service
+    service: name=jenkins state=stopped
+    when: service_status.stat.exists
+    register: service_stopped
+
+  - name: remove Jenkins package
+    yum: name=jenkins state=absent update_cache=yes
+    when: ansible_os_family == "RedHat" and ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
+  - name: remove Jenkins package
+    apt: name=jenkins state=absent update_cache=yes
+    when: ansible_os_family == "Debian"
+
+  - name: removing datafiles
+    file: path={{ item }} state=absent
+    with_items:
+    - /var/run/jenkins/
+    - /var/lib/jenkins/
+    - /var/log/jenkins/
+    - /usr/share/jenkins/
+    - /etc/init.d/jenkins
+

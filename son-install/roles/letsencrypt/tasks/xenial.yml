@@ -1,0 +1,14 @@
+# NGINX
+
+- name: install CertBot for NGINX
+  apt: name=letsencrypt state=present
+
+- name: obtain the Certificate 
+  shell: letsencrypt certonly --webroot -w /usr/share/nginx/html -d alb.sonata-nfv.eu -d sp.alb.sonata-nfv.eu
+
+
+# APACHE
+
+- name: install CertBot for Apache
+  apt: name=python-letsencrypt-apache state=present
+

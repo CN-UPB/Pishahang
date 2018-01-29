@@ -1,0 +1,4 @@
+
+- name: reload openvswitch
+  service: name=openvswitch-switch state=restarted
+

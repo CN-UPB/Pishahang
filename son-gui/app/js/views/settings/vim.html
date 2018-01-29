@@ -1,0 +1,485 @@
+<!--
+Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+ALL RIGHTS RESERVED.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+nor the names of its contributors may be used to endorse or promote 
+products derived from this software without specific prior written 
+permission.
+
+This work has been performed in the framework of the SONATA project,
+funded by the European Commission under Grant number 671517 through 
+the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+acknowledge the contributions of their colleagues of the SONATA 
+partner consortium (www.sonata-nfv.eu).
+-->
+
+<div class="row" ng-init="init()" ng-controller="VimSettingsController">
+
+  <div class="col s12">
+    <div class="card-panel">
+      <div class="card-content">
+            <h5>Vims</h5>
+            <div class="row">
+              <div class="col s12">
+                <a class="waves-effect blue-grey darken-3 btn right" ng-click="regetVims()"><i class="material-icons left">replay</i>Refresh</a>
+                <a class="modal-trigger waves-effect waves-light btn right" href="#new_vim" ng-show="wims.length>0" style="margin-right: 5px"><i class="material-icons left">library_add</i>Add a 
+                VIM</a>
+              </div>
+            </div>
+            <div class="row">
+            <table class="bordered responsive-table">
+               <thead>
+                <tr>
+                  <th data-field="uuid">Uuid</th>
+                  <th data-field="">Vendor</th>
+                  <th data-field="">Cores</th>
+                  <th data-field="">Memory</th>
+                  <th data-field="actions"></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                  <tr ng-show="loading">
+                    <td colspan="6" class="text-center center">
+                      <div class="preloader-wrapper small active">
+                        <div class="spinner-layer spinner-green-only">
+                          <div class="circle-clipper left">
+                            <div class="circle"></div>
+                          </div><div class="gap-patch">
+                            <div class="circle"></div>
+                          </div><div class="circle-clipper right">
+                            <div class="circle"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr ng-repeat="vim in vims" ng-show="!loading">
+                    <td>{{vim.vim_uuid}}</td>
+                    <td>{{vim.vim_type}}</td>
+                    <td ng-if="vim.vim_type != 'Kubernetes'">{{vim.core_used}}/{{vim.core_total}}</td>
+                    <td ng-if="vim.vim_type == 'Kubernetes'">{{vim.core_total / 1000}} Cores (Load: {{vim.core_used / 1000}})</td>
+                    <td>{{vim.memory_used}}MiB / {{vim.memory_total}}MiB</td>
+                      <td>
+                          <a ng-click="getVimDetails(vim)" class="modal-trigger waves-effect waves-light">
+                              <i class="material-icons left">visibility</i>
+                          </a>
+                          <a ng-click="deleteVim(vim)" class="modal-trigger waves-effect waves-light">
+                              <i class="material-icons">delete_forever</i>
+                          </a>
+                      </td>
+                  </tr>
+                   <tr ng-show="zero_vims">
+                    <td colspan="6" class="center" ng-show="zero_vims">There are no vims</td>
+                  </tr>
+                </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+  <div class="col s12">
+    <div class="card-panel">
+      <div class="card-content">
+          <h5>Wims</h5>
+
+            <div class="row">
+              <div class="col s12">
+                  <a class="waves-effect blue-grey darken-3 btn right m-l" ng-click="regetWims()"><i class="material-icons left">replay</i>Refresh</a>
+                  <a class="modal-trigger waves-effect waves-light btn right m-l" href="#new_wim" style="margin-right: 5px"><i class="material-icons left">library_add</i>Add a WIM</a>
+
+              </div>
+            </div>
+            <div class="row">
+            <table class="bordered responsive-table">          
+               <thead>
+                <tr>
+                  <th data-field="name">Name</th>
+                  <th data-field="uuid">Uuid</th>
+                  <th data-field="actions"></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                 <tr ng-show="loading_wims">
+                    <td colspan="6" class="text-center center">
+                      <div class="preloader-wrapper small active">
+                        <div class="spinner-layer spinner-green-only">
+                          <div class="circle-clipper left">
+                            <div class="circle"></div>
+                          </div><div class="gap-patch">
+                            <div class="circle"></div>
+                          </div><div class="circle-clipper right">
+                            <div class="circle"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr ng-repeat="wim in wims" ng-show="wims.length>0 && !loading_wims" >                    
+                    <td>{{wim.name}}</td>
+                    <td>{{wim.uuid}}</td>
+                    <td>
+                      <a ng-click="getWimDetails(wim)" class="modal-trigger waves-effect waves-light">
+                          <i class="material-icons left">visibility</i>
+                      </a>
+                      <a ng-click="deleteWim(vim)" class="modal-trigger waves-effect waves-light">
+                            <i class="material-icons">delete_forever</i>
+                        </a>
+                    </td>
+                  </tr>
+                  <tr ng-hide="wims.length>0">
+                    <td colspan="3" class="center" ng-show="!zero_wims">There are no wims</td>
+                  </tr>
+                </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+      
+
+<div id="wim_details" class="modal modal-fixed-footer">
+  <div class="modal-content">
+  <h4>{{selected_wim.name}}</h4>
+  <div class="row">
+      <div class="col s12">UUID:{{selected_wim.uuid}}</div>
+      <div class="col s12">
+          <div class="row">
+            <strong>Attached Vims</strong>
+            <ul>
+              <li ng-repeat="as in selected_wim.attached_vims">{{as}}</li>
+            </ul>
+          </div>          
+      </div>
+
+  </div>
+
+  </div>
+    <div class="modal-footer">
+      <a href="javascript:void(0)" class=" modal-action modal-close waves-effect waves-green btn-flat">Close</a>      
+    </div>
+</div>
+
+
+<div id="vim_details" class="modal modal-fixed-footer">
+  <div class="modal-content">
+  <h4>{{selected_vim.name}}</h4>
+  <div class="row">
+      <div class="col s12"><strong>Core Total:</strong> {{selected_vim.core_total}}</div>
+      <div class="col s12"><strong>Core Used:</strong> {{selected_vim.core_used}}</div>
+      <div class="col s12"><strong>Memory Total:</strong> {{selected_vim.memory_total}}</div>
+      <div class="col s12"><strong>Memory Used:</strong> {{selected_vim.memory_used}}</div>
+      <div class="col s12"><strong>Vim City:</strong> {{selected_vim.vim_city}}</div>
+      <div class="col s12"><strong>Vim EndPoint:</strong> {{selected_vim.vim_endpoint}}</div>
+      <div class="col s12"><strong>Vim Name:</strong> {{selected_vim.vim_name}}</div>
+      <div class="col s12"><strong>Vim UUID:</strong> {{selected_vim.vim_uuid}}</div>
+      <div class="col s12"><strong>Domain:</strong> {{selected_vim.vim_domain}}</div>
+
+  </div>
+
+  </div>
+    <div class="modal-footer">
+      <a href="javascript:void(0)" class=" modal-action modal-close waves-effect waves-green btn-flat">Close</a>      
+    </div>
+</div>
+
+
+
+
+
+
+
+
+ <div id="new_vim" class="modal modal-fixed-footer">
+  
+  <div class="modal-content">
+  <h4>New Vim</h4>
+   <div class="row">
+    <form>
+      <div class="row">
+      <div class="col s12">
+        <h6>General Configuration</h6>
+          
+          <div class="row">
+            <div class="input-field col s12 m4">
+              <input id="new_vim.name" ng-model="new_vim.name" type="text" class="validate">
+              <label for="new_vim.name">VIM Name</label>
+            </div>
+          </div>
+
+
+          <div class="input-field col s12 m4">
+            <select class="" ng-model="new_vim.wim_id" material-select watch>
+                <option ng-repeat="value in wims">{{value.uuid}}</option>
+            </select>
+            <label for="">Select WIM</label>
+          </div> 
+
+
+          <div class="input-field col s12 m4">
+            <input id="country" ng-model="new_vim.country" type="text" class="validate">
+            <label for="country">Country</label>
+          </div> 
+          <div class="input-field col s12 m4">
+            <input id="city" ng-model="new_vim.city" type="text" class="validate">
+            <label for="city">City</label>
+          </div> 
+      </div>
+      </div>
+      <div class="row">
+          <div class="col s12 m6">
+              <h6>
+                  {{ new_vim.vim_type == 'kubernetes' ? 'Cloud' : 'Compute' }} Configuration
+              </h6>
+
+              <div class="input-field col s12">
+                  <select class="" id="compute_vim_type" ng-model="new_vim.vim_type"
+                          material-select watch>
+                      <option value="">Select vim vendor</option>
+                      <option value="heat">Heat</option>
+                      <option value="SPVim">SPVim</option>
+                      <option value="kubernetes">Kubernetes</option>
+                  </select>
+                  <label for="compute_vim_type">Vim Vendor</label>
+              </div>
+
+              <div ng-if="new_vim.vim_type != 'kubernetes'">
+                  <div class="input-field col s6">
+                      <input id="compute_configurationtenant_id"
+                             ng-model="new_vim.compute_configuration.tenant_id" type="text" class="validate">
+                      <label for="compute_configurationtenant_id">Tenant ID</label>
+                  </div>
+
+                  <div class="input-field col s6">
+                      <input id="compute_configurationvim_address"
+                             ng-model="new_vim.compute_configuration.vim_address" type="text"
+                             class="validate">
+                      <label for="compute_configurationvim_address">Vim address</label>
+                  </div>
+
+                  <div class="input-field col s6">
+                      <input id="compute_configurationtenant_ext_net"
+                             ng-model="new_vim.compute_configuration.tenant_ext_net" type="text"
+                             class="validate">
+                      <label for="compute_configurationtenant_ext_net">Tenant External Network ID</label>
+                  </div>
+
+                  <div class="input-field col s6">
+                      <input id="compute_configurationtenant_ext_router"
+                             ng-model="new_vim.compute_configuration.tenant_ext_router" type="text"
+                             class="validate">
+                      <label for="compute_configurationtenant_ext_router">Tenant External Router ID</label>
+                  </div>
+
+                  <div class="input-field col s6">
+                      <input id="compute_configurationusername"
+                             ng-model="new_vim.compute_configuration.username" type="text" class="validate">
+                      <label for="compute_configurationusername">Username</label>
+                  </div>
+
+                  <div class="input-field col s6">
+                      <input id="compute_configurationpassword" ng-model="new_vim.compute_configuration.pass"
+                             type="password" class="validate">
+                      <label for="compute_configurationpassword">Password</label>
+                  </div>
+
+                  <div class="input-field col s12">
+                      <input id="compute_configurationdomain" ng-model="new_vim.compute_configuration.domain" type="text" class="validate">
+                      <label for="compute_configurationdomain">Domain</label>
+                  </div>
+              </div>
+
+              <div ng-if="new_vim.vim_type === 'kubernetes'">
+                  <div class="row">
+                      <div class="input-field col s12">
+                          <input id="cloud_configurationvim_address"
+                                 ng-model="new_vim.compute_configuration.vim_address" type="text"
+                                 class="validate">
+                          <label for="cloud_configurationvim_address">Vim address</label>
+                      </div>
+                  </div>
+
+                  <div class="row">
+                      <div class="input-field col s12">
+                          <input id="cloud_configurationservicetoken"
+                                 ng-model="new_vim.compute_configuration.pass" type="text" class="validate">
+                          <label for="cloud_configurationservicetoken">Service Token</label>
+                      </div>
+                  </div>
+
+                  <div class="row">
+                      <div class="input-field col s12">
+                      <textarea id="cloud_configurationca" ng-model="new_vim.compute_configuration.cluster_ca_cert"
+                                class="validate materialize-textarea"></textarea>
+                          <label for="cloud_configurationca">Cluster CA Certificate (PEM encoded, Base64 encoded)</label>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="col s12 m6" ng-if="new_vim.vim_type != 'kubernetes'">
+              <h6>Networking Configuration</h6>
+
+              <div class="input-field col s12">
+                  <select class="" id="network_vim_type" ng-model="new_vim.networking_configuration.vim_type" material-select watch>
+                      <option value="">Select vim vendor</option>
+                      <option value="OVS">OVS</option>
+                      <option value="SPVim">SPVim</option>
+                  </select>
+                  <label for="network_vim_type">Network configuration VIM Type</label>
+              </div>
+              <div class="input-field col s12">
+                  <input id="vim_address" ng-model="new_vim.networking_configuration.vim_address" type="text" class="validate">
+                  <label for="vim_address">Vim address</label>
+              </div>
+
+
+
+              <div class="input-field col s6">
+                  <input id="username" ng-model="new_vim.networking_configuration.username" type="text" class="validate">
+                  <label for="username">Username</label>
+              </div>
+
+              <div class="input-field col s6">
+                  <input id="password" ng-model="new_vim.networking_configuration.pass" type="password" class="validate">
+                  <label for="password">Password</label>
+              </div>
+
+
+          </div>
+      </div>
+     
+
+  
+
+     
+
+  
+
+
+
+
+      
+     </form>
+  </div>
+
+
+
+
+
+
+
+
+    </div>
+    <div class="modal-footer">
+      <a href="javascript:void(0)" ng-click="post_a_vim()" class="modal-action modal-close waves-effect waves-green btn-flat ">Save</a>
+      <a href="javascript:void(0)" class=" modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
+      
+    </div>
+  </div>
+
+
+
+
+
+
+
+<div id="new_wim" class="modal modal-fixed-footer">  
+  <div class="modal-content">
+      <h4>New Wim</h4>
+      <div class="row">
+        <form class="col s12">
+          <div class="row">
+            
+            <div class="input-field col s6">
+              <input id="name" ng-model="new_wim.name" type="text" class="validate">                 
+              <label for="name">Wim Name</label>
+            </div>
+
+            <div class="input-field col s6">
+              <select id="wim_vendor" ng-model="new_wim.wim_vendor" material-select watch>
+                <option value="VTN">VTN</option>
+                <option value="MOCK">MOCK</option>
+              </select>                 
+              <label for="wim_vendor">Wim vendor</label>
+            </div>
+            <div class="input-field col s6">
+                 <input id="wim_address" ng-model="new_wim.wim_address" type="text" class="validate">
+              <label for="wim_address">Wim address</label>
+            </div>
+            <div class="input-field col s6">
+                 <input id="username" ng-model="new_wim.username" type="text" class="validate">
+              <label for="username">Username</label>
+            </div>
+            <div class="input-field col s6">
+                 <input id="pass" ng-model="new_wim.pass" type="password" class="validate">
+              <label for="pass">Password</label>
+            </div>
+
+          </div>
+        </form>     
+      </div>
+  </div>
+    <div class="modal-footer">
+      <a href="javascript:void(0)" ng-click="post_a_wim()" class="modal-action modal-close waves-effect waves-green btn-flat ">Save</a>
+      <a href="javascript:void(0)" class=" modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
+      
+    </div>
+</div>
+
+
+
+
+
+
+
+ <div id="new_vim_installed" class="modal modal-fixed-footer">
+    <div class="modal-content" style="    background: #80C383;">
+      <h5 style="text-align: center; color: white; padding: 10px;">The new VIM has been added!</h5>
+      <h6 style="text-align: center;color: white"></h6>
+  </div>
+
+    <div class="modal-footer">
+      <a href="javascript:void(0)" ng-click="getVims()" class="modal-action modal-close waves-effect waves-green btn-flat ">Ok</a>
+    </div>
+  </div>
+
+
+
+
+  <div id="new_wim_installed" class="modal modal-fixed-footer">
+    <div class="modal-content" style="    background: #80C383;">
+      <h5 style="text-align: center; color: white; padding: 10px;">The new WIM has been added!</h5>
+      <h6 style="text-align: center;color: white"></h6>
+  </div>
+
+    <div class="modal-footer">
+      <a href="javascript:void(0)" ng-click="getVims()" class="modal-action modal-close waves-effect waves-green btn-flat ">Ok</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+ $(document).ready(function(){
+    // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+    $('.modal-trigger').leanModal();
+    $('select').material_select();
+  
+  });
+  </script>

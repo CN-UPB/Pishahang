@@ -1,0 +1,27 @@
+---
+# Re-starting the Sonata GK GUI (Docker container)
+
+- name: restarting GTK GUI Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: GATEKEEPER GUI - re-starting Docker container
+    docker_container:
+      name: son-gui
+      image: tdierich/son-gui
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        MON_URL: "{{ public_ip }}:8000"
+        GK_URL: "{{ public_ip }}:32001"
+        LOGS_URL: "{{ public_ip }}:12900"
+        #SECRET_KEY: son-install
+      exposed_ports: 80
+      ports: "80:80"
+      volumes:
+        - /var/log/sonata:/var/log/son-gui
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=80 timeout=120 delay=10 state=started

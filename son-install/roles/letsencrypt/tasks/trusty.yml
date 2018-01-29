@@ -1,0 +1,12 @@
+- name: install Let's Encrypt for NGINX
+  get_url:
+    url: https://dl.eff.org/certbot-auto
+    dest: /usr/local/bin
+    mode: 755
+
+- name: installs all iLet's Encrypt own dependencies and updates the client code automatically
+  shell: certbot-auto
+
+- name: set-up the SSL Certificate for NGINX
+  shell: certbot-auto --nginx -d alb.sonata-nfv.eu -d sp.alb.sonata-nfv.eu 
+

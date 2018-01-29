@@ -1,0 +1,50 @@
+---
+
+- name: install common libraries and tools 
+  apt: name={{ item }} state=present 
+  with_items:  
+  - build-essential 
+  - software-properties-common 
+  - python-dev 
+  - python-pip 
+
+- name: install PIP 
+  easy_install: name=pip 
+
+# If the website serving the url uses SNI you need python >= 2.7.9 on your managed machine or you can install the `urllib3`, `pyopenssl`, `ndg-httpsclient`, and `pyasn1` python modules to perform SNI verification in python >= 2.6 
+
+- name: install libraries and tools for https url 
+  pip: name={{ item }}  state=present 
+  with_items: 
+  - PyYAML 
+  - setuptools 
+  - urllib3 
+  - pyopenssl 
+  - ndg-httpsclient 
+  - pyasn1 
+
+- apt: update_cache=yes
+
+- name: Installing Jenkins APT GPG key
+  apt_key: state=present url=http://jenkins-ci.org/debian/jenkins-ci.org.key
+
+- name: install Jenkins repo
+  shell: sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+- name: installing Jenkins package
+  apt: name=jenkins state=latest update_cache=yes
+
+- name: starting Jenkins service
+  service: name=jenkins state=started
+
+# Open FW ports
+
+- name: open JENKINS default port (8080) at Ubuntu/Debian machine
+  ufw:
+    state: enabled
+    rule: allow
+    port: 8080
+    proto: tcp
+  notify: reload firewalld
+  when: ansible_os_family == "Debian"
+#

@@ -1,0 +1,42 @@
+---
+- name: re-starting MANO FRAMEWORK Docker containers at SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Re-starting the Sonata MANO Docker container
+
+  - name: MANO Plug-in Manager running as Docker container
+    docker_container:
+      name: pluginmanager
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=8001 timeout=120 delay=10 state=started
+
+  - name: restarting MANO Service Life-cycle Management (SLM) running as Docker container
+    docker_container:
+      name: servicelifecyclemanagement
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  #- wait_for: host=0.0.0.0 port=0000 timeout=120 delay=10 state=started
+
+  - name: restarting MANO Service Manager Registry (SMR) running as Docker container
+    docker_container:
+      name: servicelifecyclemanagement
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  #- wait_for: host=0.0.0.0 port=0000 timeout=120 delay=10 state=started
+
+#  - name: restarting MANO Function Life-cycle Management (FML) running as Docker container
+#    docker_container:
+#      name: functionlifecyclemanagement
+#      state: started
+#      restart: yes
+#      restart_policy: unless-stopped
+

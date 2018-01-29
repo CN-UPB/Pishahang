@@ -1,0 +1,36 @@
+---
+######################
+# defaults file for sp
+######################
+
+nbofvms: 1
+pop: alabs
+proj: demo
+distro: xenial
+plat: sp
+
+########################
+# Docker network segment
+########################
+# Docker network name
+docker_network_name: son-sp
+
+#############################################
+# SONATA 5G NFV SP specific version variables
+#############################################
+# SONATA SP Version. This installer was created to deploy version "dev"
+sp_ver: latest
+
+# SONATA SP Hostname. Default Public IP address
+plat_hostname: "{{ public_ip }}"
+
+# SONATA SP Domain Name. Default Public IP address
+domain_name: "{{ public_ip }}"
+
+# SONATA SP fqdn. Default Public IP address
+fqdn: "{{ public_ip }}"
+
+# SONATA SP User created by son-install
+sp_user: sonata
+sp_pass: "$1$SRc2ws2Z$rSdCC/UKiatagNdfsTVuf0"
+

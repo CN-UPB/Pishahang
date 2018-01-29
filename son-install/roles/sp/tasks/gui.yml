@@ -1,0 +1,20 @@
+---
+
+- debug: msg="##### SP GUI DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Running the Sonata GK GUI (Docker container)
+
+- name: GATEKEEPER GUI - running Docker containers
+  docker_container:
+    name: son-gui
+    image: "tdierich/son-gui"
+    env:
+      MON_URL: "http://{{ fqdn }}/monitoring"
+      GK_URL: "http://{{ fqdn }}/api/v2"
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gui
+    restart_policy: "always"

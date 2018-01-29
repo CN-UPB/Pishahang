@@ -1,0 +1,54 @@
+
+- name: create a new security group for vPSA connections
+  os_security_group:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    state: present
+    name: "{{ plat }}-secgrp"
+    description: open vPSA ports
+
+- name: add a security rule on that group to allow any SSH connection
+  os_security_group_rule:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    security_group: "{{ plat }}-secgrp"
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: add a security rule on that group to allow connections to vPSA
+  os_security_group_rule:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    security_group: "{{ plat }}-secgrp"
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: add a security rule on that group to allow VPN connections on behalf of vPSA
+  os_security_group_rule:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    security_group: "{{ plat }}-secgrp"
+    protocol: tcp
+    port_range_min: 443
+    port_range_max: 443
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: add a security rule on that group to allow VPN connections on behalf of vPSA
+  os_security_group_rule:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    security_group: "{{ plat }}-secgrp"
+    protocol: udp
+    port_range_min: 1194
+    port_range_max: 1194
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: add a security rule on that group to allow SQUID-PROXY connections on behalf of vPSA
+  os_security_group_rule:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    security_group: "{{ plat }}-secgrp"
+    protocol: tcp
+    port_range_min: 3128
+    port_range_max: 3128
+    remote_ip_prefix: 0.0.0.0/0
+
+

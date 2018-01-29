@@ -1,0 +1,16 @@
+---
+
+# Restarting the Sonata GTK Docker containers
+
+- include: gtk/gui.yml
+- include: gtk/bss.yml
+- include: gtk/pkg.yml
+- include: gtk/srv.yml
+- include: gtk/csrv.yml
+- include: gtk/fnct.yml
+- include: gtk/rec.yml
+- include: gtk/vim.yml
+- include: gtk/api.yml
+- include: gtk/lic.yml
+- include: gtk/kpi.yml
+

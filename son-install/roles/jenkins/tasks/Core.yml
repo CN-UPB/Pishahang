@@ -1,0 +1,27 @@
+# CENTOS 7
+
+- name: Installing Jenkins YUM GPG key
+  rpm_key: state=present key=https://jenkins-ci.org/redhat/jenkins-ci.org.key
+
+- name: install Jenkins repo
+  get_url:
+    url: http://pkg.jenkins-ci.org/redhat/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+    mode: 0644
+
+- name: installing Jenkins package
+  yum: name=jenkins state=latest update_cache=yes
+
+- name: starting Jenkins service
+  service: name=jenkins state=started
+
+# Open FW ports
+
+- name: open JENKINS default port (8080) at CentOS/Redhat machine
+  firewalld:
+    port: 8080/tcp
+    permanent: true
+    state: enabled
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+

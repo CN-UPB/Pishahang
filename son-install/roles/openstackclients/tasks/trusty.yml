@@ -1,0 +1,69 @@
+---
+
+- name: previous install APTitude
+  apt: name=aptitude state=latest
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+
+- name: install required libraries and tools for PIP
+  apt: name={{ item }} state=latest
+  with_items:
+  - build-essential
+  - python-setuptools
+  - python-dev
+  - python-pip
+  - openssl
+  - libssl-dev
+  - libffi-dev
+
+- name: install Openstack command line clients
+  apt: name={{ item }} state=latest
+  with_items:
+  - nova-common
+  - python-openstackclient
+  - python-keystoneclient
+  - python-heatclient
+  - python-glanceclient
+  - python-cinderclient
+  - python-swiftclient
+  #- python-magnumclient
+  - python-novaclient
+  - python-neutronclient
+  #- python-troveclient
+  - python-designateclient
+  #- python-ironicclient
+
+- name: get PIP
+  get_url:
+    url="https://bootstrap.pypa.io/get-pip.py"
+    dest="/tmp"
+
+- name: deploy PIP
+  command: python /tmp/get-pip.py
+
+- name: "Install dependency libraries"
+  pip: name={{ item }}  state=present
+  with_items:
+  - PyYAML
+  - setuptools
+  - pycrypto>=2.6
+  - requests
+  - six
+  - requestsexceptions>=1.1.1
+  - python-systemd
+  - pbr
+  - os-client-config>=1.22.0
+  - netifaces>=0.10.4
+  - munch
+  - keystoneauth1>=2.11.0
+  - jsonpatch
+  - ipaddress
+  - dogpile.cache>=0.5.3
+  - decorator
+
+#- name: install SHADE
+#  pip: name=shade state=present
+
+- include: shade.yml
+

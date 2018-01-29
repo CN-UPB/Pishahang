@@ -1,0 +1,4 @@
+---
+# tasks file for kubemaster
+
+- include: "{{ ansible_distribution_release }}.yml"

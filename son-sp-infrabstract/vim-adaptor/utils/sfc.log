@@ -1,0 +1,66 @@
+2017-07-12 13:26:20,681 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:27:42,085 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:28:21,906 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:28:21,906 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:28:21,907 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:29:15,487 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:29:15,487 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:29:15,487 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:31:14,409 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:31:14,409 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:31:14,409 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:31:29,952 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:31:29,952 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:31:29,952 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:34:25,328 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:34:25,328 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:34:25,328 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:34:47,751 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:34:47,751 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:34:47,751 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:37:00,801 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:37:00,801 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:38:52,663 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:38:52,663 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:38:52,663 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:42:14,758 - __main__ - INFO - connection established with ('127.0.0.1', 39770)
+2017-07-12 13:42:24,938 - __main__ - INFO - Recieved data from:('127.0.0.1', 39770)
+2017-07-12 13:42:46,689 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:42:46,689 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:42:56,697 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:42:56,697 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:46:09,920 - __main__ - INFO - Started SFC-AGENT
+2017-07-12 13:46:09,920 - __main__ - INFO - starting up on localhost port 55555
+2017-07-12 13:46:09,920 - __main__ - INFO -  --- Waiting for data ---
+2017-07-12 13:46:28,177 - __main__ - INFO - connection established with ('127.0.0.1', 39890)
+2017-07-12 13:46:30,397 - __main__ - INFO - Recieved data from:('127.0.0.1', 39890)
+2017-07-12 13:46:30,398 - __main__ - INFO - Json message succesfully accepted: {"action":"add","port_list":[{"port":"fa:16:3e:3f:52:ff","order":0,"vc_id":"620c5a8b-7697-47a4-8fc6-929f5fdb5506"},{"port":"fa:16:3e:1c:5c:33","order":1,"vc_id":"620c5a8b-7697-47a4-8fc6-929f5fdb5506"},{"port":"fa:16:3e:01:4e:fd","order":2,"vc_id":"c06508d9-5464-4e0d-9101-0321caedcff2"},{"port":"fa:16:3e:64:c2:38","order":3,"vc_id":"c06508d9-5464-4e0d-9101-0321caedcff2"}],"in_segment":"10.100.32.40","out_segment":"10.100.0.40","instance_id":"9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"}
+
+2017-07-12 13:46:30,398 - __main__ - INFO - PoP first-in rule:
+2017-07-12 13:46:30,399 - __main__ - INFO - ovs-ofctl add-flow br-eth0 priority=66,dl_type=0x0800,in_port=1,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:3
+2017-07-12 13:46:30,405 - __main__ - INFO - PoP first-in rule;reverse
+2017-07-12 13:46:30,406 - __main__ - INFO - ovs-ofctl add-flow br-eth0 priority=66,dl_type=0x0800,in_port=1,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:3
+2017-07-12 13:46:30,411 - __main__ - INFO - PoP in rule
+2017-07-12 13:46:30,412 - __main__ - INFO - ovs-ofctl add-flow br-ex priority=66,dl_type=0x800,in_port=1,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:2
+2017-07-12 13:46:30,414 - __main__ - INFO - PoP in rule; reverse
+2017-07-12 13:46:30,414 - __main__ - INFO - ovs-ofctl add-flow br-ex priority=66,dl_type=0x800,in_port=1,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:2
+2017-07-12 13:46:30,415 - __main__ - INFO - PoP out rule
+2017-07-12 13:46:30,415 - __main__ - INFO - ovs-ofctl add-flow br-ex priority=66,dl_type=0x800,in_port=2,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:1
+2017-07-12 13:46:30,417 - __main__ - INFO - PoP out rule; reverse
+2017-07-12 13:46:30,417 - __main__ - INFO - ovs-ofctl add-flow br-ex priority=66,dl_type=0x800,in_port=2,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:1
+2017-07-12 13:46:30,418 - __main__ - INFO - Rule First: 
+2017-07-12 13:46:30,420 - __main__ - ERROR - Error in finding port_list
+2017-07-12 13:46:30,421 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=2,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:
+2017-07-12 13:46:30,422 - __main__ - INFO - And in reverse:
+2017-07-12 13:46:30,423 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=2,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:
+2017-07-12 13:46:30,428 - __main__ - ERROR - ERROR in finding port list
+2017-07-12 13:46:30,429 - __main__ - ERROR - ERROR in finding port list
+2017-07-12 13:46:30,430 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:
+2017-07-12 13:46:30,430 - __main__ - INFO - And in reverse:
+2017-07-12 13:46:30,430 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:
+2017-07-12 13:46:30,431 - __main__ - INFO - Last Rule: 
+2017-07-12 13:46:30,433 - __main__ - ERROR - ERROR in finding port list
+2017-07-12 13:46:30,433 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=,nw_src=10.100.32.40,nw_dst=10.100.0.40,actions=output:2
+2017-07-12 13:46:30,434 - __main__ - INFO - And in reverse:
+2017-07-12 13:46:30,434 - __main__ - INFO - ovs-ofctl add-flow br-int priority=66,dl_type=0x800,in_port=,nw_src=10.100.0.40,nw_dst=10.100.32.40,actions=output:2
+2017-07-12 13:46:30,435 - __main__ - INFO - Sending return flag: Error in finding port list

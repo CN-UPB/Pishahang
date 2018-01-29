@@ -1,0 +1,8 @@
+---
+- name: deploy LetsEncrypt to the target machine
+  hosts: "{{ target }}"
+  become: true
+  connection: ssh
+  roles:
+  - letsencrypt
+

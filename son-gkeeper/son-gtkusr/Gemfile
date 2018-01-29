@@ -1,0 +1,17 @@
+source 'https://rubygems.org'
+
+gem 'rake','11.2.2'
+gem 'sinatra', '1.4.7', require: 'sinatra/base'
+gem 'puma', '3.11.0'
+gem 'jwt', '~> 1.5.5'
+gem 'json', '~>1.8'
+gem 'curb', '~> 0.9.3'
+gem 'rspec', '3.7.0'
+gem 'ci_reporter_rspec', '1.0.0'
+gem 'sinatra-contrib', '1.4.7', require: false
+gem 'net-ssh', '~> 4.2'
+
+# Database
+gem 'mongoid', '~>4.0' # MongoDB driver
+gem 'mongoid-pagination', '~>0.2' # Pagination library
+

@@ -1,0 +1,33 @@
+---
+- name: deploy ODL to the target machine
+  hosts: "{{ target }}"
+  become: true
+  connection: local
+  pre_tasks:
+    - local_action: shell date +'%F %T'
+      register: ts
+    - debug:
+        msg: "ODL deployment started @ {{ ts.stdout }}"
+    - file:
+        path: /var/log/ansible.log
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+    #- group:
+    #    name: odl
+    #    state: present
+    #- user:
+    #    name: odl
+    #    comment: "ODL user"
+    #    shell: /bin/bash
+    #    groups: ovs
+    #    append: yes
+
+  roles:
+  - jdk
+  - opendaylight
+
+  tasks: 
+    - debug:
+        msg: "#####"

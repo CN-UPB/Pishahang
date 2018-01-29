@@ -1,0 +1,15 @@
+---
+
+- name: stopping MySQL database services
+  hosts: "{{ target }}"
+  become: true
+  tasks:
+
+  - name: check if the Apache service exists
+    stat: path=/etc/init.d/mysql
+    register: service_status
+
+  - name: stop MySQL services
+    service: name=mysql state=stopped 
+    register: service_stopped
+

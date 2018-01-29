@@ -1,0 +1,12 @@
+# DEFAULT VM CONFIG
+nbofvms: 1
+vm_user: ubuntu
+image: xenial-cldimg
+flavor: m1.sp
+os_security_groups: "{{ plat }}-secgrp"
+fip: admin_floating_net
+availability_zone: nova
+region_name: RegionOne
+key_name: son-install
+int_net_id: "391fc7c3-3011-4c94-9eda-8b99bab7cb5e" # DEMO
+ext_net_id: "6d3bf6d3-7168-4eb8-8494-bc02acb0e89c" # FIP

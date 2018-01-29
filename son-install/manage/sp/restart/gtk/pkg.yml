@@ -1,0 +1,26 @@
+---
+
+- name: restarting GTK PKG Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Running the Sonata GK PACKAGES (Docker container)
+
+  - name: GATEKEEPER PACKAGES - running Docker containers
+    docker_container:
+      name: son-gtkpkg
+      image: sonatanfv/son-gtkpkg
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        CATALOGUES_URL: http://{{ public_ip }}:4002/catalogues/api/v2
+        RACK_ENV: integration
+        #SECRET_KEY: son-install
+      ports: "5100:5100"
+      volumes:
+        - /var/log/sonata/son-gtkpkg:/var/log/son-gtkpkg
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=5100 timeout=120 delay=10 state=started

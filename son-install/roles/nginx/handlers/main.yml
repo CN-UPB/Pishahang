@@ -1,0 +1,14 @@
+---
+# handlers file for nginx
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: reload firewalld
+  service: name=firewalld state=restarted
+  when: ansible_os_family == "RedHat"
+
+- name: reload firewalld
+  ufw:
+    state: reloaded
+  when: ansible_os_family == "Debian"
+

@@ -1,0 +1,37 @@
+---
+- name: starting MONITORY Docker containers at SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Running the Sonata MONITORY Docker Images
+
+  - name: MONIT InfluxDB  - running Docker containers
+    docker_container:
+      name: son-monitor-influxdb
+      state: started
+
+  - name: MONIT MySQL - running Docker containers
+    docker_container:
+      name: son-monitor-mysql
+      state: started
+
+  - name: MONIT Push Gateway - running Docker containers
+    docker_container:
+      name: son-monitor-pushgateway
+      state: started
+
+  - name: MONIT PROMETHEUS - running Docker containers
+    docker_container:
+      name: son-monitor-prometheus
+      state: started
+
+  - name: MONIT MANAGER - running Docker containers
+    docker_container:
+      name: son-monitor-manager
+      state: started
+
+  - name: MONIT Probe - running Docker containers
+    docker_container:
+      name: son-monitor-probe
+      state: started

@@ -1,0 +1,22 @@
+---
+# https://docs.docker.com/engine/installation/linux/ubuntulinux/
+- name: DOCKER pre-requirements step 1 > install CA certificates
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+  - apt-transport-https 
+  - ca-certificates
+
+- name: DOCKER pre-requirements step 2 > add GPG key
+  apt_key: keyserver=keyserver.ubuntu.com id=58118E89F3A912897C070ADBF76221572C52609D
+
+- name: DOCKER pre-requirements step 3 > right package
+  copy: src=docker.list dest=/etc/apt/sources.list.d/ owner=root group=root mode=644
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+
+- name: DOCKER | installing Docker on Ubuntu
+  apt: name=docker-engine state=present update_cache=yes
+
+- name: DOCKER > start Docker services
+  service: name=docker state=started enabled=yes

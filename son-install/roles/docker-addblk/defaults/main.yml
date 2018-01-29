@@ -1,0 +1,6 @@
+---
+# defaults file for roles/docker-addblk
+vl_mgmt: vpsa-mgmt
+vl_prx_addblk: proxy-addblk
+vl_addblk_ids: addblk-ids 
+

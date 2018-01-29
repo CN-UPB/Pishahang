@@ -1,0 +1,4 @@
+#Ignore Temp files
+*~
+*.pyc
+.idea/

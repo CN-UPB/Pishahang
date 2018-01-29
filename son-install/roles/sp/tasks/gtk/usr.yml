@@ -1,0 +1,20 @@
+---
+- debug: msg="##### SP GTK-USER-MGMT DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+- name: GATEKEEPER USER MANAGEMENT (GTKUSR) (Docker container)
+  docker_container:
+    name: son-gtkusr
+    image: "tdierich/son-gtkusr"
+    state: started
+    env:
+      KEYCLOAK_ADDRESS: son-keycloak
+      KEYCLOAK_PORT: 5601
+      KEYCLOAK_PATH: auth
+      SONATA_REALM: sonata
+      CLIENT_NAME: adapter 
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtkusr
+    published_ports: "5600:5600"
+    restart_policy: "always"

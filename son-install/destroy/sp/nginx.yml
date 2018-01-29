@@ -1,0 +1,21 @@
+---
+
+- name: UNINSTALLING NGINX database server
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: check if the NGINX svc exists
+    stat: path=/etc/init.d/nginx
+    register: svc_status
+
+  - name: previously assure that NGINX is not running
+    service: name=nginx state=stopped
+    when: svc_status.stat.exists
+    #register: svc_stopped
+
+  - name: uninstall NGINX on Ubuntu
+    apt: name=nginx state=absent update_cache=yes
+
+  - name: remove content
+    file: path=/var/www/html state=absent

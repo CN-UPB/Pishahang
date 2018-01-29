@@ -1,0 +1,27 @@
+{
+		"created_at": "2017-12-15T09:49:51.419+00:00",
+		"descriptor_reference": "63a23501-5fcc-4dad-82fb-90fbc6d1c15f",
+		"descriptor_version": "nsr-schema-01",
+		"network_functions": [{
+				"vnfr_id": "8ee6330f-cf51-4009-bd11-4eca28316ccd"
+			}
+		],
+		"status": "normal operation",
+		"updated_at": "2017-12-15T09:49:51.419+00:00",
+		"version": "1",
+		"virtual_links": [{
+				"id": "vlmgmt",
+				"connection_points_reference": ["vnf_vtu:cpmgmt", "nscpmgmt"],
+				"connectivity_type": "E-LAN"
+			}, {
+				"id": "vlinput",
+				"connection_points_reference": ["nscpinput", "vnf_vtu:cpinput"],
+				"connectivity_type": "E-Line"
+			}, {
+				"id": "vlvccout",
+				"connection_points_reference": ["vnf_vtu:cpinput", "nscpoutput"],
+				"connectivity_type": "E-Line"
+			}
+		],
+		"uuid": "18bffc8b-2440-4c77-b92a-712de30a224a"
+	}

@@ -1,0 +1,14 @@
+- name: MONIT VM Probe
+  docker_container:
+    name: son-mon-vmprobe
+    image: "sonatanfv/son-monitor-vmprobe:{{ sp_ver }}"
+    state: started
+    network_mode: host
+    privileged: yes
+    env:
+      NODE_NAME: "{{ ansible_hostname }}" # TEST VNF
+      PROM_SRV: "http://son-monitor-pushgateway:9091/metrics"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/proc:/myhost/proc"
+

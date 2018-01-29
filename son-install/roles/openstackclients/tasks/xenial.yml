@@ -1,0 +1,54 @@
+---
+
+- name: previous install APTitude
+  apt: name=aptitude state=latest
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+
+- name: install required libraries and tools for PIP
+  apt: name={{ item }} state=latest
+  with_items:
+  - build-essential
+  - python-dev
+  - python-pip
+  - libssl-dev
+  - libffi-dev
+  - nova-common
+  - python-shade
+
+- name: install dependency libraries on the remote server
+  pip: name={{ item }}  state=present
+  with_items:
+    - pyopenssl
+#  - PyYAML
+#  - setuptools
+#  - pycrypto>=2.6
+#  - requests
+#  - six
+#  - requestsexceptions>=1.1.1
+#  - python-systemd
+#  - python-openstackclient
+#  - python-keystoneclient>=0.11.0
+#  - python-heatclient>=1.0.0
+#  - python-glanceclient>=1.0.0
+#  - python-cinderclient>=1.3.1
+#  - python-swiftclient>=2.5.0
+#  - python-magnumclient>=2.1.0
+#  - python-novaclient!=2.32.0,>=2.21.0,!=2.27.0
+#  - python-neutronclient>=2.3.10
+#  - python-troveclient>=1.2.0
+#  - python-designateclient>=2.1.0
+#  - python-ironicclient>=0.10.0
+#  - pbr>=0.11,<2.0
+#  - os-client-config>=1.22.0
+#  - netifaces>=0.10.4
+#  - munch
+#  - keystoneauth1>=2.11.0
+#  - jsonpatch
+#  - ipaddress
+#  - dogpile.cache>=0.5.3
+#  - decorator
+
+- include: shade.yml
+

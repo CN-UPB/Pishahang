@@ -1,0 +1,29 @@
+# Vim-adaptor files
+
+## Eclipse files
+
+
+.project
+.launch
+.classpath
+.buildpath
+adaptor/.settings/
+adaptor/bin
+
+## licence_finder docs
+
+adaptor/doc
+
+## Python files
+
+adaptor/.pydevproject
+
+## mvn outputs
+
+adaptor/target
+reports/
+
+##others
+
+*.patch
+

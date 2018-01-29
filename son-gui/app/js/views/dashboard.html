@@ -1,0 +1,306 @@
+<!--
+Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+ALL RIGHTS RESERVED.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+nor the names of its contributors may be used to endorse or promote 
+products derived from this software without specific prior written 
+permission.
+
+This work has been performed in the framework of the SONATA project,
+funded by the European Commission under Grant number 671517 through 
+the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+acknowledge the contributions of their colleagues of the SONATA 
+partner consortium (www.sonata-nfv.eu).
+-->
+
+
+	<div class="row"  ng-controller="DashboardController" ng-init="init()">
+    <div class="section">
+      <h5>Dashboard</h5>
+        <div class="col s12 m3">        
+          
+          <div class="col s12">
+            <div class="card light-green darken-2">
+              <div class="card-content white-text">
+                <span class="card-title">Tips!</span>
+                <p>{{current_tip}}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col s12">
+            <div class="card teal darken-1">
+              <div class="card-content white-text">
+                <span class="card-title">Catalogue Packages</span>
+                <p>Here you can see information about Packages</p>
+              </div>
+              <div class="card-action">
+                
+                  <a href="#/catalogue/packages">See Packages</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col s12">
+            <div class="card teal darken-1">
+              <div class="card-content white-text">
+                <span class="card-title">Catalogue Services</span>
+                <p>Here you can see information about Services</p>
+              </div>
+              <div class="card-action">
+                
+                  <a href="#/catalogue/allServices">See Services</a>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col s12">
+            <div class="card teal darken-1">
+              <div class="card-content white-text">
+                <span class="card-title">Catalogue Functions</span>
+                <p>Here you can see information about Functions</p>
+              </div>
+              <div class="card-action">
+                
+                  <a href="#/catalogue/functions">See Functions</a>
+
+              </div>
+            </div>
+          </div>
+      
+
+
+         
+
+          </div>
+          <div class="col s12 m9">
+
+          <div class="row matab">
+              <div class="col s12 m6 l2 virtual-machine" ng-repeat="vim in vims" ng-click="changeVisibleVim(vim.metric.exported_instance)">
+                      <div class="col s12 entire cursored" ng-class="vim.selected_visible">                  
+                          <i class="fa fa-desktop" aria-hidden="true"></i>
+                          <span class="name col s12"><strong>{{vim.metric.exported_instance}}</strong></span>
+                          <span class="name col s12">{{vim.vim_tenant}}</span>                       
+                      </div>
+              </div>
+          </div>
+
+
+          
+          <div class="col s12">        
+
+          <div ng-show="selected_vim.name">     
+           <div class="card-panel">
+                <div class="row">
+                <h5>VIM Name: {{selected_vim.name}}</h5>
+                
+                </div>
+            </div>
+
+
+
+            <div class="card-panel">
+                <div class="row gauges_row">
+                  <div class="col s12 m4"><div id="vim_ram_gauge" style="width: 100%"></div></div>
+                  <div class="col s12 m4"><div id="vim_instances_gauge" style="width: 100%"></div></div>
+                  <div class="col s12 m4"><div id="vim_cores_gauge" style="width: 100%"></div></div>
+                </div>
+            </div>
+          
+          <div class="row">            
+            <div class="card-panel">
+              <div class="card-content">
+              
+              <table style="width: 100%">
+                <tr>
+                  <td style="width: 100%">
+                  <!-- <div id="vim_ram_chart" style="max-width: 100%"></div> -->
+                  <!-- <div id="ram_chart_new" style="max-width: 100%"></div> -->
+                  <div id="ram_chart_new_new" style="max-width: 100%"></div>
+                  
+                  </td>
+                </tr>
+              </table>
+              <table  style="width: 100%">
+                <tr>
+                  <td style="width: 100%">
+                  
+                  <div id="vim_instances_chart_new" style="max-width: 100%"></div>
+                  <!-- <div id="vim_instances_chart" style="max-width: 100%"></div> -->
+                  </td>
+                </tr>
+              </table>
+              <table  style="width: 100%">
+                <tr>
+                  <td style="width: 100%">
+                  
+                    <div id="cores_chart_new_new" style="max-width: 100%"></div>
+                    <!-- <div id="vim_cores_chart" style="max-width: 100%"></div> -->
+                  </td>
+                </tr>
+              </table>
+
+              
+              </div>
+            </div>
+          </div>
+
+           <div class="card-panel">
+                <div class="row">
+                                
+                  
+                  
+                  <div class="col s12" style="margin-top:30px">
+                  <h5 class="center-align">VMs</h5>
+                 <div class="row" ng-show="selected_vim.states.length">
+                  <div class="col  s12 m6">
+                    <table>
+                      <thead>
+                        <th>State</th>
+                        <th>Number</th>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="state in selected_vim.states">
+                          <td>{{state.metric.state}}</td><td>{{state.values[0][1]}}</td></tr>
+                        
+                      </tbody>
+                    </table>
+                    </div>
+
+                    <div class="col s12 m6 hide-on-small-only"> 
+                      <div id="stateChart" style="width: 100%"></div>
+                    </div>
+                  
+                  </div>
+                  <table class="bordered responsive-table" ng-show="selected_vim.all_vms.length">
+                    <thead>
+                      <th>Created</th>
+                      <th>Uuid</th>
+                      <th>Tenant id</th>
+                      <th>Name</th>
+                      <th>Info</th>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="vm in selected_vim.all_vms | orderBy:vm.metric.created:1">
+                        <td>{{vm.metric.created | date:'yyyy-MM-dd HH:mm' : 'UTC'}} UTC</td>
+                        <td>{{vm.metric.uuid}}</td>
+                        <td>{{vm.metric.tenant_id}}</td>
+                        <td>{{vm.metric.name}}</td>
+               
+                        <td><i ng-click="openVMInfo(vm)" class="Small material-icons cursored">info_outline</i></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  </div>
+
+
+                
+                </div> 
+            </div>
+
+   
+                 <div id="modal_vm" class="modal modal-fixed-footer">
+          <div class="modal-content">
+                <h4>{{modals.content.exported_instance}}</h4>
+                <div class="col s12">
+                  <div class="card-panel">
+                 
+                    <strong>Uuid</strong>:  {{modals.content.uuid}}<br/>
+                    <strong>Job</strong>: {{modals.content.job}}<br/>
+                    <strong>Group</strong>:      {{modals.content.group}}<br/>
+                    <strong>Image Id</strong>:   {{modals.content.image_id}}<br/>
+                    <strong>Instance</strong>:   {{modals.content.instance}}<br/>
+                    <strong>Tenant Id</strong>:  {{modals.content.vim_tenant}}<br/>
+                    <strong>Created</strong>:  {{modals.content.created  | date:'yyyy-MM-dd HH:mm' : 'UTC'}} UTC<br/>
+                    <strong>Updated</strong>:  {{modals.content.last_updated  | date:'yyyy-MM-dd HH:mm' : 'UTC'}} UTC<br/>
+
+
+                  </div>
+                </div>
+
+                <div ng-show="modals.networks.length">
+                <div class="col s12">
+                  <div class="card-panel">                
+                 <table class="striped responsive-table">
+                    <thead>
+                      <th>IPs</th>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="ip in modals.networks">
+                        <td>{{ip}}</td>                       
+                      </tr>
+                    </tbody>
+                  </table> 
+                  </div>
+                  </div>
+                </div>
+          </div>
+          <div class="modal-footer">
+            <a href="javascript:void(0)" ng-click="closeModal()" class="modal-action modal-close waves-effect waves-green btn-flat">Close</a>
+          </div>
+        </div>
+                  
+                  
+          
+        
+
+
+      </div>
+    
+
+
+      </div>
+      </div>
+        </div>
+ 
+</div>
+
+
+<style>
+.matab .active{
+  background: white!important;
+}
+
+.gauges_row table{
+  width: auto;
+  margin:0 auto!important;
+}
+</style>
+
+<script>
+$('.button-collapse').sideNav({
+      menuWidth: 300, // Default is 300
+      edge: 'right', // Choose the horizontal origin
+      closeOnClick: true, // Closes side-nav on <a> clicks, useful for Angular/Meteor
+      draggable: true // Choose whether you can drag to open on touch screens
+    }
+  );
+
+
+
+$(".button-collapse").sideNav();
+$(function(){
+
+  $('.collapsible').collapsible({accordion: false, // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+      onOpen: function(el) { alert('Open'); }, // Callback for Collapsible open
+      onClose: function(el) { alert('Closed'); } // Callback for Collapsible close
+  }); 
+});
+
+</script>

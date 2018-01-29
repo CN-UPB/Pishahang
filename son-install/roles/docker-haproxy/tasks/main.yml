@@ -1,0 +1,40 @@
+---
+# tasks file for docker-haproxy
+
+- name: Docker User Defined Network (vHAPRX IN)
+  shell: 'docker network create --driver=bridge \
+--subnet=172.22.111.0/24 --gateway=172.22.111.1 \
+--ip-range=172.22.111.128/25 "{{ docker_haprx_in }}"'
+
+- name: Docker User Defined Network (vHAPRX OUT)
+  shell: 'docker network create --driver=bridge \
+--subnet=172.22.112.0/24 --gateway=172.22.112.1 \
+--ip-range=172.22.112.128/25 "{{ docker_haprx_out }}"'
+
+- name: start HA-Proxy (load-balancer) as a Docker container
+  docker_container:
+    name: haproxy
+    image: haproxy
+    #env:
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_vpsa_mgmt }}"
+        aliases:
+          - son-mgmt
+      - name: "{{ docker_haprx_in }}"
+        aliases:
+          - son-haprx-in
+      - name: "{{ docker_haprx_out }}"
+        aliases:
+          - son-haprx-out
+    restart_policy: "unless-stopped"
+    published_ports: 80:80
+    volumes:
+      - /var/log/sonata/haproxy:/var/log/haproxy
+    log_driver: syslog # gelf
+
+    #log_options:
+    #  syslog-address: tcp://my-syslog-server:514
+    #  syslog-facility: daemon
+

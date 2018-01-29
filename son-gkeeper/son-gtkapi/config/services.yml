@@ -1,0 +1,103 @@
+---
+# Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+# ALL RIGHTS RESERVED.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# 
+# Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+# nor the names of its contributors may be used to endorse or promote 
+# products derived from this software without specific prior written 
+# permission.
+# 
+# This work has been performed in the framework of the SONATA project,
+# funded by the European Commission under Grant number 671517 through 
+# the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+# acknowledge the contributions of their colleagues of the SONATA 
+# partner consortium (www.sonata-nfv.eu).
+# encoding: utf-8
+development: &common_settings
+  services:
+    packages:
+      model: Package
+      env_var_url: PACKAGE_MANAGEMENT_URL
+    services:
+      model: ServiceManagerService
+      env_var_url: SERVICE_MANAGEMENT_URL
+    complex_services:
+      model: ComplexServiceManagerService
+      env_var_url: SERVICE_MANAGEMENT_URL
+    functions:
+      model: FunctionManagerService
+      env_var_url: FUNCTION_MANAGEMENT_URL
+    cloud_services:
+      model: CloudServiceManagerService
+      env_var_url: CLOUD_SERVICE_MANAGEMENT_URL
+    records:
+      model: RecordManagerService
+      env_var_url: RECORD_MANAGEMENT_URL
+    licences:
+      model: LicenceManagerService
+      env_var_url: LICENCE_MANAGEMENT_URL
+    vims:
+      model: VimManagerService
+      env_var_url: VIM_MANAGEMENT_URL
+    wims:
+      model: WimManagerService
+      env_var_url: VIM_MANAGEMENT_URL
+    kpis:
+      model: KpiManagerService
+      env_var_url: KPI_MANAGEMENT_URL
+    users:
+      model: User
+      env_var_url: USER_MANAGEMENT_URL
+    micro-services:
+      model: MicroService
+      env_var_url: USER_MANAGEMENT_URL
+    catalogue:
+      model: Catalogue
+      env_var_url: CATALOGUES_URL
+    metrics:
+      model: Metric
+      env_var_url: METRICS_URL
+    validator:
+      model: Validator
+      env_var_url: VALIDATOR_URL
+    rate_limiter:
+      model: RateLimiter
+      env_var_url: RATE_LIMITER_URL
+      limits:
+        anonymous_operations:
+          description: Limit imposed to the user creation process (ten times per minute)
+          period: 60 #in seconds
+          limit: 10
+        other_operations:
+          description: Limit imposed to the remaining operations (once per second)
+          period: 10 #in seconds
+          limit: 10
+  level: debug
+  defaults:
+    page_size: PAGE_SIZE
+    page_number: PAGE_NUMBER
+
+test:
+  <<: *common_settings
+
+integration:
+  <<: *common_settings
+
+qualification:
+  <<: *common_settings
+
+demonstration:
+  <<: *common_settings
+ 

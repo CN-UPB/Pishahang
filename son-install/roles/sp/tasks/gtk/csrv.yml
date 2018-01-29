@@ -1,0 +1,33 @@
+---
+
+- debug: msg="##### SP GTK-SERVICES DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Ensure son-gtkcsrv is not present
+- name: DELETE GATEKEEPER CLOUD SERVICES (GTKCSRV) (Docker container)
+  docker_container:
+    name: son-gtkcsrv
+    state: absent
+
+
+# Running the Sonata GK CLOUD SERVICES (GTKSRV) (Docker container)
+- name: GATEKEEPER CLOUD SERVICES - running Docker containers
+  docker_container:
+    name: son-gtkcsrv
+    image: "tdierich/son-gtkcsrv"
+    env:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+      MQSERVER: amqp://guest:guest@son-broker:5672
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: 5432
+      POSTGRES_PASSWORD: "{{ gtk_db_pass }}"
+      POSTGRES_USER: "{{ gtk_db_user }}"
+      POSTGRES_DB: "{{ gtk_db_name }}"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtkcsrv
+    state: started
+    restart_policy: "always"
+    published_ports: "5250:5250"

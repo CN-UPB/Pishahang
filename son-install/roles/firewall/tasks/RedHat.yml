@@ -1,0 +1,13 @@
+---
+# tasks file for firewall
+
+# CENTOS/REDHAT
+
+- name: installing FW package
+  yum: name=firewalld state=latest update_cache=yes
+  when: ansible_os_family == "RedHat"
+
+- name: start FW service
+  service: name=firewalld state=started enabled=yes
+  when: ansible_os_family == "RedHat"
+

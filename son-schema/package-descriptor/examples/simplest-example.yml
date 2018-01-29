@@ -1,0 +1,14 @@
+##
+## This example is the most simple package descriptor
+## one can create. It only contains the mandatory
+## fields.
+##
+## @author Michael Bredel
+##
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv.package"
+name: "simplest-example"
+version: "0.1"
+maintainer: "Michael Bredel, NEC Labs Europe"

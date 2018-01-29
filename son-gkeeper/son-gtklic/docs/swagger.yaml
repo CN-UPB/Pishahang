@@ -1,0 +1,383 @@
+
+swagger: '2.0'
+info:
+  title: Sonata's License Manager
+  description: Manage licenses Sonata services.
+  version: "1"
+# the domain of the service
+host: sonata-vm1.aws.atnog.av.it.pt
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /api/v1
+produces:
+  - application/json
+
+paths:
+  /licenses:
+    get:
+      summary: Get licences per user.
+      description: |
+        This licenses endpoint method returns all licenses that a user, defined by a uuid has associated to him, or all licenses if the argument not present.
+      parameters:
+        - name: user_uuid
+          description: The user uuid
+          required: false
+          type: string
+          in: query
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: A json array with all of the user licenses
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/License'
+        default:
+          description: Unexpected error
+
+    post:
+      summary: Buy a license.
+      description: |
+        This licenses endpoint method is used to buy a license for the user, service and type specified in the parameters.
+      parameters:
+        - name: user_uuid
+          description: The user uuid
+          required: true
+          type: string
+          in: formData
+        - name: service_uuid
+          description: The service uuid
+          required: true
+          type: string
+          in: formData
+        - name: type_uuid
+          description: The license type uuid
+          required: true
+          type: string
+          in: formData
+        - name: description
+          description: The license description
+          required: false
+          type: string
+          in: formData
+        - name: startingDate
+          description: The license starting date. If not provided, current date is used.
+          required: false
+          type: string
+          format: date
+          in: formData
+        - name: status
+          description: The license initial state. Allowed values are active, inactive and suspended. Default is active.
+          required: false
+          type: string
+          in: formData
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License successfully created
+          schema:
+            $ref: '#/definitions/License'
+        304:
+          description: License for that user to that service of this type already exists
+        400:
+          description: |
+            One of the following errors:
+              - Missing user_uuid, service_uuid or type_uuid paramenters
+              - License type required exists but is not active
+              - Status parameter was not valid
+        404:
+          description: |
+            One of the following errors:
+              - License type required does not exist
+        default:
+          description: Unexpected error
+
+  /licenses/{licenseID}:
+    post:
+      summary: Renew a license for a service
+      description: |
+        This licenses endpoint method is used to renew the license with the licenseID provided to the same user, for the same service with the same license type.
+      parameters:
+        - name: licenseID
+          description: The license ID that the user wants to renew
+          required: true
+          type: string
+          in: path
+        - name: user_uuid
+          description: The uuid of the user that wants to renew the license
+          required: true
+          type: string
+          in: formData
+        - name: type_uuid
+          description: The license type that the user wants to use after the renew. Optional if not provided same is used.
+          required: false
+          type: string
+          in: formData
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License successfully renewed
+          schema:
+            $ref: '#/definitions/License'
+        400:
+          description: |
+            One of the following errors:
+              - user_uuid was not provided
+              - user_uuid provided is not the one that owns the license
+              - Arguments provided were invalid
+        404:
+          description: |
+            One of the following errors:
+              - License ID provided does not exist
+              - License type provided to change does not exist
+        default:
+          description: Unexpected error
+
+    head:
+      summary: Checks if a license is valid
+      description: |
+        This licenses endpoint method is used to check if a license is valid
+
+      parameters:
+        - name: licenseID
+          description: The licenseID that the user wants to check
+          required: true
+          type: string
+          in: path
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License is valid
+        400:
+          description: License is not valid
+        404:
+          description: License does not exist
+        default:
+          description: Unexpected error
+
+    get:
+      summary: Checks if a license is valid
+      description: |
+        This licenses endpoint method is used to check if a license is valid. Additional info is provided in this endpoint.
+
+      parameters:
+        - name: licenseID
+          description: The licenseID that the user wants to check
+          required: true
+          type: string
+          in: path
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License is valid
+          schema:
+            $ref: '#/definitions/License'
+        400:
+          description: License is not valid
+        404:
+          description: License does not exist
+        default:
+          description: Unexpected error
+
+    delete:
+      summary: Cancels a license
+      description: |
+        This licenses endpoint method is used to cancel an active license.
+
+      parameters:
+        - name: licenseID
+          description: The licenseID that the user wants to cancel
+          required: true
+          type: string
+          in: path
+
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License was sucessfully canceled
+          schema:
+            $ref: '#/definitions/License'
+        304:
+          description: License was already cancelled
+        404:
+          description: License does not exist
+        default:
+          description: Unexpected error
+
+
+    put:
+      summary: Suspend a license
+      description: |
+        This licenses endpoint method is used to suspend an active license.
+
+      parameters:
+        - name: licenseID
+          description: The licenseID that the user wants to suspend
+          required: true
+          type: string
+          in: path
+
+      tags:
+        - Licenses
+      responses:
+        200:
+          description: License was sucessfully suspended
+          schema:
+            $ref: '#/definitions/License'
+        304:
+          description: License was already suspended
+        400:
+          description: License is cancelled
+        404:
+          description: License does not exist
+        default:
+          description: Unexpected error
+
+  /types:
+    get:
+      summary: Get types of licenses
+      description: |
+        This types endpoint method returns a list with all license types.
+      tags:
+        - Types
+      parameters:
+      - name: status
+        description: State of the license type. Options are all, active, suspended. Default is all.
+        required: false
+        type: string
+        in: query
+      responses:
+        200:
+          description: A json array with all of the licenses types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Type'
+        default:
+          description: Unexpected error
+
+    post:
+      summary: Create new license type
+      description: |
+        This types endpoint method creates a new license type.
+      parameters:
+        - name: description
+          description: License Description.
+          required: true
+          type: string
+          in: formData
+        - name: duration
+          description: License Duration in days.
+          required: true
+          type: integer
+          in: formData
+      tags:
+        - Types
+      responses:
+        200:
+          description: License type was sucessfully created.
+          schema:
+            $ref: '#/definitions/Type'
+        400:
+          description: Missing fields.
+        default:
+          description: Unexpected error
+
+  /types/{typeID}:
+    get:
+      summary: Get a license type
+      description: |
+        This types endpoint method return the license type info.
+      parameters:
+        - name: typeID
+          description: the license type uuid
+          required: true
+          type: string
+          in: path
+      tags:
+        - Types
+      responses:
+        200:
+          description: License type was sucessfully retrieved.
+          schema:
+            $ref: '#/definitions/Type'
+        404:
+          description: License type doesn't exist.
+        default:
+          description: Unexpected error
+
+    delete:
+      summary: Delete a license type
+      description: |
+        This types endpoint method makes a license type unavailable to be purchased in the future.
+      parameters:
+        - name: typeID
+          description: the license type uuid
+          required: true
+          type: string
+          in: path
+      tags:
+        - Types
+      responses:
+        200:
+          description: License type was sucessfully deleted.
+        404:
+          description: License type doesn't exist.
+        default:
+          description: Unexpected error
+
+
+definitions:
+  License:
+    type: object
+    properties:
+      license_uuid:
+        type: string
+        description: Unique identifier for the license.
+      service_uuid:
+        type: string
+        description: Unique identifier for the service the license is for.
+      user_uuid:
+        type: string
+        description: Unique identifier of the user that owns the license.
+      type_uuid:
+        type: string
+        description: Unique identifier of the license type.
+      description:
+        type: string
+        description: Description of the license.
+      startingDate:
+        type: string
+        format: date
+        description: Date the license was made active.
+      expiringDate:
+        type: string
+        format: date
+        description: Date the license is going to expire.
+      status:
+        type: string
+        description: Status of the license.
+
+  Type:
+    type: object
+    properties:
+      type_uuid:
+        type: string
+        description: Unique identifier.
+      description:
+        type: string
+        description: Description of the license.
+      duration:
+        type: string
+        description: Duration in days that license is valid for.
+      status:
+        type: string
+        description: Status of the license type.

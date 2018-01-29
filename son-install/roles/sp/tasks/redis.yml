@@ -1,0 +1,18 @@
+---
+- debug: msg="##### SP REDISDB DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+- name: deploy RedisDB as a Container (used by Validator and Gkapi)
+  docker_container:
+    name: "son-redis"
+    image: "redis"
+    state: started
+    restart_policy: "always"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-redis
+          - redis
+    published_ports: 6379:6379
+
+- wait_for: host=0.0.0.0 port=6379 timeout=30 delay=10 state=started

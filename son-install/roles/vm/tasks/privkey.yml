@@ -1,0 +1,11 @@
+# Creates a key pair with the running users public key
+
+# assure that pyOpenSSL is installed
+- package: name=python-pip state=present
+- pip: name=pyopenssl==16.2.0 state=present
+
+- os_keypair:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    state: present
+    name: son-install
+    public_key_file: "{{ lookup('env','HOME') }}/.ssh/son-install.pub"

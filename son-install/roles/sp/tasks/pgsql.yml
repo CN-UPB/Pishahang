@@ -1,0 +1,22 @@
+---
+- debug: msg="##### SP PGSQL DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+- name: deploy a PostgreSQL database server as a Container
+  docker_container:
+    name: son-postgres
+    #image: sonatanfv/son-postgres
+    image: ntboes/postgres-uuid
+    env:
+      POSTGRES_DB: "{{ gtk_db_name }}"
+      POSTGRES_USER: "{{ gtk_db_user }}"
+      POSTGRES_PASSWORD: "{{ gtk_db_pass }}"
+    state: started
+    restart_policy: "always"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-postgres
+    published_ports: 5432:5432
+
+- wait_for: host=0.0.0.0 port=5432 timeout=30 delay=10 state=started

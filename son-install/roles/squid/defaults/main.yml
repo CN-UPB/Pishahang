@@ -1,0 +1,17 @@
+---
+# defaults file for squid
+svc_port: 3128
+
+sp_user: sonata
+sp_pass: "$1$SRc2ws2Z$rSdCC/UKiatagNdfsTVuf0"
+
+nbofvms: 1
+plat: squid
+pop: alabs
+proj: demo
+distro: xenial
+
+# SONATA 5G NFV SP development/latest version
+domain_name: sonata-nfv.eu
+sp_fqdn: "sp.{{ pop }}.{{ domain_name }}"
+

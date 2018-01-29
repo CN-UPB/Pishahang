@@ -1,0 +1,31 @@
+---
+- name: Upgrade the target machines and reboot
+  hosts: "{{ target }}"
+  become: true
+  tasks: 
+
+  - name:  upgrade all packages to the latest version
+    yum: name='*' state=latest update_cache=yes
+    when: ansible_os_family == "RedHat"
+
+  - name: install APT dependencies
+    apt: name={{ item }} state=present update_cache=yes
+    with_items:
+    - aptitude
+    when: ansible_os_family == "Debian"
+
+
+  - name:  upgrade all packages to the latest version
+    apt: upgrade=yes update_cache=yes
+    when: ansible_os_family == "Debian"
+
+  - name: reboot server
+    shell: sleep 2 && shutdown -r now "Ansible forces reboot due to updates"
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: wait on the local Ansible Control Center for target hosts to go live
+    local_action: wait_for host={{ inventory_hostname }} state=started port=22 delay=10 timeout=60
+    sudo: false
+

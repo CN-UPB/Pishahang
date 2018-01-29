@@ -1,0 +1,38 @@
+---
+#- name: install common libraries and tools
+#  apt: name={{ item }} state=present
+#  with_items:
+#  - build-essential
+#  - software-properties-common
+#  - python-dev
+#  - python-pip
+
+#- name: install PIP
+#  easy_install: name=pip
+
+# If the website serving the url uses SNI you need python >= 2.7.9 on your managed machine or you can install the `urllib3`, `pyopenssl`, `ndg-httpsclient`, and `pyasn1` python modules to perform SNI verification in python >= 2.6
+
+#- name: install libraries and tools for https url
+#  pip: name={{ item }}  state=present
+#  with_items:
+#  - PyYAML
+#  - setuptools
+#  - urllib3
+#  - pyopenssl
+#  - ndg-httpsclient
+#  - pyasn1
+
+- apt: update_cache=yes
+
+- name: Installing Odoo APT GPG key
+  apt_key: state=present url=https://nightly.odoo.com/odoo.key
+
+- name: install Odoo repo
+  shell: sh -c 'echo "deb http://nightly.odoo.com/{{ tarball }}/nightly/deb/ ./" >> /etc/apt/sources.list.d/odoo.list'
+
+- name: installing Odoo package
+  apt: name=odoo state=latest update_cache=yes
+
+- name: "starting Odoo service"
+  service: name=odoo.dpkg-dist state=started
+

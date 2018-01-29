@@ -1,0 +1,23 @@
+---
+
+- name: deploy VPSA to the local machine
+  hosts: localhost
+  become: false
+  connection: local
+#  vars_files:
+#    - "{{ lookup('env','PWD') }}/roles/{{ plat | default(vm) }}/vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+  pre_tasks:
+    - debug: msg="{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+    - file:
+        path: /var/log/ansible.log
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+      become: true
+  roles:
+    - { role: firewall, become: true }
+    - { role: squid, become: true }
+    - { role: snort, become: true }
+
+- include: "{{ lookup('env','PWD') }}/common.yml"

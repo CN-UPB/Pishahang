@@ -1,0 +1,3 @@
+---
+# defaults file for nginx
+svc_port: 80

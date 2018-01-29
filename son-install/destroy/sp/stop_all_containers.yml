@@ -1,0 +1,14 @@
+---
+- name: STOP SP Docker containers
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: check if the DOCKER svc exists
+    stat: path=/etc/init.d/docker
+    register: svc_status
+
+  - name: STOPPING running containers
+    shell: "/usr/bin/docker stop $(docker ps -q)"
+    when: svc_status.stat.exists    
+

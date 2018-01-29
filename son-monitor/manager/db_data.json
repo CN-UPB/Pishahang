@@ -1,0 +1,23 @@
+[
+  {
+    "model": "api.monitoring_notif_types",
+    "pk": 1,
+    "fields": {
+      "type": "email"
+    }
+  },
+  {
+    "model": "api.monitoring_notif_types",
+    "pk": 2,
+    "fields": {
+      "type": "rabbitmq"
+    }
+  },
+  {
+    "model": "api.monitoring_notif_types",
+    "pk": 3,
+    "fields": {
+      "type": "sms"
+    }
+  }
+]

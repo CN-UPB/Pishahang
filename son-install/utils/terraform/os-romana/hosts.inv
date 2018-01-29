@@ -1,0 +1,16 @@
+inventory = 
+[fe]
+fe01demo  ansible_host=172.31.6.230
+
+fe02demo  ansible_host=172.31.6.228
+
+
+[be]
+be01demo  ansible_host=172.31.6.227
+
+be02demo  ansible_host=172.31.6.231
+
+
+[demo:children]
+fe
+be

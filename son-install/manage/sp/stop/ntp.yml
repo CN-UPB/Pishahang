@@ -1,0 +1,4 @@
+---
+
+- name: stop NTP service
+  service: name=ntpd state=stopped

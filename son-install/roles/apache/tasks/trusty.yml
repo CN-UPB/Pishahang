@@ -1,0 +1,28 @@
+---
+
+- name: check if the Apache service exists
+  stat: path=/etc/init.d/apache2
+  register: service_status
+
+- name: previously, stop Apache service
+  service: name=apache2 state=stopped enabled=no
+  when: service_status.stat.exists
+  register: service_stopped
+
+- name: update APT local cache
+  apt: update_cache=yes cache_valid_time=86400
+
+- name: install Apache2
+  apt: name={{ item }} state=latest
+  with_items:
+  - apache2
+  - apache2-utils
+
+- name: starting the Apache service
+  service: name=apache2 state=started enabled=yes
+
+- name: enabled mod_rewrite
+  apache2_module: name=rewrite state=present
+  notify:
+  - restart apache2
+

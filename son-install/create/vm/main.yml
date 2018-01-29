@@ -1,0 +1,23 @@
+---
+- name: deploy a single or multiple guest machines (VMs)
+  hosts: localhost
+  become: true
+  connection: local
+  vars:
+    localhome: "{{ lookup('env','PWD') }}"
+  pre_tasks:
+    - local_action: shell date +'%F %T'
+      register: ts
+    - debug:
+        msg: "{{ ts.stdout }}"
+    - file:
+        path: /var/log/ansible.log
+        state: touch
+        owner: "{{ lookup('env','USER') }}"
+        group: "{{ lookup('env','USER') }}"
+        mode: "u=rw,g=rw,o=rw"
+  roles:
+    - vm
+
+  tasks:
+    - include: "{{ lookup('env','PWD') }}/common.yml"

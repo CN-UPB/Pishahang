@@ -1,0 +1,25 @@
+---
+- name: starting MANO FRAMEWORK Docker containers at SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Running the Sonata MANO Docker Images
+
+  - name: MANO Plug-in Manager - running Docker containers
+    docker_container:
+      name: pluginmanager
+      state: started
+
+#  - pause: seconds=15
+
+  - name: MANO Service Life-cycle Management (SLM) - running Docker containers
+    docker_container:
+      name: servicelifecyclemanagement
+      state: started
+
+#  - name: MANO Function Life-cycle Management (FML) - running Docker containers
+#    docker_container:
+#      name: functionlifecyclemanagement
+#      state: started
+

@@ -1,0 +1,632 @@
+---
+  swagger: "2.0"
+  info: 
+    title: "SONATA's SP API"
+    description: "This is a proposal for the SONATA's SP API"
+    version: "1.0.0"
+  host: "sp.sonata-nfv.eu"
+  schemes: 
+    - "https"
+  basePath: "/api/v2"
+  produces: 
+    - "application/json"
+  paths: 
+    /: 
+      get: 
+        summary: "Gatekeeper's URL root"
+        description: "Everything starts here"
+        operationId: "getRoot"
+        tags: 
+          - "Root"
+        responses: 
+          200: 
+            description: "This list of paths"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /api-doc: 
+      get: 
+        summary: "Gatekeeper's API documentation"
+        description: "The Gatekeeper's API documentation, in Swagger format"
+        operationId: "getApiDoc"
+        produces: 
+          - "text/html"
+        tags: 
+          - "API-doc"
+        responses: 
+          200: 
+            description: "This HTML API documentation"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /packages: 
+      post: 
+        summary: "Submit a SONATA package to the Service Platform"
+        description: "The SDK uses this endpoint to submit a SONATA package"
+        operationId: "postPackage"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            name: "package"
+            in: "formData"
+            description: "The Package file, as specified by the son-schema"
+            required: true
+            type: "file"
+        tags: 
+          - "Packages"
+        responses: 
+          201: 
+            description: "The submited package has been received, validated and submited to the Catalogue"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+      get: 
+        summary: "Obtain a list of SONATA packages from the Service Platform, based on its UUID"
+        description: "The SDK uses this endpoint to retrieve a SONATA package"
+        operationId: "getPackages"
+        produces: 
+          - "application/json"
+          - "application/octet-stream"
+        parameters: 
+          - 
+            in: "query"
+            name: "vendor"
+            description: "The vendor of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "name"
+            description: "The name of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "version"
+            description: "The version of the service required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Packages"
+        responses: 
+          200: 
+            description: "The required package has been found, and its package is being returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /packages/{packageId}: 
+      get: 
+        summary: "Obtain a SONATA package from the Service Platform, based on its UUID"
+        description: "The SDK uses this endpoint to retrieve a SONATA package"
+        operationId: "getPackage"
+        produces: 
+          - "application/octet-stream"
+        parameters: 
+          - 
+            in: "path"
+            name: "packageId"
+            description: "The Package UUID, as provided upon a successful creation of the Package in the Service Platform"
+            type: "string"
+            required: true
+            format: "uuid"
+        tags: 
+          - "Packages"
+        responses: 
+          200: 
+            description: "The required package has been found, and its file is being returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /services: 
+      get: 
+        summary: "Get a list of services"
+        description: "Obtain the list of services that can be instantiated"
+        operationId: "getServices"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "query"
+            name: "status"
+            description: "The status of the services to be returned"
+            required: false
+            type: "string"
+            enum: 
+              - "Active"
+              - "New"
+          - 
+            in: "query"
+            name: "vendor"
+            description: "The vendor of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "name"
+            description: "The name of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "version"
+            description: "The version of the service required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Services"
+        responses: 
+          200: 
+            description: "List of requested services has been returned"
+            schema: 
+              $ref: "#/definitions/Services"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /services/{serviceId}: 
+      get: 
+        summary: "Get data about a single service"
+        description: "Obtain data about the service which (UU)ID is given"
+        operationId: "getService"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "path"
+            name: "serviceId"
+            description: "The UUID of the required service"
+            required: true
+            type: "string"
+            format: "uuid"
+        tags: 
+          - "Services"
+        responses: 
+          200: 
+            description: "Data about the given service is returned"
+            schema: 
+              $ref: "#/definitions/Service"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /functions: 
+      get: 
+        summary: "Get a list of functions"
+        description: "Obtain the list of functions"
+        operationId: "getFunctions"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "query"
+            name: "status"
+            description: "The status of the functions to be returned"
+            required: false
+            type: "string"
+            enum: 
+              - "Active"
+              - "New"
+          - 
+            in: "query"
+            name: "vendor"
+            description: "The vendor of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "name"
+            description: "The name of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "version"
+            description: "The version of the service required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Functions"
+        responses: 
+          200: 
+            description: "List of requested functions has been returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /functions/{functionId}: 
+      get: 
+        summary: "Get data about a single function"
+        description: "Obtain data about the function which (UU)ID is given"
+        operationId: "getFunction"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "path"
+            name: "functionId"
+            description: "The UUID of the required function"
+            required: true
+            type: "string"
+            format: "uuid"
+        tags: 
+          - "Functions"
+        responses: 
+          200: 
+            description: "Data about the given function is returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /requests: 
+      get: 
+        summary: "Get the list of instantions requests made"
+        description: ""
+        operationId: "getRequests"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "query"
+            name: "service_id"
+            description: "The UUID of the service of which all requests done are needed"
+            required: false
+            type: "string"
+            format: "uuid"
+          - 
+            in: "query"
+            name: "vendor"
+            description: "The vendor of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "name"
+            description: "The name of the service required"
+            required: false
+            type: "string"
+          - 
+            in: "query"
+            name: "version"
+            description: "The version of the service required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Requests"
+        responses: 
+          200: 
+            description: "Instantiations requests list was returned"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+      post: 
+        summary: "Request the instantion of a given service"
+        description: ""
+        operationId: "newRequest"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "body"
+            name: "requestId"
+            description: "The UUID of the service from which an instance is required"
+            required: true
+            schema: 
+              type: "string"
+              format: "uuid"
+        tags: 
+          - "Requests"
+        responses: 
+          200: 
+            description: "Instantiations requests list was returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /requests/{requestId}: 
+      get: 
+        summary: "Get the the given request"
+        description: ""
+        operationId: "getRequest"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "path"
+            name: "requestId"
+            description: "The UUID of the request"
+            required: true
+            type: "string"
+            format: "uuid"
+        tags: 
+          - "Requests"
+        responses: 
+          200: 
+            description: "Instantiations request data is returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /vims: 
+      get: 
+        summary: "Creates a new \"get list of vims\" request and returns its uuid."
+        description: ""
+        operationId: "getVims"
+        produces: 
+          - "application/json"
+        tags: 
+          - "Vims"
+        responses: 
+          200: 
+            description: "Get list of vims request's uuid returned"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+      post: 
+        summary: "Creates a new \"add vim\" request"
+        description: ""
+        operationId: "newAddVimRequest"
+        produces: 
+          - "application/json"
+        tags: 
+          - "Requests"
+        responses: 
+          200: 
+            description: "Add vim request's uuid returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /vim_requests/{requestId}: 
+      get: 
+        summary: "Get the the given VIMs request"
+        description: ""
+        operationId: "getVimRequests"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "path"
+            name: "requestId"
+            description: "The UUID of the request"
+            required: true
+            type: "string"
+            format: "uuid"
+        tags: 
+          - "Requests"
+        responses: 
+          200: 
+            description: "Vim request data is returned"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /records: 
+      get: 
+        summary: "Get the list of all the instances registered"
+        description: ""
+        operationId: "getInstances"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "query"
+            name: "ownerId"
+            description: "The (UU)ID of owner of the service"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Instances"
+        responses: 
+          200: 
+            description: "Instances list returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstances"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /records/{instanceId}: 
+      get: 
+        summary: "Gets a registered instance."
+        description: "Returns data on a sigle service instance"
+        operationId: "getInstance"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "path"
+            name: "instanceId"
+            description: "The UUID of the service instance"
+            required: true
+            type: "string"
+            format: "uuid"
+        tags: 
+          - "Instances"
+        responses: 
+          200: 
+            description: "Instance data is returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstance"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /micro-services: 
+      get: 
+        summary: "Get the list of all the registered micro-services"
+        description: ""
+        operationId: "find"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "header"
+            name: "Authorization"
+            description: "The type of authorization required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Micro-Services"
+        responses: 
+          200: 
+            description: "Instances list returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstances"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /micro-services/public-key: 
+      get: 
+        summary: "Gets User Management module public key."
+        description: "Returns User Management module public key, so that 'client' modules can decryt token"
+        operationId: "getPublicKey"
+        produces: 
+          - "application/json"
+        tags: 
+          - "Micro-Services"
+          - "Public Key"
+        responses: 
+          200: 
+            description: "Public Key is returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstance"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /users: 
+      get: 
+        summary: "Get the list of all the registered users"
+        description: ""
+        operationId: "find"
+        produces: 
+          - "application/json"
+        parameters: 
+          - 
+            in: "header"
+            name: "Authorization"
+            description: "The type of authorization required"
+            required: false
+            type: "string"
+          - 
+            $ref: "#/parameters/offset"
+          - 
+            $ref: "#/parameters/limit"
+        tags: 
+          - "Users"
+        responses: 
+          200: 
+            description: "Instances list returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstances"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+    /users/public-key: 
+      get: 
+        summary: "Gets User Management module public key."
+        description: "Returns User Management module public key, so that 'client' modules can decryt token"
+        operationId: "getPublicKey"
+        produces: 
+          - "application/json"
+        tags: 
+          - "Micro-Services"
+          - "Public Key"
+        responses: 
+          200: 
+            description: "Public Key is returned"
+            schema: 
+              $ref: "#/definitions/ServiceInstance"
+          404: 
+            $ref: "#/responses/RequiredRecordDoesNotExistResponse"
+          500: 
+            $ref: "#/responses/Standard500ErrorResponse"
+  definitions: 
+    Service: 
+      required: 
+        - "serviceId"
+      properties: 
+        serviceId: 
+          type: "string"
+          format: "uuid"
+        name: 
+          type: "string"
+        vendor: 
+          type: "string"
+        version: 
+          type: "string"
+        created_at: 
+          type: "string"
+          format: "date"
+        updated_at: 
+          type: "string"
+          format: "date"
+    Services: 
+      type: "array"
+      items: 
+        $ref: "#/definitions/Service"
+    ServiceInstance: 
+      required: 
+        - "instanceId"
+        - "serviceId"
+      properties: 
+        instanceId: 
+          type: "string"
+          format: "uuid"
+        serviceId: 
+          type: "string"
+          format: "uuid"
+        created_at: 
+          type: "string"
+          format: "date"
+        updated_at: 
+          type: "string"
+          format: "date"
+    ServiceInstances: 
+      type: "array"
+      items: 
+        $ref: "#/definitions/ServiceInstance"
+    Error: 
+      properties: 
+        code: 
+          type: "string"
+        message: 
+          type: "string"
+  responses: 
+    Standard500ErrorResponse: 
+      description: "An unexpected error occured."
+      schema: 
+        $ref: "#/definitions/Error"
+    RequiredRecordDoesNotExistResponse: 
+      description: "The required record does not exist"
+      schema: 
+        $ref: "#/definitions/Error"
+  parameters: 
+    limit: 
+      name: "limit"
+      in: "query"
+      description: "Number of service instances to return. Default is 5, maximum is 100"
+      type: "integer"
+    offset: 
+      name: "offset"
+      in: "query"
+      description: "Offset the list of returned results by this amount. Default is zero"
+      type: "integer"

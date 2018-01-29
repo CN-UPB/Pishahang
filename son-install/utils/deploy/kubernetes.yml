@@ -1,0 +1,21 @@
+---
+# deploy KUBERNETES CLUSTER server to the existing VMs in the Inventory file
+
+- name: "deploy K8S MASTER to the designated VMs in the Inventory file"
+  hosts: kube-master
+  become: true
+  connection: ssh
+  roles:
+  - ntp
+  - common
+  - kubemaster
+
+- name: "deploy K8S NODES to the designated VMs in the Inventory file"
+  hosts: kube-node
+  become: true
+  connection: ssh
+  roles:
+  - ntp
+  - common
+  - kubenode
+

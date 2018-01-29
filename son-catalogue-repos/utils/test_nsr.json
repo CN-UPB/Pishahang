@@ -1,0 +1,180 @@
+{
+  "version": "1",
+  "descriptor_version": "1.0",
+  "vendor": "dummy-vendor",
+  "name": "sonata-demo",
+  "nsr": {
+    "version": "0.1",
+    "connection_points": [
+      {
+        "id": "ns:mgmt",
+        "type": "interface"
+      },
+      {
+        "id": "ns:input",
+        "type": "interface"
+      },
+      {
+        "id": "ns:output",
+        "type": "interface"
+      }
+    ],
+    "vnfds": [
+      {
+        "id": "vnf_firewall"
+      },
+      {
+        "id": "vnf_iperf"
+      },
+      {
+        "id": "vnf_tcpdump"
+      }
+    ]
+  },
+  "vnfr": [
+    {
+      "id": "vnfr-1",
+      "descriptor_version": "1.0",
+      "version": "1.0",
+      "vdu": [
+        {
+          "id": "vdu-0"
+        },
+        {
+          "id": "vdu-1"
+        }
+      ],
+      "virtual_link": [
+        {
+          "0": null,
+          "id": "vlink-0"
+        },
+        {
+          "1": null,
+          "id": "vlink-1"
+        }
+      ],
+      "vnf_address": [
+        {
+          "0": null,
+          "address": "10.0.0.5"
+        },
+        {
+          "1": null,
+          "address": "10.0.1.5"
+        }
+      ],
+      "connection_points": [
+        {
+          "0": null,
+          "id": "connect-point-0",
+          "virtual_link_reference": "vlink-0",
+          "type": "interface"
+        },
+        {
+          "1": null,
+          "id": "connect-point-1",
+          "virtual_link_reference": "vlink-0",
+          "type": "interface"
+        }
+      ],
+      "lifecycle_event": {
+        "start": "dummy-start-script"
+      },
+      "dependency": [
+        {
+          "0": null,
+          "source_vdu": "vdu-0",
+          "target_vdu": "vdu-1"
+        },
+        {
+          "1": null,
+          "source_vdu": "vdu-1",
+          "target_vdu": "vdu-0"
+        }
+      ],
+      "deployment_flavour": "dummy-flavour",
+      "localization": "dummy-localization",
+      "parent_ns": "dummy-ns",
+      "descriptor_reference": "dummy-descriptor",
+      "vnfm_id": "dummy-vnfm",
+      "connected_external_virtual_link": [
+        {
+          "0": null,
+          "id": "external-link-0"
+        },
+        {
+          "1": null,
+          "id": "external-link-1"
+        }
+      ],
+      "status": "1",
+      "notification": [
+        {
+          "0": null,
+          "id": "master-0",
+          "ip": "10.10.10.101",
+          "port": "27"
+        },
+        {
+          "1": null,
+          "id": "master-1",
+          "ip": "10.10.10.102",
+          "port": "27"
+        }
+      ],
+      "lifecycle_event_history": [
+        {
+          "0": null,
+          "event": "start",
+          "timestamp": "12434234",
+          "success": "True"
+        },
+        {
+          "1": null,
+          "event": "restart",
+          "timestamp": "123332233",
+          "success": "True"
+        }
+      ],
+      "audit_log": [
+        {
+          "0": null,
+          "event": "event-0",
+          "timestamp": "541232312"
+        }
+      ],
+      "runtime_policy_info": [
+        {
+          "0": null,
+          "policy": "policy-0"
+        },
+        {
+          "1": null,
+          "policy": "policy-1"
+        }
+      ],
+      "__comment": "Comment on the VNFR",
+      "monitoring_parameters": [
+        {
+          "0": null,
+          "monitoring_parameter": "parameter-0"
+        },
+        {
+          "1": null,
+          "monitoring_parameter": "parameter-1"
+        },
+        {
+          "2": null,
+          "monitoring_parameter": "parameter-2"
+        },
+        {
+          "3": null,
+          "monitoring_parameter": "parameter-3"
+        }
+      ]
+    }
+  ],
+  "request_status": "RUNNING"
+}
+

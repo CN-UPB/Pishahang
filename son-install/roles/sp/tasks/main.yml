@@ -1,0 +1,111 @@
+---
+
+- include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+        - "{{ lookup('env','PWD') }}/roles/{{ plat }}/defaults/main.yml"
+      skip: true
+
+- include_vars: "{{ lookup('env','PWD') }}/roles/{{ plat }}/vars/main.yml"
+
+- include_vars: "{{ lookup('env','PWD') }}/group_vars/{{ plat }}/vault.yml"
+
+- lineinfile:
+    path: "/etc/hosts"
+    line: "{{ public_ip }} {{ plat_hostname }}"
+    create: yes
+    state: present
+  become: true
+
+- name: add user 'sonata' with superuser priviledges on Debian machines
+  user:
+    name: "{{ sp_user }}"
+    comment: "SONATA admin user"
+    shell: /bin/bash
+    group: sudo
+    groups: docker
+    password: "{{ sp_pass }}"
+  when: ansible_os_family == "Debian"
+
+- name: remove password prompt for sudo
+  shell: "echo '%sudo ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+  when: ansible_os_family == "Debian"
+
+- name: add user 'sonata' with superuser priviledges on CentOS 7 machines
+  user:
+    name: "{{ sp_user }}"
+    comment: "SONATA admin user"
+    shell: /bin/bash
+    group: wheel
+    groups: docker
+    password: "{{ sp_pass }}"
+  when: ansible_os_family == "RadHat"
+
+- name: remove password prompt for sudo
+  shell: "echo 'sonata ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/90-cloud-init-users"
+  when: ansible_os_family == "RedHat"
+
+- name: restart docker on Upstart (Ubuntu 14)
+  service: name=docker state=restarted
+  when: ansible_os_family == "Debian"
+
+- name: restart docker on Systemd (Ubuntu 16 and CentOS 7)
+  systemd: name=docker state=restarted daemon_reload=yes
+  when: ansible_os_family == "RedHat"
+
+- include: "{{ lookup('env','PWD') }}/roles/{{ plat }}/tasks/docker-networks.yml"
+
+- name: force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+
+# deploy postgreSQL database engine
+- include: pgsql.yml
+
+# deploy MongoDB (NoSQL) database engine
+- include: mongo.yml
+
+# deploy Redis database engine
+- include: redis.yml
+
+# deploy postgreSQL database engine for monitoring
+- include: pgsql-monitoring.yml
+
+# deploy RabbitMQ message bus
+- include: broker.yml
+
+# deploy Influxdb
+- include: influxdb.yml
+
+# deploy Keycloak
+- include: keycloak.yml
+
+# deploy GUI
+- include: gui.yml
+
+# deploy BSS
+- include: bss.yml
+
+# deploy Gatekepper module
+- include: gtk-all.yml
+
+# deploy Repositories
+- include: repos.yml
+
+# deploy MANO framework
+- include: mano-all.yml
+
+# deploy Infastructure Adaptor
+- include: ifta-all.yml
+
+# deploy Monitoring
+- include: monit-all.yml
+
+# deploy Security Gateway
+- include: sec-gw.yml
+
+# deploy Google cAdvisor
+#- include: cadvisor.yml
+
+- name: "Creating SONATA Service"
+  copy: src=sonata dest=/etc/init.d/sonata owner=root group=root mode=0744

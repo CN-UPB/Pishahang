@@ -1,0 +1,168 @@
+{
+  "id": "bce0514a-3af4-4b85-b1bd-34412e14803b",
+  "clientId": "demo-client",
+  "surrogateAuthRequired": false,
+  "enabled": true,
+  "clientAuthenticatorType": "client-secret",
+  "secret": "1234",
+  "redirectUris": [
+    "/auth/demo"
+  ],
+  "webOrigins": [],
+  "notBefore": 0,
+  "bearerOnly": false,
+  "consentRequired": false,
+  "standardFlowEnabled": true,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": true,
+  "serviceAccountsEnabled": true,
+  "publicClient": false,
+  "frontchannelLogout": false,
+  "protocol": "openid-connect",
+  "attributes": {
+    "saml.assertion.signature": "false",
+    "saml.force.post.binding": "false",
+    "saml.multivalued.roles": "false",
+    "saml.encrypt": "false",
+    "saml_force_name_id_format": "false",
+    "saml.client.signature": "false",
+    "saml.authnstatement": "false",
+    "saml.server.signature": "false"
+  },
+  "fullScopeAllowed": true,
+  "nodeReRegistrationTimeout": -1,
+  "protocolMappers": [
+    {
+      "id": "7a2fa429-0c8e-42ad-9f43-452760628a68",
+      "name": "Client Host",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usersessionmodel-note-mapper",
+      "consentRequired": false,
+      "consentText": "",
+      "config": {
+        "user.session.note": "clientHost",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "clientHost",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "2d0dac40-8781-4d6b-a1dd-4ed470bbfbfa",
+      "name": "role list",
+      "protocol": "saml",
+      "protocolMapper": "saml-role-list-mapper",
+      "consentRequired": false,
+      "config": {
+        "single": "false",
+        "attribute.nameformat": "Basic",
+        "attribute.name": "Role"
+      }
+    },
+    {
+      "id": "38db9ff0-651e-4c07-876b-ec78762fcc84",
+      "name": "family name",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-property-mapper",
+      "consentRequired": true,
+      "consentText": "${familyName}",
+      "config": {
+        "user.attribute": "lastName",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "family_name",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "b6dcb2b5-2939-44c3-817e-0e3c0f4aa213",
+      "name": "Client ID",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usersessionmodel-note-mapper",
+      "consentRequired": false,
+      "consentText": "",
+      "config": {
+        "user.session.note": "clientId",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "clientId",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "e40ec847-6e58-4480-83a7-d70a37fe9761",
+      "name": "username",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-property-mapper",
+      "consentRequired": true,
+      "consentText": "${username}",
+      "config": {
+        "user.attribute": "username",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "preferred_username",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "27332742-6928-4b45-a523-d0b0d3b99cec",
+      "name": "email",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-property-mapper",
+      "consentRequired": true,
+      "consentText": "${email}",
+      "config": {
+        "user.attribute": "email",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "email",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "f7e49e20-db3a-44e3-88ce-3ebddb4fc498",
+      "name": "given name",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-property-mapper",
+      "consentRequired": true,
+      "consentText": "${givenName}",
+      "config": {
+        "user.attribute": "firstName",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "given_name",
+        "jsonType.label": "String"
+      }
+    },
+    {
+      "id": "4f1d3c33-c797-4372-8628-03fa3d5a7267",
+      "name": "full name",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-full-name-mapper",
+      "consentRequired": true,
+      "consentText": "${fullName}",
+      "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true"
+      }
+    },
+    {
+      "id": "ece7d9da-2681-4a9c-abfa-747587182052",
+      "name": "Client IP Address",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usersessionmodel-note-mapper",
+      "consentRequired": false,
+      "consentText": "",
+      "config": {
+        "user.session.note": "clientAddress",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "claim.name": "clientAddress",
+        "jsonType.label": "String"
+      }
+    }
+  ],
+  "useTemplateConfig": false,
+  "useTemplateScope": false,
+  "useTemplateMappers": false
+}

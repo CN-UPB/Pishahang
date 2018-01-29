@@ -1,0 +1,42 @@
+---
+- name: stopping MONITORY Docker containers at SP VM
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Stopping the Sonata MONITORY Docker Images
+
+  - name: MONIT Probe - stopping Docker containers
+    docker_container:
+      name: son-monitor-probe
+      state: stopped
+
+  - name: MONIT MANAGER - stopping Docker containers
+    docker_container:
+      name: son-monitor-manager
+      state: stopped
+  - wait_for: host=0.0.0.0 port=8000 timeout=120 delay=10 state=drained
+
+  - name: MONIT Push Gateway - stopping Docker containers
+    docker_container:
+      name: son-monitor-pushgateway
+      state: stopped
+  - wait_for: host=0.0.0.0 port=9091 timeout=120 delay=10 state=drained
+
+  - name: MONIT MySQL - stopping Docker containers
+    docker_container:
+      name: son-monitor-mysql
+      state: stopped
+  - wait_for: host=0.0.0.0 port=3306 timeout=120 delay=10 state=drained
+
+  - name: MONIT PROMETHEUS - stopping Docker containers
+    docker_container:
+      name: son-monitor-prometheus
+      state: stopped
+  - wait_for: host=0.0.0.0 port=9090 timeout=120 delay=10 state=drained
+
+  - name: MONIT InfluxDB  - stopping Docker containers
+    docker_container:
+      name: son-monitor-influxdb
+      state: stopped
+  - wait_for: host=0.0.0.0 port=8086 timeout=120 delay=10 state=drained

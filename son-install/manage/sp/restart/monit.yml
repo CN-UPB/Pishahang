@@ -1,0 +1,60 @@
+---
+- name: re-starting MONITORY Docker containers at SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  # Re-starting the Sonata MONITORY Docker Images
+
+  - name: MONIT InfluxDB  - running Docker containers
+    docker_container:
+      name: son-monitor-influxdb
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=8086 timeout=120 delay=10 state=started
+
+  - name: MONIT MySQL - running Docker containers
+    docker_container:
+      name: son-monitor-mysql
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=3306 timeout=120 delay=10 state=started
+
+  - name: MONIT Push Gateway - running Docker containers
+    docker_container:
+      name: son-monitor-pushgateway
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=9091 timeout=120 delay=10 state=started
+
+  - name: MONIT PROMETHEUS - running Docker containers
+    docker_container:
+      name: son-monitor-prometheus
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=9090 timeout=120 delay=10 state=started
+
+  - name: MONIT MANAGER - running Docker containers
+    docker_container:
+      name: son-monitor-manager
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  - wait_for: host=0.0.0.0 port=8000 timeout=120 delay=10 state=started
+
+  - name: MONIT Probe - running Docker containers
+    docker_container:
+      name: son-monitor-probe
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+

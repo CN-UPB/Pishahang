@@ -1,0 +1,23 @@
+
+- name: installing Kube Master
+  hosts: kubemaster
+  become: true
+  connection: ssh
+  pre_tasks:
+    - name: achtung
+      debug: msg='ACTUALLY, DEPLOY ONLY TO CentOS7 HOSTS - the deployment to Ubuntu 14/16 is on the roadmap'
+  roles:
+    - kubemaster
+
+- name: installing Kube Nodes
+  hosts: kubenodes
+  become: true
+  connection: ssh
+  roles:
+    - kubenode
+
+  post_tasks:
+    - local_action: shell date +'%F %T'
+      register: tsout
+    - debug: msg={{ tsout.stdout }}
+

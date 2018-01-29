@@ -1,0 +1,26 @@
+---
+# tasks file for docker-nginx
+
+- name: get NGINX Docker image
+  docker_image:
+    name: nginx
+
+- name: start NGINX as a Docker containers
+  docker_container:
+    name: nginx
+    image: nginx
+    #env:
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - vpsa-mgmt
+      - name: "{{ vl_enduser }}"
+        aliases:
+          - vpsa-enduser
+    restart_policy: "unless-stopped"
+    volumes:
+      - /var/log/sonata/nginx:/var/log/nginx
+    log_driver: syslog # gelf
+

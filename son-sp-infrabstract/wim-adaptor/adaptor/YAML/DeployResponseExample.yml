@@ -1,0 +1,95 @@
+instanceName: "sonata-demo9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"
+instanceVimUuid: "32b1204d-de4d-4672-8713-43f000e608a3"
+nsr:
+  status: "normal operation"
+  descriptor_version: "nsr-schema-01"
+  id: "9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"
+  descriptor_reference: "9df6a98f-9e11-4cb7-b3c0-b1375e7cb0b0"
+vnfrs:
+- status: "normal operation"
+  descriptor_version: "vnfr-schema-01"
+  id: "645db4fa-a714-4cba-9617-4001477d0000"
+  descriptor_reference: "645db4fa-a714-4cba-9617-4001477d1281"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "TestVM"
+    vdu_reference: "iperf-vnf:vdu01"
+    number_of_instances: 1
+    vnfc_instance:
+    - id: "9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"
+      vim_id: "1d7bfb02-02fa-4214-aba6-295560b7a675"
+      vc_id: "e911356e-14ca-4211-b44e-7fd74f2d396d"
+      connection_points:
+      - id: "vdu01:cp01"
+        interface:
+          address: "10.31.13.212"
+        type: management
+      - id: "vdu01:cp02"
+        interface:
+          address: "192.0.0.11"
+          netmask: "255.255.255.248"
+        type: internal
+      - id: "vdu01:cp03"
+        interface:
+          address: "192.0.0.18"
+          netmask: "255.255.255.248"
+        type: internal
+- status: "normal operation"
+  descriptor_version: "vnfr-schema-01"
+  id: "6a15313f-cb0a-4540-baa2-77cc6b3f0000"
+  descriptor_reference: "6a15313f-cb0a-4540-baa2-77cc6b3f5b68"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "TestVM"
+    vdu_reference: "firewall-vnf:vdu01"
+    number_of_instances: 1
+    vnfc_instance:
+    - id: "9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"
+      vim_id: "1d7bfb02-02fa-4214-aba6-295560b7a675"
+      vc_id: "d9703a91-58a2-4d8e-b4ee-63d5100db928"
+      connection_points:
+      - id: "vdu01:cp01"
+        interface:
+          address: "10.31.13.210"
+        type: management
+      - id: "vdu01:cp02"
+        interface:
+          address: "192.0.0.26"
+          netmask: "255.255.255.248"
+        type: internal
+      - id: "vdu01:cp03"
+        interface:
+          address: "192.0.0.35"
+          netmask: "255.255.255.248"
+        type: internal
+- status: "normal operation"
+  descriptor_version: "vnfr-schema-01"
+  id: "8a0aa837-ec1c-44e5-9907-898f64010000"
+  descriptor_reference: "8a0aa837-ec1c-44e5-9907-898f6401c3ae"
+  virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "TestVM"
+    vdu_reference: "tcpdump-vnf:vdu01"
+    number_of_instances: 1
+    vnfc_instance:
+    - id: "9df6a98f-9e11-4cb7-b3c0-InAdUnitTest"
+      vim_id: "1d7bfb02-02fa-4214-aba6-295560b7a675"
+      vc_id: "8e292116-c745-4faf-9200-be9d83f98d1a"
+      connection_points:
+      - id: "vdu01:cp01"
+        interface:
+          address: "10.31.13.211"
+        type: management
+      - id: "vdu01:cp02"
+        interface:
+          address: "192.0.0.43"
+          netmask: "255.255.255.248"
+        type: internal
+      - id: "vdu01:cp03"
+        interface:
+          address: "192.0.0.50"
+          netmask: "255.255.255.248"
+        type: internal
+request_status: "DEPLOYED"
+vimUuid: "12345678-1234567890-1234567890-1234"
+

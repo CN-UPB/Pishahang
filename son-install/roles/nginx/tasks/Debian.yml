@@ -1,0 +1,52 @@
+---
+
+- name: check if the Apache service exists
+  stat: path=/etc/init.d/apache2
+  register: service_status
+
+- name: previously, stop Apache service
+  service: name=apache2 state=stopped enabled=no
+  when: service_status.stat.exists
+  register: service_stopped
+
+- name: previously, remove Apache from system
+  apt: name={{ item }} state=absent 
+  with_items: 
+  - apache2
+  - apache2-utils
+  - apache2-common
+
+- name: check if the NGINX service exists
+  stat: path=/etc/init.d/nginx
+  register: service_status
+
+- name: previously assure that NGINX is not running
+  service: name=nginx state=stopped
+  when: service_status.stat.exists
+  register: service_stopped
+
+- name: now, install NGINX on Ubuntu
+  apt: name=nginx state=present update_cache=yes
+
+# Starting NGINX
+
+- name: start NGINX !!!
+  service: name=nginx state=started enabled=yes
+
+# Upload content
+
+- name: copy www content
+  include: copy-www-content.yml
+  notify:
+    - restart nginx
+
+# Open FW ports
+
+- name: open NGINX port at FW
+  ufw:
+    state: enabled
+    rule: allow
+    port: "{{ svc_port }}"
+    proto: tcp
+  notify: reload firewalld
+#

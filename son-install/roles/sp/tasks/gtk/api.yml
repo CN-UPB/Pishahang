@@ -1,0 +1,32 @@
+---
+- debug: msg="##### SP GTK-API DEPLOYMENT {{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+# Running the Sonata GK API Docker Image
+
+- name: deploying GATEKEEPER API (Docker containers)
+  docker_container:
+    name: son-gtkapi
+    image: "tdierich/son-gtkapi"
+    env:
+      RACK_ENV: integration
+      USER_MANAGEMENT_URL: http://son-gtkusr:5600
+      LICENSE_MANAGEMENT_URL: http://son-gtklic:5900
+      METRICS_URL: http://son-monitor-manager:8000/api/v1
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      PACKAGE_MANAGEMENT_URL: http://son-gtkpkg:5100
+      SERVICE_MANAGEMENT_URL: http://son-gtksrv:5300
+      CLOUD_SERVICE_MANAGEMENT_URL: http://son-gtkcsrv:5250
+      FUNCTION_MANAGEMENT_URL: http://son-gtkfnct:5500
+      VIM_MANAGEMENT_URL: http://son-gtkvim:5700 
+      RECORD_MANAGEMENT_URL: http://son-gtkrec:5800
+      KPI_MANAGEMENT_URL: http://son-gtkkpi:5400
+      VALIDATOR_URL: http://son-validate:5050
+      RATE_LIMITER_URL: http://son-gtkrlt:5150      
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-gtkapi
+    state: started
+    published_ports: "32001:5000"
+    restart_policy: "always"

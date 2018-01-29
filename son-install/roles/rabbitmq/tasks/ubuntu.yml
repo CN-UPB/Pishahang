@@ -1,0 +1,16 @@
+---
+- name: adding RabbitMQ public GPG key to the apt repo
+  apt_key: url=http://www.rabbitmq.com/rabbitmq-signing-key-public.asc state=present
+
+- name: adding RabbitMQ repo
+  apt_repository: repo='deb http://www.rabbitmq.com/debian/ testing main' update_cache=no state=present
+
+- name: installing RabbitMQ server
+  apt: name=rabbitmq-server state=present
+
+- name: enabling the RabbitMQ Management Console
+  rabbitmq_plugin: names=rabbitmq_management state=enabled
+  notify: restart rabbitmq-server
+
+- name: ensuring that the RabbitMQ service is running
+  service: name=rabbitmq-server state=started enabled=yes

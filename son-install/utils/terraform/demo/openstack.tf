@@ -1,0 +1,4 @@
+module "openstack" {
+  source = "./openstack"
+}
+

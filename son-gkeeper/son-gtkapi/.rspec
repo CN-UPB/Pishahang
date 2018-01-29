@@ -1,0 +1,4 @@
+--color
+--require spec_helper
+#--format documentation
+--out son-gtkapi-test.xml

@@ -1,0 +1,156 @@
+# Pre-requirements
+- name: install Ubuntu 16.04 depedency libraries
+  apt: name={{ item }}
+  with_items:
+    - build-essential # Build Debian packages
+    - libpcap-dev # Packet capture
+    - libpcre3-dev # Perl Compatible Regular Expression
+    - libdumbnet-dev # LibDNet
+    - bison # DAQ
+    - flex # DAQ
+    - zlib1g-dev # Compression library
+    - liblzma-dev # SWF decompression
+    - openssl
+    - libssl-dev
+
+- file:
+    path: /tmp/snort_src
+    state: directory
+    mode: 0755
+
+# Data AcQquisition libraries
+- name: download DAQ tarball
+  unarchive:
+    src: https://www.snort.org/downloads/snort/daq-2.0.6.tar.gz
+    dest: /tmp/snort_src
+    remote_src: true
+
+- name: install DAQ
+  shell: cd /tmp/snort_src/daq-2.0.6 && ./configure && make && make install
+
+- name: download SNORT tarball
+  unarchive:
+    src: https://www.snort.org/downloads/snort/snort-2.9.9.0.tar.gz
+    dest: /tmp/snort_src
+    remote_src: true
+
+- name: install SNORT (w/ ability to packet performance monitoring)
+  shell: cd /tmp/snort_src/snort-2.9.9.0 && ./configure --enable-sourcefire && make && make install
+
+- name: upload shared libraries (otherwise you will get an error when you try to run Snort)
+  command: ldconfig
+
+#- file:
+#    src: /usr/sbin/snort
+#    dest: /usr/local/bin/snort
+#    owner: root
+#    group: root
+#    state: link
+
+- command: snort -V
+  register: snort_ver
+- debug:
+    var: snort_ver.output
+
+- group:
+    name: snort
+    state: present
+
+- user:
+    name: snort
+    shell: /usr/sbin/nologin
+    groups: snort
+    append: yes
+    comment: "SNORT IDS"
+
+#- file:
+#    path: /etc/snort
+#    state: directory
+#    owner: snort
+#    group: snort
+#    mode: 5775
+
+- file:
+    path: /var/log/snort
+    state: directory
+    owner: snort
+    group: snort
+    mode: 5775
+
+- file:
+    path: /usr/local/lib/snort_dynamicrules
+    state: directory
+    owner: snort
+    group: snort
+    mode: 5775
+
+
+- file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/snort/rules/iplists
+    - /etc/snort/rules/iplists
+    - /etc/snort/rules/iplists
+    - /etc/snort/so_rules
+    - /var/log/snort/archived_logs
+
+- file:
+    path: "{{ item }}"
+    state: touch
+    mode: "u=rw,g=r,o=r"
+  with_items:
+    - /etc/snort/rules/iplists/black_list.rules
+    - /etc/snort/rules/iplists/black_list.rules
+    - /etc/snort/rules/iplists/black_list.rules
+    - /etc/snort/sid-msg.map
+
+# Currently remote_src does not support recursive copying
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/classification.config
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/file_magic.conf
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/reference.config
+    dest: /etc/snort
+    remote_src: true
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/snort.conf
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/threshold.conf
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/gen-msg.map
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/unicode.map
+    dest: /etc/snort
+    remote_src: true
+
+- copy:
+    src: /tmp/snort_src/snort-2.9.9.0/etc/attribute_table.dtd
+    dest: /etc/snort
+    remote_src: true
+
+- name: sync remote dirs
+  copy:
+    remote_src: true
+    src: "{{ item }}"
+    dest: "/usr/local/lib/snort_dynamicpreprocessor/"
+  with_fileglob:
+    - /tmp/snort_src/snort-2.9.9.0/src/dynamic-preprocessors/build/usr/local/lib/snort_dynamicpreprocessor/*
+

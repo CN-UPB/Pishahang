@@ -1,0 +1,1 @@
+[{"description": "Rule sweet rule ", "summary": "Rule sweet rule ", "duration": "4m", "notification_type": 2, "condition": "metric1-mmetric2> 0.25", "name": "Rule 4"}, {"description": "Rule sweet rule ....", "summary": "Rule sweet rule... ", "duration": "4m", "notification_type": 2, "condition": "metric1-mmetric2> 0.25", "name": "Rule 45"}]

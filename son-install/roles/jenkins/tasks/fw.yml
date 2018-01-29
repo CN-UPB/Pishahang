@@ -1,0 +1,34 @@
+
+# CENTOS/REDHAT
+
+- name: installing Firewalld package
+  yum: name=firewalld state=latest update_cache=yes
+  when: ansible_os_family == "RedHat"
+
+- name: start 'firewall' service
+  service: name=firewalld state=started enabled=yes
+  when: ansible_os_family == "RedHat"
+
+- name: open Jenkins default port (8080)
+  firewalld:
+    port: 8080/tcp
+    permanent: true
+    state: enabled
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+
+# UBUNTU/DEBIAN
+
+- name: start 'firewall' service
+  service: name=ufw state=started enabled=yes
+  when: ansible_os_family == "Debian"
+
+- name: open Jenkins listening port at fw
+  ufw:
+    state: enabled
+    rule: allow
+    port: 8080
+    proto: tcp
+  notify: reload firewalld
+  when: ansible_os_family == "Debian"

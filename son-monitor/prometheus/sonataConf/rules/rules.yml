@@ -1,0 +1,74 @@
+groups:
+- name: ./rules/rules.yml
+  rules:
+  - alert: VNF_DOWN
+    expr: (time() - vm_up) > 50 and (time() - vm_up) < 150
+    labels:
+      exported_job: vnf
+    annotations:
+      description: VNF stopped sending data {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: 'VNF DOWN '
+  - alert: VTC_ALL_PACKET
+    expr: mbits_packets_all{exported_job="vtc_db"} > 1500
+    for: 5s
+    labels:
+      exported_job: vtc_db
+    annotations:
+      description: VTC all packet threshold exceeded {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: 'VTC all packet threshold exceeded '
+  - alert: VTC_HTTP_PACKET
+    expr: mbits_packets_http{exported_job="vtc_db"} > 10000
+    for: 5s
+    labels:
+      exported_job: vtc_db
+    annotations:
+      description: VTC HTTP packet threshold exceeded {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: 'VTC HTTP packet threshold exceeded '
+  - alert: sp_cpu_usage_95_perc
+    expr: vm_cpu_perc{exported_job="vm"} > 95
+    for: 30m
+    labels:
+      exported_job: vm
+    annotations:
+      description: High cpu usage for VM {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: SP cpu usage exceeded 95%
+  - alert: sp_disk_usage_95_perc
+    expr: vm_disk_usage_perc{exported_job="vm"} > 95
+    for: 30m
+    labels:
+      exported_job: vm
+    annotations:
+      description: High disk usage for VM {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: SP disk usage exceeded 95%
+  - alert: sp_mem_usage_95_perc
+    expr: vm_mem_perc{exported_job="vm"} < 5
+    for: 30m
+    labels:
+      exported_job: vm
+    annotations:
+      description: High memory usage for VM {{$labels.exported_instance}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: SP memory usage exceeded 95%
+  - alert: cnt_cpu_usage_95_perc
+    expr: cnt_cpu_perc{exported_job="containers"} > 95
+    for: 30m
+    labels:
+      exported_job: containers
+    annotations:
+      description: High CPU usage for container {{$labels.name}}  {{$labels.id}} (current
+        value {{$value}})
+      summary: Container CPU usage exceeded 95%
+  - alert: cnt_mem_usage_95_perc
+    expr: cnt_mem_perc{exported_job="containers"} > 95
+    for: 30m
+    labels:
+      exported_job: containers
+    annotations:
+      description: High memory usage for container {{$labels.name}}  {{$labels.id}}
+        (current value {{$value}})
+      summary: Container memory usage exceeded 95%

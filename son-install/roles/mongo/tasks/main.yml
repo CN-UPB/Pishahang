@@ -1,0 +1,9 @@
+---
+# tasks file for "mongo"
+
+- include: centos7.yml
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
+- include: ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+

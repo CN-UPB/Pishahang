@@ -1,0 +1,55 @@
+---
+
+- name: "Remove MySQL engine from Linux"
+  hosts: "{{ target }}"
+  become: true
+  vars: 
+    version: "latest"
+  tasks:
+
+  - raw: date >> /tmp/play.log
+
+  - name: check if the MYSQL service exists
+    stat: path=/etc/init.d/mysql
+    register: service_status
+    #when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "14"
+    when: ansible_os_family == "Debian"
+
+  - name: previously assure that MYSQL is not running
+    service: name=mysql state=stopped
+    when: service_status.stat.exists
+    register: service_stopped
+
+  - name: stop DB service/daemon on Debian/Ubuntu machine
+    service: name=mysql state=stopped enabled=no 
+
+  # REMOVE MySQL on Debian like dostro
+  - name: removing MySQL package on Debian/Ubuntu machine
+    apt: name={{ item }} state=absent
+    with_items:
+    - mysql-server
+    - python-dev
+    - python-mysqldb
+    - libmysqlclient-dev
+    when: ansible_os_family == "Debian"
+
+  # REMOVE MySQL on REDHAT like ditro
+  - name: removing MySQL package on Redhat/CentOS machine
+    yum: name={{ item }} state=present
+    with_items:
+    - mariadb
+    - mariadb-server
+    - MySQL-python
+    when: ansible_os_family == "RedHat"
+
+  - name: removing datafiles
+    file: path={{ item }} state=absent
+    with_items:
+    - /var/run/mysql/
+    - /var/lib/mysql/
+    - /var/log/mysql/
+    - /usr/lib/mysql
+    - /etc/init.d/mysql
+
+
+  - raw: date >> /tmp/play.log

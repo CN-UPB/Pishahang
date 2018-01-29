@@ -1,0 +1,29 @@
+source 'http://rubygems.org'
+ruby '2.4.3'
+
+gem 'rake', '12.3.0'
+gem 'sinatra', '2.0.0', require: 'sinatra/base'
+gem 'sinatra-contrib', '2.0.0', require: false
+gem 'sinatra-logger', '0.3.2'
+gem 'sinatra-active-model-serializers', '0.1.0'
+gem 'sinatra-cross_origin', '0.4.0'
+
+gem 'puma', '3.11.0'
+gem 'rest-client', '2.0.2'
+gem 'rack-parser', '0.7.0', require: 'rack/parser'
+gem 'ci_reporter_rspec', '1.0.0'
+gem 'rubyzip', '1.2.1'
+gem 'addressable', '2.5.2'
+gem 'rubocop', '0.52.0'
+gem 'rubocop-checkstyle_formatter', '0.4.0', require: false
+gem 'curb', '0.9.3'
+gem 'factory_bot', '4.8.2'
+gem 'activesupport', '5.1.4', require: "active_support"
+gem 'SONATA', '0.1.0', path: './lib/local-gems'
+
+group :test do
+  gem 'webmock', '3.1.1'
+  gem 'rspec', '3.7.0'
+  gem 'rack-test', '0.8.2'
+  gem 'rspec-its', '1.2.0'
+end

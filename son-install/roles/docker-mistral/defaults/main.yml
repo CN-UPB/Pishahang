@@ -1,0 +1,13 @@
+---
+# defaults file for mistral
+
+pop: alabs
+proj: demo
+distro: xenial
+
+docker_network_name: son-sp
+
+sp_ver: dev
+domain_name: sonata-nfv.eu
+fqdn: "{{ plat }}.{{ pop }}.{{ domain_name }}"
+

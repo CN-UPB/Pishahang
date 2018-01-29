@@ -1,0 +1,18 @@
+---
+$schema: "http://json-schema.org/draft-04/schema#"
+description: >
+  A very simple test schema that uses the commons.definitions file.
+  In addtion, this schema uses the id tag to create a new scope
+  within the file. According to the JSON Schema specification, the
+  $ref is then resolved against the new id-scope.
+
+##
+## The actual document description.
+##
+type: "object"
+properties:
+  image_format:
+    description: "The format of the virtual machine image."
+    id: "https://raw.githubusercontent.com/sonata-nfv/son-schema/master/commons/definitions.json"
+    $ref: "#/images_formats"
+additionalProperties: false

@@ -1,0 +1,33 @@
+---
+
+- name: deploy COMMON to ALL nodes (install latest operating system packages)
+  hosts: "{{ plat }}"
+  connection: ssh
+  vars:
+    localhome: "{{ lookup('env','PWD') }}"
+#  vars_files:
+#    - "{{ localhome }}/roles/{{ plat }}/vars/os_{{ pop }}_{{ proj }}.yml"
+  remote_user: "{{ vm_user }}"
+
+  pre_tasks:
+    - local_action: shell date +'%F %T'
+      register: ts
+    - debug:
+        msg: "{{ ts.stdout }}"
+
+  roles:
+    - { role: ntp, become: true }
+    - { role: common, become: true }
+
+  tasks:
+
+    - name: REBOOT ALL VMs
+      shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: WAITING for server to come back
+      local_action: wait_for host={{ ansible_host | default(inventory_hostname) }} port=22 state=started delay=10 timeout=400
+      become: false
+

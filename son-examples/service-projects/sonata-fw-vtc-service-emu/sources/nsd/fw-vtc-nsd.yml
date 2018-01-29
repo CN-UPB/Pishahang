@@ -1,0 +1,106 @@
+
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv"
+name: "sonata-fw-vtc-service"
+version: "0.1"
+author: "Manuel Peuster, Paderborn University, manuel.peuster@uni-paderborn.de"
+description: "SONATA Y1 review demo service: firewall/vTC"
+
+##
+## The various network functions this service
+## is composed of.
+##
+network_functions:
+  - vnf_id: "fw_vnf"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "fw-vnf"
+    vnf_version: "0.1"
+  - vnf_id: "vtc_vnf"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "vtc-vnf"
+    vnf_version: "0.1"
+
+##
+## The NS connection points to the 
+## outside world.
+##
+connection_points:
+  - id: "mgmt"
+    interface: "ipv4"
+    type: "management"
+  - id: "servicin"
+    interface: "ipv4"
+    type: "external"
+  - id: "serviceout"
+    interface: "ipv4"
+    type: "external"
+
+##
+## The virtual links that interconnect
+## the different connections points.
+##
+virtual_links:
+  - id: "mgmt"
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+      - "fw_vnf:mgmt"
+      - "vtc_vnf:mgmt"
+      - "mgmt"
+  - id: "link-input"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "servicein"    
+      - "fw_vnf:fwin"
+  - id: "link-interconnect"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "fw_vnf:fwout"
+      - "vtc_vnf:input"
+  - id: "link-output"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vtc_vnf:output"
+      - "serviceout"
+  - id: "link-back"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "serviceout"
+      - "servicein"
+
+##
+## The forwarding graphs.
+##
+forwarding_graphs:
+  - fg_id: "fg_id:fg01"
+    number_of_endpoints: 2
+    number_of_virtual_links: 6
+    constituent_virtual_links: 
+      - "mgmt"
+      - "link-input"
+      - "link-interconnect"
+      - "link-output"
+      - "link-back"
+    constituent_vnfs:
+      - "vtc_vnf"
+      - "fw_vnf"
+    network_forwarding_paths:
+      - fp_id: "fp_id:fg01:fp01"
+        policy: "none"
+        connection_points:
+          - connection_point_ref: "servicein"
+            position: 1
+          - connection_point_ref: "fw_vnf:fwin"
+            position: 2
+          - connection_point_ref: "fw_vnf:fwout"
+            position: 3
+          - connection_point_ref: "vtc_vnf:input"
+            position: 4
+          - connection_point_ref: "vtc_vnf:output"
+            position: 5
+          - connection_point_ref: "serviceout"
+            position: 6
+          - connection_point_ref: "servicein"
+            position: 7
+

@@ -1,0 +1,15 @@
+# DEFAULT VM CONFIG
+vm_user: ubuntu
+nbofvms: 1
+image: xenial64
+flavor: sp-flavor
+os_security_groups: "{{ plat }}-secgrp"
+fip: provider
+availability_zone: nova
+region_name: RegionOne
+key_name: son-install
+
+# DEMO-NET
+int_net_id: "a4f9bbe9-893b-4a2a-a822-3a4fe6099466" # int-subnet.int-net (10.0.0.0/24)
+ext_net_id: "da5c50b6-837a-4087-b987-9cf43f1c2e12" # ext-subnet.ext.net (10.100.16.0/24)
+

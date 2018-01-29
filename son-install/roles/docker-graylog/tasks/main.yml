@@ -1,0 +1,46 @@
+---
+# tasks file for docker-graylog
+
+- include_vars: "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+
+- name: Docker User Defined Network (GRAYLOG)
+  shell: 'docker network create --driver=bridge \
+--subnet=172.20.4.0/24 --gateway=172.20.4.1 \
+--ip-range=172.20.4.128/25 "{{ docker_network_name }}"'
+
+
+- name: deploy GRAYLOG as a Docker container (from official Docker Hub image)
+  docker_container:
+    name: graylog
+    image: "graylog2/server"
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-graylog
+    published_ports:
+      - 9000:9000
+      - 12900:12900
+    etc_hosts:
+      mongo: "{{ ansible_default_ipv4.address }}"
+      #mongo: "{{ ansible_docker0['ipv4']['address']}}"
+    restart_policy: unless-stopped
+    volumes:
+      - /var/log/sonata/graylog:/var/log/graylog
+    log_driver: syslog
+
+- wait_for: host=0.0.0.0 port=9000 timeout=30 delay=10 state=started
+
+- set_fact:
+    graylog: "{{ ansible_default_ipv4.address}}"
+
+- lineinfile:
+    path: "{{ lookup('env','PWD') }}/group_vars/all"
+    line: "public_ip: '{{ ansible_default_ipv4.address }}'"
+    state: present
+
+
+# Guide: https://hub.docker.com/r/graylog2/server/
+
+# INCOMPLETE DEPLOYMENT

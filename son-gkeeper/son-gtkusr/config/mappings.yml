@@ -1,0 +1,65 @@
+---
+resources:
+  - catalogue
+  - repositories
+  - slm
+  - gatekeeper
+  - monitoring
+
+groups:
+    developers: developer
+    customers: customer
+    admins: admin
+
+paths:
+    catalogue:
+        services:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+        functions:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+        packages:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+
+    repositories:
+        requests:
+                 GET: read
+                 POST: execute
+        instances:
+                 GET: read
+                 POST: write
+        vims:
+                 GET: read
+
+    monitoring:
+        services:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+        functions:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+
+    gatekeeper:
+        resource:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write
+    slm:
+        resource:
+                 GET: read
+                 POST: write
+                 PUT: write
+                 DEL: write

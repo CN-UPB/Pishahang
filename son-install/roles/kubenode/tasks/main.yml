@@ -1,0 +1,3 @@
+---
+# tasks file for kubenode
+- include: "{{ ansible_distribution_release }}.yml"

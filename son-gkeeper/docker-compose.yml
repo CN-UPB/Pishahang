@@ -1,0 +1,301 @@
+version: '2'
+services:
+  son-gtkapi:
+    image: registry.sonata-nfv.eu:5000/son-gtkapi
+    links:
+     - son-gtkpkg
+     - son-gtksrv
+     - son-gtkusr
+    environment:
+     - RACK_ENV=integration
+     - PACKAGE_MANAGEMENT_URL=http://son-gtkpkg:5100 # OK
+     - SERVICE_MANAGEMENT_URL=http://son-gtksrv:5300 # OK
+     - FUNCTION_MANAGEMENT_URL=http://son-gtkfnct:5500 # OK
+     - VIM_MANAGEMENT_URL=http://son-gtkvim:5700 # OK
+     - RECORD_MANAGEMENT_URL=http://son-gtkrec:5800 # OK
+     - KPI_MANAGEMENT_URL=http://son-gtkkpi:5400 # OK
+     - LICENCE_MANAGEMENT_URL=http://son-gtklic:5900 # 6000?
+     - USER_MANAGEMENT_URL http://son-gtkusr:5600 # OK
+     - VALIDATOR_URL=http://son-validate:5050
+     - RATE_LIMITER_URL http://son-gtkrlt:5150 # OK
+     - REPOSITORIES_URL=http://sp.int3.sonata-nfv.eu:4002/records
+     - CATALOGUES_URL=http://sp.int.sonata-nfv.eu:4002/catalogues/api/v2
+     - REDIS_URL=redis://son-redis:6379
+     - METRICS_URL=http://son-monitor:8000/api/v1
+    ports:
+      - "32001:5000"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+  
+  son-gtkpkg:
+    image: registry.sonata-nfv.eu:5000/son-gtkpkg
+    environment:
+     - RACK_ENV=integration
+     - CATALOGUES_URL=http://sp.int.sonata-nfv.eu:4002/catalogues/api/v2
+    ports:
+      - "5100"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkfnct:
+    image: registry.sonata-nfv.eu:5000/son-gtkfnct
+    ports:
+      - "5500"
+    restart: always
+    environment:
+     - RACK_ENV=integration
+     - CATALOGUES_URL=http://sp.int.sonata-nfv.eu:4002/catalogues/api/v2
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtksrv:
+    image: registry.sonata-nfv.eu:5000/son-gtksrv
+    links:
+     - broker
+     - postgres
+    ports:
+      - "5300"
+    restart: always
+    environment:
+     - POSTGRES_PASSWORD=sonata
+     - POSTGRES_USER=sonatatest
+     - RACK_ENV=integration
+     - DATABASE_HOST=postgres
+     - DATABASE_PORT=5432
+     - MQSERVER=amqp://guest:guest@broker:5672
+     - CATALOGUES_URL=http://sp.int.sonata-nfv.eu:4002/catalogues/api/v2
+    depends_on:
+     - postgres
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkvim:
+    image: registry.sonata-nfv.eu:5000/son-gtkvim
+    links:
+     - broker
+     - postgres
+    ports:
+      - "5700"
+    restart: always
+    environment:
+     - POSTGRES_PASSWORD=sonata
+     - POSTGRES_USER=sonatatest
+     - RACK_ENV=integration
+     - DATABASE_HOST=postgres
+     - DATABASE_PORT=5432
+     - MQSERVER=amqp://guest:guest@broker:5672
+    depends_on:
+     - postgres
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkrec:
+    image: registry.sonata-nfv.eu:5000/son-gtkrec
+    ports:
+      - "5800"
+    restart: always
+    environment:
+     - RACK_ENV=integration
+     - REPOSITORIES_URL=http://sp.int.sonata-nfv.eu:4002/records
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkrlt:
+    image: registry.sonata-nfv.eu:5000/son-gtkrlt
+    links:
+      - son-redis
+    environment:
+     - RACK_ENV=integration
+     - REDIS_URL=redis://son-redis:6379
+    ports:
+      - "5150"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-redis:
+    image: redis
+    ports:
+      - "6379"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+  
+  son-gtklic:
+    image: registry.sonata-nfv.eu:5000/son-gtklic
+    links:
+     - postgres
+    ports:
+      - "5900"
+    restart: always
+    environment:
+     - POSTGRES_PASSWORD=sonata
+     - POSTGRES_USER=sonatatest
+     - RACK_ENV=integration
+     - DATABASE_HOST=postgres
+     - DATABASE_PORT=5432
+    depends_on:
+     - postgres
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkkpi:
+    image: registry.sonata-nfv.eu:5000/son-gtkkpi    
+    ports:
+      - "5400"
+    restart: always
+    environment:
+     - PUSHGATEWAY_HOST=pushgateway
+     - PUSHGATEWAY_PORT=9091
+     - RACK_ENV=integration
+    depends_on:
+     - postgres
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-gtkusr:
+    image: registry.sonata-nfv.eu:5000/son-gtkusr
+    ports:
+      - "5600:5600"
+    links:
+     - son-keycloak
+     - mongo:mongo
+    environment:
+      - KEYCLOAK_ADDRESS=son-keycloak
+      - KEYCLOAK_PORT=5601
+      - KEYCLOAK_PATH=auth
+      - SONATA_REALM=sonata
+      - CLIENT_NAME=adapter
+    container_name: son-gtkusr
+
+  son-keycloak:
+    image: registry.sonata-nfv.eu:5000/son-keycloak
+    ports:
+      - "5601:5601"
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - SONATA_USER=sonata
+      - SONATA_PASSWORD=1234
+      - SONATA_EMAIL=sonata.admin@email.com
+    container_name: son-keycloak
+
+  postgres:
+    image: ntboes/postgres-uuid
+    ports:
+     - "5432"
+    environment:
+     - POSTGRES_PASSWORD=sonata
+     - POSTGRES_USER=sonatatest
+     - POSTGRES_DB=gatekeeper
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  broker:
+    image: rabbitmq:3
+    ports:
+     - "5672"
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  son-sec-gw:
+    image: registry.sonata-nfv.eu:5000/son-sec-gw
+    ports:
+     - "80:80"
+     - "443:443"
+    links:
+     - son-gtkapi
+    volumes:
+     - /etc/ssl/private/sonata/:/etc/nginx/cert/
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logs.sonata-nfv.eu:12900"
+
+  influx:
+   image: registry.sonata-nfv.eu:5000/son-monitor-influxdb
+   restart: always
+   ports:
+    - "8086:8086"
+
+  #mysql:
+  # image: registry.sonata-nfv.eu:5000/son-monitor-mysql
+  # restart: always
+  # ports:
+  #  - "3306:3306"
+  # environment:
+  #  - MYSQL_ROOT_PASSWORD=1234
+  #  - MYSQL_USER=monitoringuser
+  #  - MYSQL_PASSWORD=sonata
+  #  - MYSQL_DATABASE=monitoring
+
+  pushgateway:
+   image: registry.sonata-nfv.eu:5000/son-monitor-pushgateway
+   restart: always
+   ports:
+    - "9091:9091"
+
+  prometheus:
+   image: registry.sonata-nfv.eu:5000/son-monitor-prometheus
+   restart: always
+   volumes:
+    - /tmp/monitoring/prom/apache:/var/log/apache2
+   ports:
+    - "9090:9090"
+    - "9089:9089"
+   depends_on:
+    - pushgateway
+    - influx
+   environment:
+    - RABBIT_URL=sp.int.sonata-nfv.eu:5672
+    - EMAIL_PASS=czBuQHRAX21vbl9zeXNfMTY=
+  
+  son-monitor-manager:
+   image: registry.sonata-nfv.eu:5000/son-monitor-manager
+   restart: unless-stopped
+   volumes:
+    - /tmp/monitoring/mgr:/var/log/apache2
+   ports:
+    - "8000:8000"
+
+  mongodata-gtk:
+    image: mongo:3.0.4
+    volumes:
+      - /data/db
+    command: --break-mongo
+
+  mongo:
+    image: mongo:3.0.4
+    volumes_from:
+      - mongodata-gtk
+    ports:
+      - "27017"
+    command: --smallfiles --rest
+    # restart: always
+

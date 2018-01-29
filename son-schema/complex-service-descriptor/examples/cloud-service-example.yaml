@@ -1,0 +1,13 @@
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv.service-descriptor"
+name: "simplest-example"
+version: "0.2"
+author: "Tobias Dierich"
+
+cloud_services:
+  - service_id: "testing"
+    service_vendor: "eu.sonata-nfv.cloud_services"
+    service_name: "test_service"
+    service_version: "0.2"

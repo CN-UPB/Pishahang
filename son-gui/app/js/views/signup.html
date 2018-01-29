@@ -1,0 +1,113 @@
+<!--
+Copyright (c) 2015 SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+ALL RIGHTS RESERVED.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+nor the names of its contributors may be used to endorse or promote 
+products derived from this software without specific prior written 
+permission.
+
+This work has been performed in the framework of the SONATA project,
+funded by the European Commission under Grant number 671517 through 
+the Horizon 2020 and 5G-PPP programmes. The authors would like to 
+acknowledge the contributions of their colleagues of the SONATA 
+partner consortium (www.sonata-nfv.eu).
+-->
+
+<div id="signup-page" class="row" ng-controller="SignUpController">
+  <div class="container center">
+    <div class="col s12 m4 l2">&nbsp;</div>
+    <div class="col s12 m4 l8 z-depth-6 card-panel">
+      <form class="login-form">
+
+        <div class="row">
+          <div class="input-field col s12 center">
+            <img src="media/sonata.png" alt="" class="responsive-img valign profile-image-login" style="max-width: 100%">
+          </div>
+        </div>
+        <div class="row center">
+          <div class="red-text" ng-show="error_message_view">{{error_message}}</div>
+          <div class="green-text" ng-show="success_message_view">{{success_message}}</div>
+        </div>
+        <div class="row margin">
+          <div class="col s12 m12 l6">
+
+            <div class="input-field col s12" style="margin-bottom:15px">
+              <input class="validate" id="FirstName" type="text" ng-model="new_user.first_name" required="" aria-required="true">
+              <label for="FirstName" data-error="wrong" data-success="right" class="center-align" >FirstName</label>
+            </div>
+
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input class="validate" id="LastName" type="text" ng-model="new_user.last_name">
+              <label for="LastName" data-error="wrong" data-success="right" class="center-align"  required>LastName</label>
+            </div>
+
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input class="validate" id="email" type="text" ng-model="new_user.email">
+              <label for="email" data-error="wrong" data-success="right" class="center-align" required>Email</label>
+            </div>
+
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input class="validate" id="phone_number" type="number" ng-model="new_user.phone_number" required>
+              <label for="phone_number" data-error="wrong" data-success="right" class="center-align" >Phone Number</label>
+            </div>
+          
+
+          </div>
+          <div class="col s12 m12 l6">
+
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input class="validate" id="username" type="text" ng-model="new_user.username">
+              <label for="username" data-error="wrong" data-success="right" class="center-align" required>Username</label>
+            </div>
+          
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input id="password" type="password" ng-model="new_user.password">
+              <label for="password" data-error="wrong" data-success="right" class="center-align" required>Password</label>
+            </div>
+          
+            <div class="input-field col s12"  style="margin-bottom:15px">
+              <input id="password2" type="password" ng-model="password2">
+              <label for="password2" data-error="wrong" data-success="right" class="center-align" required>Confirm Password</label>
+            </div>
+          </div>
+          
+        
+         
+          
+        
+          
+       </div>
+     
+    
+        <div class="row">
+          <div class="input-field col s12 m6 l4 right">
+            <a href="javascript:void(0)" ng-click="submitSignUp()"  class="btn waves-effect waves-light col s12">SignUp</a>
+            <br/>&nbsp;
+              <a href="javascript:void(0)" ng-click="backtoLogin()"  class="center col s12">or back to Login</a>
+          </div>
+
+          
+        </div>
+        
+
+      </form>
+    </div>
+    <div class="col s12 m4 l2"></div>
+  </div>
+</div>
+<style>
+main{padding:0!important;margin: 0!important}
+</style>

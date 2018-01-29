@@ -1,0 +1,11 @@
+---
+- name: "deploy ODOO (OpenERP Community Edition) to the VM appliance"
+  hosts: "{{ target }}"
+  become: true
+  connection: local
+  vars:
+    tarball: "10.0"
+    target: localhost
+  roles:
+  - pgsql
+  - odoo

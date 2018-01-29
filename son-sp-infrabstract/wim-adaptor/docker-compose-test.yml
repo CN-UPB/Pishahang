@@ -1,0 +1,22 @@
+version: '2'
+services:
+  wim-adaptor:
+    image: registry.sonata-nfv.eu:5000/wim-adaptor
+    entrypoint: /test.sh
+    links:
+     - postgres 
+    environment:
+     - repo_host postgres
+     - repo_port 5432
+     - repo_user sonata
+     - repo_pass sonatatest
+    volumes:
+     - ./reports:/adaptor/target
+
+  postgres:
+    image: ntboes/postgres-uuid
+    ports:
+     - "5432"
+    environment:
+     - POSTGRES_PASSWORD=sonata
+     - POSTGRES_USER=sonatatest

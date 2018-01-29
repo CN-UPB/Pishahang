@@ -1,0 +1,4 @@
+---
+# tasks file for ldap
+
+- include: "{{ ansible_distribution_release }}.yml"

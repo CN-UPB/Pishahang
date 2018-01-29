@@ -1,0 +1,223 @@
+---
+    id: "id number"
+    vendor: "vendor generating this VNFD"
+    descriptor_version: "version of this VNFD"
+    version: "version of VNF software"
+    vdu: 
+      - 
+        id: "vdu uuid1"
+        vm_image: "image reference uri"
+        computation_requirement: 
+          vcpus: "number of virtual cpus"
+        virtual_memory_resource_element: "virtual memory needed eg 10M"
+        virtual_network_bandwidth_resources: "virtual bandwidth eg 10Mbit"
+        lifecycle_event: 
+          start: "path/to/script"
+          stop: "path/to/script"
+          restart: "path/to/script"
+        constraint: "placeholder for other constraints"
+        high_availability: "ActiveActive or ActivePassive"
+        scale_in_out: 
+          minimum: "minimum number of instances"
+          maximum: "maximum number of instances"
+        vnfc_instance: 
+          - 
+            id: "vnfc_instanceid1"
+            vim_id: "id of vim managing the virtual container"
+            vc_id: "id of the virutal container"
+            connection_points: 
+              - 
+                id: "connectionpointidvnfc1"
+                vitual_link_reference: "virtual link reference"
+                type: "virtual/physical port/nic or vpn endpoint ip"
+              - 
+                id: "connectionpointidvnfc2"
+                vitual_link_reference: "virtual link reference"
+                type: "virtual/physical port/nic or vpn endpoint ip"
+          - 
+            id: "vnfcInstance_id2"
+            vim_id: "id of vim managing the virtual container"
+            vc_id: "id of the virutal container"
+            connection_points: 
+              - 
+                id: "connectionpointidvnfc3"
+                vitual_link_reference: "virtual link reference"
+                type: "virtual/physical port/nic or vpn endpoint ip"
+              - 
+                id: "connectionpointidvnfc4"
+                vitual_link_reference: "virtual link reference"
+                type: "virtual/physical port/nic or vpn endpoint ip"
+        parent_vdu: "vnfd:vdu:id"
+        cpu_instruction_set_extension: ""
+        cpu_model: ""
+        cpu_model_specification_binding: ""
+        cpu_min_clock_speed: ""
+        cpu_core_reservation: ""
+        cpu_simultaneous_multi_threading_hw_thread_specification: ""
+        cpu_core_oversubscription_policy: ""
+        cpu_core_and_hw_thread_allocation_topology_policy: ""
+        cpu_last_level_cache_size: ""
+        cpu_direct_io_access_to_cache: ""
+        cpu_translation_look_aside_buffer_parameters: 
+          TLB_size: ""
+          TLB_large_page_support: ""
+          IOTLB_size: ""
+          IOTLB_large_page_support: ""
+        cpu_hot_add: ""
+        memory_parameters: 
+          type: ""
+          speed: ""
+          channels: ""
+          size: ""
+          error_correction_codes: ""
+          oversubscription_policy: ""
+          bandwidth_required: ""
+          large_pages_required: ""
+          NUMA_allocation_policy: ""
+        memory_hot_add: ""
+        platform_security_parameters: 
+          random_number_generation: ""
+          measure_launch_environment: ""
+        hypervisor_parameters: 
+          type: ""
+          version: ""
+          second_level_address_translation: ""
+          second_level_address_translation_with_large_page_support: ""
+          second_level_address_translation_for_io: ""
+          second_level_address_translation_for_io_with_large_page: ""
+          support_for_interrupt_remapping: ""
+          support_for_data_processing_acceleration_libraries: ""
+        platform_pcie_parameters: 
+          generational_capabilities: ""
+          bandwidth: ""
+          device_pass_through: ""
+          SR-IOV: ""
+          device_assignement_affinity: ""
+        pcie_advanced_error_reporting: ""
+        platform_acceleration_device: ""
+        network_interface_card_capabilities: 
+          LSO: ""
+          LRO: ""
+          checksum: ""
+          RSS: ""
+          flow_director: ""
+          mirroring: ""
+          availability: ""
+          jumbo_support: ""
+          VLAN_tag: ""
+          RDMA: ""
+          SR-IOV: ""
+        network_interface_bandwidth: "eg 1GBit"
+        data_processing_acceleration_library: "eg DPDK v1.0"
+        vswitch_capabilities: 
+          type: "ovs"
+          version: "2.0"
+          overlay_tunnel: "GRE"
+        corrected_error_notification: "number of correctable errors"
+        uncorrected_error_notification: "number of error raising exceptions"
+        storage_requirements: 
+          size: "size required eg 30GB"
+          KQI1: ""
+          KQI2: ""
+    virtual_link: 
+      - 
+        id: "vlinkid1 number"
+        connectivity_type: "E-Line, E-LAN or E-Tree"
+        connection_points_references: 
+          - 
+            id: "connection_point_id1"
+          - 
+            id: "connection_point_id2"
+        root_requirement: "root bandwidth"
+        leaf_requirement: "leaf bandwidth"
+        qos: 
+          latency: ""
+          jitter: ""
+        test_access: "none, passive monitoring, active monitoing"
+      - 
+        id: "vlinkid2 number"
+        connectivity_type: "E-Line, E-LAN or E-Tree"
+        connection_points_references: 
+          - 
+            id: "connection_point_id1"
+          - 
+            id: "connection_point_id2"
+        root_requirement: "root bandwidth"
+        leaf_requirement: "leaf bandwidth"
+        qos: 
+          latency: ""
+          jitter: ""
+        test_access: "none, passive monitoring, active monitoing"
+    connection_points: 
+      - 
+        id: "connectionpointid1"
+        vitual_link_reference: "virtual link reference"
+        type: "virtual/physical port/nic or vpn endpoint ip"
+      - 
+        id: "connectionpointid2"
+        vitual_link_reference: "virtual link reference"
+        type: "virtual/physical port/nic or vpn endpoint ip"
+    lifecycle_event: 
+      start: "path/to/script"
+      stop: "path/to/script"
+      restart: "path/to/script"
+    dependency: 
+      - 
+        source_vdu: "sourcevduid"
+        target_vdu: "targetvduid"
+      - 
+        source_vdu: "sourcevduid"
+        target_vdu: "targetvduid"
+    __comment: "listing of systems that have registered to receive status updates"
+    monitoring_parameters: 
+      - 
+        monitoring_parameter: "memory-consumption"
+      - 
+        monitoring_parameter: "CPU-utilization"
+      - 
+        monitoring_parameter: "bandwidth-consumption"
+      - 
+        monitoring_parameter: "VNFC downtime"
+    deployment_flavour: "vnfd:deployment_flavour:id"
+    localization: "en_US"
+    parent_ns: "parent nsr id"
+    descriptor_reference: "vnfd id used to instansiate"
+    vnfm_id: "identification of VNFM entity"
+    connected_external_virtual_link: 
+      - 
+        id: "vlr:id"
+      - 
+        id: "vlr:id"
+    vnf_address: 
+      - 
+        address: "IP, VLAN configured for access"
+      - 
+        address: "IP, VLAN configured for access"
+    status: "flag to report status"
+    notification: 
+      - 
+        id: "system id"
+        ip: "system ip"
+        port: "system port"
+      - 
+        id: "system id"
+        ip: "system ip"
+        port: "system port"
+    lifecycle_event_history: 
+      - 
+        event: "creation/configuration/scale"
+        timestamp: "rfc timestamp"
+        success: "1/0"
+      - 
+        event: "creation/configuration/scale"
+        timestamp: "rfc timestamp"
+        success: "1/0"
+    audit_log: 
+      - 
+        event: "operator login, boot, alarm"
+        timestamp: "rfc timestamp"
+    runtime_policy_info: 
+      - 
+        policy: "policy for orchestration or management eg vnf prioritazation"
+      - 
+        policy: "policy for orchestration or management eg vnf prioritazation"

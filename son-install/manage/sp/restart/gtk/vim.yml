@@ -1,0 +1,39 @@
+---
+- name: restarting GTK VIM Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+
+  # Re-starting GTK VIM (Docker container)
+
+  - name: GATEKEEPER VIM
+    docker_container:
+      name: son-gtkvim
+      image: sonatanfv/son-gtkvim
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        RACK_ENV: integration
+        MQSERVER: amqp://guest:guest@{{ public_ip }}:5672
+        DATABASE_HOST: "{{ public_ip }}"
+        DATABASE_PORT: 5432
+        POSTGRES_PASSWORD: sonata
+        POSTGRES_USER: sonatatest
+        #SECRET_KEY: son-install
+      links:
+        - son-broker
+        - son-postgres
+      ports: "5700:5700"
+      volumes:
+        - /home/{{ ansible_user_id }}/son-gkeeper/son-gtkvim/:/opt/sonata/son-gktvim
+        - /var/log/sonata:/var/log/son-gtkvim
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=5700 timeout=30 delay=10 state=started
+
+#  - name: wait for Container to finish
+#    shell: >
+#      docker wait son-gtkvim
+

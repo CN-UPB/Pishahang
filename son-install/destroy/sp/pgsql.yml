@@ -1,0 +1,11 @@
+---
+- name: remove PostgreSQL container from the 'plat' machine
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+  - name: deploy postgres container
+    docker_container:
+      name: son-postgres
+      state: absent
+
+  - wait_for: host=0.0.0.0 port=5432 timeout=30 delay=10 state=drained

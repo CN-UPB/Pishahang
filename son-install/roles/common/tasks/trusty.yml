@@ -1,0 +1,28 @@
+---
+
+- name: set external name servers for DNS resolution
+  copy:
+    src: "{{ lookup('env','PWD') }}/roles/common/files/resolvconf"
+    dest: /etc/resolvconf/resolv.conf.d/base
+    mode: 0644
+
+- name: previous install APTitude
+  apt: name=aptitude state=latest
+  become: true
+
+- name: upgrade all packages to the latest version
+  apt: upgrade=yes update_cache=yes
+  become: true
+
+- name: install useful operating system tools
+  apt: name={{ item }} state=latest
+  become: true
+  with_items:
+  - sysstat
+  - nmap
+  - tree
+  - htop
+  - policycoreutils
+  - dialog
+  #- postgresql-client-common
+  - nscd

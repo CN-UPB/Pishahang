@@ -1,0 +1,56 @@
+---
+
+- name: check if the MYSQL service exists
+  stat: path=/etc/init.d/mysql
+  register: service_status
+
+- name: previously assure that MYSQL is not running
+  service: name=mysql state=stopped
+  when: service_status.stat.exists
+  register: service_stopped
+
+# tasks file for mysql
+- name: install MySQL package on Debian/Ubuntu machine
+  apt: name={{ item }} state=present
+  with_items:
+  - mysql-server
+  - python-dev
+  - python-mysqldb
+  - python-semanage
+  - libmysqlclient-dev
+  - selinux-utils
+
+- name: check for SElinux
+  command: getenforce
+  register: sestatus
+  changed_when: false
+
+- name: configure SElinux to enable DB listen on any port
+  seboolean: name=mysql_connect_any state=true persistent=yes
+  when: sestatus.rc != 0
+
+- name: enable root login
+  copy: src=my.cnf dest=/root/.my.cnf owner=root group=root mode=0600
+
+- name: Create target directory
+  file: path=/etc/mysql state=directory mode=0755
+
+- name: create the DB configuration file
+  template: src=my.cnf.j2 dest=/etc/mysql/my.cnf owner=root group=root mode=0600
+
+- name: Create target directory
+  file: path=/var/lib/mysql state=directory mode=0755
+
+- name: start DB service/daemon on Debian/Ubuntu machine
+  service: name=mysql state=started enabled=yes
+
+- name: verify if MYSQL is ready
+  service: name=mysql state=status
+  when: service_status.stat.exists
+  register: service_status
+
+- name: create the DB application
+  mysql_db: name={{ dbname }} state=present
+
+- name: create the DB User
+  mysql_user: name={{ dbuser }} password={{ upassword }} priv=*.*:ALL host='%' state=present

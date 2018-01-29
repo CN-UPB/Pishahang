@@ -1,0 +1,33 @@
+---
+# tasks file for keycloak
+
+- name: get tarball
+  become: true
+  become_user: "{{ ansible_user_id }}"
+  get_url:
+    url: "http://downloads.jboss.org/keycloak/{{ tarball_version }}/keycloak-{{ tarball_version }}.tar.gz"
+    dest: "{{ lookup('env','HOME') }}"
+#  register: new_archive
+
+- name: unarchive source
+  become: true
+  become_user: "{{ ansible_user_id }}"
+  unarchive:
+    src: "{{ lookup('env','HOME') }}/keycloak-{{ tarball_version }}.tar.gz"
+    dest: "/opt"
+    copy: no
+#  when: new_archive|changed
+
+- name: install Keycloak in a standalone configuration
+  shell: /opt/keycloak-2.5.4.Final/bin/standalone.sh
+
+# Open FW ports
+
+- name: open KEYCLOAK default port (8080) 
+  ufw:
+    state: enabled
+    rule: allow
+    port: 8080
+    proto: tcp
+  notify: reload firewalld
+

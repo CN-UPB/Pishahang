@@ -1,0 +1,11 @@
+---
+# handlers file for keycloak
+
+- name: reload firewalld
+  service: name=firewalld state=reloaded
+  when: ansible_os_family == RedHat
+
+- name: reload firewalld
+  service: name=ufw state=reloaded
+  when: ansible_os_family == Debian
+

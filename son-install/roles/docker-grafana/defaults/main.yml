@@ -1,0 +1,8 @@
+---
+# defaults file for docker-grafana
+
+pop: alabs
+proj: demo
+distro: xenial
+
+docker_network_name: son-grafana

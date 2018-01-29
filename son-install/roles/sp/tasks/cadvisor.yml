@@ -1,0 +1,19 @@
+---
+
+- name: deploy Google cAdvisor as a Docker container (from Docker Hub)
+  docker_container:
+    name: cadvisor
+    image: google/cadvisor
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - cadvisor
+    published_ports: 8079:8080
+    etc_hosts:
+      prometheus: "{{ ansible_default_ipv4.address }}"
+      mongo: "{{ ansible_default_ipv4.address }}"
+    restart_policy: "always"
+
+- wait_for: host=0.0.0.0 port=8079 timeout=30 delay=10 state=started

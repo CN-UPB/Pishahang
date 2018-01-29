@@ -1,0 +1,43 @@
+---
+
+- include: "{{ lookup('env','PWD') }}/destroy/{{ plat }}/stop_all_containers.yml"
+
+- include: "{{ lookup('env','PWD') }}/destroy/{{ plat }}/refresh_all_containers.yml"
+
+- name: REMOVE all Docker images
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: REMOVING all Docker images
+    shell: "/usr/bin/docker rmi $(docker images)"
+    when: svc_status.stat.exists
+
+  - service: name=docker state=restart
+    when: svc_status.stat.exists
+
+  - name: REMOVING all SP networks
+    shell: "/usr/bin/docker network rm son-mgmt son-sp"
+    when: svc_status.stat.exists
+
+
+# DEBIAN/UBUNTU
+  - name: remove Docker package
+    apt: name={{ item }} state=absent
+    with_items:
+      - docker
+      - docker-engine
+    when: ansible_os_family == "Debian"
+
+
+# REDHAT/CENTOS
+  - name: remove Docker package
+    yum: name={{ item }} state=absent
+    with_items:
+      - docker-engine-selinux
+      - docker-engine
+    when: ansible_os_family == "RedHat"
+
+  - name: remove Docker cache
+    command: rm -rf /var/lib/docker
+

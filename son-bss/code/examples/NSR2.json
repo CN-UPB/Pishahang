@@ -1,0 +1,487 @@
+[
+{
+  "descriptor_version": "0.0",
+  "uuid": "b4711437-10ce-3e06-845f-3710909184de",
+  "status": "normal operation",
+  "virtual_links": [
+    {
+      "id": "Duis labore voluptate sint",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "Duis nulla labore anim",
+        "ex Du",
+        "dolor sed",
+        "aliquip Duis ea irure"
+      ],
+      "external_access": true
+    },
+    {
+      "id": "esse irure ",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "dolor sed veniam esse ut",
+        "pariatur Duis"
+      ],
+      "external_access": true,
+      "qos": "dolore velit ex",
+      "root_requirement": "dolore commodo Duis veniam",
+      "dhcp": true,
+      "leaf_requirement": "fugiat labore ipsum ad nisi",
+      "access": false
+    }
+  ],
+  "connection_points": [
+    {
+      "id": "esse sed laboris",
+      "type": "interface"
+    }
+  ],
+  "descriptor_reference": "8c58b169-7c38-4bcd-9421-a91bd786f1e0",
+  "network_services": [
+    "Ut nostrud",
+    "et veniam",
+    "in eu pariatur",
+    "laborum Excepteur"
+  ],
+  "services_depedency": [
+    "dolor dolore veniam ad"
+  ],
+  "forwarding_graphs": [
+    {
+      "fg_group": "non ex",
+      "fg_name": "ad",
+      "fg_version": "nostrud aliquip cupidatat ex"
+    }
+  ],
+  "network_functions": [
+    {
+      "vnfr_id": "f45d0b3a-2762-c738-d625-68a60a48e57d"
+    }
+  ],
+  "lifecycle_events": {
+    "scale_out": [
+      {
+        "vnf_event": "veniam esse in eu",
+        "vnf_id": "dolor Excepteur"
+      }
+    ],
+    "stop": [
+      {
+        "vnf_id": "do ad",
+        "vnf_event": "laboris"
+      },
+      {},
+      {
+        "vnf_event": "sed tempor reprehenderit",
+        "vnf_id": "dolore"
+      }
+    ],
+    "start": [
+      {
+        "vnf_event": "sit"
+      },
+      {},
+      {
+        "vnf_event": "aliqua",
+        "vnf_id": "nostrud ut anim Lorem"
+      },
+      {}
+    ]
+  },
+  "version": "1.0",
+  "monitoring_parameters": [
+    {
+      "unit": "ali",
+      "metric": "offic"
+    }
+  ]
+},
+{
+  "descriptor_version": "0.0",
+  "uuid": "b4711437-10ce-3e06-845f-3710909184df",
+  "status": "normal operation",
+  "virtual_links": [
+    {
+      "id": "Duis labore voluptate sint",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "Duis nulla labore anim",
+        "ex Du",
+        "dolor sed",
+        "aliquip Duis ea irure"
+      ],
+      "external_access": true
+    },
+    {
+      "id": "esse irure ",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "dolor sed veniam esse ut",
+        "pariatur Duis"
+      ],
+      "external_access": true,
+      "qos": "dolore velit ex",
+      "root_requirement": "dolore commodo Duis veniam",
+      "dhcp": true,
+      "leaf_requirement": "fugiat labore ipsum ad nisi",
+      "access": false
+    }
+  ],
+  "connection_points": [
+    {
+      "id": "esse sed laboris",
+      "type": "interface"
+    }
+  ],
+  "descriptor_reference": "8c58b169-7c38-4bcd-9421-a91bd786f1fa",
+  "network_services": [
+    "Ut nostrud",
+    "et veniam",
+    "in eu pariatur",
+    "laborum Excepteur"
+  ],
+  "services_depedency": [
+    "dolor dolore veniam ad"
+  ],
+  "forwarding_graphs": [
+    {
+      "fg_group": "non ex",
+      "fg_name": "ad",
+      "fg_version": "nostrud aliquip cupidatat ex"
+    }
+  ],
+  "network_functions": [
+    {
+      "vnfr_id": "f45d0b3a-2762-c738-d625-68a60a48e57d"
+    }
+  ],
+  "lifecycle_events": {
+    "scale_out": [
+      {
+        "vnf_event": "veniam esse in eu",
+        "vnf_id": "dolor Excepteur"
+      }
+    ],
+    "stop": [
+      {
+        "vnf_id": "do ad",
+        "vnf_event": "laboris"
+      },
+      {},
+      {
+        "vnf_event": "sed tempor reprehenderit",
+        "vnf_id": "dolore"
+      }
+    ],
+    "start": [
+      {
+        "vnf_event": "sit"
+      },
+      {},
+      {
+        "vnf_event": "aliqua",
+        "vnf_id": "nostrud ut anim Lorem"
+      },
+      {}
+    ]
+  },
+  "version": "2.0",
+  "monitoring_parameters": [
+    {
+      "unit": "ali",
+      "metric": "offic"
+    }
+  ]
+},
+{
+  "descriptor_version": "0.0",
+  "uuid": "b4711437-10ce-3e06-845f-3710909184fg",
+  "status": "updating",
+  "virtual_links": [
+    {
+      "id": "Duis labore voluptate sint",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "Duis nulla labore anim",
+        "ex Du",
+        "dolor sed",
+        "aliquip Duis ea irure"
+      ],
+      "external_access": true
+    },
+    {
+      "id": "esse irure ",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "dolor sed veniam esse ut",
+        "pariatur Duis"
+      ],
+      "external_access": true,
+      "qos": "dolore velit ex",
+      "root_requirement": "dolore commodo Duis veniam",
+      "dhcp": true,
+      "leaf_requirement": "fugiat labore ipsum ad nisi",
+      "access": false
+    }
+  ],
+  "connection_points": [
+    {
+      "id": "esse sed laboris",
+      "type": "interface"
+    }
+  ],
+  "descriptor_reference": "8c58b169-7c38-4bcd-9421-a91bd786f1e0",
+  "network_services": [
+    "Ut nostrud",
+    "et veniam",
+    "in eu pariatur",
+    "laborum Excepteur"
+  ],
+  "services_depedency": [
+    "dolor dolore veniam ad"
+  ],
+  "forwarding_graphs": [
+    {
+      "fg_group": "non ex",
+      "fg_name": "ad",
+      "fg_version": "nostrud aliquip cupidatat ex"
+    }
+  ],
+  "network_functions": [
+    {
+      "vnfr_id": "f45d0b3a-2762-c738-d625-68a60a48e57d"
+    }
+  ],
+  "lifecycle_events": {
+    "scale_out": [
+      {
+        "vnf_event": "veniam esse in eu",
+        "vnf_id": "dolor Excepteur"
+      }
+    ],
+    "stop": [
+      {
+        "vnf_id": "do ad",
+        "vnf_event": "laboris"
+      },
+      {},
+      {
+        "vnf_event": "sed tempor reprehenderit",
+        "vnf_id": "dolore"
+      }
+    ],
+    "start": [
+      {
+        "vnf_event": "sit"
+      },
+      {},
+      {
+        "vnf_event": "aliqua",
+        "vnf_id": "nostrud ut anim Lorem"
+      },
+      {}
+    ]
+  },
+  "version": "1.0",
+  "monitoring_parameters": [
+    {
+      "unit": "ali",
+      "metric": "offic"
+    }
+  ]
+},
+{
+  "descriptor_version": "0.0",
+  "uuid": "b4711437-10ce-3e06-845f-3710909184d",
+  "status": "normal operation",
+  "virtual_links": [
+    {
+      "id": "Duis labore voluptate sint",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "Duis nulla labore anim",
+        "ex Du",
+        "dolor sed",
+        "aliquip Duis ea irure"
+      ],
+      "external_access": true
+    },
+    {
+      "id": "esse irure ",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "dolor sed veniam esse ut",
+        "pariatur Duis"
+      ],
+      "external_access": true,
+      "qos": "dolore velit ex",
+      "root_requirement": "dolore commodo Duis veniam",
+      "dhcp": true,
+      "leaf_requirement": "fugiat labore ipsum ad nisi",
+      "access": false
+    }
+  ],
+  "connection_points": [
+    {
+      "id": "esse sed laboris",
+      "type": "interface"
+    }
+  ],
+  "descriptor_reference": "8c58b169-7c38-4bcd-9421-a91bd786f1e0",
+  "network_services": [
+    "Ut nostrud",
+    "et veniam",
+    "in eu pariatur",
+    "laborum Excepteur"
+  ],
+  "services_depedency": [
+    "dolor dolore veniam ad"
+  ],
+  "forwarding_graphs": [
+    {
+      "fg_group": "non ex",
+      "fg_name": "ad",
+      "fg_version": "nostrud aliquip cupidatat ex"
+    }
+  ],
+  "network_functions": [
+    {
+      "vnfr_id": "f45d0b3a-2762-c738-d625-68a60a48e57d"
+    }
+  ],
+  "lifecycle_events": {
+    "scale_out": [
+      {
+        "vnf_event": "veniam esse in eu",
+        "vnf_id": "dolor Excepteur"
+      }
+    ],
+    "stop": [
+      {
+        "vnf_id": "do ad",
+        "vnf_event": "laboris"
+      },
+      {},
+      {
+        "vnf_event": "sed tempor reprehenderit",
+        "vnf_id": "dolore"
+      }
+    ],
+    "start": [
+      {
+        "vnf_event": "sit"
+      },
+      {},
+      {
+        "vnf_event": "aliqua",
+        "vnf_id": "nostrud ut anim Lorem"
+      },
+      {}
+    ]
+  },
+  "version": "1.0",
+  "monitoring_parameters": [
+    {
+      "unit": "ali",
+      "metric": "offic"
+    }
+  ]
+},
+{
+  "descriptor_version": "0.0",
+  "uuid": "b4711437-10ce-3e06-845f-3710909184de",
+  "status": "normal operation",
+  "virtual_links": [
+    {
+      "id": "Duis labore voluptate sint",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "Duis nulla labore anim",
+        "ex Du",
+        "dolor sed",
+        "aliquip Duis ea irure"
+      ],
+      "external_access": true
+    },
+    {
+      "id": "esse irure ",
+      "connectivity_type": "E-Tree",
+      "connection_points_reference": [
+        "dolor sed veniam esse ut",
+        "pariatur Duis"
+      ],
+      "external_access": true,
+      "qos": "dolore velit ex",
+      "root_requirement": "dolore commodo Duis veniam",
+      "dhcp": true,
+      "leaf_requirement": "fugiat labore ipsum ad nisi",
+      "access": false
+    }
+  ],
+  "connection_points": [
+    {
+      "id": "esse sed laboris",
+      "type": "interface"
+    }
+  ],
+  "descriptor_reference": "8c58b169-7c38-4bcd-9421-a91bd786f1fa",
+  "network_services": [
+    "Ut nostrud",
+    "et veniam",
+    "in eu pariatur",
+    "laborum Excepteur"
+  ],
+  "services_depedency": [
+    "dolor dolore veniam ad"
+  ],
+  "forwarding_graphs": [
+    {
+      "fg_group": "non ex",
+      "fg_name": "ad",
+      "fg_version": "nostrud aliquip cupidatat ex"
+    }
+  ],
+  "network_functions": [
+    {
+      "vnfr_id": "f45d0b3a-2762-c738-d625-68a60a48e57d"
+    }
+  ],
+  "lifecycle_events": {
+    "scale_out": [
+      {
+        "vnf_event": "veniam esse in eu",
+        "vnf_id": "dolor Excepteur"
+      }
+    ],
+    "stop": [
+      {
+        "vnf_id": "do ad",
+        "vnf_event": "laboris"
+      },
+      {},
+      {
+        "vnf_event": "sed tempor reprehenderit",
+        "vnf_id": "dolore"
+      }
+    ],
+    "start": [
+      {
+        "vnf_event": "sit"
+      },
+      {},
+      {
+        "vnf_event": "aliqua",
+        "vnf_id": "nostrud ut anim Lorem"
+      },
+      {}
+    ]
+  },
+  "version": "2.0",
+  "monitoring_parameters": [
+    {
+      "unit": "ali",
+      "metric": "offic"
+    }
+  ]
+}
+]

@@ -1,0 +1,39 @@
+---
+# tasks file for docker-grafana
+
+- include_vars: "{{ lookup('env','PWD') }}/group_vars/os_{{ pop }}_{{ proj }}_{{ distro }}.yml"
+
+- name: Docker User Defined Network (GRAFANA)
+  shell: 'docker network create --driver=bridge \
+--subnet=172.20.5.0/24 --gateway=172.20.5.1 \
+--ip-range=172.20.5.128/25 "{{ docker_network_name }}"'
+
+
+- name: deploy GRAFANA as a Docker container (from official Docker Hub image)
+  docker_container:
+    name: grafana
+    image: "grafana/grafana"
+    state: started
+    env:
+      GF_SERVER_ROOT_URLs: "http://{{ ansible_default_ipv4.address }}"
+      GF_SECURITY_ADMIN_PASSWORDs: "secret"
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - son-grafana
+    #exposed_ports: 3000
+    published_ports: 3000:3000
+    etc_hosts:
+      mongo: "{{ ansible_default_ipv4.address }}"
+      #mongo: "{{ ansible_docker0['ipv4']['address']}}"
+    restart_policy: unless-stopped
+    volumes:
+      - /var/log/sonata/grafana:/var/log/grafana
+    log_driver: syslog
+
+- wait_for: host=0.0.0.0 port=3000 timeout=30 delay=10 state=started
+
+# Guide: https://hub.docker.com/r/grafana/grafana/
+# TOBETESTED
+

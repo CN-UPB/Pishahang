@@ -1,0 +1,75 @@
+
+---
+##
+## Some general information regarding this
+## VNF descriptor.
+##
+descriptor_version: "vnfd-schema-01"
+vendor: "eu.sonata-nfv"
+name: "ubuntu-vnf2"
+version: "0.1"
+author: "Steven Van Rossem, Ghent University, steven.vanrossem@intec.ugent.be"
+description: "An empty ubuntu VNF"
+##
+## The virtual deployment unit.
+##
+virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "ubuntu:14.04"
+    vm_image_format: "docker"
+    resource_requirements:
+      cpu:
+        vcpus: 1
+      memory:
+        size: 2
+        size_unit: "GB"
+      storage:
+        size: 10
+        size_unit: "GB"
+    connection_points:
+      - id: "cp01"
+        interface: "ipv4"
+        type: "internal"
+      - id: "cp02"
+        interface: "ipv4"
+        type: "internal"
+      - id: "cp03"
+        interface: "ipv4"
+        type: "internal"
+
+##
+## The virtual links that interconnect
+## the different connections points.
+##
+virtual_links:
+  - id: "mgmt"
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+      - "vdu01:cp01"
+      - "mgmt"
+  - id: "port1"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vdu01:cp02"
+      - "port1"
+  - id: "port2"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vdu01:cp03"
+      - "port2"
+
+##
+## The VNF connection points to the 
+## outside world.
+##
+connection_points:
+  - id: "mgmt"
+    interface: "ipv4"
+    type: "management"
+  - id: "port1"
+    interface: "ipv4"
+    type: "external"
+  - id: "port2"
+    interface: "ipv4"
+    type: "external"
+

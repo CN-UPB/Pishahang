@@ -1,0 +1,6 @@
+# Creates a key pair with the running users public key
+- os_keypair:
+    cloud: "os_{{ pop }}_{{ proj }}"
+    state: present
+    name: son-install
+    public_key_file: "{{ lookup('env','HOME') }}/.ssh/son-install.pub"

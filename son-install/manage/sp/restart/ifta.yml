@@ -1,0 +1,29 @@
+---
+
+- name: re-starting IFTA Docker containers at SP VM appliance
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: check if the DOCKER service exists
+    stat: path=/etc/init.d/docker
+    register: service_status
+
+  # IA VIM 
+
+  - name: restarting Infrastructure Abstractor VIM Adaptor running as Docker containers
+    docker_container:
+      name: son-sp-infrabstract
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+
+  # IA WIM 
+
+  - name: restartng Infrastructure Abstractor WIM Adaptor running as Docker containers
+    docker_container:
+      name: wim-adaptor
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+

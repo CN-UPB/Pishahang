@@ -1,0 +1,7 @@
+[jenkins]
+name=Docker Repository
+baseurl=http://pkg.jenkins-ci.org/redhat/jenkins.repo
+enabled=1
+gpgcheck=1
+gpgkey=https://jenkins-ci.org/redhat/jenkins-ci.org.key
+

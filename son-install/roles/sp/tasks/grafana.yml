@@ -1,0 +1,20 @@
+---
+
+- name: deploy GRAFANA as a Docker container (from Docker Hub)
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    state: started
+    network_mode: bridge
+    networks:
+      - name: "{{ docker_network_name }}"
+        aliases:
+          - grafana
+    published_ports: 3000:3000
+    exposed_ports: 3000
+    etc_hosts:
+      cadvisor: "{{ ansible_default_ipv4.address }}"
+      mongo: "{{ ansible_default_ipv4.address }}"
+    restart_policy: "always"
+
+- wait_for: host=0.0.0.0 port=3000 timeout=30 delay=10 state=started

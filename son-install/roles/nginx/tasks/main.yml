@@ -1,0 +1,6 @@
+---
+# tasks file for nginx
+
+- name: Installing NGINX
+  include: "{{ ansible_os_family }}.yml"
+

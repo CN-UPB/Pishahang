@@ -1,0 +1,6 @@
+---
+# tasks file for JENKINS
+
+- name: installing JENKINS 
+  include: "{{ ansible_distribution_release }}.yml"
+

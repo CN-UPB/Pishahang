@@ -1,0 +1,8 @@
+---
+- name: deploy HAProxy to the target machine
+  hosts: "{{ target }}"
+  become: true
+  roles:
+  - firewall
+  - haproxy
+

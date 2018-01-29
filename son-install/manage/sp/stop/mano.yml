@@ -1,0 +1,26 @@
+---
+- name: stopping MANO FRAMEWORK Docker containers
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+# Stopping the Sonata MANO Docker Images
+
+  - name: MANO Plug-in Manager - stopping Docker containers
+    docker_container:
+      name: pluginmanager
+      state: stopped
+  - wait_for: host=0.0.0.0 port=8001 timeout=30 delay=10 state=drained
+
+#  - pause: seconds=15
+
+  - name: MANO Service Life-cycle Management (SLM) - stopping Docker containers
+    docker_container:
+      name: servicelifecyclemanagement
+      state: stopped
+
+#  - name: MANO Function Life-cycle Management (FML) - stopping Docker containers
+#    docker_container:
+#      name: functionlifecyclemanagement
+#      state: stopped
+

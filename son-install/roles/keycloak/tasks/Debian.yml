@@ -1,0 +1,11 @@
+---
+
+- name: open KEYCLOAK default port (8080) at Ubuntu/Debian machine
+  ufw:
+    state: enabled
+    rule: allow
+    port: 8080
+    proto: tcp
+  notify: reload firewalld
+  when: ansible_os_family == "Debian"
+

@@ -1,0 +1,23 @@
+---
+- name: check if service is running
+  # hosts: {{ plat }}
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+
+  - name: Check if Apache is running
+    #command: systemctl status apache2
+    command: "/etc/init.d/apache2 status"
+    ignore_errors: yes
+    changed_when: false
+    register: service_apache_status
+
+  - name: Report status of Apache
+    fail:
+      msg: |
+        Service apache2 is not running.
+        Output of `systemctl status apache2`:
+        {{ service_apache_status.stdout }}
+        {{ service_apache_status.stderr }}
+    when: service_apache_status | failed

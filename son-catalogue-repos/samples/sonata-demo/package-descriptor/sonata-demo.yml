@@ -1,0 +1,78 @@
+##
+## This example is a moderatly complex package
+## descriptor. It only contains mandatory and
+## optional fields.
+##
+## @author Michael Bredel
+##
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv.package"
+name: "sonata-demo"
+version: "0.2"
+package_maintainer: "Michael Bredel, NEC Labs Europe"
+package_description: >
+  "The package descriptor for the SONATA demo package that
+   comprises the descritors of the demo network service,
+   the related VNFs, as well as the virtual machine
+   images (or docker files) to instantiate the service."
+
+entry_service_template: "/service_descriptors/sonata-demo.yml"
+sealed: true
+
+package_content:
+  - name: "/service_descriptors/sonata-demo.yml"
+    content-type: "application/sonata.service_descriptor"
+    md5: "122746ec8e29774770c66ef210157931"
+  - name: "/function_descriptors/iperf-vnfd.yml"
+    content-type: "application/sonata.function_descriptor"
+    md5: "75a512a20b9cce424e5e6f0d07544e74"
+  - name: "/function_descriptors/firewall-vnfd.yml"
+    content-type: "application/sonata.function_descriptor"
+    md5: "e25665f687ec894dbbe7a5b0f0beca42"
+  - name: "/function_descriptors/tcpdump-vnfd.yml"
+    content-type: "application/sonata.function_descriptor"
+    md5: "c1328a8ab1802eac0f1ee0458c80c21e"
+  - name: "/docker_files/iperf/Dockerfile"
+    content-type: "application/sonata.docker_files"
+    md5: "5bea7b1f2f73803946674adecaaa9246"
+  - name: "/docker_files/iperf/start.sh"
+    content-type: "application/x-sh"
+    md5: "5db937fdadb488559eb765b64efcf8c4"
+  - name: "/docker_files/firewall/Dockerfile"
+    content-type: "application/sonata.docker_files"
+    md5: "fed89e35d173e6aeaf313e1a9ab3f552"
+  - name: "/docker_files/firewall/start.sh"
+    content-type: "application/x-sh"
+    md5: "17d604d460b8768ac7277ba8ae65be4b"
+  - name: "/docker_files/tcpdump/Dockerfile"
+    content-type: "application/sonata.docker_files"
+    md5: "e0d2bb965744161ffb0f8af459a589e3"
+  - name: "/docker_files/tcpdump/start.sh"
+    content-type: "application/x-sh"
+    md5: "95fd94539c7ceb2fbcce8e24dc30b6ba"
+
+# Not used in this demo.
+#
+#package_resolvers:
+#  - name: "http://www.bredel-it.de/path/to/catalog"
+#    credentials:
+#      username: "username"
+#      password: "password"
+#
+#package_dependencies:
+# - name: "my-dependent-package"
+#   group: "eu.sonata.nfv"
+#   version: "1.0"
+#   credentials: "my credentials"
+
+artifact_dependencies:
+  # This could be the vm image that runs the docker environment.
+  # It is a dummy right now.
+  - name: "my-vm-image"
+    url: "http://www.bredel-it.de/path/to/vm-image"
+    md5: "00236a2ae558018ed13b5222ef1bd9f3"
+    credentials:
+      username: "username"
+      password: "password"

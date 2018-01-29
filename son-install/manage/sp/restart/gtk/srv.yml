@@ -1,0 +1,39 @@
+---
+# Re-starting the Sonata GTK SERVICES (Docker container)
+
+- name: restarting GTK SRV Docker container
+  hosts: "{{ plat }}"
+  become: true
+  tasks:
+
+  - name: GATEKEEPER SERVICES - re-starting Docker containers
+    docker_container:
+      name: son-gtksrv
+      image: tdierich/son-gtksrv
+      state: started
+      restart: yes
+      restart_policy: "unless-stopped"
+      env:
+        CATALOGUES_URL: http://{{ public_ip }}:4002/catalogues/api/v2
+        RACK_ENV: integration
+        MQSERVER: amqp://guest:guest@{{ public_ip }}:5672
+        DATABASE_HOST: "{{ public_ip }}"
+        DATABASE_PORT: 5432
+        POSTGRES_PASSWORD: sonata
+        POSTGRES_USER: sonatatest
+        #SECRET_KEY: son-install
+      links:
+        - son-broker
+        - son-postgres
+      ports: "5300:5300"
+      volumes: 
+        - /home/{{ ansible_user_id }}/son-gkeeper/son-gtksrv/:/opt/sonata/son-gktsrv
+        - /var/log/sonata/son-gtksrv:/var/log/son-gtksrv
+      log_driver: syslog
+
+  - wait_for: host=0.0.0.0 port=5300 timeout=120 delay=10 state=started
+
+#  - name: wait for Container to finish
+#    shell: >
+#      docker wait son-gtksrv
+

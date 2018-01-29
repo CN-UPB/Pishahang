@@ -1,0 +1,110 @@
+[DEFAULT]
+vif_plugging_timeout = 300
+vif_plugging_is_fatal = True
+use_neutron = True
+firewall_driver = nova.virt.firewall.NoopFirewallDriver
+compute_driver = libvirt.LibvirtDriver
+default_ephemeral_format = ext4
+pointer_model = ps2mouse
+dhcpbridge_flagfile = /etc/nova/nova-dhcpbridge.conf
+graceful_shutdown_timeout = 5
+metadata_workers = 2
+osapi_compute_workers = 2
+transport_url = rabbit://stackrabbit:stackqueue@192.168.1.188:5672/
+logging_exception_prefix = %(color)s%(asctime)s.%(msecs)03d TRACE %(name)s %(instance)s
+logging_debug_format_suffix = from (pid=%(process)d) %(funcName)s %(pathname)s:%(lineno)d
+logging_default_format_string = %(asctime)s.%(msecs)03d %(color)s%(levelname)s %(name)s [-%(color)s] %(instance)s%(color)s%(message)s
+logging_context_format_string = %(asctime)s.%(msecs)03d %(color)s%(levelname)s %(name)s [%(request_id)s %(project_name)s %(user_name)s%(color)s] %(instance)s%(color)s%(message)s
+instances_path = /opt/stack/data/nova/instances
+state_path = /opt/stack/data/nova
+enabled_apis = osapi_compute,metadata
+metadata_listen = 0.0.0.0
+osapi_compute_listen = 0.0.0.0
+instance_name_template = instance-%08x
+my_ip = 192.168.1.188
+default_floating_pool = public
+scheduler_default_filters = RetryFilter,AvailabilityZoneFilter,RamFilter,DiskFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ServerGroupAntiAffinityFilter,ServerGroupAffinityFilter,SameHostFilter,DifferentHostFilter
+scheduler_driver = filter_scheduler
+rootwrap_config = /etc/nova/rootwrap.conf
+allow_resize_to_same_host = True
+debug = True
+
+[wsgi]
+api_paste_config = /etc/nova/api-paste.ini
+
+[key_manager]
+fixed_key = 9b3f11b17ff8bd5dd8a3ef7c6a5ffaa25e5d396142ff0aa3c986443090a6347d
+api_class = nova.keymgr.conf_key_mgr.ConfKeyManager
+
+[database]
+connection = mysql+pymysql://root:stackdb@127.0.0.1/nova?charset=utf8
+
+[api_database]
+connection = mysql+pymysql://root:stackdb@127.0.0.1/nova_api?charset=utf8
+
+[keystone_authtoken]
+memcached_servers = 192.168.1.188:11211
+signing_dir = /var/cache/nova
+cafile = /opt/stack/data/ca-bundle.pem
+auth_uri = http://192.168.1.188/identity
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password = devstack
+username = nova
+auth_url = http://192.168.1.188/identity_admin
+auth_type = password
+
+[oslo_concurrency]
+lock_path = /opt/stack/data/nova
+
+[vnc]
+xvpvncproxy_host = 0.0.0.0
+novncproxy_host = 0.0.0.0
+vncserver_proxyclient_address = 127.0.0.1
+vncserver_listen = 127.0.0.1
+xvpvncproxy_base_url = http://192.168.1.188:6081/console
+novncproxy_base_url = http://192.168.1.188:6080/vnc_auto.html
+
+[spice]
+html5proxy_base_url = http://192.168.1.188:6082/spice_auto.html
+
+[oslo_messaging_notifications]
+driver = messaging
+
+[glance]
+api_servers = http://192.168.1.188:9292
+
+[conductor]
+workers = 2
+
+[cinder]
+os_region_name = RegionOne
+
+[libvirt]
+live_migration_uri = qemu+ssh://stack@%s/system
+cpu_mode = none
+virt_type = kvm
+
+[placement]
+os_region_name = RegionOne
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password = devstack
+username = placement
+auth_url = http://192.168.1.188:35357/v3
+auth_type = password
+
+[neutron]
+service_metadata_proxy = True
+url = http://192.168.1.188:9696
+region_name = RegionOne
+auth_strategy = keystone
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password = devstack
+username = neutron
+auth_url = http://192.168.1.188/identity_admin/v3
+auth_type = password

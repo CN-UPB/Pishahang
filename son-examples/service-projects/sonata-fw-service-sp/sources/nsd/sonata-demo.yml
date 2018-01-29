@@ -1,0 +1,110 @@
+##
+## This is the network service descriptor of the
+## SONATA demo example that comprises a virtual traffic
+## classifier (vTC)
+##
+## @author Felipe Vicens
+##
+---
+descriptor_version: "1.0"
+
+vendor: "eu.sonata-nfv.service-descriptor"
+name: "sonata-demo-fw"
+version: "0.1"
+author: "Steven Van Rossem, Ghent University"
+description: >
+  "The network service descriptor for the SONATA demo,
+   comprising only a Firewall"
+
+##
+## The various network functions this service
+## is composed of.
+##
+network_functions:
+  - vnf_id: "vnf_firewall"
+    vnf_vendor: "eu.sonata-nfv"
+    vnf_name: "fw-vnf"
+    vnf_version: "0.2"
+
+##
+## Some service specific managers.
+## image: Specifies the DockerHub URI (user/image name) to fetch the SSM image from.
+##
+service_specific_managers:
+  - id: "ssmdumb"
+    description: "An empty example SSM."
+    image: "sonatanfv/ssmdumb"
+    options:
+      - key: "myKey"
+        value: "myValue"
+
+##
+## Some service specific managers.
+## image: Specifies the DockerHub URI (user/image name) to fetch the SSM image from.
+##
+#service_specific_managers:
+#  - id: "ssmsmart"
+#    description: "This SSM reconfigures vFW"
+#    image: "sonatanfv/ssmsmart"
+#    options:
+#      - key: "myKey"
+#        value: "myValue"
+
+##
+## The NS connection points to the
+## outside world.
+##
+connection_points:
+  - id: "ns:mgmt"
+    interface: "ipv4"
+    type: "management"
+  - id: "ns:input"
+    interface: "ipv4"
+    type: "external"
+  - id: "ns:output"
+    interface: "ipv4"
+    type: "external"
+
+##
+## The virtual links that interconnect
+## the different connections points.
+##
+virtual_links:
+  - id: "mgmt"
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+      - "vnf_firewall:mgmt"
+      - "ns:mgmt"
+  - id: "input-2-fw"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "ns:input"
+      - "vnf_firewall:input"
+  - id: "fw-2-output"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "vnf_firewall:output"
+      - "ns:output"
+
+##
+## The forwarding graphs.
+##
+forwarding_graphs:
+  - fg_id: "ns:fg01"
+    number_of_endpoints: 2
+    number_of_virtual_links: 2
+    constituent_vnfs:
+      - "vnf_firewall"
+    network_forwarding_paths:
+      - fp_id: "ns:fg01:fp01"
+        policy: "none"
+        connection_points:
+          - connection_point_ref: "ns:input"
+            position: 1
+          - connection_point_ref: "vnf_firewall:input"
+            position: 2
+          - connection_point_ref: "vnf_firewall:output"
+            position: 3
+          - connection_point_ref: "ns:output"
+            position: 4
+

@@ -1,0 +1,1093 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SONATA's SP API</title>
+    <style type="text/css">
+      body { 
+	font-family: Trebuchet MS, sans-serif;
+	font-size: 15px;
+	color: #444;
+	margin-right: 24px;
+}
+
+h1	{
+	font-size: 25px;
+}
+h2	{
+	font-size: 20px;
+}
+h3	{
+	font-size: 16px;
+	font-weight: bold;
+}
+hr	{
+	height: 1px;
+	border: 0;
+	color: #ddd;
+	background-color: #ddd;
+	display: none;
+}
+
+.app-desc {
+  clear: both;
+  margin-left: 20px;
+}
+.param-name {
+  width: 100%;
+}
+.license-info {
+  margin-left: 20px;
+}
+
+.license-url {
+  margin-left: 20px;
+}
+
+.model {
+  margin: 0 0 0px 20px;
+}
+
+.method {
+  margin-left: 20px;
+}
+
+.method-notes	{
+	margin: 10px 0 20px 0;
+	font-size: 90%;
+	color: #555;
+}
+
+pre {
+  padding: 10px;
+  margin-bottom: 2px;
+}
+
+.http-method {
+ text-transform: uppercase;
+}
+
+pre.get {
+  background-color: #0f6ab4;
+}
+
+pre.post {
+  background-color: #10a54a;
+}
+
+pre.put {
+  background-color: #c5862b;
+}
+
+pre.delete {
+  background-color: #a41e22;
+}
+
+.huge	{
+	color: #fff;
+}
+
+pre.example {
+  background-color: #f3f3f3;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+code {
+  white-space: pre;
+}
+
+.nickname {
+  font-weight: bold;
+}
+
+.method-path {
+  font-size: 1.5em;
+  background-color: #0f6ab4;
+}
+
+.up {
+  float:right;
+}
+
+.parameter {
+  width: 500px;
+}
+
+.param {
+  width: 500px;
+  padding: 10px 0 0 20px;
+  font-weight: bold;
+}
+
+.param-desc {
+  width: 700px;
+  padding: 0 0 0 20px;
+  color: #777;
+}
+
+.param-type {
+  font-style: italic;
+}
+
+.param-enum-header {
+width: 700px;
+padding: 0 0 0 60px;
+color: #777;
+font-weight: bold;
+}
+
+.param-enum {
+width: 700px;
+padding: 0 0 0 80px;
+color: #777;
+font-style: italic;
+}
+
+.field-label {
+  padding: 0;
+  margin: 0;
+  clear: both;
+}
+
+.field-items	{
+	padding: 0 0 15px 0;
+	margin-bottom: 15px;
+}
+
+.return-type {
+  clear: both;
+  padding-bottom: 10px;
+}
+
+.param-header {
+  font-weight: bold;
+}
+
+.method-tags {
+  text-align: right;
+}
+
+.method-tag {
+  background: none repeat scroll 0% 0% #24A600;
+  border-radius: 3px;
+  padding: 2px 10px;
+  margin: 2px;
+  color: #FFF;
+  display: inline-block;
+  text-decoration: none;
+}
+    </style>
+  </head>
+  <body>
+  <h1>SONATA's SP API</h1>
+    <div class="app-desc">This is a proposal for the SONATA's SP API</div>
+    <div class="app-desc">More information: <a href="https://helloreverb.com">https://helloreverb.com</a></div>
+    <div class="app-desc">Contact Info: <a href="hello@helloreverb.com">hello@helloreverb.com</a></div>
+    <div class="app-desc">Version: 1.0.0</div>
+    <div class="app-desc">BasePath:/api</div>
+    <div class="license-info">All rights reserved</div>
+    <div class="license-url">http://apache.org/licenses/LICENSE-2.0.html</div>
+  <h2>Access</h2>
+
+  <h2><a name="__Methods">Methods</a></h2>
+  [ Jump to <a href="#__Models">Models</a> ]
+
+  <h2>Table of Contents </h2>
+  <div class="method-summary"></div>
+  <ol>
+  <li><a href="#getApiDoc"><code><span class="http-method">get</span> /api-doc</code></a></li>
+  <li><a href="#getFunction"><code><span class="http-method">get</span> /functions/{functionId}</code></a></li>
+  <li><a href="#getFunctions"><code><span class="http-method">get</span> /functions</code></a></li>
+  <li><a href="#getInstance"><code><span class="http-method">get</span> /instances/{instanceId}</code></a></li>
+  <li><a href="#getInstances"><code><span class="http-method">get</span> /instances</code></a></li>
+  <li><a href="#getPackage"><code><span class="http-method">get</span> /packages/{packageId}</code></a></li>
+  <li><a href="#getPackages"><code><span class="http-method">get</span> /packages</code></a></li>
+  <li><a href="#postPackage"><code><span class="http-method">post</span> /packages</code></a></li>
+  <li><a href="#getRequest"><code><span class="http-method">get</span> /requests/{requestId}</code></a></li>
+  <li><a href="#getRequests"><code><span class="http-method">get</span> /requests</code></a></li>
+  <li><a href="#getVimRequests"><code><span class="http-method">get</span> /vim_requests/{requestId}</code></a></li>
+  <li><a href="#newAddVimRequest"><code><span class="http-method">post</span> /vims</code></a></li>
+  <li><a href="#newRequest"><code><span class="http-method">post</span> /requests</code></a></li>
+  <li><a href="#getRoot"><code><span class="http-method">get</span> /</code></a></li>
+  <li><a href="#getService"><code><span class="http-method">get</span> /services/{serviceId}</code></a></li>
+  <li><a href="#getServices"><code><span class="http-method">get</span> /services</code></a></li>
+  <li><a href="#getVims"><code><span class="http-method">get</span> /vims</code></a></li>
+  <li><a href="#updateKpi"><code><span class="http-method">put</span> /kpis</code></a></li>
+  <li><a href="#getKpi"><code><span class="http-method">get</span> /kpis</code></a></li>
+  </ol>
+
+  <div class="method"><a name="getApiDoc"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api-doc</code></pre></div>
+    <div class="method-summary">Gatekeeper&#39;s API documentation (<span class="nickname">getApiDoc</span>)</div>
+    <div class="method-notes">The Gatekeeper&#39;s API documentation, in Swagger format</div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>text/html</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    This HTML API documentation
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getFunction"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /functions/{functionId}</code></pre></div>
+    <div class="method-summary">Get data about a single function (<span class="nickname">getFunction</span>)</div>
+    <div class="method-notes">Obtain data about the function which (UU)ID is given</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">functionId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The UUID of the required function format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Data about the given function is returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getFunctions"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /functions</code></pre></div>
+    <div class="method-summary">Get a list of functions (<span class="nickname">getFunctions</span>)</div>
+    <div class="method-notes">Obtain the list of functions</div>
+
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">status (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The status of the functions to be returned </div><div class="param">vendor (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The vendor of the service required </div><div class="param">name (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name of the service required </div><div class="param">version (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The version of the service required </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Offset the list of returned results by this amount. Default is zero </div><div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of service instances to return. Default is 5, maximum is 100 </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of requested functions has been returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getInstance"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /instances/{instanceId}</code></pre></div>
+    <div class="method-summary">Gets a registered instance. (<span class="nickname">getInstance</span>)</div>
+    <div class="method-notes">Returns data on a sigle service instance</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">instanceId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The UUID of the service instance format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#ServiceInstance">ServiceInstance</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Instance data is returned
+        <a href="#ServiceInstance">ServiceInstance</a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getInstances"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /instances</code></pre></div>
+    <div class="method-summary">Get the list of all the instances registered (<span class="nickname">getInstances</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">ownerId (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The (UU)ID of owner of the service </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Offset the list of returned results by this amount. Default is zero </div><div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of service instances to return. Default is 5, maximum is 100 </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#ServiceInstances">ServiceInstances</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Instances list returned
+        <a href="#ServiceInstances">ServiceInstances</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getPackage"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /packages/{packageId}</code></pre></div>
+    <div class="method-summary">Obtain a SONATA package from the Service Platform, based on its UUID (<span class="nickname">getPackage</span>)</div>
+    <div class="method-notes">The SDK uses this endpoint to retrieve a SONATA package</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">packageId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The Package UUID, as provided upon a successful creation of the Package in the Service Platform format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/octet-stream</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The required package has been found, and its file is being returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getPackages"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /packages</code></pre></div>
+    <div class="method-summary">Obtain a list of SONATA packages from the Service Platform, based on its UUID (<span class="nickname">getPackages</span>)</div>
+    <div class="method-notes">The SDK uses this endpoint to retrieve a SONATA package</div>
+
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">vendor (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The vendor of the service required </div><div class="param">name (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name of the service required </div><div class="param">version (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The version of the service required </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Offset the list of returned results by this amount. Default is zero </div><div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of service instances to return. Default is 5, maximum is 100 </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+      <li><code>application/octet-stream</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The required package has been found, and its package is being returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="postPackage"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /packages</code></pre></div>
+    <div class="method-summary">Submit a SONATA package to the Service Platform (<span class="nickname">postPackage</span>)</div>
+    <div class="method-notes">The SDK uses this endpoint to submit a SONATA package</div>
+
+
+
+
+
+
+    <h3 class="field-label">Form parameters</h3>
+    <div class="field-items">
+      <div class="param">package (required)</div>
+
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; The Package file, as specified by the son-schema </div>
+    </div>  <!-- field-items -->
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    The submited package has been received, validated and submited to the Catalogue
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getRequest"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /requests/{requestId}</code></pre></div>
+    <div class="method-summary">Get the the given request (<span class="nickname">getRequest</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">requestId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The UUID of the request format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Instantiations request data is returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getRequests"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /requests</code></pre></div>
+    <div class="method-summary">Get the list of instantions requests made (<span class="nickname">getRequests</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">service_id (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The UUID of the service of which all requests done are needed format: uuid</div><div class="param">vendor (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The vendor of the service required </div><div class="param">name (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name of the service required </div><div class="param">version (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The version of the service required </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Offset the list of returned results by this amount. Default is zero </div><div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of service instances to return. Default is 5, maximum is 100 </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Instantiations requests list was returned
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getVimRequests"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /vim_requests/{requestId}</code></pre></div>
+    <div class="method-summary">Get the the given VIMs request (<span class="nickname">getVimRequests</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">requestId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The UUID of the request format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Vim request data is returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="newAddVimRequest"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /vims</code></pre></div>
+    <div class="method-summary">Creates a new \&quot;add vim\&quot; request (<span class="nickname">newAddVimRequest</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Add vim request&#39;s uuid returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="newRequest"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /requests</code></pre></div>
+    <div class="method-summary">Request the instantion of a given service (<span class="nickname">newRequest</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">requestId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; The UUID of the service from which an instance is required </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Instantiations requests list was returned
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getRoot"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /</code></pre></div>
+    <div class="method-summary">Gatekeeper&#39;s URL root (<span class="nickname">getRoot</span>)</div>
+    <div class="method-notes">Everything starts here</div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    This list of paths
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getService"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /services/{serviceId}</code></pre></div>
+    <div class="method-summary">Get data about a single service (<span class="nickname">getService</span>)</div>
+    <div class="method-notes">Obtain data about the service which (UU)ID is given</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">serviceId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The UUID of the required service format: uuid</div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Service">Service</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Data about the given service is returned
+        <a href="#Service">Service</a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getServices"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /services</code></pre></div>
+    <div class="method-summary">Get a list of services (<span class="nickname">getServices</span>)</div>
+    <div class="method-notes">Obtain the list of services that can be instantiated</div>
+
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">status (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The status of the services to be returned </div><div class="param">vendor (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The vendor of the service required </div><div class="param">name (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name of the service required </div><div class="param">version (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The version of the service required </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Offset the list of returned results by this amount. Default is zero </div><div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of service instances to return. Default is 5, maximum is 100 </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Services">Services</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of requested services has been returned
+        <a href="#Services">Services</a>
+    <h4 class="field-label">404</h4>
+    The required record does not exist
+        <a href="#Error">Error</a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getVims"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /vims</code></pre></div>
+    <div class="method-summary">Creates a new \&quot;get list of vims\&quot; request and returns its uuid. (<span class="nickname">getVims</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Get list of vims request&#39;s uuid returned
+        <a href="#"></a>    
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+    <div class="method"><a name="updateKpi"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /kpi</code></pre></div>
+    <div class="method-summary">Update the KPI with a new metric value (<span class="nickname">putKpi</span>)</div>
+    <div class="method-notes"></div>
+    <h3 class="field-label">Form parameters</h3>
+    <div class="field-items">
+      <div class="param">metric_type (required)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Metric type: counter/gauge) </div>
+      <div class="param">operation (optional)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; In case of gauge metric, type of operation: inc/dec (increase/decrease) </div>
+      <div class="param">job (optional)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Job name </div>
+      <div class="param">instance (optional)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Instance name </div>
+      <div class="param">name (required)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Metric name </div>
+      <div class="param">docstring (required)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Metric's description </div>
+      <div class="param">base_labels (optional)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Associated labels to the metric </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    Metric value updated
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+    </div> <!-- method -->
+    <div class="method"><a name="getKpi"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /kpi</code></pre></div>
+    <div class="method-summary">Get the KPI metric value or retrieve the list of sonata metrics, if no specific name/base_labels is used (<span class="nickname">putKpi</span>)</div>
+    <div class="method-notes"></div>
+    <h3 class="field-label">Form parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Metric name </div>
+      <div class="param">base_labels (optional)</div>
+      <div class="param-desc"><span class="param-type">Form Parameter</span> &mdash; Associated labels to the metric </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Retrieved metric value
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    An unexpected error occured.
+        <a href="#Error">Error</a>
+  </div> <!-- method -->
+  <hr/>
+
+  <div class="up"><a href="#__Models">Up</a></div>
+  <h2><a name="__Models">Models</a></h2>
+  [ Jump to <a href="#__Methods">Methods</a> ]
+
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#Error"><code>Error</code></a></li>
+    <li><a href="#Service"><code>Service</code></a></li>
+    <li><a href="#ServiceInstance"><code>ServiceInstance</code></a></li>
+    <li><a href="#ServiceInstances"><code>ServiceInstances</code></a></li>
+    <li><a href="#Services"><code>Services</code></a></li>
+  </ol>
+
+  <div class="model">
+    <h3 class="field-label"><a name="Error">Error</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class="field-items">
+      <div class="param">code (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">message (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3 class="field-label"><a name="Service">Service</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class="field-items">
+      <div class="param">serviceId </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">vendor (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">version (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">created_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#date">date</a></span>  format: date</div>
+<div class="param">updated_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#date">date</a></span>  format: date</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3 class="field-label"><a name="ServiceInstance">ServiceInstance</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class="field-items">
+      <div class="param">instanceId </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">serviceId </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">created_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#date">date</a></span>  format: date</div>
+<div class="param">updated_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#date">date</a></span>  format: date</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3 class="field-label"><a name="ServiceInstances">ServiceInstances</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class="field-items">
+          </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3 class="field-label"><a name="Services">Services</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class="field-items">
+          </div>  <!-- field-items -->
+  </div>
+  </body>
+</html>

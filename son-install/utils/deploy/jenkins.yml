@@ -1,0 +1,13 @@
+---
+- name: "deploy JENKINS CI server to the target VM appliance"
+  #hosts: "{{ target }}"
+  hosts: nfvi
+  become: true
+  connection: ssh
+  roles:
+  - ntp
+  - common
+  - jdk
+  - firewall
+  - nginx
+  - jenkins

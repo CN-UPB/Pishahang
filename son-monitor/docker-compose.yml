@@ -1,0 +1,50 @@
+version: '2'
+services:
+
+ influx:
+  image: registry.sonata-nfv.eu:5000/son-monitor-influxdb
+  restart: always
+  ports:
+   - "8086:8086"
+
+ mysql:
+  image: registry.sonata-nfv.eu:5000/son-monitor-mysql
+  restart: always
+  ports:
+   - "3306:3306"
+  environment:
+   - MYSQL_ROOT_PASSWORD=1234
+   - MYSQL_USER=monitoringuser
+   - MYSQL_PASSWORD=sonata
+   - MYSQL_DATABASE=monitoring
+
+ pushgateway:
+  image: registry.sonata-nfv.eu:5000/son-monitor-pushgateway
+  restart: always
+  ports:
+   - "9091:9091"
+
+ prometheus:
+  image: registry.sonata-nfv.eu:5000/son-monitor-prometheus
+  restart: always
+  volumes:
+   - /tmp/monitoring/prom/apache:/var/log/apache2
+  ports:
+   - "9090:9090"
+   - "9089:9089"
+  depends_on:
+   - pushgateway
+   - influx
+  environment:
+   - RABBIT_URL=sp.int.sonata-nfv.eu:5672
+   - EMAIL_PASS=czBuQHRAX21vbl9zeXNfMTY=
+
+ manager:
+  image: registry.sonata-nfv.eu:5000/son-monitor-manager
+  restart: unless-stopped
+  volumes:
+   - /tmp/monitoring/mgr:/var/log/apache2
+  ports:
+   - "8000:8000"
+  depends_on:
+   - mysql
