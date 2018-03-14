@@ -6,7 +6,7 @@ Pishahang is a managemt and orchestration framework desgined to unify Cloud and 
 
 The figure shows the overall architecture of Pishahang.
 
-![Pishahang Architecture](figures/sonata_architecture.png?raw=true)
+![Pishahang Architecture](figures/solution.pdf?raw=true)
 
 ## Useful Links
 
