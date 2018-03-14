@@ -158,4 +158,5 @@ Please find example CSDs and COSDs in the `son-examples/complex-services` folder
 ## Lead Developers:
 
 - Hadi Razzaghi Kouchaksaraei (https://github.com/hadik3r)
-_ Tobias Dierich ()
+
+_ Tobias Dierich (https://github.com/tobiasdierich)
