@@ -1,16 +1,18 @@
-# Cloud-NFV-Orchestration
+# Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
 
-This repository contains the source code developed during the bachelor thesis "Joint Orchestration of Network Function Chains and General-Purpose Cloud Services". The implementation is based on the [SONATA](http://sonata-nfv.eu) NFV MANO framework and extends SONATA's service platform to support deployments of cloud service to a Kubernetes cluster.
+Pishahang is a managemt and orchestration framework desgined to unify Cloud and NFV infraustructures. It enables complex services compsed of virtual Network Function (NF) and general-purpuse cloud services to be deployed across NFV and Cloud infraustructures.This is provided by consolidating and extending state of the art cloud and NFV tools and technologies.
 
-## Thesis Abstract
+## Pishahang High-level Architecture
 
-Un recent years, the concepts of Network Function Virtualization (NFV) and Virtualized Network Functions (VNFs) have been adopted by major institutions and corporations to cope with the increasing complexity and rapidly changing requirements of computer networks. To manage and monitor the deployments of VNFs, NFV Management and Orchestration frameworks such as SONATA have been utilized. However, most modern application stacks consist of both VNFs as well as Cloud Services (CSs). The lack of a platform which allows to jointly deploy and manage VNFs and CSs, imposes several challenges and limitations to the management of such services. A combined platform can reduce the complexity of jointly managing VNFs and CSs as well as reducing the cost to run these services. This thesis will propose and implement an architecture to extend the SONATA service platform to support the deployment and management of Complex Services which are comprised of VNFs and CSs. The implementation will be based on a multi-cloud setup utilizing OpenStack and Kubernetes to run VNFs and CSs, resp. Furthermore, Terraform will be used on a middlelevel between SONATA and the infrastructure platform to handle the CS deployments in a multi-cloud environment.
+The figure shows the overall architecture of Pishahang.
 
-## Architecture
+![Pishahang Architecture](figures/sonata_architecture.png?raw=true)
 
-The figure shows the overall architecture of the implementation.
+## Useful Links
 
-![SONATA Architecture](figures/sonata_architecture.png?raw=true)
+* Paper: H. R. Kouchaksaraei, and H. Karl. "Joint Orchestration of Cloud-Based Microservices and Virtual Network Functions."
+
+* Demo Video: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
 
 ## Usage
 
@@ -152,3 +154,8 @@ Please find example CSDs and COSDs in the `son-examples/complex-services` folder
 -   Open your browser and navigate to <http://public_ip:25001>
 -   Open the "Running Complex Services" tab
 -   Click the "Terminate" button of the service you want to stop
+
+## Lead Developers:
+
+- Hadi Razzaghi Kouchaksaraei (https://github.com/hadik3r)
+_ Tobias Dierich ()
