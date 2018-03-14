@@ -1,6 +1,6 @@
 # Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
 
-Pishahang is a managemt and orchestration framework desgined to unify Cloud and NFV infraustructures. It enables complex services compsed of virtual Network Function (NF) and general-purpuse cloud services to be deployed across NFV and Cloud infraustructures.This is provided by consolidating and extending state of the art cloud and NFV tools and technologies.
+Pishahang is a managemt and orchestration framework desgined to unify Cloud and NFV infraustructures. It enables complex services compsed of virtual Network Function (NFs) and general-purpuse cloud services to be deployed across NFV and Cloud infraustructures.This is provided by consolidating and extending state of the art cloud and NFV tools and technologies.
 
 ## Pishahang Architecture
 
