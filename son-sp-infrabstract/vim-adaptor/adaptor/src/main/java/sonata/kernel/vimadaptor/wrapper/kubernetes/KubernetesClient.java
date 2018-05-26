@@ -19,11 +19,10 @@ import sonata.kernel.vimadaptor.wrapper.WrapperConfiguration;
 
 import java.io.IOException;
 import java.util.Base64;
-import java.util.Objects;
 
 public class KubernetesClient {
 
-    private static final String RESOURCE_UTILISATION_ENDPOINT = "%s/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/api/v1/node/%s";
+    private static final String RESOURCE_UTILISATION_ENDPOINT = "%s/apis/metrics.k8s.io/v1beta1/nodes";
 
     private WrapperConfiguration config;
 
@@ -67,47 +66,20 @@ public class KubernetesClient {
         int cpuLoad = 0;
 
         for (Node node : nodes.getItems()) {
-            ResourceUtilisation nodeUtilisation = this.getNodeResourceUtilisation(node);
-
-            totalMemory += nodeUtilisation.getTotMemory();
-            usedMemory += nodeUtilisation.getUsedMemory();
-            cpuCores += nodeUtilisation.getTotCores();
-            cpuLoad += nodeUtilisation.getUsedCores();
+            totalMemory += Integer.parseInt(node.getStatus().getAllocatable().get("memory").getAmount().replaceAll("\\D+","")) / 1024;
+            cpuCores += Integer.parseInt(node.getStatus().getAllocatable().get("cpu").getAmount().replaceAll("\\D+",""));
         }
 
-        return new ResourceUtilisation(cpuCores, totalMemory, cpuLoad, usedMemory);
-    }
-
-    /**
-     * Get the resource utilisation for the node.
-     *
-     * @param node Node
-     *
-     * @return ResourceUtilisation
-     */
-    public ResourceUtilisation getNodeResourceUtilisation(Node node) throws IOException {
-        JsonNode response = this.makeHttpRequest(String.format(RESOURCE_UTILISATION_ENDPOINT, this.endpoint, node.getMetadata().getName()));
-        JsonNode metrics = response.get("metrics");
-
-        int totalMemory = 0;
-        int usedMemory = 0;
-        int cpuCores = 0;
-        int cpuLoad = 0;
+        JsonNode response = this.makeHttpRequest(String.format(RESOURCE_UTILISATION_ENDPOINT, this.endpoint));
+        System.out.println(response.asText());
+        JsonNode metrics = response.get("items");
 
         for (int i = 0; i < metrics.size(); i++) {
-            JsonNode metric = metrics.get(i);
-            JsonNode dataPoints = metric.get("dataPoints");
+            JsonNode usage = metrics.get(i).get("usage");
 
-            if (Objects.equals(metric.get("metricName").asText(), "cpu/usage_rate")) {
-                cpuLoad += dataPoints.get(dataPoints.size() - 1).get("y").asInt();
-            } else if (Objects.equals(metric.get("metricName").asText(), "memory/usage")) {
-                usedMemory += dataPoints.get(dataPoints.size() - 1).get("y").asLong() / 1024 / 1024;
-            }
+            cpuLoad += Integer.parseInt(usage.get("cpu").asText().replaceAll("\\D+",""));
+            usedMemory += Integer.parseInt(usage.get("memory").asText().replaceAll("\\D+","")) / 1024;
         }
-
-        JsonNode resources = response.get("allocatedResources");
-        totalMemory += resources.get("memoryCapacity").asLong() / 1024 / 1024;
-        cpuCores += resources.get("cpuCapacity").asInt();
 
         return new ResourceUtilisation(cpuCores, totalMemory, cpuLoad, usedMemory);
     }
