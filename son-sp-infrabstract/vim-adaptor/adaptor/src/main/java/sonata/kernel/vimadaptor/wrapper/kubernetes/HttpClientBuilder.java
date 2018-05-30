@@ -22,20 +22,22 @@ public class HttpClientBuilder {
      * @return OkHttpClient
      */
     public static OkHttpClient buildClient(String certificate) {
-        X509TrustManager trustManager;
-        SSLSocketFactory sslSocketFactory;
-        try {
-            trustManager = trustManagerForCertificates(trustedCertificatesInputStream(certificate));
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[] { trustManager }, null);
-            sslSocketFactory = sslContext.getSocketFactory();
-        } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
-        }
+//        X509TrustManager trustManager;
+//        SSLSocketFactory sslSocketFactory;
+//        try {
+//            trustManager = trustManagerForCertificates(trustedCertificatesInputStream(certificate));
+//            SSLContext sslContext = SSLContext.getInstance("TLS");
+//            sslContext.init(null, new TrustManager[] { trustManager }, null);
+//            sslSocketFactory = sslContext.getSocketFactory();
+//        } catch (GeneralSecurityException e) {
+//            throw new RuntimeException(e);
+//        }
 
-        return new OkHttpClient.Builder()
-                .sslSocketFactory(sslSocketFactory, trustManager)
-                .build();
+        // THIS IS UNSAFE!
+        return UnsafeOkHttpClient.getUnsafeOkHttpClient();
+//        return new OkHttpClient.Builder()
+//                .sslSocketFactory(sslSocketFactory, trustManager)
+//                .build();
     }
 
     private static InputStream trustedCertificatesInputStream(String certificate) {

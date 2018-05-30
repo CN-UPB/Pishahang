@@ -149,7 +149,6 @@ public class KubernetesClient {
     private DefaultKubernetesClient getKubernetesClient() {
         // TODO: fix withTrustCerts
         Config config = new ConfigBuilder().withMasterUrl(this.endpoint)
-                .withCaCertData(this.caCertData)
                 .withTrustCerts(true)
                 .withOauthToken(this.token).build();
 
