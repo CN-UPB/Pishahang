@@ -1,0 +1,88 @@
+{
+  "descriptor_version": "2.0",
+  "vendor": "eu.sonata-nfv.cloud-service-descriptor",
+  "name": "social-network",
+  "version": "1.0",
+  "author": "Tobias Dierich",
+  "description": "Deploys a social network based on Humhub. In addition to the humhub instance, the CS uses a MySQL database and a Redis cache.\n",
+  "virtual_deployment_units": [
+    {
+      "id": "humhub-1",
+      "service_image": "tdierich/humhub",
+      "service_name": "humhub",
+      "service_type": "LoadBalancer",
+      "service_ports": [
+        {
+          "name": "http",
+          "protocol": "TCP",
+          "port": 80,
+          "target_port": 80
+        }
+      ],
+      "environment": [
+        {
+          "name": "HUMHUB_DB_PASSWORD",
+          "value": "secret"
+        },
+        {
+          "name": "HUMHUB_DB_USER",
+          "value": "humhub"
+        },
+        {
+          "name": "HUMHUB_DB_HOST",
+          "value": "db.default.svc.cluster.local"
+        },
+        {
+          "name": "HUMHUB_REDIS_HOST",
+          "value": "redis.default.svc.cluster.local"
+        }
+      ]
+    },
+    {
+      "id": "db-1",
+      "service_image": "mariadb",
+      "service_name": "db",
+      "service_type": "ClusterIP",
+      "service_ports": [
+        {
+          "name": "mysql",
+          "protocol": "TCP",
+          "port": 3306,
+          "target_port": 3306
+        }
+      ],
+      "environment": [
+        {
+          "name": "MYSQL_ROOT_PASSWORD",
+          "value": "secret"
+        },
+        {
+          "name": "MYSQL_USER",
+          "value": "humhub"
+        },
+        {
+          "name": "MYSQL_PASSWORD",
+          "value": "secret"
+        },
+        {
+          "name": "MYSQL_DATABASE",
+          "value": "humhub"
+        }
+      ]
+    },
+    {
+      "id": "redis-1",
+      "service_image": "redis",
+      "service_name": "redis",
+      "service_type": "ClusterIP",
+      "service_ports": [
+        {
+          "name": "redis",
+          "protocol": "TCP",
+          "port": 6379,
+          "target_port": 6379
+        }
+      ]
+    }
+  ]
+}

@@ -25,7 +25,7 @@ virtual_deployment_units:
     type: "internal"
   - id: "eth1"
     interface: "ipv4"
-    type: "interal"
+    type: "internal"
   - id: "eth2"
     interface: "ipv4"
     type: "internal"
