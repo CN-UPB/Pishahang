@@ -4,7 +4,7 @@
     "tls_config": {
       "insecure_skip_verify": true
     },
-    "bearer_token": <token>
+    "bearer_token": "<token>",
     "kubernetes_sd_configs": [
       {
         "role": "node",
@@ -12,7 +12,7 @@
         "tls_config": {
           "insecure_skip_verify": true
         },
-        "bearer_token": <token>
+        "bearer_token": "<token>"
       }
     ],
     "relabel_configs": [
