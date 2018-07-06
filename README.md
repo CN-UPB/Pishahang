@@ -35,7 +35,7 @@ $ sudo apt-get install -y git ansible
 
 ```bash
 $ git clone https://github.com/CN-UPB/Pishahang.git
-$ cd son-install
+$ cd Pishahang/son-install
 $ echo sonata | tee ~/.ssh/.vault_pass
 ```
 
