@@ -1,0 +1,148 @@
+
+/*
+ * 
+ *   Copyright 2016-2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module vld
+{
+  namespace "urn:ietf:params:xml:ns:yang:nfvo:vld";
+  prefix "vld";
+
+  import project-vnfd {
+    prefix "project-vnfd";
+  }
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import ietf-yang-types {
+    prefix "yang";
+  }
+
+  import mano-types {
+    prefix "manotypes";
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  revision 2017-02-08 {
+    description
+      "Update model to support projects.";
+  }
+
+  revision 2015-09-10 {
+    description
+      "Initial revision. This YANG file defines
+       the Virtual Link Descriptor (VLD)";
+    reference
+      "Derived from earlier versions of base YANG files";
+  }
+
+  augment "/rw-project:project" {
+    container vld-catalog {
+
+      list vld {
+        key "id";
+
+        leaf id {
+          description "Identifier for the VLD.";
+          type yang:uuid;
+        }
+
+        leaf name {
+          description "Virtual Link Descriptor (VLD) name.";
+          type string;
+        }
+
+        leaf short-name {
+          description "Short name for VLD for UI";
+          type string;
+        }
+
+        leaf vendor {
+          description "Provider of the VLD.";
+          type string;
+        }
+
+        leaf description {
+          description "Description of the VLD.";
+          type string;
+        }
+
+        leaf version {
+          description "Version of the VLD";
+          type string;
+        }
+
+        leaf type {
+          type manotypes:virtual-link-type;
+        }
+
+        leaf root-bandwidth {
+          description
+            "For ELAN this is the aggregate bandwidth.";
+          type uint64;
+        }
+
+        leaf leaf-bandwidth {
+          description
+            "For ELAN this is the bandwidth of branches.";
+          type uint64;
+        }
+
+        list vnfd-connection-point-ref {
+          description
+            "A list of references to connection points.";
+          key "vnfd-ref member-vnf-index-ref";
+
+          leaf vnfd-ref {
+            description "A reference to a vnfd";
+            type leafref {
+              path "../../../../project-vnfd:vnfd-catalog/project-vnfd:vnfd/project-vnfd:id";
+            }
+          }
+
+          leaf member-vnf-index-ref {
+            description
+              "A reference to the consituent-vnfd id in nsd. 
+              Should have been a leafref to:
+                '/rw-project:project/project-nsd:nsd-catalog:/nsd/constituent-vnfd/member-vnf-index-ref'.
+              Instead using direct leaf to avoid circular reference.";
+            type uint64;
+          }
+
+          leaf vnfd-connection-point-ref {
+            description
+              "A reference to a connection point name in a vnfd";
+            type leafref {
+              path "../../../../project-vnfd:vnfd-catalog/project-vnfd:vnfd"
+                + "[project-vnfd:id = current()/../vld:vnfd-ref]"
+                + "/project-vnfd:connection-point/project-vnfd:name";
+            }
+          }
+        }
+
+        // replicate for pnfd container here
+        uses manotypes:provider-network;
+      }
+    }
+  }
+}

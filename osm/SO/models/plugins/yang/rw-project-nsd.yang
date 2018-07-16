@@ -1,0 +1,176 @@
+
+/*
+ * 
+ *   Copyright 2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module rw-project-nsd
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rw-project-nsd";
+  prefix "rw-project-nsd";
+
+  import rw-nsd-base {
+    prefix "rw-nsd-base";
+  }
+
+  import project-nsd {
+    prefix "project-nsd";
+  }
+
+  import project-vnfd {
+    prefix "project-vnfd";
+  }
+
+  import rw-project-vnfd {
+    prefix "rw-project-vnfd";
+  }
+
+  import vnfd-base {
+    prefix "vnfd-base";
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  revision 2017-02-28 {
+    description
+      "Initial revision. This YANG file augments
+       the base MANO NSD";
+    reference
+      "Derived from earlier versions of base YANG files";
+  }
+
+  grouping project-nsd-config-parameter{
+    list config-parameter-map {
+      key "id";
+      description "A mapping of VNF config parameter
+                   requests and sources within this network service";
+      leaf id {
+        description "Identfier for VNF map";
+        type string;
+      }
+      container config-parameter-request {
+        leaf member-vnf-index-ref {
+          description "Reference to member-vnf within constituent-vnfds";
+          type leafref {
+            path "../../../project-nsd:constituent-vnfd/project-nsd:member-vnf-index";
+          }
+        }
+        leaf vnfd-id-ref {
+          description
+              "A reference to a vnfd. This is a
+               leafref to path:
+                   ../../project-nsd:constituent-vnfd
+                   + [project-nsd:id = current()/../id-ref]
+                   + /project-nsd:vnfd-id-ref";
+
+          type leafref {
+            path "../../../project-nsd:constituent-vnfd[project-nsd:member-vnf-index = current()/../member-vnf-index-ref]/project-nsd:vnfd-id-ref";
+          }
+        }
+        leaf config-parameter-request-ref {
+          description "Reference to the request in  the VNF
+                       with the specified member-vnf-index";
+          type leafref {
+            path "../../../../.." +
+              "/project-vnfd:vnfd-catalog/project-vnfd:vnfd[project-vnfd:id = current()/../vnfd-id-ref]" +
+              "/rw-project-vnfd:config-parameter/rw-project-vnfd:config-parameter-request/rw-project-vnfd:name";
+          }
+        }
+      }
+      container config-parameter-source {
+        leaf member-vnf-index-ref {
+          description "Reference to member-vnf within constituent-vnfds";
+          type leafref {
+            path "../../../project-nsd:constituent-vnfd/project-nsd:member-vnf-index";
+          }
+        }
+        leaf vnfd-id-ref {
+          description
+              "A reference to a vnfd. This is a
+               leafref to path:
+                   ../../project-nsd:constituent-vnfd
+                   + [project-nsd:id = current()/../id-ref]
+                   + /project-nsd:vnfd-id-ref";
+
+          type leafref {
+            path "../../../project-nsd:constituent-vnfd[project-nsd:member-vnf-index = current()/../member-vnf-index-ref]/project-nsd:vnfd-id-ref";
+          }
+        }
+        leaf config-parameter-source-ref {
+          description "Reference to the source in the VNF
+                       with the specified member-vnf-index";
+          type leafref {
+            path "../../../../.." +
+              "/project-vnfd:vnfd-catalog/project-vnfd:vnfd[project-vnfd:id = current()/../vnfd-id-ref]" +
+              "/rw-project-vnfd:config-parameter/rw-project-vnfd:config-parameter-source/rw-project-vnfd:name";
+          }
+        }
+      }
+    }
+  }
+
+  augment /rw-project:project/project-nsd:nsd-catalog/project-nsd:nsd {
+    uses rw-nsd-base:rw-nsd-ext;
+  }
+
+  augment /rw-project:project/project-nsd:nsd-catalog/project-nsd:nsd/project-nsd:service-primitive/project-nsd:parameter {
+    leaf out {
+      description "If this is an output of the primitive execution";
+      type boolean;
+      default false;
+    }
+  }
+
+  augment /rw-project:project/project-nsd:nsd-catalog/project-nsd:nsd/project-nsd:service-primitive/project-nsd:parameter-group/project-nsd:parameter {
+    leaf out {
+      description "If this is an output of the primitive execution";
+      type boolean;
+      default false;
+    }
+  }
+
+  augment /rw-project:project/project-nsd:nsd-catalog/project-nsd:nsd/project-nsd:vld {
+    leaf ipv4-nat-pool-name{
+      type string;
+      description "IPV4 nat pool name";
+    }
+    
+    list virtual-connection-points {
+      description
+        "A list of virtual-connection points associated with Virtual Link.
+             These connection points are not directly associated with any VNFs";
+      key name;
+      uses vnfd-base:common-connection-point;
+
+      leaf-list associated-cps {
+        description
+          "A List of connection points associated with virtual connection point";
+        type leafref {
+          path "../../project-nsd:vnfd-connection-point-ref/project-nsd:vnfd-connection-point-ref";
+        }
+      }
+    }
+  }
+
+  augment /rw-project:project/project-nsd:nsd-catalog/project-nsd:nsd {
+    uses project-nsd-config-parameter;
+  }
+}
+
+// vim: sw=2

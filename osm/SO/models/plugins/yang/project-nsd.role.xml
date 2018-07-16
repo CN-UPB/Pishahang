@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<config xmlns="http://riftio.com/ns/riftware-1.0/rw-rbac-role-def">
+  <key-definition>
+    <role>rw-project-mano:project-nsd-role</role>
+    <key-set>
+      <name>project-name</name>
+      <path>/rw-project:project/rw-project:name</path>
+    </key-set>
+  </key-definition>
+
+  <role-definition>
+    <role>rw-project-mano:catalog-oper</role>
+    <keys-role>rw-project-mano:project-nsd-role</keys-role>
+    <priority>
+      <lower-than>
+        <role>rw-project:project-admin</role>
+      </lower-than>
+    </priority>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/project-nsd:nsd-catalog</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project-mano:catalog-admin</role>
+    <keys-role>rw-project-mano:project-nsd-role</keys-role>
+    <priority>
+      <higher-than>
+        <role>rw-project-mano:catalog-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project-mano:account-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project-mano:lcm-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project:project-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project-mano:lcm-admin</role>
+      </higher-than>
+    </priority>
+
+    <authorize>
+      <permissions>create read update delete execute</permissions>
+      <path>/rw-project:project/project-nsd:nsd-catalog</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project-mano:lcm-admin</role>
+    <keys-role>rw-project-mano:project-nsd-role</keys-role>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/project-nsd:nsd-catalog</path>
+    </authorize>
+  </role-definition>
+</config>

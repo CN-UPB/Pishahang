@@ -1,0 +1,21 @@
+{
+  "test_name":"TC_PINGPONG_VNF_RELOAD_OPENSTACK_XML",
+  "license": "Apache 2.0",
+  "commandline":"./pingpong_vnf_reload_systest  --test-name 'TC_PINGPONG_VNF_RELOAD_OPENSTACK_XML' --cloud-type 'openstack' --sysinfo --use-xml-mode --cloud-host={cloud_host} --user={user} {tenants} --restconf",
+  "test_description":"System test for ping pong vnf reload(Openstack)",
+  "run_as_root": false,
+  "allow_production_launchpad": true,
+  "xml_mode": true,
+  "status":"working",
+  "keywords":["ci","nightly","MANO","openstack"],
+  "timelimit": 2200,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

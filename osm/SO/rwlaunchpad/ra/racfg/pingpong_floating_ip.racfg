@@ -1,0 +1,18 @@
+{
+  "test_name":"TC_PINGPONG_FLOATING_IP",
+  "commandline":"./pingpong_floating_ip --test-name 'TC_PINGPONG_FLOATING_IP' --cloud-type 'openstack' --cloud-host={cloud_host}  --user={user} {tenants}",
+  "test_description":"TC for testing the pingpong floating ip pools",
+  "allow_production_launchpad": true,
+  "status":"broken",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 4000,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

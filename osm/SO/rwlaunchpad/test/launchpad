@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+
+import argparse
+import contextlib
+import os
+import signal
+import subprocess
+import sys
+
+import gi
+gi.require_version('RwcalYang', '1.0')
+gi.require_version('RwCal', '1.0')
+gi.require_version('RwLog', '1.0')
+
+
+TEST_PARSER = "test"
+
+
+class PyTestRunner:
+    SYS_CMD = "demos/launchpad.py -m ethsim --skip-prepare-vm -c"
+    CLOUDSIM_CMD = "cloudsim start"
+
+    @property
+    def rift_install(self):
+        return os.getenv('RIFT_INSTALL')
+
+    @property
+    def account_script(self):
+        return os.path.join(
+                self.rift_install,
+                "usr/rift/systemtest/pytest/mission_control/test_mission_control.py")
+
+    @property
+    def onboard_script(self):
+        return os.path.join(
+                self.rift_install,
+                "usr/rift/systemtest/pytest/mission_control/pingpong_vnf/test_onboard_vnf.py")
+
+    @property
+    def records_script(self):
+        return os.path.join(
+                self.rift_install,
+                "usr/rift/systemtest/pytest/mission_control/pingpong_vnf/test_records.py")
+
+    def run_cmd(self, scripts=None, cal_account="mock"):
+        scripts = scripts or [self.account_script, self.onboard_script]
+
+        cmd = "py.test -v "
+
+        # In mock-cal mode we don't need the images.
+        if cal_account == "mock":
+            cmd += "--{} --lp-standalone --network-service pingpong_noimg ".format(cal_account)
+        else:
+            cmd += "--{} --lp-standalone --network-service pingpong ".format(cal_account)
+
+        cmd += " ".join(scripts)
+        subprocess.call(cmd, shell=True)
+
+    @contextlib.contextmanager
+    def system_start(self, debug_mode=False, cal_account="mock"):
+
+
+        os.environ['LD_PRELOAD'] = os.path.join(
+                self.rift_install,
+                "usr/lib/rift/preloads/librwxercespreload.so")
+
+        sys_cmd = os.path.join(self.rift_install, self.SYS_CMD)
+        if debug_mode:
+            sys_cmd += " --mock-cli"
+
+        process = subprocess.Popen(
+            sys_cmd,
+            shell=True,
+            preexec_fn=os.setsid)
+
+        cloudsim_process = None
+        if cal_account == "lxc":
+            # If in LXC start the cloudsim server.
+            cloudsim_process = subprocess.Popen(
+                PyTestRunner.CLOUDSIM_CMD,
+                shell=True,
+                preexec_fn=os.setsid)
+
+        def kill():
+            os.killpg(process.pid, signal.SIGTERM)
+            if cloudsim_process:
+                os.killpg(cloudsim_process.pid, signal.SIGTERM)
+                cloudsim_process.wait()
+
+            process.wait()
+
+        signal.signal(signal.SIGHUP, kill)
+        signal.signal(signal.SIGTERM, kill)
+
+        yield
+
+        kill()
+
+
+def test_launchpad(args):
+    pytest = PyTestRunner()
+
+    scripts = None
+    if args.cal == "lxc":
+        scripts = [pytest.account_script, pytest.onboard_script, pytest.records_script]
+
+    with pytest.system_start(cal_account=args.cal):
+        pytest.run_cmd(scripts=scripts, cal_account=args.cal)
+
+
+def parse(arguments):
+    parser = argparse.ArgumentParser(description=__doc__,
+                                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+            '--log-level', '-l',
+            default="WARNING",
+            type=str,
+            choices=["INFO", "DEBUG", "WARNING", "ERROR"],
+            help="Set log level, defaults to warning and above.")
+
+    subparsers = parser.add_subparsers()
+
+    start_parser = subparsers.add_parser(TEST_PARSER, help="Test the LP")
+    start_parser.add_argument(
+            '--cal', "-c",
+            help="Run the server in the foreground. The logs are sent to console.",
+            default="mock",
+            choices=["lxc", "mock"])
+    start_parser.set_defaults(which=TEST_PARSER)
+
+    args = parser.parse_args(arguments)
+
+    return args
+
+
+def main(args):
+
+    args = parse(args)
+
+    if args.which == TEST_PARSER:
+        test_launchpad(args)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

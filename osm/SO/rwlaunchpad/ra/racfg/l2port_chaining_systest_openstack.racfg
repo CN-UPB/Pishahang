@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_L2PORT_CHAINING",
+  "commandline":"./l2port_chaining_systest --test-name 'TC_L2PORT_CHAINING' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf --l2-port-chaining",
+  "test_description":"System test to check L2 port chaining feature (Openstack)",
+  "allow_production_launchpad": true,
+  "allow_rpm_install": true,
+  "run_as_root": true,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

@@ -1,0 +1,44 @@
+##
+# Copyright 2015 Telefónica Investigación y Desarrollo, S.A.U.
+# This file is part of openmano
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# For those usages not covered by the Apache License, Version 2.0 please
+# contact with: nfvlabs@tid.es
+##
+---
+#The mapping is composed of a list of compute nodes. Each compute nodes has two elements:
+#"compute_node": name to identify the compute node within the datacenter
+#"ports": list of ports mapped to a switch for that compute node.
+#The information to identify the SDN controller and the dataplane switch is obtained from the datacenter information
+- compute_node:    "compute node 1"
+  ports:
+    #Each mapped port contains the following information:
+    #"pci": pci address of the port in the compute node. This is a mandatory parameter
+    #"switch_mac": MAC address of the corresponding port in the dataplane switch.
+    #"switch_port": Openflow name of the port in the dataplane switch.
+    #"switch_mac" or "switch_port" must be specified. Both of them could be specified
+    - pci:         "0000:81:00.0"
+      switch_port: "port-2/1"
+    - pci:         "0000:81:00.1"
+      switch_mac:  "52:54:00:94:21:22"
+- compute_node:    "compute node 2"
+  ports:
+    - pci:         "0000:81:00.0"
+      switch_port: "port-2/3"
+      switch_mac:  "52:54:00:94:22:21"
+    - pci:         "0000:81:00.1"
+      switch_port: "port-2/4"
+      switch_mac:  "52:54:00:94:22:22"

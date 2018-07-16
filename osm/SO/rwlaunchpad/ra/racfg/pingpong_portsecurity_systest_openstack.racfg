@@ -1,0 +1,24 @@
+{
+  "test_name":"TC_PINGPONG_UNFILTERED_VIRTUAL_INTERFACE",
+  "commandline":"./accounts_creation_onboard_instatiate_systest --test-name 'TC_PINGPONG_UNFILTERED_VIRTUAL_INTERFACE' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf --port-security",
+  "test_description":"System test to check unfiltered virtual interface for ping and pong vnf (Openstack)",
+  "allow_production_launchpad": true,
+  "allow_rpm_install": true,
+  "run_as_root": true,
+  "status":"working",
+  "keywords":["ci","nightly","MANO","openstack"],
+  "vim_host_override": "10.66.4.32",
+  "vim_ssl_enabled": false,
+  "vim_user_domain_override": "default",
+  "vim_project_domain_override": "default",
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

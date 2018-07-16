@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# A single executable which starts necessary glance server components
+#
+# Create a workspace-specific glance config directory and
+# wrap the glance-api and glance-registry procs.
+#
+#
+# USAGE: ./glance_start_wrapper <glance_conf_dir>
+#
+#
+
+if [ $# -ne 1 ]; then
+    echo "error: specifiy the glance conf dir"
+    exit 1
+fi
+
+src_conf_dir="$1"
+if [ ! -d "${src_conf_dir}" ]; then
+    echo "error: glance conf dir does not exist"
+    exit 1
+fi
+
+if [ -z ${RIFT_INSTALL+x} ]; then
+    echo "error: RIFT_INSTALL is not set"
+    exit 1
+fi
+
+if [ -z "${RIFT_VAR_ROOT}" ]; then
+    if [ -n "${RIFT_INSTALL}" ]; then
+        RIFT_VAR_ROOT="${RIFT_INSTALL}/var"
+    else
+        RIFT_VAR_ROOT="$(mktemp -d)"
+        echo "warning: RIFT_VAR_ROOT or RIFT_INSTALL not provided, using temporary directory"
+    fi
+fi
+
+dest_conf_dir="${RIFT_VAR_ROOT}/glance/conf"
+echo "destination glance conf directory: ${dest_conf_dir}"
+
+if [ -e "${dest_conf_dir}" ]; then
+    echo "removing ${dest_conf_dir}"
+    #rm -rf "${dest_conf_dir}"
+fi
+
+mkdir -p "${dest_conf_dir}"
+
+for conf_file in ${src_conf_dir}/*; do
+    cp "${conf_file}" ${dest_conf_dir}/
+    dest_file="${dest_conf_dir}/$(basename ${conf_file})"
+    sed -i "s|{RIFT_VAR_ROOT}|${RIFT_VAR_ROOT}|g" "${dest_file}"
+    sed -i "s|{RIFT_INSTALL}|${RIFT_INSTALL}|g" "${dest_file}"
+done
+
+mkdir -p ${RIFT_VAR_ROOT}/log/glance
+
+registry_pid=0
+api_pid=0
+killing=false
+
+function kill_children(){
+    if ${killing}; then
+        return
+    fi
+    killing=true
+
+    if [ ${registry_pid} -ne 0 ]; then
+        kill ${registry_pid} 2>/dev/null
+    fi
+
+    if [ ${api_pid} -ne 0 ]; then
+        kill ${api_pid} 2>/dev/null
+    fi
+
+    sleep 2
+
+    if [ ${registry_pid} -ne 0 ]; then
+        echo "KILL registry pid: ${registry_pid}"
+        kill -9 ${registry_pid} 2>/dev/null
+    fi
+
+    if [ ${api_pid} -ne 0 ]; then
+        echo "KILL api pid: ${api_pid}"
+        kill -9 ${api_pid} 2>/dev/null
+    fi
+
+    exit 1
+}
+
+
+function kill_group(){
+    # Kill any remaining children
+    kill_children
+
+    # Kill myself
+    kill -9 0
+}
+
+trap "kill_children" SIGHUP SIGINT SIGTERM SIGTRAP EXIT
+trap "kill_group" SIGCHLD
+
+glance-registry --config-dir ${dest_conf_dir} --config-file ${dest_conf_dir}/glance-registry.conf >/dev/null 2>&1&
+registry_pid="$!"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Glance registry startup failed!" >&2
+    exit 1
+fi
+
+glance-api --config-dir ${dest_conf_dir} --config-file ${dest_conf_dir}/glance-api.conf >/dev/null 2>&1&
+api_pid="$!"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Glance registry startup failed!" >&2
+    exit 1
+fi
+
+sleep 5
+
+manage_cfg=""
+if [ -e "${dest_conf_dir}/glance-manage.conf" ]; then
+    manage_cfg="--config-file ${dest_conf_dir}/glance-manage.conf"
+fi
+
+glance-manage --config-dir ${dest_conf_dir} ${manage_cfg} db_sync >/dev/null 2>&1&
+if [ $? -ne 0 ]; then
+    echo "ERROR: glance-manage db_sync failed" >&2
+    exit 1
+fi
+
+while true; do
+    sleep 1
+done

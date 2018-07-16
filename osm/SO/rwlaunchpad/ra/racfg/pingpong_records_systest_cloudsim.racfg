@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_PINGPONG_RECORDS_CLOUDSIM",
+  "commandline":"./pingpong_records_systest --test-name 'TC_PINGPONG_RECORDS_CLOUDSIM' --sysinfo --netconf --restconf",
+  "test_description":"System test for ping and pong vnf (Cloudsim)",
+  "allow_rpm_install": true,
+  "run_as_root": true,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "target_vm":"rift_auto_launchpad",
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 16384,
+      "cpus": 4
+    }
+  ]
+}
+

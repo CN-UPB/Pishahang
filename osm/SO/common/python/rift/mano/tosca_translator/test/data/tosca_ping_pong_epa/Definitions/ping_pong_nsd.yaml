@@ -1,0 +1,57 @@
+tosca_definitions_version: tosca_simple_profile_for_nfv_1_0
+description: Toy NS
+metadata:
+  ID: ping_pong_nsd
+  vendor: RIFT.io
+  version: 1.0
+imports:
+- "ping_vnfd.yaml"
+- "pong_vnfd.yaml"
+topology_template:
+  policies:
+  - initial_config_primitive:
+      properties:
+        name: start traffic
+        seq: 1
+        user_defined_script: start_traffic.py
+      targets: [pong_vnfd]
+      type: tosca.policies.nfv.riftio.initial_config_primitive
+  - placement_0:
+      properties:
+        name: Orcus
+        requirement: Place this VM on the Kuiper belt object Orcus
+        strategy: COLOCATION
+      targets: [ping_vnfd, pong_vnfd]
+      type: tosca.policies.nfv.riftio.placement
+  - placement_1:
+      properties:
+        name: Quaoar
+        requirement: Place this VM on the Kuiper belt object Quaoar
+        strategy: COLOCATION
+      targets: [ping_vnfd, pong_vnfd]
+      type: tosca.policies.nfv.riftio.placement
+  node_templates:
+    pong_vnfd:
+      type: tosca.nodes.nfv.riftio.pongvnfdVNF
+      properties:
+        id: 2
+        vendor: RIFT.io
+        version: 1.0
+      requirements:
+      - virtualLink1: ping_pong_vld
+    ping_pong_vld:
+      type: tosca.nodes.nfv.riftio.ELAN
+      properties:
+        cidr: 31.31.31.0/24
+        description: Toy VL
+        gateway_ip: 31.31.31.210
+        ip_version: 4
+        vendor: RIFT.io
+    ping_vnfd:
+      type: tosca.nodes.nfv.riftio.pingvnfdVNF
+      properties:
+        id: 1
+        vendor: RIFT.io
+        version: 1.0
+      requirements:
+      - virtualLink1: ping_pong_vld

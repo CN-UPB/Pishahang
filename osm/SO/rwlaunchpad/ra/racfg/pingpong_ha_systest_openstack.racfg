@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_PINGPONG_HA_OPENSTACK",
+  "commandline":"./pingpong_ha_systest --cloud-type 'openstack' --cloud-host={cloud_host}  --user={user} {tenants}",
+  "test_description":"HA System Test that kills system components while running ping pong testcases",
+  "allow_production_launchpad": true,
+  "allow_rpm_install": true,
+  "run_as_root": false,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 4000,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

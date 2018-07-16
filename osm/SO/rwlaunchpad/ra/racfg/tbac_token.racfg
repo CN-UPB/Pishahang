@@ -1,0 +1,19 @@
+{
+  "test_name":"TC_TBAC_TOKEN",
+  "commandline":"./tbac_token --test-name 'TC_TBAC_TOKEN' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf --tbac",
+  "test_description":"System test to perform tbac token tests",
+  "run_as_root": true,
+  "allow_production_launchpad": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

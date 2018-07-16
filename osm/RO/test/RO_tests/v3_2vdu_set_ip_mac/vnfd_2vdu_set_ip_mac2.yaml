@@ -1,0 +1,93 @@
+vnfd-catalog:
+    vnfd:
+    -   connection-point:
+        -   name: eth0
+            type: VPORT
+        -   name: eth1
+            type: VPORT
+        -   name: eth4
+            type: VPORT
+        description: VNF with internal VLD and set IP and mac
+        id: test_2vdu2
+        name: test_2vdu2_name
+        short-name: test_2vdu2_sname
+        mgmt-interface:
+            cp: eth0
+        internal-vld:
+        -   description: Internal VL
+            id:          net_internal
+            name:        net_internal_name
+            short-name:  net_internal_sname
+            type:        ELAN
+            internal-connection-point:
+            -   id-ref:     eth2
+                ip-address: 10.10.133.4
+            -   id-ref:     eth3
+                ip-address: 10.10.133.5
+            ip-profile-ref: ip-profile1
+        ip-profiles:
+        -   description: Inter VNF Link
+            ip-profile-params:
+                gateway-address: 10.10.133.1
+                ip-version:      ipv4
+                subnet-address:  10.10.133.0/24
+                dhcp-params:
+                  count:         200
+                  start-address: 10.10.133.20
+            name: ip-profile1
+        vdu:
+        -   id: VM1
+            name: VM1-name
+            image: US1604
+            interface:
+            -   name: iface11
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: eth0
+                mac-address:   "52:33:44:55:66:81"
+            -   name: iface12
+                type: INTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                internal-connection-point-ref: eth2
+                mac-address:   "52:33:44:55:66:82"
+            -   name: iface13
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: eth4
+            internal-connection-point:
+            -   name: eth2-icp
+                id:   eth2
+                type: VPORT
+            vm-flavor:
+                memory-mb: '2048'
+                storage-gb: '8'
+                vcpu-count: '1'
+        -   id: VM2
+            image: US1604
+            name: VM2-name
+            interface:
+            -   name: iface21
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: eth1
+                mac-address:   52:33:44:55:66:83
+            -   name: iface22
+                type: INTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                internal-connection-point-ref: eth3
+                mac-address:   52:33:44:55:66:84
+            internal-connection-point:
+            -   name: eth3-icp
+                id:   eth3
+                type: VPORT
+            vm-flavor:
+                memory-mb: '2048'
+                storage-gb: '8'
+                vcpu-count: '1'
+        vendor: ROtest
+        version: '1.0'

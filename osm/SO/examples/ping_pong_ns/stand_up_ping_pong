@@ -1,0 +1,233 @@
+#!/bin/bash
+
+# arguments
+if [ -z $1 ] 
+then 
+    echo "must supply ip for launchpad"
+    exit -1
+else
+    lp_ip=${1}
+fi
+
+username=$(whoami)
+
+# make sure we're in a rift shell
+if [ -z $RIFT_ROOT ] 
+then 
+    echo "must be in a rift-shell"
+    exit -1
+fi
+
+# make sure the system is up
+system_is_up() {
+    response=$(curl --silent --insecure \
+		    -o /dev/null \
+		    --write-out "%{http_code}"\
+		    --user admin:admin \
+		    https://${lp_ip}:8008/api/config/launchpad-config \
+		    --request GET \
+	    )
+
+   if [ ${response} -eq 200 ]
+   then
+       return 0
+   else
+       if [ ${response} -eq 404 ]
+       then
+	   # not running a launchpad!
+	   echo "riftware is running on ${lp_ip} but there is no launchpad-config"
+	   exit -1
+       fi
+       return 1
+   fi
+}
+
+#echo -n "wait for system"
+#while ! system_is_up
+#do
+#    echo -n "."
+#    sleep 5s
+#done
+
+echo "system is up"
+
+# setup the openstack account
+echo -n "adding account"
+
+post_json_to_rwrest() {
+   if [ -z "$1" ]
+   then
+     echo "must supply url"
+     exit -1
+   else
+       url=$1
+   fi
+
+   if [ -z "$2" ]
+   then
+     echo "must supply payload"
+     exit -1
+   else
+       payload="${2}"
+   fi
+
+   response=$(curl --silent --insecure \
+		   --header "content-type:application/vnd.yang.data+json" \
+		   --header "Accept:application/vnd.yang.data+json" \
+		   --user admin:admin \
+		   https://${lp_ip}:8008${url} \
+		   --request POST --data "${payload}" \
+	   )
+
+    added_account=$(echo "${response}" | grep -e \"success|ok\" | wc -l)
+    already_exists=$(echo "${response}" | grep \"data-exists\" | wc -l)
+    success=$((added_account + already_exists))
+}
+
+account_payload=" {
+  \"account\": [
+    {
+      \"name\": \"OS\",
+      \"account-type\": \"openstack\",
+      \"openstack\": {
+        \"auth_url\": \"http://engstack.eng.riftio.com:5000/v3/\",
+        \"secret\": \"mypasswd\",
+        \"key\": \"${username}_automation\",
+        \"tenant\": \"${username}_automation\",
+        \"mgmt-network\": \"private\"
+      }
+    }
+  ]
+}"
+
+post_json_to_rwrest "/api/config/cloud/account" "${account_payload}"
+
+if [ ${success} -ne 1 ];
+then
+    echo -en "\r" # clear pending line
+    echo "failed to add cloud account:"
+    echo ${response}
+    exit 0
+else
+    echo " success"
+fi
+
+# onboard descriptors
+cd $RIFT_BUILD/modules/core/mano/src/core_mano-build/examples/ping_pong_ns
+
+wait_for_package() {
+   if [ -z "$1" ]
+   then
+     echo "must supply transaction id to wait for"
+     exit -1
+   fi
+   
+   project="default"
+   response=$(curl --silent --insecure https://${lp_ip}:8008/api/operational/project/${project}/create-jobs/job/${transaction_id})
+   transaction_state=$(echo ${response} | awk -F "status" '{print $2}' | awk '{print $2}')
+   transaction_state=${transaction_state:1:-2}
+   
+   if [ ${transaction_state} == "pending" ];
+   then
+       return 0
+   else
+       return 1
+   fi
+}
+
+upload_package() {
+   if [ -z "$1" ]
+   then
+     echo "must supply package to upload"
+     exit -1
+   else
+       package=$1
+   fi
+
+   echo -n "upload ${package} package"
+
+   response=$(curl --silent --insecure -F "descriptor=@${package}" https://${lp_ip}:4567/api/upload)
+   transaction_id=$(echo ${response} | awk '{print $2}')
+   transaction_id=${transaction_id:1:-2}
+
+   while wait_for_package transaction_id
+   do
+       echo -n "."
+       sleep 1s
+   done
+   if [ ${transaction_state} == "failure" ];
+   then
+       echo "failed"
+       status=1
+   else
+       echo "success"
+       status=0
+   fi
+
+}
+
+upload_package "ping_vnfd.tar.gz"
+ping_status=${status}
+upload_package "pong_vnfd.tar.gz"
+pong_status=${status}
+
+success=$((ping_status + pong_status))
+
+if [ ${success} -ne 0 ];
+then
+    echo -en "\r" # clear pending line
+    echo "cannot on-board nsd when a vnfd fails"
+    exit -1
+fi
+
+upload_package "ping_pong_nsd.tar.gz"
+if [ ${status} -ne 0 ];
+then
+    echo -en "\r" # clear pending line
+    echo "failed to on-board nsd"
+    exit -1
+fi
+
+# instantiate ping_pong_nsd
+echo "instantiate ping pong nsd"
+
+tag=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1)
+
+tmpdir="/tmp/${tag}"
+mkdir ${tmpdir}
+
+tar -xf ping_pong_nsd.tar.gz -C ${tmpdir}
+
+nsdfile="${tmpdir}/ping_pong_nsd/ping_pong_nsd.yaml"
+
+nsd_id=$(cat ${nsdfile} | grep "nsd:id" | head -n1 | awk '{print $2}')
+
+rm -r ${tmpdir}
+
+nsr_id=$(cat /proc/sys/kernel/random/uuid)
+nsd_payload="{
+    \"nsr\":[
+        {
+            \"id\":\"${nsr_id}\",
+            \"nsd-ref\":\"${nsd_id}\",
+            \"name\":\"${username}-${tag}-ping-pong-nsd\",
+            \"short-name\":\"pingpong\",
+            \"description\":\"ping pong nsd instantiated by ${username} with tag ${tag}\",
+            \"admin-status\":\"ENABLED\",
+            \"cloud-account\":\"OS\"
+        }
+    ]
+}"
+
+post_json_to_rwrest "/api/config/ns-instance-config" "${nsd_payload}"
+
+if [ ${success} -ne 1 ];
+then
+    echo -en "\r" # clear pending line
+    echo "failed to instantiate nsd:"
+    echo ${response}
+    exit -1
+else
+    echo " success"
+fi
+

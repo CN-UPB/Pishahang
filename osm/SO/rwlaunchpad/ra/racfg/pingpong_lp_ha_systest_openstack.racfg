@@ -1,0 +1,23 @@
+{
+  "test_name":"TC_PINGPONG_LP_HA_OPENSTACK",
+  "commandline":"./pingpong_lp_ha_systest --test-name 'TC_PINGPONG_LP_HA_OPENSTACK' --cloud-type 'openstack' --cloud-host={cloud_host} --user={user} {tenants} --ha-mode LS --expanded",
+  "test_description":"System test for standalone Launchpad (Openstack) with High availability",
+  "run_as_root": false,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    },
+    {
+      "name": "rift_auto_launchpad_standby",
+      "memory":4096,
+      "cpus":2
+    }
+  ]
+}
+

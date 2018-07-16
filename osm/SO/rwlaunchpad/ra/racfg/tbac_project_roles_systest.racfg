@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_TBAC_PROJECT_ROLES_TEST",
+  "commandline":"./rbac_roles_systest --test-name 'TC_TBAC_PROJECT_ROLES_TEST' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf --project-creation-test --tbac",
+  "test_description":"TBAC: System test to perform role based authorization check for project creation/deletion etc",
+  "run_as_root": true,
+  "allow_rpm_install":true,
+  "allow_production_launchpad":true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

@@ -1,0 +1,40 @@
+##
+# Copyright 2015 Telefónica Investigación y Desarrollo, S.A.U.
+# This file is part of openmano
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# For those usages not covered by the Apache License, Version 2.0 please
+# contact with: nfvlabs@tid.es
+##
+---
+schema_version:  2
+scenario:
+  name:          vnf_floating_ip
+  description:   vnf_floating_ip
+  public:        false      # if available for other tenants
+  vnfs:
+    vnf_floating_ip:                     # vnf name in the scenario
+      #identify an already openmano uploaded VNF either by vnf_id (uuid, prefered) or vnf_name
+      #vnf_id:    0c0dcc20-c5d5-11e6-a9fb-fa163e2ae06e                  #prefered id method
+      vnf_name:  vnf_floating_ip   #can fail if several vnfs matches this name
+      #graph:     {"y":399,"x":332,"ifaces":{"left":[["xe0","d"],["xe1","d"]],"bottom":[["eth0","v"],["eth1","m"]]}}
+  networks:                
+    internal:
+      # Connections based on external networks (datacenter nets) must include the external network in the list of nodes
+      type:      bridge
+      external:  true       #this will be connected outside
+      interfaces:
+      -   vnf_floating_ip:  mgmt0
+

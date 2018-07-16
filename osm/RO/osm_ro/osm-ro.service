@@ -1,0 +1,11 @@
+[Unit]
+Description=openmano server (OSM RO)
+After=mysql.service
+
+[Service]
+ExecStart=/usr/bin/openmanod -c /etc/osm/openmanod.cfg --log-file=/var/log/osm/openmano.log
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,46 @@
+
+/*
+ * 
+ *   Copyright 2016-2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module rw-config-agent-annotation
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rw-config-agent-annotation";
+  prefix "rw-config-agent-ann";
+
+  import rw-config-agent {
+    prefix rw-config-agent;
+  }
+
+  import tailf-common {
+    prefix tailf-common;
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  tailf-common:annotate "/rw-project:project/rw-config-agent:config-agent" +
+    "/rw-config-agent:account/rw-config-agent:connection-status" {
+    tailf-common:callpoint rw_callpoint;
+  }
+
+  tailf-common:annotate "/rw-config-agent:update-cfg-agent-status" {
+    tailf-common:actionpoint rw_actionpoint;
+  }
+}

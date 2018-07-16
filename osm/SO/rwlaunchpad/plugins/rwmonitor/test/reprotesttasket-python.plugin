@@ -1,0 +1,4 @@
+[Plugin]
+Module=reprotesttasklet-python
+Loader=python3
+Name=reprotesttasklet-python

@@ -1,0 +1,19 @@
+{
+  "test_name":"TC_COMPLEX_SCALING",
+  "commandline":"./complex_scaling --test-name 'TC_COMPLEX_SCALING' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf --complex-scaling --multiple-ns-instantiate 0,0",
+  "test_description":"System test to perform a multi event test",
+  "allow_production_launchpad": true,
+  "run_as_root": true,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

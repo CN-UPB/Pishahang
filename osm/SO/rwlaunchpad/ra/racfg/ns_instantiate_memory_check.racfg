@@ -1,0 +1,17 @@
+{
+  "test_name":"TC_NS_INSTANTIATE_MEMORY_CHECK",
+  "commandline":"./ns_instantiate_memory_check_systest --test-name 'TC_NS_INSTANTIATE_MEMORY_CHECK' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo --user={user} {tenants} --netconf --multiple-ns-instantiate 50,4",
+  "test_description":"instantiates and deletes VNFs while tracking memory utilization",
+  "run_as_root": true,
+  "status":"broken",
+  "keywords":["nightly","smoke","MANO","openstack"],
+  "timelimit": 21000,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}

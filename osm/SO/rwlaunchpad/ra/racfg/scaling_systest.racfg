@@ -1,0 +1,19 @@
+{
+  "test_name":"TC_SCALING_OPENSTACK",
+  "commandline":"./scaling_systest --test-name 'TC_SCALING_OPENSTACK' --cloud-type 'openstack' --cloud-host={cloud_host} --user={user} {tenants} --sysinfo",
+  "test_description":"System test for scaling HAProxy vnf (Openstack)",
+  "allow_rpm_install": true,
+  "run_as_root": false,
+  "status":"broken",
+  "keywords":["nightly","MANO","openstack"],
+  "timelimit": 2200,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

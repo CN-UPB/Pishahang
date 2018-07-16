@@ -1,0 +1,4 @@
+rw-project-nsd
+rw-project-vnfd
+rw-nsr
+rw-vnfr

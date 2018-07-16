@@ -1,0 +1,138 @@
+
+/*
+ * 
+ *   Copyright 2016-2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+
+
+/**
+ * @file rw-nsm.yang
+ * @author Rajesh Velandy
+ * @date 2015/10/07
+ * @brief NSM  yang
+ */
+
+module rw-nsm
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rw-nsm";
+  prefix "rw-nsm";
+
+  import rw-cli-ext {
+    prefix "rwcli";
+  }
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import rw-project-nsd {
+    prefix "rw-project-nsd";
+  }
+
+  import project-nsd {
+    prefix "project-nsd";
+  }
+
+  import rw-nsr {
+    prefix "rw-nsr";
+  }
+
+  import vld {
+    prefix "vld";
+  }
+
+  import rw-vlr {
+    prefix "rw-vlr";
+  }
+
+  import rw-vns {
+    prefix "rw-vns";
+  }
+
+  import rw-project-vnfd {
+    prefix "rw-project-vnfd";
+  }
+
+  import project-vnfd {
+    prefix "project-vnfd";
+  }
+
+  import rw-vnfr {
+    prefix "rw-vnfr";
+  }
+
+  import rw-yang-types {
+    prefix "rwt";
+  }
+
+  import rw-launchpad {
+    prefix "rw-launchpad";
+  }
+
+  import rw-cloud {
+    prefix "rw-cloud";
+  }
+
+  import rw-sdn {
+    prefix "rw-sdn";
+  }
+
+  import rw-config-agent {
+    prefix "rw-config-agent";
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  import rw-project-mano {
+    prefix "rw-project-mano";
+  }
+
+  revision 2017-02-08 {
+    description
+      "Update model to support projects.";
+  }
+
+  revision 2015-10-07 {
+    description
+      "Initial revision.";
+  }
+
+  grouping cm-endpoint {
+    leaf cm-ip-address {
+      type inet:ip-address;
+      description "IP Address";
+      default "127.0.0.1";
+    }
+    leaf cm-port {
+      type inet:port-number;
+      description "Port Number";
+      default 2022;
+    }
+    leaf cm-username {
+      description "RO endpoint username";
+      type string;
+      default "@rift";
+    }
+    leaf cm-password {
+      description "RO endpoint password";
+      type string;
+      default "rift";
+    }
+  }
+}

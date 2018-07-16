@@ -1,0 +1,19 @@
+{
+  "test_name":"TC_RBAC_TEST_IDENTITY",
+  "commandline":"./rbac_identity --test-name 'TC_RBAC_TEST_IDENTITY' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf",
+  "test_description":"System test to perform rbac identity tests",
+  "run_as_root": true,
+  "allow_production_launchpad": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

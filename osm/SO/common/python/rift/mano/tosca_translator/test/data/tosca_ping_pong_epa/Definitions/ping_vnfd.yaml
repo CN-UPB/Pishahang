@@ -1,0 +1,121 @@
+tosca_definitions_version: tosca_simple_profile_for_nfv_1_0
+description: This is an example RIFT.ware VNF
+metadata:
+  ID: ping_vnfd
+  vendor: RIFT.io
+  version: 1.0
+imports:
+- riftiotypes.yaml
+node_types:
+  tosca.nodes.nfv.riftio.pingvnfdVNF:
+    derived_from: tosca.nodes.nfv.riftio.VNF1
+    requirements:
+    - virtualLink1:
+        type: tosca.nodes.nfv.VL
+topology_template:
+  policies:
+  - configuration:
+      properties:
+        config:
+          config_details:
+            script_type: rift
+          config_type: script
+        initial_config_primitive:
+        - name: set ping rate
+          parameter:
+          - rate: 5
+          seq: 1
+          user_defined_script: ping_set_rate.py
+      targets: [ping_vnfd_iovdu_0]
+      type: tosca.policies.nfv.riftio.vnf_configuration
+  substitution_mappings:
+    node_type: tosca.nodes.nfv.riftio.pingvnfdVNF
+    requirements:
+    - virtualLink1: [ping_vnfd_cp0, virtualLink]
+  node_templates:
+    ping_vnfd_iovdu_0:
+      type: tosca.nodes.nfv.riftio.VDU1
+      properties:
+        cloud_init: "#cloud-config\npassword: fedora\nchpasswd: { expire: False }\n\
+          ssh_pwauth: True\nruncmd:\n  - [ systemctl, daemon-reload ]\n  - [ systemctl,\
+          \ enable, ping.service ]\n  - [ systemctl, start, --no-block, ping.service\
+          \ ]\n  - [ ifup, eth1 ]\n"
+        count: 1
+      capabilities:
+        hypervisor_epa:
+          properties:
+            type: PREFER_KVM
+            version: 1
+        mgmt_interface:
+          properties:
+            dashboard_params:
+              path: api/v1/ping/stats
+              port: 18888
+            port: 18888
+            protocol: tcp
+        monitoring_param:
+          properties:
+            description: no of ping requests
+            json_query_method: namekey
+            name: ping-request-tx-count
+            ui_data:
+              group_tag: Group1
+              units: packets
+              widget_type: counter
+            url_path: api/v1/ping/stats
+        monitoring_param_1:
+          properties:
+            description: no of ping responses
+            json_query_method: namekey
+            name: ping-response-rx-count
+            ui_data:
+              group_tag: Group1
+              units: packets
+              widget_type: counter
+            url_path: api/v1/ping/stats
+        nfv_compute:
+          properties:
+            cpu_allocation:
+              cpu_affinity: dedicated
+              thread_allocation: prefer
+            disk_size: 4 GB
+            mem_page_size: normal
+            mem_size: 1024 MB
+            num_cpus: 4
+        numa_extension:
+          properties:
+            mem_policy: STRICT
+            node:
+            - id: 0
+              mem_size: 512 MB
+              vcpus:
+              - 0
+              - 1
+            - id: 1
+              mem_size: 512 MB
+              vcpus:
+              - 2
+              - 3
+            node_cnt: 2
+        vswitch_epa:
+          properties:
+            ovs_acceleration: DISABLED
+            ovs_offload: DISABLED
+      artifacts:
+        ping_vnfd_iovdu_0_vm_image:
+          file: ../images/Fedora-x86_64-20-20131211.1-sda-ping.qcow2
+          image_checksum: a6ffaa77f949a9e4ebb082c6147187cf
+          type: tosca.artifacts.Deployment.Image.riftio.QCOW2
+      interfaces:
+        Standard:
+          create: ping_vnfd_iovdu_0_vm_image
+    ping_vnfd_cp0:
+      type: tosca.nodes.nfv.riftio.CP1
+      properties:
+        cp_type: VPORT
+        name: ping_vnfd/cp0
+        vdu_intf_name: eth0
+        vdu_intf_type: VIRTIO
+      requirements:
+      - virtualBinding:
+          node: ping_vnfd_iovdu_0

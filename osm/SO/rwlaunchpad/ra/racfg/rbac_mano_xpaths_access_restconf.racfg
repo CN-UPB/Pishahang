@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_RBAC_MANO_XPATHS_ACCESS_TEST_RESTCONF",
+  "commandline":"./rbac_mano_xpaths_access --test-name 'TC_RBAC_MANO_XPATHS_ACCESS_TEST_RESTCONF' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf",
+  "test_description":"RBAC-RESTCONF: System test to check whether Mano roles/Permission mapping works (Verifies only read access for all Xpaths)",
+  "run_as_root": true,
+  "allow_rpm_install":true,
+  "allow_production_launchpad":true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

@@ -1,0 +1,1425 @@
+
+/*
+ * 
+ *   Copyright 2016-2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module rwcal
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rwcal";
+  prefix "rwcal";
+
+  import rw-base {
+    prefix rwbase;
+  }
+
+  import rw-yang-types {
+    prefix "rwt";
+  }
+
+  import rw-log {
+    prefix "rwlog";
+  }
+
+  import mano-types {
+    prefix "manotypes";
+  }
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  revision 2017-02-08 {
+    description
+      "Update model to support projects.";
+  }
+
+  revision 2014-12-30 {
+    description
+        "Initial revision.";
+    reference
+        "RIFT RWCAL cloud data";
+  }
+
+
+
+  typedef connection-status {
+    description "Connection status for the cloud account";
+    type enumeration {
+      enum unknown;
+      enum validating;
+      enum success;
+      enum failure;
+    }
+  }
+
+  typedef disk-format {
+    type enumeration {
+      enum ami;
+      enum ari;
+      enum aki;
+      enum vhd;
+      enum vmdk;
+      enum raw;
+      enum qcow2;
+      enum vdi;
+      enum iso;
+    }
+  }
+
+  typedef container-format {
+    type enumeration{
+      enum ami;
+      enum ari;
+      enum aki;
+      enum bare;
+      enum ovf;
+    }
+  }
+
+  grouping connection-status {
+    container connection-status {
+      config false;
+      leaf status {
+        type connection-status;
+      }
+      leaf details {
+        type string;
+      }
+    }
+  }
+
+  grouping custom-meta-data {
+    description "Grouping for instance-specific meta data";
+    list custom-meta-data {
+      description
+          "List of meta-data to be associated with the instance";
+      key "name";
+      leaf name {
+        description "Name of the meta-data parameter";
+        type string;
+      }
+
+      leaf data-type {
+        description "Data-type the meta-data parameter";
+        type manotypes:meta-data-type;
+        default "STRING";
+      }
+
+      leaf value {
+        description "Value of the meta-data parameter";
+        type string;
+      }
+
+      leaf destination {
+        description "Type of input parameter";
+        type enumeration {
+            enum "CLOUD_INIT";
+            enum "CLOUD_METADATA";
+        }
+        default "CLOUD_METADATA";
+      }
+    }
+  }
+
+  uses connection-status;
+
+  grouping provider-auth {
+    leaf account-type {
+      type manotypes:cloud-account-type;
+    }
+
+    choice provider-specific-info {
+      container mock {
+        leaf username {
+          type string;
+        }
+        leaf plugin-name {
+          type string;
+          default "rwcal_mock";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+      }
+      container aws {
+        leaf key {
+          type string;
+        }
+
+        leaf secret {
+          type string;
+        }
+
+        leaf region {
+          type string;
+        }
+        leaf vpcid {
+          description "VPC ID to use to instantiate EC2 instances";
+          type string;
+        }
+        leaf ssh-key {
+          description "Key pair name to connect to EC2 instance";
+          type string;
+        }
+        leaf availability-zone {
+          description "Availability zone where EC2 instance should
+              be started";
+          type string;
+        }
+        leaf default-subnet-id {
+          description "Default subnet ID to create network
+              interface at instance creation time";
+          type string;
+        }
+        leaf plugin-name {
+          type string;
+          default "rwcal_aws";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+      }
+
+      container openstack {
+        leaf key {
+          type string;
+          mandatory true;
+        }
+
+        leaf secret {
+          type string;
+          mandatory true;
+        }
+
+        leaf auth_url {
+          type string;
+          mandatory true;
+        }
+
+        leaf user-domain {
+          type string;
+          default "Default";
+          description "Domain of the OpenStack user";
+        }
+        leaf project-domain {
+          type string;
+          default "Default";
+          description "Domain of the OpenStack project";
+        }
+
+        leaf tenant {
+          type string;
+          mandatory true;
+        }
+
+        leaf region {
+          type string;
+          default "RegionOne";
+        }
+        
+        leaf admin {
+          type boolean;
+          default false;
+        }
+
+        leaf mgmt-network {
+          type string;
+        }
+
+        leaf plugin-name {
+          type string;
+          default "rwcal_openstack";
+        }
+
+        leaf-list security-groups {
+          type string;
+          description "Names of the security groups for the VM";
+        }
+        
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+
+        leaf floating-ip-pool {
+          type string;
+          description "Name of floating IP pool to use for floating IP address assignement";
+        }
+
+        leaf cert-validate {
+          type boolean;
+          default false;
+          description "Certificate validatation policy in case of SSL/TLS connection";
+        }
+        
+      }
+
+      container openmano {
+        leaf host {
+          type string;
+          default "localhost";
+        }
+
+        leaf port {
+          type uint16;
+          default 9090;
+        }
+
+        leaf tenant-id {
+          type string {
+            length "36";
+          }
+          mandatory true;
+        }
+
+        leaf plugin-name {
+          type string;
+          default "rwcal_openmano";
+        }
+      }
+
+      container vsphere {
+        leaf username {
+          type string;
+        }
+
+        leaf password {
+          type string;
+        }
+
+        leaf url {
+          type string;
+        }
+
+        leaf plugin-name {
+          type string;
+          default "rwcal-python";
+        }
+
+        leaf dynamic-flavor-support {
+          type boolean;
+          default false;
+        }
+      }
+
+      container cloudsim {
+        leaf plugin-name {
+          type string;
+          default "rwcal_cloudsim";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+      }
+
+      container cloudsim_proxy {
+        leaf host {
+          type string;
+          default "localhost";
+        }
+        leaf plugin-name {
+          type string;
+          default "rwcal_cloudsimproxy";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+      }
+
+      container openvim {
+        leaf host {
+          type string;
+          mandatory true;
+        }
+        leaf port {
+          type uint16;
+          default 9080;
+        }
+        leaf tenant-name {
+          type string;
+          description "Mandatory parameter to indicate openvim tenant name";
+          mandatory true;
+        }
+        leaf mgmt-network {
+          type string;
+          mandatory true;
+        }
+        leaf plugin-name {
+          type string;
+          default "rwcal_openmano_vimconnector";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+        container image-management {
+          description " Information required for OpenVim image upload operation";
+
+          leaf username {
+            description "Username for host access";
+            type string;
+          }
+          leaf password {
+            description "Password for host access";
+            type string;
+          }
+          leaf image-directory-path {
+            description "Name of the directory on the host where image needs to be copied";
+            type string;
+            default "/opt/VNF/images";
+          }
+        }
+      }
+
+      container prop_cloud1 {
+        leaf host {
+          description "This is a single-host cloud. IP address of host";
+          type string;
+          mandatory true;
+        }
+        leaf username {
+          description "Username to access host";
+          type string;
+        }
+        leaf password {
+          description "Password for user";
+          type string;
+        }
+        leaf mgmt-network {
+          description "Name of bridge used for management access to VMs on cloud";
+          type string;
+          mandatory true;
+        }
+        leaf public-ip-pool {
+          description "Public IP pool for VMs";
+          type string;
+          mandatory true;
+        }
+        leaf wan-interface {
+          description "WAN interface name";
+          type string;
+          mandatory true;
+        }
+        leaf firewall {
+          description "Firewall services";
+          type string;
+        }
+        leaf plugin-name {
+          type string;
+          default "rwcal_brocade";
+        }
+        leaf dynamic-flavor-support {
+          type boolean;
+          default true;
+        }
+      }
+
+      container kubernetes {
+        leaf host {
+          type string;
+        }
+
+        leaf username {
+          type string;
+        }
+
+        leaf password {
+          type string;
+        }
+
+        leaf kubernetes_local_api_connector {
+          type string;
+        }
+
+        leaf plugin-name {
+          type string;
+          default "rwcal_kubernetes";
+        }
+      }
+    }
+  }
+
+  grouping instance-timeout {
+    leaf vdu-instance-timeout {
+      description "VDU instantiation timeout";
+      type uint64;
+      default 300;
+    }
+  }
+
+  grouping vm-info-item {
+    leaf vm-name {
+      type string;
+    }
+
+    leaf vm-size {
+      type string;
+    }
+
+    leaf vm-id {
+      type string;
+    }
+
+    leaf flavor-id {
+      type string;
+    }
+
+    leaf image-id {
+      type string;
+    }
+
+    leaf state {
+      type string;
+    }
+
+    leaf availability-zone {
+      type string;
+    }
+
+    leaf tenant-name {
+      type string;
+    }
+
+    leaf host-name {
+      type string;
+    }
+
+    leaf management-ip {
+      type string;
+    }
+
+    leaf public-ip {
+      type string;
+    }
+
+    leaf allocate-public-address {
+      description "If this VM should allocate a floating public IP address";
+      type boolean;
+      default false;
+    }
+
+    list private-ip-list {
+      key "ip-address";
+
+      leaf ip-address {
+        type string;
+      }
+    }
+
+    list public-ip-list {
+      key "ip-address";
+
+      leaf ip-address {
+        type string;
+      }
+    }
+
+    list port-list {
+      key "port-id";
+      leaf port-id {
+        type string;
+      }
+    }
+
+    list network-list {
+      key "network-id";
+      leaf network-id {
+        type string;
+      }
+    }
+
+    container cloud-init {
+      leaf userdata {
+        description
+            "The userdata field for cloud-init should contain
+             the contents of the script that cloud-init should
+             invoke when configuring the system. Note that this
+             script is expected to be in the cloud-config format";
+        type string;
+      }
+    }
+
+    container user_tags {
+
+      leaf node-id {
+        type string;
+      }
+
+      leaf pci_assignement {
+        type string;
+      }
+
+      leaf tag1 {
+        type string;
+      }
+    }
+
+    leaf server-group {
+      type string;
+    }
+  }
+
+  grouping image-info-item {
+    leaf id {
+      type string;
+    }
+
+    leaf name {
+      type string;
+    }
+
+    choice image_file {
+      leaf location {
+        description "Image URL location";
+        type string;
+      }
+
+      leaf fileno {
+        description "Image file descriptor";
+        type uint32;
+      }
+    }
+
+    leaf checksum {
+      type string;
+    }
+
+    leaf virtual_size_mbytes {
+      description "Virtual size of the image";
+      type uint64;
+    }
+
+    leaf disk_format {
+      description "Format of the Disk";
+      type string;
+      default "qcow2";
+    }
+
+    leaf container_format {
+      description "Format of the container";
+      type string;
+      default "bare";
+    }
+
+    leaf state {
+      description "State of the Image object in CAL";
+      type enumeration {
+        enum active;
+        enum inactive;
+        enum failed;
+        enum unknown;
+      }
+      default "unknown";
+    }
+
+    container user-tags {
+      description "User tags associated with Image";
+      leaf checksum {
+        type string;
+      }
+    }
+
+    list properties {
+      key "name";
+      leaf name {
+        description "Name of the image property";
+        type string;
+      }
+      leaf property_value {
+        description "Value of the image property";
+        type string;
+      }
+    }
+  }
+
+  grouping network-info-item {
+    leaf network-name {
+      type string;
+    }
+
+    leaf network-id {
+      type string;
+    }
+
+    leaf subnet {
+      type string;
+    }
+
+    uses manotypes:provider-network;
+  }
+
+  grouping port-info-item {
+    leaf port-name {
+      type string;
+    }
+
+    leaf port-id {
+      type string;
+    }
+
+    leaf port-state {
+      type string;
+    }
+
+    leaf network-id {
+      type string;
+    }
+
+    leaf ip-address {
+      type string;
+    }
+
+    leaf vm-id {
+      type string;
+    }
+
+    leaf port-type {
+      description "Type of the port";
+      type enumeration {
+        enum normal;
+        enum macvtap;
+        enum direct;
+      }
+      default "normal";
+    }
+
+    choice provider-specific-info {
+      container lxc {
+        leaf veth-name {
+          type string;
+        }
+      }
+    }
+  }
+
+  augment "/rw-project:project" {
+    container cloud-accounts {
+      list cloud-account-list {
+        key "name";
+
+        leaf name {
+          type string;
+        }
+        uses provider-auth;
+        uses instance-timeout;
+      }
+    }
+  }
+
+  augment "/rw-project:project" {
+    container vim-resources {
+      config false;
+
+      list vminfo-list {
+        config false;
+        key "vm-id";
+
+        uses vm-info-item;
+      }
+
+      list imageinfo-list {
+        config false;
+        key "id";
+
+        uses image-info-item;
+      }
+
+      list tenantinfo-list {
+        config false;
+        key "tenant-id";
+
+        leaf tenant-name {
+          type string;
+        }
+
+        leaf tenant-id {
+          type string;
+        }
+      }
+
+      list userinfo-list {
+        config false;
+        key "user-id";
+
+        leaf user-name{
+          type string;
+        }
+
+        leaf user-id {
+          type string;
+        }
+      }
+
+      list roleinfo-list {
+        config false;
+        key "role-id";
+
+        leaf role-name {
+          type string;
+        }
+
+        leaf role-id {
+          type string;
+        }
+      }
+
+      list hostinfo-list {
+        config false;
+        key "host-id";
+
+        leaf host-name {
+          type string;
+        }
+
+        leaf host-id {
+          type string;
+        }
+      }
+
+      list networkinfo-list {
+        config false;
+        key "network-id";
+
+        uses network-info-item;
+      }
+
+      list portinfo-list {
+        config false;
+        key "port-id";
+
+        uses port-info-item;
+      }
+
+      list flavorinfo-list {
+        config false;
+        key "id";
+
+        leaf id {
+          type string;
+        }
+
+        leaf name {
+          type string;
+        }
+
+        uses manotypes:vm-flavor;
+        uses manotypes:guest-epa;
+        uses manotypes:vswitch-epa;
+        uses manotypes:hypervisor-epa;
+        uses manotypes:host-epa;
+        uses manotypes:placement-group-input;
+      }
+    }
+  }
+  
+  grouping virtual-cp-info-params {
+    
+    leaf connection-point-id {
+      description "Connection point id";
+      type string;
+    }
+
+    leaf name {
+      description "Name of virtual connection point";
+      type string;
+    }
+
+    leaf ip-address {
+      description "IP address of the virtual connection point";
+      type inet:ip-address;
+    }
+
+    leaf mac-address {
+        description "MAC address of the virtual connection point";
+        type string;
+    }
+  }
+  
+  grouping virtual-link-create-params {
+    leaf name {
+      description "Name of the Virtual-Link";
+      type string;
+    }
+
+    leaf subnet {
+      type string;
+    }
+    leaf associate-public-ip {
+      type boolean;
+      default false;
+    }
+    leaf vim-network-name {
+      description
+          "Name of network in VIM account. This is used to indicate
+          pre-provisioned network name in cloud account.";
+      type string;
+    }
+
+    list virtual-cps {
+      key "name";
+
+      leaf name {
+        description "Name of virtual connection point";
+        type string;
+      }
+
+      leaf type {
+        description "Type of the Virtual Connection Point";
+        type manotypes:connection-point-type;
+      }
+      
+      leaf security-group {
+        description "Name of the security group";
+        type string;
+      }
+      
+      leaf port-security-enabled {
+        description "Enables the port security";
+        type boolean;
+      }
+
+      leaf static-ip-address {
+        description "Static IP address for the connection point";
+        type inet:ip-address;
+      }
+    }
+    
+    uses manotypes:provider-network;
+    uses manotypes:ip-profile-info;
+  }
+
+
+  augment "/rw-project:project" {
+    container virtual-link-req-params {
+      description "This object defines the parameters required to create a virtual-link";
+      uses virtual-link-create-params;
+    }
+  }
+
+  grouping connection-point-type {
+    leaf type {
+      description
+          "Specifies the type of connection point
+             VIRTIO          : Use the traditional VIRTIO interface.
+             PCI-PASSTHROUGH : Use PCI-PASSTHROUGH interface.
+             SR-IOV          : Use SR-IOV interface.
+             E1000           : Emulate E1000 interface.
+             RTL8139         : Emulate RTL8139 interface.
+             PCNET           : Emulate PCNET interface.
+             VPORT           : Virtual Port.";
+      type enumeration {
+        enum VIRTIO;
+        enum PCI-PASSTHROUGH;
+        enum SR-IOV;
+        enum E1000;
+        enum RTL8139;
+        enum PCNET;
+        enum VPORT;
+      }
+      default "VIRTIO";
+    }
+  }
+
+
+  grouping vdu-create-params {
+    leaf name {
+      description "Name of the VDU";
+      type string;
+    }
+
+    leaf mgmt-vpci {
+      description
+          "Specifies the virtual PCI address. Expressed in
+           the following format dddd:dd:dd.d. For example
+           0000:00:12.0. This information can be used to
+           pass as metadata during the VM creation.";
+      type string;
+    }
+		
+    uses manotypes:vm-flavor;
+    uses manotypes:guest-epa;
+    uses manotypes:vswitch-epa;
+    uses manotypes:hypervisor-epa;
+    uses manotypes:host-epa;
+
+    leaf node-id {
+      type string;
+    }
+
+    leaf flavor-id {
+      description "CAL assigned flavor-id for the VDU image";
+      type string;
+    }
+
+    leaf image-id {
+      description "CAL assigned image-id for the VDU image";
+      type string;
+    }
+
+    leaf image-name {
+      description "Image name which can be used to lookup the image-id";
+      type string;
+    }
+
+    leaf image-checksum {
+      description "Image md5sum checksum used in combination with image name to lookup image-id ";
+      type string;
+    }
+
+    uses manotypes:placement-group-input;
+    
+    list connection-points {
+      key "name";
+      leaf name {
+        description "Name of the connection point";
+        type string;
+      }
+      leaf virtual-link-id {
+        description "CAL assigned resource Id for the Virtual Link";
+        type string;
+      }
+      leaf associate-public-ip {
+        type boolean;
+        default false;
+      }
+      
+      leaf vpci {
+        description
+            "Specifies the virtual PCI address. Expressed in
+             the following format dddd:dd:dd.d. For example
+             0000:00:12.0. This information can be used to
+             pass as metadata during the VM creation.";
+        type string;
+      }
+
+      leaf security-group {
+        description "Name of the security group";
+        type string;
+      }
+      
+      leaf port-security-enabled {
+        description "Enables the port security";
+        type boolean;
+      }
+
+      leaf static-ip-address {
+        description "Static IP address for the connection point";
+        type inet:ip-address;
+      }
+
+      leaf port-order {
+        description "Port Sequence Order";
+        type uint32;
+      }
+
+      list virtual_cps {
+        key "name";
+        uses virtual-cp-info-params;
+      }
+      
+      uses connection-point-type;
+    }
+
+    leaf mgmt-network {
+      description 
+          "Explicit mgmt-network name, otherwise the mgmt-network from
+           Cloud account is used";
+      type string;
+    }
+
+    leaf allocate-public-address {
+      description "If this VDU needs public IP address";
+      type boolean;
+      default false;
+    }
+
+    container vdu-init {
+      leaf userdata {
+        description
+            "The userdata field for vdu-init should contain
+             the contents of the script that cloud-init should
+             invoke when configuring the system. Note that this
+             script is expected to be in the cloud-config format";
+        type string;
+      }
+    }
+ 
+    container supplemental-boot-data {
+      uses manotypes:config-file;
+      leaf boot-data-drive {
+        description "Some VIMs implement additional drives to host config-files or meta-data";
+        type boolean;
+        default false;
+      }
+      uses custom-meta-data;
+    }
+
+    list volumes {
+      key "name";
+
+      leaf name {
+        description "Name of the disk-volumes, e.g. vda, vdb etc";
+        type string;
+      }
+
+      leaf description {
+        description "Description for Volume";
+        type string;
+      }
+
+      leaf size {
+        description "Size of disk in GB";
+        type uint64;
+      }
+
+      choice volume-source {
+        description
+              "Defines the source of the volume. Possible options are
+               1. Ephemeral -- Empty disk
+               2. Image     -- Refer to image to be used for volume
+               3. Volume    -- Reference of pre-existing volume to be used
+              ";
+
+        case ephemeral {
+          leaf ephemeral {
+            type empty;
+          }
+        }
+
+        case image {
+          uses manotypes:image-properties;
+        }
+
+        case volume {
+          leaf volume-ref {
+            description "Reference for pre-existing volume in VIM";
+            type string;
+          }
+        }
+      }
+
+      leaf device-bus {
+        description "Type of disk-bus on which this disk is exposed to guest";
+        type enumeration {
+          enum ide;
+          enum usb;
+          enum virtio;
+          enum scsi;
+        }
+      }
+
+      leaf device-type {
+        description "The type of device as exposed to guest";
+        type enumeration {
+            enum disk;
+            enum cdrom;
+            enum floppy;
+            enum lun;
+        }
+      }
+
+      leaf boot-volume {
+        description "This flag indicates if this is boot volume or not";
+        type boolean;
+      }
+
+      leaf boot-priority {
+        description "Boot priority associated with volume";
+        type int32;
+      }
+    }
+  }
+
+  augment "/rw-project:project" {
+    container vdu-init-params {
+      description "This object defines the parameters required to create a VDU";
+      uses vdu-create-params;
+    }
+  }
+  
+  augment "/rw-project:project/vdu-init-params/vm-flavor" {
+		uses manotypes:vm-flavor-name;
+  }
+
+  augment "/rw-project:project" {
+    container vdu-modify-params {
+      description "This object defines the parameters required to modify VDU";
+      
+      leaf vdu-id {
+        description "CAL assigned id for VDU to which this connection point belongs";
+        type string;
+      }
+
+      leaf static-ip-address {
+        description "Static IP address for the connection point";
+        type inet:ip-address;
+      }
+
+      uses connection-point-type;
+
+      leaf image-id {
+        description "CAL assigned image-id for the VDU image";
+        type string;
+      }
+
+      list connection-points-add {
+        key "name";
+        leaf name {
+          description "Name of the connection point";
+          type string;
+        }
+        leaf virtual-link-id {
+          description "CAL assigned resource Id for the Virtual Link";
+          type string;
+        }
+        leaf associate-public-ip {
+          type boolean;
+          default false;
+        }
+        leaf port-security-enabled {
+          description "Enables the port security";
+          type boolean;
+        }
+
+        uses connection-point-type;
+      }
+
+      list connection-points-remove {
+        key "connection-point-id";
+        leaf connection-point-id {
+          type string;
+        }
+      }
+    }
+  }
+
+  grouping connection-point-info-params {
+    leaf connection-point-id {
+      type string;
+    }
+
+    leaf name {
+      description "Name of the connection point";
+      type string;
+    }
+
+    leaf virtual-link-id {
+      description "CAL assigned resource ID of the Virtual-Link";
+      type string;
+    }
+
+    leaf vdu-id {
+      description "CAL assigned id for VDU to which this connection point belongs";
+      type string;
+    }
+
+    leaf state {
+      description "CMP agnostic generic state of the connection point";
+      type enumeration {
+        enum active;
+        enum inactive;
+        enum failed;
+        enum unknown;
+      }
+    }
+
+    leaf ip-address {
+      type inet:ip-address;
+    }
+
+    leaf public-ip {
+      type string;
+    }
+
+    leaf mac-addr {
+      type string;
+    }
+
+    leaf port-order {
+      description "Port Sequence Order";
+      type uint32;
+    }
+
+    list virtual-cp-info {
+      key "ip-address";
+      
+      leaf ip-address {
+        type inet:ip-address;
+      }
+
+      leaf mac-address {
+        type string;
+      }
+    }
+  }
+
+  grouping virtual-link-info-params {
+    leaf name {
+      description "Name of the Virtual-Link";
+      type string;
+    }
+
+    leaf state {
+      description "State of the Virtual Link";
+      type enumeration {
+        enum active;
+        enum inactive;
+        enum failed;
+        enum unknown;
+      }
+      default "unknown";
+    }
+
+    leaf virtual-link-id {
+      description "CAL assigned resource ID of the Virtual-Link";
+      type string;
+    }
+
+    list connection-points {
+      key connection-point-id;
+      uses connection-point-info-params;
+    }
+
+    list virtual-connection-points {
+      key connection-point-id;
+      uses virtual-cp-info-params;
+    }
+    
+    leaf subnet {
+      type string;
+    }
+
+    uses manotypes:provider-network;
+
+  }
+
+  grouping vdu-info-params {
+    leaf vdu-id {
+      description "CAL assigned id for VDU";
+      type string;
+    }
+    leaf name {
+      description "Name of the VDU";
+      type string;
+    }
+
+    leaf flavor-id {
+      description "CAL assigned flavor-id for the VDU image";
+      type string;
+    }
+
+    leaf image-id {
+      description "CAL assigned image-id for the VDU image";
+      type string;
+    }
+
+    leaf node-id {
+      type string;
+    }
+
+    leaf state {
+      description "State of the VDU";
+      type enumeration {
+        enum active;
+        enum inactive;
+        enum failed;
+        enum unknown;
+      }
+      default "unknown";
+    }
+
+    leaf management-ip {
+      type string;
+    }
+
+    leaf public-ip {
+      type string;
+    }
+
+    uses manotypes:vm-flavor;
+    uses manotypes:guest-epa;
+    uses manotypes:vswitch-epa;
+    uses manotypes:hypervisor-epa;
+    uses manotypes:host-epa;
+    uses manotypes:placement-group-input;
+    
+    list connection-points {
+      key connection-point-id;
+      uses connection-point-info-params;
+    }
+    leaf console-url {
+      type string;
+      description "Console URL from the VIM, if available";
+    }
+
+    container supplemental-boot-data {
+      uses manotypes:config-file;
+      leaf boot-data-drive {
+        description "Some VIMs implement additional drives to host config-files or meta-data";
+        type boolean;
+        default false;
+      }
+      uses custom-meta-data;
+    }
+
+    list volumes {
+      key "name";
+
+      leaf name {
+        description "Name of the disk-volumes, e.g. vda, vdb etc";
+        type string;
+      }
+
+      leaf volume-id {
+        description "CAL assigned volume-id ";
+        type string;
+      }
+
+      uses custom-meta-data;
+    } 
+  }
+
+
+  augment "/rw-project:project" {
+    container vnf-resources {
+      config false;
+
+      list virtual-link-info-list {
+        config false;
+        key virtual-link-id;
+        uses virtual-link-info-params;
+      }
+
+      list vdu-info-list {
+        config false;
+        key vdu-id;
+        uses vdu-info-params;
+      }
+    }
+  }
+}
+
+/* vim: set ts=2:sw=2: */

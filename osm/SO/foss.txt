@@ -1,0 +1,5 @@
+RIFT.core, common/python/rift/mano/tosca_translator, Openstack, Apache License 2.0, https://github.com/openstack/heat-translator
+RIFT.core, models/openmano/bin, OpenMANO CLI, Apache License 2.0, https://github.com/nfvlabs/openmano
+RIFT.core, rwcal/plugins/vala/rwcal_openmano_vimconnector/rift/rwcal/openmano_vimconnector, OpenMANO, Apache License 2.0, https://github.com/nfvlabs/openmano
+RIFT.core, rwlaunchpad/plugins/rwimagemgr/etc, Openstack Glance scripts, unknown, unknown
+RIFT.core, rwlaunchpad/plugins/rwimagemgr/rift/tasklets/rwimagemgr/lib/quickproxy, quickproxy, unknown, unknown

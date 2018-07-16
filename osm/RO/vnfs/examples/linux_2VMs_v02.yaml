@@ -1,0 +1,104 @@
+##
+# Copyright 2015 Telefónica Investigación y Desarrollo, S.A.U.
+# This file is part of openmano
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# For those usages not covered by the Apache License, Version 2.0 please
+# contact with: nfvlabs@tid.es
+##
+---
+schema_version: "0.2"
+vnf:
+    name:        linux_2VMs_v02
+    description: "Example of a linux VNF consisting of two VMs with one internal network"
+    # class: parent      # Optional. Used to organize VNFs
+    internal-connections:
+    -   name:        internalnet
+        description: internalnet
+        type:        e-lan
+        implementation: overlay
+        ip-profile:
+            ip-version:       IPv4
+            subnet-address:   192.168.1.0/24
+            gateway-address:  192.168.1.1
+            dns-address:      8.8.8.8
+            dhcp:
+                enabled: true
+                start-address: 192.168.1.100
+                count: 100
+        elements:
+        -   VNFC:             linux_2VMs-VM1
+            local_iface_name: xe0
+            ip_address:       192.168.1.2
+        -   VNFC:             linux_2VMs-VM2
+            local_iface_name: xe0
+            ip_address:       192.168.1.3
+    external-connections:
+    -   name:              control0
+        type:              mgmt
+        VNFC:              linux_2VMs-VM1
+        local_iface_name:  eth0
+        description:       control interface VM1
+    -   name:              control1
+        type:              mgmt
+        VNFC:              linux_2VMs-VM2
+        local_iface_name:  eth0
+        description:       control interface VM2
+    -   name:              in
+        type:              bridge
+        VNFC:              linux_2VMs-VM1
+        local_iface_name:  xe1
+        description:       data interface input
+    -   name:              out
+        type:              bridge
+        VNFC:              linux_2VMs-VM2
+        local_iface_name:  xe1
+        description:       data interface output
+    VNFC:
+    -   name:        linux_2VMs-VM1
+        description: "Linux VM1 with 4 CPUs, 2 GB RAM and 3 bridge interfaces"
+        #Copy the image to a compute path and edit this path
+        VNFC image:  /path/to/imagefolder/linux_VNF_2VMs.qcow2
+        disk: 10
+        vcpus: 4
+        ram: 2048
+        bridge-ifaces:
+        -   name:      eth0
+            vpci:      "0000:00:09.0"
+            bandwidth: 1 Mbps          # Optional, informative only
+        -   name: xe0
+            vpci:      "0000:00:11.0"
+            bandwidth: 1 Mbps
+        -   name: xe1
+            vpci:      "0000:00:12.0"
+            bandwidth: 1 Mbps
+    -   name:        linux_2VMs-VM2
+        description: "Linux VM2 with 2 CPUs, 2 GB RAM and 3 bridge interfaces"
+        #Copy the image to a compute path and edit this path
+        VNFC image:  /path/to/imagefolder/linux_VNF_2VMs.qcow2
+        disk: 10
+        vcpus: 2
+        ram: 2048
+        bridge-ifaces:
+        -   name:      eth0
+            vpci:      "0000:00:09.0"
+            bandwidth: 1 Mbps          # Optional, informative only
+        -   name: xe0
+            vpci:      "0000:00:11.0"
+            bandwidth: 1 Mbps
+        -   name: xe1
+            vpci:      "0000:00:12.0"
+            bandwidth: 1 Mbps
+

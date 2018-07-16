@@ -1,0 +1,95 @@
+
+/*
+ * 
+ *   Copyright 2016 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+
+
+/**
+ * @file rw-vns.yang
+ * @author Austin Cormier
+ * @date 2015/10/06
+ * @brief Virtual Network Service Yang
+ */
+
+module rw-vns
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rw-vns";
+  prefix "rw-vns";
+
+  import rw-cli-ext {
+    prefix "rwcli";
+  }
+
+  import rw-yang-types {
+    prefix "rwt";
+  }
+
+  import rwcal {
+    prefix "rwcal";
+  }
+
+  import rwsdnal {
+    prefix "rwsdnal";
+  }
+
+
+  import ietf-yang-types {
+    prefix "yang";
+  }
+
+  import rw-vlr {
+    prefix "rwvlr";
+  }
+
+  import vld {
+    prefix "vld";
+  }
+
+  import ietf-network {
+    prefix "nw";
+  }
+
+  import ietf-network-topology {
+    prefix "nt";
+  }
+
+  import ietf-l2-topology {
+    prefix "l2t";
+  }
+
+  import rw-topology {
+    prefix "rw-topology";
+  }
+
+  import rw-resource-mgr {
+    prefix "rw-resource-mgr";
+  }
+
+  import rw-sdn {
+    prefix "rw-sdn";
+  }
+
+  import rw-project-mano {
+    prefix "rw-project-mano";
+  }
+
+  revision 2015-10-05 {
+    description
+      "Initial revision.";
+  }
+}

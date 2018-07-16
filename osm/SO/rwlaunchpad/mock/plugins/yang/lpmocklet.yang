@@ -1,0 +1,104 @@
+
+/*
+ * 
+ *   Copyright 2016 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module lpmocklet
+{
+    namespace "http://riftio.com/ns/riftware-1.0/lpmocklet";
+    prefix "lpmocklet";
+
+    import ietf-inet-types {
+        prefix "inet";
+    }
+
+    import ietf-yang-types {
+        prefix "yang";
+    }
+
+    import mano-types {
+        prefix "manotypes";
+    }
+
+    // Used for LP Mocklet RPC action-param and control-param responses
+    container lpmocklet-action-status {
+        config false;
+        leaf id {
+            type yang:uuid;
+        }
+        // TODO: Make this consistent with 'set-control-param' 'obj-code'
+        leaf object_type {
+            type string;
+        }
+        leaf action {
+            type string;
+        }
+        leaf status {
+            type string;
+        }
+    }
+
+    rpc set-control-param {
+        input {
+            leaf id {
+                description "object id";
+                type yang:uuid;
+                mandatory true;
+            }
+            leaf obj-code {
+                description "Type of object: NS, VNF";
+                type string;
+                mandatory true;
+            }
+            leaf control-id {
+                type string;
+                mandatory true;
+            }
+            // The new vale to assign
+            leaf value {
+                type uint64;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc start-vnfr {
+        input {
+            leaf id {
+                type yang:uuid;
+                mandatory true;
+            }
+        }
+        output {
+            leaf status {
+                description "status of the start request";
+                type string;
+            }
+        }
+    }
+
+    rpc stop-vnfr {
+        input {
+            leaf id {
+                type yang:uuid;
+                mandatory true;
+            }
+        }
+    }
+}
+

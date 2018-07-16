@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<config xmlns="http://riftio.com/ns/riftware-1.0/rw-rbac-role-def">
+  <key-definition>
+    <role>rw-project-mano:nsr-role</role>
+    <key-set>
+      <name>project-name</name>
+      <path>/rw-project:project/rw-project:name</path>
+      <path>/nsr:exec-scale-out/nsr:project-name</path>
+      <path>/nsr:exec-scale-in/nsr:project-name</path>
+      <path>/nsr:exec-ns-service-primitive/nsr:project-name</path>
+      <path>/nsr:get-ns-service-primitive-values/nsr:project-name</path>
+      <path>/nsr:start-network-service/nsr:project-name</path>
+    </key-set>
+  </key-definition>
+
+  <role-definition>
+    <role>rw-project-mano:lcm-oper</role>
+    <keys-role>rw-project-mano:nsr-role</keys-role>
+    <priority>
+      <lower-than>
+        <role>rw-project:project-admin</role>
+      </lower-than>
+    </priority>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/nsr:ns-instance-config</path>
+      <path>/rw-project:project/nsr:ns-instance-opdata</path>
+      <path>/rw-project:project/nsr:key-pair</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project-mano:lcm-admin</role>
+    <keys-role>rw-project-mano:nsr-role</keys-role>
+    <priority>
+      <higher-than>
+        <role>rw-project-mano:lcm-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project-mano:account-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project-mano:catalog-oper</role>
+      </higher-than>
+      <higher-than>
+        <role>rw-project:project-oper</role>
+      </higher-than>
+
+    </priority>
+
+    <authorize>
+      <permissions>create read update delete execute</permissions>
+      <path>/rw-project:project/nsr:ns-instance-config</path>
+      <path>/rw-project:project/nsr:ns-instance-opdata</path>
+      <path>/rw-project:project/nsr:key-pair</path>
+      <path>/nsr:exec-scale-out</path>
+      <path>/nsr:exec-scale-in</path>
+      <path>/nsr:exec-ns-service-primitive</path>
+      <path>/nsr:get-ns-service-primitive-values</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project:project-admin</role>
+    <keys-role>rw-project-mano:nsr-role</keys-role>
+    <authorize>
+      <permissions>create read update delete execute</permissions>
+      <path>/nsr:exec-scale-out</path>
+      <path>/nsr:exec-scale-in</path>
+      <path>/nsr:exec-ns-service-primitive</path>
+      <path>/nsr:get-ns-service-primitive-values</path>
+    </authorize>
+  </role-definition>
+</config>

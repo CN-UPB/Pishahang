@@ -1,0 +1,19 @@
+{
+  "test_name":"TC_RBAC_BASICS_TEST",
+  "commandline":"./rbac_basics_systest --test-name 'TC_RBAC_BASICS_TEST' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf",
+  "test_description":"System test to perform rbac basics test",
+  "allow_production_launchpad": true,
+  "run_as_root": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

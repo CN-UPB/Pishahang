@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<config xmlns="http://riftio.com/ns/riftware-1.0/rw-rbac-role-def">
+  <key-definition>
+    <role>rw-project-mano:rw-launchpad-role</role>
+    <key-set>
+      <name>project-name</name>
+      <path>/rw-project:project/rw-project:name</path>
+    </key-set>
+  </key-definition>
+
+  <role-definition>
+    <role>rw-project-mano:account-oper</role>
+    <keys-role>rw-project-mano:rw-launchpad-role</keys-role>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/rw-launchpad:datacenters</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project-mano:account-admin</role>
+    <keys-role>rw-project-mano:rw-launchpad-role</keys-role>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/rw-launchpad:datacenters</path>
+    </authorize>
+  </role-definition>
+
+  <role-definition>
+    <role>rw-project-mano:lcm-admin</role>
+    <keys-role>rw-project-mano:rw-launchpad-role</keys-role>
+    <authorize>
+      <permissions>read execute</permissions>
+      <path>/rw-project:project/rw-launchpad:datacenters</path>
+    </authorize>
+  </role-definition>
+</config>

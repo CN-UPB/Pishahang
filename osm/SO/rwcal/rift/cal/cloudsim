@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+import os
+import sys
+
+import gi
+gi.require_version('RwcalYang', '1.0')
+gi.require_version('RwCal', '1.0')
+gi.require_version('RwLog', '1.0')
+
+import rift.cal.server as cal_server
+import rift.cal.client as cal_client
+import rift.cal.utils as cal_utils
+import rift.rwcal.cloudsim.lxc as lxc
+import rift.rwcal.cloudsim.lvm as lvm
+import rift.rwcal.cloudsim.shell as shell
+
+from prettytable import PrettyTable
+
+
+START_PARSER = "start"
+STOP_PARSER = "stop"
+CLEAN_PARSER = "clean"
+FCLEAN_PARSER = "force-clean"
+IMAGE_PARSER = "image-create"
+STATUS_PARSER = "status"
+
+
+class CloudsimOperations(cal_utils.CloudSimCalMixin):
+    def __init__(self, args):
+        super().__init__()
+        self.log = cal_utils.Logger(
+                    daemon_mode=False,
+                    log_name="Parser",
+                    log_level=logging.getLevelName(args.log_level)).logger
+
+        self.args = args
+        self.operations = cal_server.CloudsimServerOperations(self.log)
+        self.client = cal_client.CloudsimClient(self.log)
+        self._cal, self._account = None, None
+
+    @property
+    def log_file(self):
+        return cal_utils.Logger.LOG_FILE
+
+    @cal_utils.check_and_create_bridge
+    def start_server(self):
+        self.operations.start_server(foreground=self.args.foreground)
+
+    @cal_utils.check_and_create_bridge
+    def stop_server(self):
+        self.operations.stop_server()
+
+    @cal_utils.check_and_create_bridge
+    def clean_resources(self):
+        """Clean all resource using rest APIs. """
+        self.operations.clean_server(images=self.args.all)
+
+    @cal_utils.check_and_create_bridge
+    def upload_image(self):
+        """Onboard image to cloudsim server."""
+        self.client.upload_image(self.args.location, name=self.args.name)
+
+    def force_clean_resources(self):
+        """Force clean up all resource. """
+        self.log.info("Cleaning up logs")
+        shell.command("rm -f {}".format(self.log_file))
+
+        self.log.info("Cleaning up PID file")
+        shell.command("rm -f {}".format(self.operations.PID_FILE))
+
+        try:
+            self.log.info("Purging LXC resources")
+            for container in lxc.containers():
+                lxc.stop(container)
+
+            for container in lxc.containers():
+                lxc.destroy(container)
+
+            lvm.destroy('rift')
+
+        except shell.ProcessError:
+            self.log.exception("Unable to purge resources. Trying a force clean now.")
+            lxc.force_clean()
+
+    @cal_utils.check_and_create_bridge
+    def show_status(self):
+
+        cld_tbl = PrettyTable(['PID', 'Status', 'Log file'])
+
+        pid = self.operations.pid
+        if pid:
+            cld_tbl.add_row([pid, "RUNNING", self.log_file])
+        else:
+            cld_tbl.add_row(["-", "STOPPED", self.log_file])
+
+        print ("Cloudsim server:")
+        print (cld_tbl)
+
+        if not pid:
+            return
+
+        # Images
+        img_tbl = PrettyTable(['ID', 'Name', 'Format'])
+        vlink_tbl = PrettyTable([
+                'ID', 'Name', 'Bridge Name', 'State', 'Subnet', 'Ports', "IPs"])
+        vdu_tbl = PrettyTable([
+            'ID', 'Name', 'LXC Name', 'IP', 'State', 'Ports', "VLink ID"])
+
+
+        images = self.client.images
+        if images:
+            for image in images:
+                img_tbl.add_row([image.id, image.name, image.disk_format])
+
+            print ("Images:")
+            print (img_tbl)
+
+        vlinks = self.client.vlinks
+        if vlinks:
+            for vlink in vlinks:
+
+                ports, ips = [], []
+                for cp in vlink.connection_points:
+                    ports.append("{} ({})".format(cp.name, cp.connection_point_id))
+                    ips.append(cp.ip_address)
+
+                vlink_tbl.add_row([
+                    vlink.virtual_link_id,
+                    vlink.name,
+                    vlink.name[:15],
+                    vlink.state,
+                    vlink.subnet,
+                    "\n".join(ports),
+                    "\n".join(ips)])
+
+            print ("Vlink:")
+            print (vlink_tbl)
+
+
+        lxc_to_ip = lxc.ls_info()
+        def get_lxc_name(ip):
+            for lxc_name, ips in lxc_to_ip.items():
+                if str(ip) in ips:
+                    return lxc_name
+
+            return ""
+
+        vdus = self.client.vdus
+        if vdus:
+            for vdu in vdus:
+                ports, links = [], []
+                for cp in vdu.connection_points:
+                    ports.append("{} ({})".format(cp.name, cp.ip_address))
+                    links.append(cp.virtual_link_id)
+
+                vdu_tbl.add_row([
+                    vdu.vdu_id, vdu.name, get_lxc_name(vdu.public_ip), vdu.public_ip,
+                    vdu.state, "\n".join(ports), "\n".join(links)])
+
+            print ("VDU:")
+            print (vdu_tbl)
+
+
+def parse(arguments):
+    parser = argparse.ArgumentParser(description=__doc__,
+                                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+            '--log-level', '-l',
+            default="WARNING",
+            type=str,
+            choices=["INFO", "DEBUG", "WARNING", "ERROR"],
+            help="Set log level, defaults to warning and above.")
+
+    subparsers = parser.add_subparsers()
+
+    start_parser = subparsers.add_parser(START_PARSER, help="Start the server")
+    start_parser.add_argument(
+            '--foreground', "-f",
+            help="Run the server in the foreground. The logs are sent to console.",
+            default=False,
+            action="store_true")
+    start_parser.set_defaults(which=START_PARSER)
+
+    stop_parser = subparsers.add_parser(STOP_PARSER, help="Stop the server")
+    stop_parser.set_defaults(which=STOP_PARSER)
+
+    clean_parser = subparsers.add_parser(
+            CLEAN_PARSER,
+            help="Clean LXC resources. By default all resources except " + \
+                 "images are cleared.")
+    clean_parser.add_argument(
+            '--all', '-a', 
+            help="Cleans up all resources including images",
+            default=False,
+            action="store_true")
+    clean_parser.set_defaults(which=CLEAN_PARSER)
+
+    fclean_parser = subparsers.add_parser(
+            FCLEAN_PARSER,
+            help="Force clean all lxc resources")
+    fclean_parser.set_defaults(which=FCLEAN_PARSER)
+
+    image_parser = subparsers.add_parser(IMAGE_PARSER, help="Upload images")
+    image_parser.add_argument(
+            '--name', '-n',
+            help="(Optional) Name of the image")
+    image_parser.add_argument(
+            '--location', '-l',
+            help="Image location. If name is not specified the basename of " + \
+                 "the image path is used.",
+            required=True)
+    image_parser.set_defaults(which=IMAGE_PARSER)
+
+    show_parser = subparsers.add_parser(
+            STATUS_PARSER,
+            help="Shows the current status of LXC")
+    show_parser.set_defaults(which=STATUS_PARSER)
+
+    args = parser.parse_args(arguments)
+
+    return args
+
+
+def main(args):
+
+    args = parse(args)
+
+    operations = CloudsimOperations(args)
+
+    if args.which == START_PARSER:
+        operations.start_server()
+    elif args.which == STOP_PARSER:
+        operations.stop_server()
+    elif args.which == FCLEAN_PARSER:
+        operations.force_clean_resources()
+    elif args.which == CLEAN_PARSER:
+        operations.clean_resources()
+    elif args.which == IMAGE_PARSER:
+        operations.upload_image()
+    elif args.which == STATUS_PARSER:
+        operations.show_status()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

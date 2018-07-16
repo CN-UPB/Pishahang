@@ -1,0 +1,50 @@
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get -y install python3 curl build-essential apt-transport-https sudo software-properties-common
+RUN curl http://repos.riftio.com/public/xenial-riftware-public-key | apt-key add -
+RUN curl -o /etc/apt/sources.list.d/rift.list http://buildtracker.riftio.com/repo_file/ub16/OSM3/
+
+ARG RW_PLATFORM_RELEASE=5.2.0.3.73627
+RUN apt-get update && \
+	apt-get -y install \
+		rw.tools-container-tools=${RW_PLATFORM_RELEASE} \
+		rw.tools-scripts=${RW_PLATFORM_RELEASE}
+
+RUN /usr/rift/container_tools/mkcontainer --modes MANO-base,rw-platform,UI-base --repo OSM3 --rw-version ${RW_PLATFORM_RELEASE}
+#/usr/rift/container_tools/mkcontainer --modes UI-base --rw-version ${PLATFORM_VERSION}
+
+# now disable the RIFT OSM repo so that we'll get MANO from
+# the OSM repos
+RUN rm -f /etc/apt/sources.list.d/rift.list && apt-get update
+
+ARG REPOSITORY_BASE=http://osm-download.etsi.org/repository/osm/debian
+ARG RELEASE=ReleaseTHREE-rc16
+ARG REPOSITORY_KEY=OSM%20ETSI%20Release%20Key.gpg
+ARG REPOSITORY=testing
+
+RUN curl ${REPOSITORY_BASE}/${RELEASE}/${REPOSITORY_KEY} | apt-key add -
+RUN add-apt-repository -y "deb ${REPOSITORY_BASE}/${RELEASE} ${REPOSITORY} SO UI RO IM osmclient openvim" && apt update
+
+RUN apt-get install -y \
+    rw.core.mano-mano \
+    rw.core.mano-rwcal-plugin-aws \
+    rw.core.mano-rwcal-plugin-cloudsim \
+    rw.core.mano-rwcal-plugin-cloudsimproxy \
+    rw.core.mano-rwcal-plugin-openmano-vimconnector \
+    rw.core.mano-rwcal-plugin-openstack \
+    rw.core.mano-rwcal-plugin-mock
+
+RUN apt-get install -y python3-pip python3-setuptools
+RUN pip3 install juju
+
+RUN apt-get install -y rw.ui-skyquake
+RUN apt-get install -y tcpdump telnet
+
+RUN chmod 777 /usr/rift /usr/rift/usr/share
+
+EXPOSE 22 80 2024 4567 8000 8008 8443
+
+RUN apt-get -y install openssh-client
+
+RUN mkdir -p /var/log/rift
+CMD /usr/rift/bin/start_launchpad

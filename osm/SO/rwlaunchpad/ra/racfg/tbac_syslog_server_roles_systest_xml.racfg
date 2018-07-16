@@ -1,0 +1,21 @@
+{
+  "test_name":"TC_TBAC_SYSLOG_SERVER_ROLES_TEST_XML",
+  "commandline":"./rbac_roles_systest --test-name 'TC_TBAC_SYSLOG_SERVER_ROLES_TEST_XML' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf --syslog-server-test --tbac",
+  "test_description":"TBAC: System test to perform role based authorization check for setting/reading syslog server address",
+  "run_as_root": true,
+  "allow_rpm_install":true,
+  "allow_production_launchpad":true,
+  "xml_mode": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+

@@ -1,0 +1,25 @@
+{
+  "test_name":"TC_HA_BASICS_TEST",
+  "commandline":"./ha_basics_systest --test-name 'TC_HA_BASICS_SYSTEMTEST' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --netconf",
+  "test_description":"System test to validate HA failover between active, standby systems",
+  "run_as_root": true,
+  "allow_production_launchpad": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "target_vm":"lp_active",
+  "vms":[
+    {
+      "name": "lp_active",
+      "type": "container",
+      "modes":[]
+    },
+    {
+      "name": "lp_standby",
+      "type": "container",
+      "modes":[]
+    }
+  ]
+}
+

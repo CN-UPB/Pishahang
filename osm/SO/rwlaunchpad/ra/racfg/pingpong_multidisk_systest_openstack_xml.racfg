@@ -1,0 +1,21 @@
+{
+  "test_name":"TC_PINGPONG_MULTIDISK_OPENSTACK_XML",
+  "commandline":"./accounts_creation_onboard_instatiate_systest --test-name 'TC_PINGPONG_MULTIDISK_OPENSTACK_XML' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf --multidisk --use-xml-mode",
+  "test_description":"System test to check multidisk for ping and pong vnf (Openstack) using xml-agent",
+  "run_as_root": true,
+  "allow_production_launchpad": true,
+  "xml_mode": true,
+  "status":"working",
+  "keywords":["ci","nightly","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+
+

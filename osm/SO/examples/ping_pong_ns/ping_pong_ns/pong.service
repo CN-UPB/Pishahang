@@ -1,0 +1,12 @@
+[Unit]
+Description=Ping Client
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/rift/ping_pong_ns/start_pong
+
+[Install]
+WantedBy=multi-user.target
+
+

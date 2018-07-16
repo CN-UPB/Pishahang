@@ -1,0 +1,21 @@
+name: openmano
+summary: OpenMANO
+maintainers:
+  - Adam Israel <adam@adamisrael.com>
+description: |
+  Installs and configures OpenMANO
+tags:
+  - nfv
+  - telco
+  - osm
+series:
+  - xenial
+subordinate: false
+requires:
+  db:
+    interface: mysql
+  openvim-controller:
+    interface: openvim
+provides:
+  openmano:
+    interface: http

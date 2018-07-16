@@ -1,0 +1,79 @@
+
+/*
+ * 
+ *   Copyright 2016-2017 RIFT.IO Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *
+ */
+
+module rwmon
+{
+  namespace "http://riftio.com/ns/riftware-1.0/rwmon";
+  prefix "rwmon";
+
+  import rw-base {
+    prefix rwbase;
+  }
+
+  import rw-yang-types {
+    prefix "rwt";
+  }
+
+  import rw-log {
+    prefix "rwlog";
+  }
+
+  import mano-types {
+    prefix "manotypes";
+  }
+
+  import rw-project {
+    prefix "rw-project";
+  }
+
+  revision 2017-02-08 {
+    description
+      "Update model to support projects.";
+  }
+
+  revision 2015-10-28 {
+    description
+        "Initial revision.";
+    reference
+        "RIFT monitoring";
+  }
+
+  augment "/rw-project:project" {
+    container nfvi-metrics {
+      leaf timestamp {
+        description
+          "This is the time when the metric was captured. The timestamp is
+          represented as the number of seconds since the beginning of the Unix
+          epoch.";
+        type decimal64 {
+          fraction-digits 3;
+        }
+      }
+
+      uses manotypes:nfvi-metrics;
+    }
+
+    container alarm {
+      uses manotypes:alarm;
+    }
+  }
+}
+
+/* vim: set ts=2:sw=2: */

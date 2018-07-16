@@ -1,0 +1,20 @@
+{
+  "test_name":"TC_RBAC_ACCOUNT_ROLES_TEST_RESTCONF",
+  "commandline":"./rbac_roles_systest --test-name 'TC_RBAC_ACCOUNT_ROLES_TEST_RESTCONF' --cloud-type 'openstack' --cloud-host={cloud_host} --sysinfo  --user={user} {tenants} --restconf --account-test",
+  "test_description":"RBAC-RESTCONF: System test to perform role based authorization check for cloud-account creation/deletion etc",
+  "allow_production_launchpad": true,
+  "allow_rpm_install": true,
+  "run_as_root": true,
+  "status":"working",
+  "keywords":["nightly","ci","MANO","openstack"],
+  "timelimit": 2600,
+  "networks":[],
+  "vms":[
+    {
+      "name": "rift_auto_launchpad",
+      "memory": 4096,
+      "cpus": 2
+    }
+  ]
+}
+
