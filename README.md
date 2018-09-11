@@ -153,3 +153,4 @@ Please find example CSDs and COSDs in the `son-examples/complex-services` folder
 
 - Hadi Razzaghi Kouchaksaraei (https://github.com/hadik3r)
 - Tobias Dierich (https://github.com/tobiasdierich)
+- Marvin Illian (https://github.com/OrangeOnBlack)
