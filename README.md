@@ -4,7 +4,7 @@ Pishahang is a managemt and orchestration framework desgined to unify Cloud and 
 
 ## Useful Links
 
-* Paper: H. R. Kouchaksaraei, and H. Karl. "Joint Orchestration of Cloud-Based Microservices and Virtual Network Functions."
+* Paper: H. R. Kouchaksaraei, T. Dierich, H. Karl: Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications. In IEEE 4th Conference on Network Softwarization (NetSoft), Montreal, Canada.
 
 * Demo Video: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
 
