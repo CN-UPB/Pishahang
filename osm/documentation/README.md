@@ -29,7 +29,7 @@ $ echo "stack ALL=(ALL) NOPASSWD: ALL" \
     | sudo tee /etc/sudoers.d/stack
 ```
 
-Switch to user ``stack`` and checkout ocata branch
+Switch to user ``stack`` and checkout ``ocata`` branch
 
 ```console
 $ sudo su - stack
@@ -70,6 +70,49 @@ RECLONE=yes
 $ # This can take 20+ minutes
 $ ./stack.sh
 ```
+
+\pagebreak
+
+Alternatively, to use the ``PROVIDER``-network option where guests are spawned in the same network as the Devstack-controller (DHCP required, adapt ``NETWORK_GATEWAY`` and ``IPV4_ADDRS_SAFE_TO_USE`` accordingly):
+
+```
+$ HOST_IP=131.234.250.212
+
+$printf "[[local|localrc]]
+SERVICE_HOST=$HOST_IP
+MYSQL_HOST=$HOST_IP
+RABBIT_HOST=$HOST_IP
+ADMIN_PASSWORD=\$ADMIN_PASSWORD
+MYSQL_PASSWORD=\$ADMIN_PASSWORD
+RABBIT_PASSWORD=\$ADMIN_PASSWORD
+SERVICE_PASSWORD=\$ADMIN_PASSWORD
+
+Q_ML2_PLUGIN_MECHANISM_DRIVERS=macvtap
+Q_USE_PROVIDER_NETWORKING=True
+
+enable_plugin neutron git://git.openstack.org/openstack/neutron
+
+## MacVTap agent options
+Q_AGENT=macvtap
+PHYSICAL_NETWORK=default
+
+IPV4_ADDRS_SAFE_TO_USE="203.0.113.0/24"
+NETWORK_GATEWAY=203.0.113.1
+PROVIDER_SUBNET_NAME="provider_net"
+PROVIDER_NETWORK_TYPE="vlan"
+SEGMENTATION_ID=2010
+USE_SUBNETPOOL=False
+
+[[post-config|/$Q_PLUGIN_CONF_FILE]]
+[macvtap]
+physical_interface_mappings = $PHYSICAL_NETWORK:eno1
+
+[[post-config|$NOVA_CONF]]
+force_config_drive = True
+
+" | tee local.conf
+```
+
 
  \pagebreak
 
@@ -138,9 +181,9 @@ Run as ``root``
 ```console
 # apt-get update && apt-get install -y apt-transport-https curl
 # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-# cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
-# deb http://apt.kubernetes.io/ kubernetes-xenial main
-# EOF
+# cat <<EOF >/etc/apt/sources.list.d/kubernetes.list \
+    deb http://apt.kubernetes.io/ kubernetes-xenial main \
+    EOF
 # apt-get update
 # apt-get install -y kubelet kubeadm kubectl
 # apt-mark hold kubelet kubeadm kubectl
@@ -169,7 +212,7 @@ Install Pod Network Add-On ``Weave Net``:
 ```console
 # sysctl net.bridge.bridge-nf-call-iptables=1
 # kubectl apply -f "https://cloud.weave.works/k8s/net?\
-    k8s-version=$(kubectl version | base64 | tr -d '\n')"
+k8s-version=$(kubectl version | base64 | tr -d '\n')"
 ```
 
 
@@ -179,7 +222,7 @@ Install ``MetalLB``:
 
 ```console
 $ kubectl apply -f https://raw.githubusercontent.com/\
-    google/metallb/v0.7.3/manifests/metallb.yaml
+google/metallb/v0.7.3/manifests/metallb.yaml
 ```
 
 ``MetalLB`` needs additional information, like which pool of IP addresses to use and assign to ``Services``.
@@ -217,8 +260,8 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 ### Step 5: Using the Kubernetes Python API
 
-The Kubernetes Python API requires specifically version ``0.32.0`` of the ``websocket-client``
-Python 3 additionally requires the package ``certifi``
+The Kubernetes Python API requires specifically version ``0.32.0`` of the ``websocket-client``.
+Python 3 additionally requires the package ``certifi``.
 
 That means for Python 2:
 
@@ -470,7 +513,7 @@ If an incoming packet does not match any of the rules added by the controller th
 
 Descriptors can be created using an official one as a base.
 For each Network Service Descriptor (NSD) there needs one VNFD for each VNFD references in the NSD.
-That means you need at least VNFD for each NSD.
+That means you need at least one VNFD for each NSD.
 Descriptors need to be uploaded to OSM before they can be deployed.
 Descriptors are uploaded as zip-compressed tarball packages(_.tar.gz_).
 To create both descriptors it is easiest to modify the [**official example**](https://osm-download.etsi.org/ftp/osm-3.0-three/examples/cirros_2vnf_ns/).
@@ -531,8 +574,7 @@ Login as user ``stack``, get/download the image, source the DevStack credentials
 
 ```console
 $ source devstack/accrc/admin/admin
-$ wget http://download.cirros-cloud.net/0.3.4\
-    /cirros-0.3.4-x86_64-disk.img
+$ wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
 $ openstack image create --file="./cirros-0.3.4-x86_64-disk.img" \
     --container-format=bare --disk-format=qcow2 cirros034
 ```
@@ -650,8 +692,8 @@ $ ssh vm1
 
 to access VM 1.
 
-All machines can be accessed with the SSH (private) key from the router.
-That means, you can obtain easy access to the entire testbed by just putting your own SSH (public) key on the router (using ``ssh-copy-id``).
+All machines can be accessed with the (private) SSH key from the router.
+That means, you can obtain easy access to the entire testbed by just putting your own (public) SSH key on the router (using ``ssh-copy-id``).
 
 ### Distribution of Function on VMs
 
