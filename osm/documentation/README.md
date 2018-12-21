@@ -78,23 +78,31 @@ Alternatively, to use the ``PROVIDER``-network option where guests are spawned i
 ```
 $ HOST_IP=131.234.250.212
 
-$printf "[[local|localrc]]
+$ printf "[[local|localrc]]
+HOST_IP=$HOST_IP
 SERVICE_HOST=$HOST_IP
 MYSQL_HOST=$HOST_IP
 RABBIT_HOST=$HOST_IP
-ADMIN_PASSWORD=\$ADMIN_PASSWORD
-MYSQL_PASSWORD=\$ADMIN_PASSWORD
-RABBIT_PASSWORD=\$ADMIN_PASSWORD
-SERVICE_PASSWORD=\$ADMIN_PASSWORD
+GLANCE_HOSTPORT=$HOST_IP:9292
+PUBLIC_INTERFACE=eno1
 
-Q_ML2_PLUGIN_MECHANISM_DRIVERS=macvtap
+ADMIN_PASSWORD=secret
+MYSQL_PASSWORD=secret
+RABBIT_PASSWORD=secret
+SERVICE_PASSWORD=secret
+
+## Neutron options
+Q_USE_SECGROUP=True
+ENABLE_PROJECT_VLANS=True
+PROJECT_VLAN_RANGE=3001:4000
+PHYSICAL_NETWORK=default
+OVS_PHYSICAL_BRIDGE=br-ex
+
 Q_USE_PROVIDER_NETWORKING=True
 
-enable_plugin neutron git://git.openstack.org/openstack/neutron
+disable_service q-l3
 
-## MacVTap agent options
-Q_AGENT=macvtap
-PHYSICAL_NETWORK=default
+## Neutron Networking options used to create Neutron Subnets
 
 IPV4_ADDRS_SAFE_TO_USE="203.0.113.0/24"
 NETWORK_GATEWAY=203.0.113.1
@@ -102,14 +110,6 @@ PROVIDER_SUBNET_NAME="provider_net"
 PROVIDER_NETWORK_TYPE="vlan"
 SEGMENTATION_ID=2010
 USE_SUBNETPOOL=False
-
-[[post-config|/$Q_PLUGIN_CONF_FILE]]
-[macvtap]
-physical_interface_mappings = $PHYSICAL_NETWORK:eno1
-
-[[post-config|$NOVA_CONF]]
-force_config_drive = True
-
 " | tee local.conf
 ```
 
