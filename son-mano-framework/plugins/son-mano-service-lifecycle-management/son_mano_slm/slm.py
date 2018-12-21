@@ -486,6 +486,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('wan_configure')
         add_schedule.append('start_monitoring')
         add_schedule.append('inform_gk_instantiation')
+        add_schedule.append('sdn_trigger')
 
         self.services[serv_id]['schedule'].extend(add_schedule)
 
@@ -496,6 +497,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         return self.services[serv_id]['schedule']
 
+    def sdn_chain_response(self, serv_id):
+        
+        pass
+        
     def service_instance_pause(self, ch, method, prop, payload):
 
         pass
@@ -1718,10 +1723,18 @@ class ServiceLifecycleManager(ManoBasePlugin):
         This method instructs the IA how to chain the functions together.
         """
 
-        # We're gonna skip chaining for now if we're handling a complex service.
-        # TODO: Implement chaining for complex services
+        # COSD chaining requires IPs to be sent to the SDN-Plugin
         if 'cosd' in self.services[serv_id]['service']:
-            return
+            corr_id = str(uuid.uuid4())
+            self.services[serv_id]['act_corr_id'] = corr_id
+
+            chaining_ips = self.services[serv_id]['connection_points']
+
+            self.manoconn.call_async(self.sdn_chain_response,
+                                 t.MANO_CHAIN_DPLOY,
+                                 yaml.dump(chaining_ips),
+                                 correlation_id=corr_id)
+            
 
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
@@ -1754,9 +1767,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
             chain['nap']['egresses'] = self.services[serv_id]['egress']
             nap_empty = False
 
-        # Check if `nap` is empty
-        if nap_empty:
-            chain.pop('nap')
+            # Check if `nap` is empty
+            if nap_empty:
+                chain.pop('nap')
 
         LOG.info(str(yaml.dump(chain)))
         self.manoconn.call_async(self.IA_chain_response,

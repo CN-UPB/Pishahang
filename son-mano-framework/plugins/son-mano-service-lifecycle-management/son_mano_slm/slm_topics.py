@@ -85,6 +85,9 @@ PL_STATUS = "platform.management.plugin.status"
 MON_RECEIVE = "son.monitoring"
 FROM_MON_SSM = "monitor.ssm."
 
+# With sdn plugin
+SDN_CHAIN_DPLOY = "chain.dploy.sdnplugin"
+
 # REST APIs
 temp = os.environ.get("url_gk_api")
 if temp is None:

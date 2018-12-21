@@ -42,6 +42,7 @@ if [ $(docker inspect -f {{.State.Running}} son-monitor-prometheus) ]; then dock
 if [ $(docker inspect -f {{.State.Running}} son-monitor-manager) ]; then docker start son-monitor-manager; fi
 if [ $(docker inspect -f {{.State.Running}} son-monitor-probe) ]; then docker start son-monitor-probe; fi
 if [ $(docker inspect -f {{.State.Running}} son-sec-gw) ]; then docker start son-sec-gw; fi
+if [ $(docker inspect -f {{.State.Running}} sdn) ]; then docker start sdn; fi
 docker ps -a --filter "status=running" --format "{{.Names}}" | awk '{ print "[" "\033[32m UP \033[0m""]", "\011" $1 ;}' | sort
 docker ps -a -f "status=created" -f "status=dead" -f "status=restarting" -f "status=removing" -f "status=paused" -f "status=exited" --format "{{.Names}}" | awk '{ print "[" "\033[31mDOWN\033[0m""]", "\011" $1 ;}'
 }
@@ -69,7 +70,7 @@ stop () {
   echo -e "\e[93m                  SONATA-NFV is STOPPING \e[0m"
 
 docker stop -t 5 son-postgres son-mongo son-monitor-postgres son-monitor-influxdb
-docker stop -t 1 son-broker son-keycloak son-gui son-bss son-gtkpkg son-gtksrv son-gtkcsrv son-gtkfnct son-gtkrec son-gtkvim son-gtklic son-gtkkpi son-gtkusr son-gtkapi son-catalogue-repos pluginmanager specificmanagerregistry servicelifecyclemanagement placementexecutive placementplugin cloudservicelifecyclemanagement son-sp-infrabstract wim-adaptor son-monitor-pushgateway son-monitor-prometheus son-monitor-manager son-monitor-probe son-sec-gw
+docker stop -t 1 son-broker son-keycloak son-gui son-bss son-gtkpkg son-gtksrv son-gtkcsrv son-gtkfnct son-gtkrec son-gtkvim son-gtklic son-gtkkpi son-gtkusr son-gtkapi son-catalogue-repos pluginmanager specificmanagerregistry servicelifecyclemanagement placementexecutive placementplugin cloudservicelifecyclemanagement son-sp-infrabstract wim-adaptor son-monitor-pushgateway son-monitor-prometheus son-monitor-manager son-monitor-probe son-sec-gw sdn
 }
 
 case $1 in
