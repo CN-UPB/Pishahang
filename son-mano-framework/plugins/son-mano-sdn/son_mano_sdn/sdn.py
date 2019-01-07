@@ -32,7 +32,7 @@ from time import sleep
 import json
 import hashlib
 
-SDN_CONTROLLER_ADDRESS = "localhost"
+SDN_CONTROLLER_ADDRESS = "131.234.250.207"
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("son-mano-sdn")
@@ -88,12 +88,12 @@ class SDN(ManoBasePlugin):
 
         # generate VLAN ID
         # use hashing to assign same VLAN ID for the same chain
-        hash_val = hashlib.sha224(str(message)).hexdigest()
+        hash_val = hashlib.sha224(message.encode('utf-8')).hexdigest()
         try:
             vlan_id = max(vlan.values()) + 1
         except:
             vlan_id = 1
-        vlan[hash_val] = vlan_id
+        self.vlan[hash_val] = vlan_id
 
         # build message to send to SDN controller
         # the following format is used
