@@ -486,7 +486,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('wan_configure')
         add_schedule.append('start_monitoring')
         add_schedule.append('inform_gk_instantiation')
-        add_schedule.append('sdn_trigger')
 
         self.services[serv_id]['schedule'].extend(add_schedule)
 
@@ -1724,7 +1723,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
 
         # COSD chaining requires IPs to be sent to the SDN-Plugin
-        if 'cosd' in self.services[serv_id]['service']:
+        """if 'cosd' in self.services[serv_id]['service']:
             corr_id = str(uuid.uuid4())
             self.services[serv_id]['act_corr_id'] = corr_id
 
@@ -1733,7 +1732,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.manoconn.call_async(self.sdn_chain_response,
                                  t.MANO_CHAIN_DPLOY,
                                  yaml.dump(chaining_ips),
-                                 correlation_id=corr_id)
+                                 correlation_id=corr_id)"""
             
 
         corr_id = str(uuid.uuid4())
@@ -2131,6 +2130,12 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Service " + serv_id + ": WAN Configuration")
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
+
+        chaining_ips = [{'vlan':42},{'ip':'10.0.2.10'},{'ip':'10.0.2.20'},{'ip':'10.0.3.30'},{'ip':'10.0.3.40'}]
+
+        if chaining_ips:
+            self.manoconn.call_async(self.sdn_chain_response, t.MANO_CHAIN_DPLOY, yaml.dump(chaining_ips),correlation_id=corr_id)
+
 
         message = {}
         message['service_instance_id'] = serv_id
