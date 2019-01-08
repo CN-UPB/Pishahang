@@ -35,7 +35,7 @@ import hashlib
 SDN_CONTROLLER_ADDRESS = "131.234.250.207"
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("son-mano-sdn")
+LOG = logging.getLogger("pish-mano-sdn")
 LOG.setLevel(logging.DEBUG)
 logging.getLogger("son-mano-base:messaging").setLevel(logging.INFO)
 
@@ -88,7 +88,7 @@ class SDN(ManoBasePlugin):
 
         # generate VLAN ID
         # use hashing to assign same VLAN ID for the same chain
-        hash_val = hashlib.sha224(message.encode('utf-8')).hexdigest()
+        hash_val = hashlib.sha224(str(message).encode('utf-8')).hexdigest()
         try:
             vlan_id = max(vlan.values()) + 1
         except:

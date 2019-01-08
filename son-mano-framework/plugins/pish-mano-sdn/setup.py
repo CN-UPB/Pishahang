@@ -30,10 +30,10 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # configure plugin name here
-PLUGIN_NAME = "son-mano-sdn"
+PLUGIN_NAME = "pish-mano-sdn"
 
 # generate a name without dashes
-PLUGIN_NAME_CLEAR = "son_mano_sdn"
+PLUGIN_NAME_CLEAR = "pish_mano_sdn"
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -47,15 +47,15 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version='0.9',
 
-    description='SONATA service lifecycle management plugin',
+    description='Pishahang SDN plugin',
     long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/sonata-nfv/son-mano-framework/',
 
     # Author details
-    author='SONATA',
-    author_email='info@sonata-nfv.eu',
+    author='Hadi Razzaghi Kouchaksaraei',
+    author_email='hadi.razzaghi@upb.de',
 
     # Choose your license
     license='Apache 2.0',

@@ -21,7 +21,7 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-from son_mano_sdn import sdn
+from pish_mano_sdn import sdn
 
 
 def main():
