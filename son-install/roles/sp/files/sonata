@@ -30,6 +30,7 @@ if [ $(docker inspect -f {{.State.Running}} son-gui) ]; then docker start son-gu
 if [ $(docker inspect -f {{.State.Running}} son-bss) ]; then docker start son-bss; fi
 if [ $(docker inspect -f {{.State.Running}} son-catalogue-repos) ]; then docker start son-catalogue-repos; fi
 if [ $(docker inspect -f {{.State.Running}} pluginmanager) ]; then docker start pluginmanager; sleep 10; fi
+if [ $(docker inspect -f {{.State.Running}} sdn) ]; then docker start sdn; sleep 10; fi
 if [ $(docker inspect -f {{.State.Running}} specificmanagerregistry) ]; then docker start specificmanagerregistry; fi
 if [ $(docker inspect -f {{.State.Running}} cloudservicelifecyclemanagement) ]; then docker start cloudservicelifecyclemanagement; fi
 if [ $(docker inspect -f {{.State.Running}} servicelifecyclemanagement) ]; then docker start servicelifecyclemanagement; fi

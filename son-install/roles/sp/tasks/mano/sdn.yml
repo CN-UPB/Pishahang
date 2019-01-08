@@ -3,7 +3,7 @@
 - name: MANO SDN (Docker container)
   docker_container:
     name: sdn
-    image: "sonatanfv/sdn"
+    image: "pishahang/sdn-controller"
     env:
       url_gk_api: "http://son-gtkapi:5000/api/v2/"
       url_nsr_repository: "http://son-catalogue-repos:4011/records/nsr/"
