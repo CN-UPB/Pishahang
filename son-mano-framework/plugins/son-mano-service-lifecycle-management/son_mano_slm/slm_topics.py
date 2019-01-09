@@ -75,6 +75,9 @@ SRM_UPDATE = 'specific.manager.registry.ssm.update'
 SSM_TERM = 'specific.manager.registry.ssm.terminate'
 FSM_TERM = 'specific.manager.registry.fsm.terminate'
 
+# with sdn plugin
+MANO_CHAIN_DPLOY = 'chain.dploy.sdnplugin'
+
 # With Executive
 EXEC_PLACE = 'placement.executive.request'
 

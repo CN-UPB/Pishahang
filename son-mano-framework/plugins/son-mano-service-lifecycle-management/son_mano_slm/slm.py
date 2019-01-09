@@ -1722,6 +1722,12 @@ class ServiceLifecycleManager(ManoBasePlugin):
         This method instructs the IA how to chain the functions together.
         """
 
+        if 'cosd' in self.services[serv_id]['service']:
+            return
+
+        if 'vnfd' in self.services[serv_id]['service']:
+            return
+
         # COSD chaining requires IPs to be sent to the SDN-Plugin
         """if 'cosd' in self.services[serv_id]['service']:
             corr_id = str(uuid.uuid4())
@@ -2131,10 +2137,40 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        chaining_ips = [{'vlan':42},{'ip':'10.0.2.10'},{'ip':'10.0.2.20'},{'ip':'10.0.3.30'},{'ip':'10.0.3.40'}]
+        chain = {}
+        chain["service_instance_id"] = serv_id
+        try:
+            chain["cosd"] = self.services[serv_id]['service']['cosd']
+        except:
+            chain["nsd"] = self.services[serv_id]['service']['nsd']
 
-        if chaining_ips:
-            self.manoconn.call_async(self.sdn_chain_response, t.MANO_CHAIN_DPLOY, yaml.dump(chaining_ips),correlation_id=corr_id)
+        vnfrs = []
+        vnfds = []
+        csds = []
+        csrs = []
+
+        for function in self.services[serv_id]['function']:
+            vnfrs.append(function['vnfr'])
+            vnfd = function['vnfd']
+            vnfd['instance_uuid'] = function['id']
+            vnfds.append(vnfd)
+
+        for cloud_service in self.services[serv_id]['cloud_service']:
+            csrs.append(cloud_service['csr'])
+            csd = cloud_service['csd']
+            csd['instance_uuid'] = cloud_service['id']
+            csds.append(csd)
+
+        chain['vnfrs'] = vnfrs
+        chain['vnfds'] = vnfds
+        chain['csds'] = csds
+        chain['csrs'] = csrs
+
+        #chaining_ips = [{'vlan':42},{'ip':'10.0.2.10'},{'ip':'10.0.2.20'},{'ip':'10.0.3.30'},{'ip':'10.0.3.40'}]
+
+        LOG.info(chain)
+        if chain:
+            self.manoconn.call_async(self.sdn_chain_response, t.MANO_CHAIN_DPLOY, yaml.dump(chain),correlation_id=corr_id)
 
 
         message = {}
