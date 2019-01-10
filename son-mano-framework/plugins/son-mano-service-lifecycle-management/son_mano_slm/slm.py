@@ -2166,13 +2166,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
         chain['csds'] = csds
         chain['csrs'] = csrs
 
-        #chaining_ips = [{'vlan':42},{'ip':'10.0.2.10'},{'ip':'10.0.2.20'},{'ip':'10.0.3.30'},{'ip':'10.0.3.40'}]
-
-        LOG.info(chain)
-        if chain:
-            self.manoconn.call_async(self.sdn_chain_response, t.MANO_CHAIN_DPLOY, yaml.dump(chain),correlation_id=corr_id)
-
-
         message = {}
         message['service_instance_id'] = serv_id
 
@@ -2190,9 +2183,16 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Check if `nap` is empty
         if nap_empty:
             message.pop('nap')
+        else:
+            chain['nap']= message['nap']
+
+        LOG.info(chain)
+        if chain:
+            self.manoconn.call_async(self.wan_configure_response, t.MANO_CHAIN_DPLOY, yaml.dump(chain),correlation_id=corr_id)
+
 
         # Create ordered vim_list
-        ordered_vim = []
+        """ordered_vim = []
         calc_list = self.services[serv_id]['service']['ordered_vim_list']
         for vim in calc_list:
             ordered_vim.append({'uuid': vim, 'order': calc_list.index(vim)})
@@ -2202,7 +2202,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.manoconn.call_async(self.wan_configure_response,
                                  t.IA_CONF_WAN,
                                  yaml.dump(message),
-                                 correlation_id=corr_id)
+                                 correlation_id=corr_id)"""
 
         # # Pause the chain of tasks to wait for response
         self.services[serv_id]['pause_chain'] = True
