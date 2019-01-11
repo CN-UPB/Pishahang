@@ -3,7 +3,7 @@
 - name: deploying Infrastructure Abstractor VIM Adaptor (Docker container)
   docker_container:
     name: son-sp-infrabstract
-    image: "pishahang/son-sp-infrabstract"
+    image: "tdierich/son-sp-infrabstract"
     restart_policy: "always"
     state: started
     env:

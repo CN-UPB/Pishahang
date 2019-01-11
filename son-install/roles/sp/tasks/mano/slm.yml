@@ -3,7 +3,7 @@
 - name: MANO Service Life-cycle Management (SLM) (Docker container)
   docker_container:
     name: servicelifecyclemanagement
-    image: "tdierich/servicelifecyclemanagement"
+    image: "pishahang/servicelifecyclemanagement"
     env:
       url_gk_api: "http://son-gtkapi:5000/api/v2/"
       url_nsr_repository: "http://son-catalogue-repos:4011/records/nsr/"
