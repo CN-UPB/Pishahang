@@ -31,6 +31,8 @@ import zmq
 from time import sleep
 import json
 import hashlib
+import psycopg2
+
 
 SDN_CONTROLLER_ADDRESS = "131.234.250.207"
 
@@ -85,6 +87,8 @@ class SDN(ManoBasePlugin):
         """
         LOG.info("son-plugin.SDN received chain chain.dploy.sdnplugin message")
         message = yaml.load(payload)
+        vim_uuid = "cfe14b7f-ba76-4125-ad3a-9d3ff8f13d54"
+        token = self.token_retriever(vim_uuid)
 
         # generate VLAN ID
         # use hashing to assign same VLAN ID for the same chain
@@ -111,6 +115,21 @@ class SDN(ManoBasePlugin):
 
         socket.send_json({"forwarding_graph": message})
         LOG.debug("Received " + socket.recv_json()["reply"] + " event.")
+
+    def token_retriever(self,vim_uuid):
+
+        try:
+            connect_str = "dbname='vimregistry' user='sonatatest' host='localhost' port='5432 password='sonata'"
+            conn = psycopg2.connect(connect_str)
+            cursor = conn.cursor()
+            query = """SELECT pass FROM VIM WHERE type='compute' AND uuid='{0}'""".format(vim_uuid)
+            LOG.debug("Query has been made {0} => ".format(query))
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            token = rows[0][0]
+            LOG.debug("Retrieved token => {0}".format(token))
+        except Exception as error:
+            LOG.error("Token retrieval failed: {0}".format(str(error)))
 
     def deregister(self):
         """
