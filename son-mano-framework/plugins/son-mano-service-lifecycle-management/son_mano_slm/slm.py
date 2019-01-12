@@ -2166,27 +2166,26 @@ class ServiceLifecycleManager(ManoBasePlugin):
         chain['csds'] = csds
         chain['csrs'] = csrs
 
-        message = {}
-        message['service_instance_id'] = serv_id
+        #message = {}
+        #message['service_instance_id'] = serv_id
 
         # Add egress and ingress fields
-        message['nap'] = {}
-        nap_empty = True
+        chain['nap'] = {}
+        #nap_empty = True
 
         if self.services[serv_id]['ingress'] is not None:
-            message['nap']['ingresses'] = self.services[serv_id]['ingress']
+            chain['nap']['ingresses'] = self.services[serv_id]['ingress']
             nap_empty = False
         if self.services[serv_id]['egress'] is not None:
-            message['nap']['egresses'] = self.services[serv_id]['egress']
+            chain['nap']['egresses'] = self.services[serv_id]['egress']
             nap_empty = False
 
-        # Check if `nap` is empty
-        if nap_empty:
-            message.pop('nap')
-        else:
-            chain['nap']= message['nap']
+        ## Check if `nap` is empty
+        #if nap_empty:
+        #    chain.pop('nap')
+        #else:
+        #    chain['nap']= message['nap']
 
-        LOG.info(chain)
         if chain:
             self.manoconn.call_async(self.wan_configure_response, t.MANO_CHAIN_DPLOY, yaml.dump(chain),correlation_id=corr_id)
 

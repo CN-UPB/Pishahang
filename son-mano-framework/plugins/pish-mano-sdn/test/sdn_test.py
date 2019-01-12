@@ -65,7 +65,7 @@ class fakeslm_onboarding(object):
 
     def publish_nsd(self):
         LOG.info("Sending forwarding graph")
-        forwarding_graph = open('fg.yml', 'r')
+        forwarding_graph = open('payload.yml', 'r')
         message = yaml.load(forwarding_graph)
         self.manoconn.call_async(self._on_publish_nsd_response,'chain.dploy.sdnplugin',yaml.dump(message))
         forwarding_graph.close()

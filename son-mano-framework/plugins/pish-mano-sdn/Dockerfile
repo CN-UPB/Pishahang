@@ -24,6 +24,12 @@ ENV url_nsr_repository http://son-catalogue-repos:4011/records/nsr/
 ENV url_vnfr_repository http://son-catalogue-repos:4011/records/vnfr/
 ENV url_monitoring_server http://son-monitor-manager:8000/api/v1/
 
+ENV db_host son-postgres
+ENV db_port 5432
+ENV db_user sonatatest
+ENV db_password sonata
+ENV db_name vimregistry
+
 RUN apt-get update && apt-get install -y gcc
 RUN apt-get install -y python-pip
 RUN pip install pyzmq

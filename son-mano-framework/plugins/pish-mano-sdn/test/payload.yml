@@ -1,0 +1,114 @@
+cosd:
+  author: Hadi Razzaghi
+  cloud_services:
+  - {service_id: static-images, service_name: static-images, service_vendor: eu.sonata-nfv.cloud-service-descriptor,
+    service_version: '1.0'}
+  description: A dummy Example.
+  descriptor_version: '1.0'
+  forwarding_graphs:
+  - constituent_vnfs: [dummy-vnf, static-images]
+    fg_id: ns:fg01
+    network_forwarding_paths:
+    - connection_points:
+      - {connection_point_ref: input, position: 1}
+      - {connection_point_ref: 'dummy-vnf:eth2', position: 2}
+      - {connection_point_ref: 'static-images:eth0', position: 3}
+      - {connection_point_ref: output, position: 4}
+      fp_id: ns:fg01:fp01
+      policy: none
+    number_of_endpoints: 2
+    number_of_virtual_links: 3
+  name: dummy-service
+  network_functions:
+  - {vnf_id: dummy-vnf, vnf_name: dummy-vnf, vnf_vendor: eu.sonata-nfv.vnf-descriptor,
+    vnf_version: '1.0'}
+  uuid: d52af0f3-5259-4980-af61-8635118dc28c
+  vendor: eu.sonata-nfv.service-descriptor
+  version: '1.0'
+csds:
+- author: Tobias Dierich
+  description: Web server which serves static images.
+  descriptor_version: '2.0'
+  instance_uuid: 4f056b96-8952-43bc-be00-c74c3ba0c6b3
+  name: static-images
+  uuid: 67f2c3fc-2337-48b7-9a18-53adc9ffcc89
+  vendor: eu.sonata-nfv.cloud-service-descriptor
+  version: '1.0'
+  virtual_deployment_units:
+  - id: static-images-1
+    name: static-images
+    service_image: tdierich/image-serving:latest
+    service_ports:
+    - {name: http, port: 80, protocol: TCP, target_port: 80}
+    service_type: LoadBalancer
+csrs:
+- descriptor_reference: 67f2c3fc-2337-48b7-9a18-53adc9ffcc89
+  descriptor_version: csr-schema-01
+  id: 4f056b96-8952-43bc-be00-c74c3ba0c6b3
+  status: normal operation
+  version: '1'
+  virtual_deployment_units:
+  - id: static-images-1
+    number_of_instances: 1
+    service_image: tdierich/image-serving:latest
+    service_ports:
+    - {name: http, port: 80, protocol: TCP, target_port: 80}
+    service_type: LoadBalancer
+    vdu_reference: static-images:static-images-1
+    vim_id: 9ead2b5a-424b-4301-94ef-9f923e09d028
+service_instance_id: d5533feb-e786-42f2-b22d-f092725d7034
+vnfds:
+- author: Hadi Razzaghi
+  description: Dummy VNF
+  descriptor_version: vnfd-schema-01
+  instance_uuid: e0fde935-ed67-48d8-b312-9d621e9b4d1c
+  name: dummy-vnf
+  uuid: 5aa4a690-aa60-4dbc-ad35-097ba56fad64
+  vendor: eu.sonata-nfv.vnf-descriptor
+  version: '1.0'
+  virtual_deployment_units:
+  - connection_points:
+    - {id: eth0, interface: ipv4, type: internal}
+    - {id: eth1, interface: ipv4, type: internal}
+    - {id: eth2, interface: ipv4, type: external}
+    description: Dummy VNF
+    id: dummy
+    resource_requirements:
+      cpu: {vcpus: 1}
+      memory: {size: 1, size_unit: GB}
+      storage: {size: 10, size_unit: GB}
+    user_data:
+      chpasswd: {expire: false}
+      password: '1234'
+      ssh_pwauth: true
+    vm_image: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    vm_image_format: qcow2
+vnfrs:
+- descriptor_reference: 5aa4a690-aa60-4dbc-ad35-097ba56fad64
+  descriptor_version: vnfr-schema-01
+  id: e0fde935-ed67-48d8-b312-9d621e9b4d1c
+  status: normal operation
+  version: '2'
+  virtual_deployment_units:
+  - id: dummy
+    number_of_instances: 1
+    resource_requirements:
+      cpu: {vcpus: 1}
+      memory: {size: 1, size_unit: GB}
+      storage: {size: 10, size_unit: GB}
+    vdu_reference: dummy-vnf:dummy
+    vm_image: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    vnfc_instance:
+    - connection_points:
+      - id: eth0
+        interface: {address: 10.0.0.231, hardware_address: 'fa:16:3e:ca:3b:93', netmask: 255.255.255.248}
+        type: internal
+      - id: eth1
+        interface: {address: 10.0.0.233, hardware_address: 'fa:16:3e:78:26:b4', netmask: 255.255.255.248}
+        type: internal
+      - id: eth2
+        interface: {address: 10.0.2.22, hardware_address: 'fa:16:3e:9d:b8:b8'}
+        type: external
+      id: '0'
+      vc_id: 5b1e0bac-d646-4849-8245-9bfc4a36e774
+      vim_id: c6624f31-966f-4d8e-9b55-a90ba8733189
