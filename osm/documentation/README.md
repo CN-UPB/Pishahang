@@ -194,8 +194,9 @@ EOF
 ### Step 2: Install Kubernetes
 
 ```console
+# swapoff -a
 # # This can take 10+ minutes
-# kubeadm init
+# kubeadm init --apiserver-bind-port 443
 ```
 
 
