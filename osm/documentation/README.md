@@ -266,10 +266,9 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 ```console
 ## the dashboard.yaml file can be found in Pishahang/osm/documentation/kubernetes-files
 $ kubectl apply -f dashboard.yaml
-## Dashboard can be access on the following link:
-## https://<master-ip>:<port>
-## master-ip is the ip address of the k8 host
-## port can be taken from the result of the following command
+# Dashboard can be accessed on the following link:
+# https://<master-ip>:<port>
+# master-ip is the ip address of the k8 host and port can be taken from the result of the following command
 $ kubectl -n kube-system get service kubernetes-dashboard
 ```
 ### Step 6: Using the Kubernetes Python API
