@@ -261,8 +261,18 @@ To enable spawning Pods on (this) master node:
 ```console
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
+### Step 5: Install Kubernetes dashboard
 
-### Step 5: Using the Kubernetes Python API
+```console
+## the dashboard.yaml file can be found in Pishahang/osm/documentation/kubernetes-files
+$ kubectl apply -f dashboard.yaml
+## Dashboard can be access on the following link:
+## https://<master-ip>:<port>
+## master-ip is the ip address of the k8 host
+## port can be taken from the result of the following command
+$ kubectl -n kube-system get service kubernetes-dashboard
+```
+### Step 6: Using the Kubernetes Python API
 
 The Kubernetes Python API requires specifically version ``0.32.0`` of the ``websocket-client``.
 Python 3 additionally requires the package ``certifi``.
