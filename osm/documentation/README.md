@@ -270,6 +270,11 @@ $ kubectl apply -f dashboard.yaml
 # https://<master-ip>:<port>
 # master-ip is the ip address of the k8 host and port can be taken from the result of the following command
 $ kubectl -n kube-system get service kubernetes-dashboard
+# To login to the dashboard you need a token which can be taken from the result of the following command
+$ kubectl describe secret 
+# To have full access in the dashboard run the following command,
+# the access.yaml file can be found in Pishahang/osm/documentation/kubernetes-files
+$ kubectl apply -f access.yaml
 ```
 ### Step 7: Install Kubernetes Metrics Server
 
