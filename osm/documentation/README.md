@@ -271,7 +271,15 @@ $ kubectl apply -f dashboard.yaml
 # master-ip is the ip address of the k8 host and port can be taken from the result of the following command
 $ kubectl -n kube-system get service kubernetes-dashboard
 ```
-### Step 6: Using the Kubernetes Python API
+### Step 7: Install Kubernetes Metrics Server
+
+```console
+$ git clone https://github.com/kubernetes-incubator/metrics-server.git
+$ cd metrics-server
+$ kubectl create -f deploy/1.8+/
+```
+
+### Step 8: Using the Kubernetes Python API
 
 The Kubernetes Python API requires specifically version ``0.32.0`` of the ``websocket-client``.
 Python 3 additionally requires the package ``certifi``.
