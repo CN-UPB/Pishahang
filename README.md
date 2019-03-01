@@ -20,8 +20,6 @@ The service platform has only been tested on Ubuntu 16.04, however, if Ansible, 
 
 ### Installation
 
-All commands should be from by the non-root user account.
-
 ##### Install packages
 
 ```bash
@@ -30,6 +28,8 @@ $ sudo apt-add-repository -y ppa:ansible/ansible
 $ sudo apt-get update
 $ sudo apt-get install -y git ansible
 ```
+
+The rest of the commands should be run by the non-root user account.
 
 ##### Clone repository
 
