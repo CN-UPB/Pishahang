@@ -41,7 +41,7 @@ $ echo sonata | tee ~/.ssh/.vault_pass
 
 ##### Start installation
 
-Replace "\<your\_ip4\_address\>" with the IP address SONATA should be available at.
+Replace "\<your\_ip4\_address\>" with the IP address that SONATA GUI and BSS should be available at (the IP addresse that is publicly accessible).
 
 ```bash
 $ ansible-playbook utils/deploy/sp.yml -e \
