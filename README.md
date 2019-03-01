@@ -12,7 +12,7 @@ technologies to provide orchestration for services deployed across multiple tech
 
 ## Usage
 
-Pishahang manages and orchestrates complex service using three main management tools inlcuding SONATA, OpenStack and Kubernetes. To install these tools, please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) webpage. 
+Pishahang manages and orchestrates complex service using three main management tools inlcuding SONATA, OpenStack and Kubernetes. To install these tools, please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) wikipage. 
 
 
 ### Service Deployment
