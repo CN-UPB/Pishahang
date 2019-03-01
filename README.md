@@ -12,47 +12,8 @@ technologies to provide orchestration for services deployed across multiple tech
 
 ## Usage
 
-The service platform has only been tested on Ubuntu 16.04, however, if Ansible, Docker and Git are available, other distributions should work as well. This guide uses a clean Ubuntu 16.04 installation.
+Pishahang manages and orchestrates complex service using three main management tools inlcuding SONATA, OpenStack and Kubernetes. To install these tools, please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) webpage. 
 
-#### Minimum Requirements
-
-* Memory: 4GB
-* Disk: 25GB free space
-* A non-root user
-
-### Installation
-
-##### Install packages
-
-```bash
-$ sudo apt-get install -y software-properties-common
-$ sudo apt-add-repository -y ppa:ansible/ansible
-$ sudo apt-get update
-$ sudo apt-get install -y git ansible
-```
-
-The rest of the commands should be run by the non-root user account.
-
-##### Clone repository
-
-```bash
-$ git clone https://github.com/CN-UPB/Pishahang.git
-$ cd Pishahang/son-install
-$ echo sonata | tee ~/.ssh/.vault_pass
-```
-
-##### Start installation
-
-Replace "\<your\_ip4\_address\>" with the IP address that SONATA GUI and BSS should be available at (the IP addresse that is publicly accessible).
-
-```bash
-$ ansible-playbook utils/deploy/sp.yml -e \
-	 "target=localhost public_ip=<your_ip4_address>" -v
-```
-
-##### Verify installation
-
-Open your browser and navigate to http://public_ip. Login using the username sonata and password 1234. If the installation was successful, you should now see the dashboard of the service platform.
 
 ### Service Deployment
 
