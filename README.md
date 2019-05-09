@@ -1,56 +1,19 @@
 # Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
 
-Pishahang is a managemt and orchestration framework desgined to unify Cloud and NFV infraustructures. It enables complex services compsed of virtual Network Function (NFs) and general-purpuse cloud services to be deployed across NFV and Cloud infraustructures.This is provided by consolidating and extending state of the art cloud and NFV tools and technologies.
+Pishahang is a framework consolidated from state-of-the-art NFV and Cloud management and orchestration tools and
+technologies to provide orchestration for services deployed across multiple technological domains.
 
 ## Useful Links
 
 * Paper: H. R. Kouchaksaraei, T. Dierich, H. Karl: [Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications.](https://ieeexplore.ieee.org/document/8460134)In IEEE 4th Conference on Network Softwarization (NetSoft), Montreal, Canada.
 
-* Demo Video: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
+* 1st Demo Video: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
+* 2nd Demo Video (service chaining support): https://www.youtube.com/watch?v=ceebA-BaoyM
 
 ## Usage
 
-The service platform has only been tested on Ubuntu 16.04, however, if Ansible, Docker and Git are available, other distributions should work as well. This guide uses a clean Ubuntu 16.04 installation.
+Pishahang manages and orchestrates complex network services containing VM- and container-based VNFs using three main management tools inlcuding SONATA, OpenStack and Kubernetes. To install these tools, please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) wikipage. 
 
-#### Minimum Requirements
-
-* Memory: 4GB
-* Disk: 25GB free space
-* A non-root user
-
-### Installation
-
-All commands should be from by the non-root user account.
-
-##### Install packages
-
-```bash
-$ sudo apt-get install -y software-properties-common
-$ sudo apt-add-repository -y ppa:ansible/ansible
-$ sudo apt-get update
-$ sudo apt-get install -y git ansible
-```
-
-##### Clone repository
-
-```bash
-$ git clone https://github.com/CN-UPB/Pishahang.git
-$ cd Pishahang/son-install
-$ echo sonata | tee ~/.ssh/.vault_pass
-```
-
-##### Start installation
-
-Replace "\<your\_ip4\_address\>" with the IP address SONATA should be available at.
-
-```bash
-$ ansible-playbook utils/deploy/sp.yml -e \
-	 "target=localhost public_ip=<your_ip4_address>" -v
-```
-
-##### Verify installation
-
-Open your browser and navigate to http://public_ip. Login using the username sonata and password 1234. If the installation was successful, you should now see the dashboard of the service platform.
 
 ### Service Deployment
 
@@ -154,3 +117,4 @@ Please find example CSDs and COSDs in the `son-examples/complex-services` folder
 - Hadi Razzaghi Kouchaksaraei (https://github.com/hadik3r)
 - Tobias Dierich (https://github.com/tobiasdierich)
 - Marvin Illian (https://github.com/OrangeOnBlack)
+
