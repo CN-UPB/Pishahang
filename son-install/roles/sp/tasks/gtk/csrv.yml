@@ -19,7 +19,7 @@
       RACK_ENV: integration
       MQSERVER: amqp://guest:guest@son-broker:5672
       DATABASE_HOST: son-postgres
-      DATABASE_PORT: 5432
+      DATABASE_PORT: "5432"
       POSTGRES_PASSWORD: "{{ gtk_db_pass }}"
       POSTGRES_USER: "{{ gtk_db_user }}"
       POSTGRES_DB: "{{ gtk_db_name }}"
