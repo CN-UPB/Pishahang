@@ -1,7 +1,7 @@
 - name: Install docker-py python module
   pip:
     name: docker-py
-    version: "1.9.0"
+    version: "1.10.0"
 
 - name: Delete a network, disconnecting all containers
   docker_network:
