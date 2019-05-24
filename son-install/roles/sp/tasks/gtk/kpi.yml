@@ -9,8 +9,8 @@
     restart_policy: "always"
     env:
       PUSHGATEWAY_HOST: "pushgateway"
-      PUSHGATEWAY_PORT: 9091
-      PROMETHEUS_PORT: 9090
+      PUSHGATEWAY_PORT: "9091"
+      PROMETHEUS_PORT: "9090"
       RACK_ENV: integration
     network_mode: bridge
     networks:
