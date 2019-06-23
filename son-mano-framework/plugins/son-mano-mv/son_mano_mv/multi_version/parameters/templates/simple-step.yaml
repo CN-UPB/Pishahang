@@ -1,0 +1,66 @@
+name: "simplechain"
+
+# list of all involved components 
+components:
+  - name: "S"
+    type: "source"
+    stateful: False
+    inputs: 0
+    outputs: 1
+    resource_demands:
+      - resource_type: "vm"
+        demand: 
+          boundary: [0,100000]
+          cpu: [[0,0]]
+          out: 
+            - [1,0]            
+  - name: "A"
+    type: "normal"
+    stateful: False
+    inputs: 1
+    outputs: 1
+    resource_demands:
+      - resource_type: "vm" 
+        demand:  
+          boundary: [0,5,10]
+          cpu: [[1,1],[2,4]]
+          out: 
+            - [0.5,0]   
+      - resource_type: "container" 
+        demand:  
+          boundary: [0,5,10]
+          cpu: [[0.5,0.5], [1,2]]
+          out: 
+            - [0.5,0]   
+      - resource_type: "container_gpu"
+        demand:
+          boundary: [0,10,20]
+          gpu: [[0,1],[0,3]]
+          cpu: [[0.2,0.5],[0.9,0.5]]
+          out: 
+            - [0.5,0]   
+  - name: "B"
+    type: "normal"
+    stateful: False
+    inputs: 1
+    outputs: 0
+    resource_demands:
+      - resource_type: "vm"  
+        demand:
+          boundary: [0,50]
+          cpu: [[1,0]]
+          out: 
+            - [0.5,0]   
+
+# list of vLinks interconnecting the components (with at least src and dest)
+vlinks:
+  - src: "S"
+    src_output: 0
+    dest: "A"
+    dest_input: 0
+    max_delay: 50
+  - src: "A"
+    src_output: 0
+    dest: "B"
+    dest_input: 0
+    max_delay: 50

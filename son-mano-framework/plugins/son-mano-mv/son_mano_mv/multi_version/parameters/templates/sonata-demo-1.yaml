@@ -1,0 +1,174 @@
+components:
+- group:
+  - -1
+  - -1
+  inputs: 0
+  name: S
+  outputs: 1
+  resource_demands:
+  - demand:
+      boundary:
+      - - 0
+        - 9.99999
+      - - 10
+        - 24.99999
+      - - 25
+        - 74.99999
+      - - 75
+        - 1000
+      cpu:
+      - - 0
+        - 0
+      - - 0
+        - 0
+      - - 0
+        - 0
+      - - 0
+        - 0
+      out:
+      - 1
+      - 0
+      time: 0
+    resource_type: vm
+  stateful: false
+  type: source
+- group:
+  - -1
+  - -1
+  inputs: 1
+  name: vnf_vtc
+  outputs: 0
+  resource_demands:
+  - demand:
+      boundary:
+      - - 0
+        - 9.99999
+      - - 10
+        - 24.99999
+      - - 25
+        - 74.99999
+      - - 75
+        - 1000
+      cpu:
+      - - 0
+        - 1
+      - - 0
+        - 1
+      - - 0
+        - 1
+      - - 0
+        - 5001
+      out: []
+      time: 5
+    resource_type: vm
+  - demand:
+      boundary:
+      - - 0
+        - 9.99999
+      - - 10
+        - 24.99999
+      - - 25
+        - 74.99999
+      - - 75
+        - 1000
+      cpu:
+      - - 0.04
+        - 1
+      - - 0.09
+        - 3
+      - - 0.04
+        - 3
+      - - 0
+        - 5001
+      gpu:
+      - - 0
+        - 1
+      - - 0
+        - 2
+      - - 0
+        - 2
+      - - 0
+        - 5001
+      out: []
+      time: 2.0
+    resource_type: accelerated
+  stateful: false
+  type: normal
+- group:
+  - -1
+  - -1
+  inputs: 1
+  name: vnf_firewall
+  outputs: 1
+  resource_demands:
+  - demand:
+      boundary:
+      - - 0
+        - 9.99999
+      - - 10
+        - 24.99999
+      - - 25
+        - 74.99999
+      - - 75
+        - 1000
+      cpu:
+      - - 0
+        - 1
+      - - 0
+        - 1
+      - - 0
+        - 1
+      - - 0
+        - 5001
+      out:
+      - - 1
+        - 0
+      time: 5
+    resource_type: vm
+  - demand:
+      boundary:
+      - - 0
+        - 9.99999
+      - - 10
+        - 24.99999
+      - - 25
+        - 74.99999
+      - - 75
+        - 1000
+      cpu:
+      - - 0.08
+        - 3
+      - - 0.03
+        - 3
+      - - 0.06
+        - 3
+      - - 0
+        - 5001
+      gpu:
+      - - 0
+        - 2
+      - - 0
+        - 3
+      - - 0
+        - 3
+      - - 0
+        - 5001
+      out:
+      - - 1
+        - 0
+      time: 2.0
+    resource_type: accelerated
+  stateful: false
+  type: normal
+name: sonata-demo-1
+vlinks:
+- dest: vnf_firewall
+  dest_input: 0
+  max_delay: 26
+  src: S
+  src_output: 0
+- dest: vnf_vtc
+  dest_input: 0
+  max_delay: 26
+  src: vnf_firewall
+  src_output: 0

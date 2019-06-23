@@ -1,0 +1,12 @@
+- node: "88"
+  component: "S"
+  data_rate: 1
+- node: "157"
+  component: "S"
+  data_rate: 1
+- node: "199"
+  component: "S"
+  data_rate: 1
+- node: "171"
+  component: "S"
+  data_rate: 1

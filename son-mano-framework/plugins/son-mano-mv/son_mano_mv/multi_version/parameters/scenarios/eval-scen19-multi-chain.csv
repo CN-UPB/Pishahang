@@ -1,0 +1,9 @@
+# scenario: collection of all inputs to the optimization problem (relative file path)
+# order and identifiers (e.g., "network:") are fixed and must not be changed; whitespaces in names are not allowed; neither are inline comments
+
+# substrate network, 1+ templates (separated by whitespace), previous embedding, data sources, fixed instances
+network: ../substrates/eu_20_0_prob
+templates: ../templates/multi-chain-8.yaml
+prev_embedding: 
+sources: ../sources/eval-sources9-eu_20_0.yaml
+fixed: 

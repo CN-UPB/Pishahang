@@ -1,0 +1,11 @@
+- node: "18"
+  component: "S"
+  data_rate: 100
+- node: "0"
+  component: "S"
+  data_rate: 10
+- node: "2"
+  component: "S"
+  data_rate: 10
+
+

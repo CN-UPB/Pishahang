@@ -1,0 +1,12 @@
+- node: "0"
+  component: "S"
+  data_rate: 1
+- node: "49"
+  component: "S"
+  data_rate: 1
+- node: "45"
+  component: "S"
+  data_rate: 1
+- node: "36"
+  component: "S"
+  data_rate: 1

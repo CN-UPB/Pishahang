@@ -1,0 +1,79 @@
+name: "simplechain"
+
+# list of all involved components 
+components:
+  - name: "S"
+    type: "source"
+    stateful: False
+    inputs: 0
+    outputs: 1
+    resource_demands:
+      - resource_type: "vm"
+        demand: 
+          boundary: [[0,5],[6,10],[11,1000]]
+          cpu: [[0,0],[0,0],[0,0]]
+          out: 
+            - [1,0]            
+  - name: "A"
+    type: "normal"
+    stateful: False
+    inputs: 1
+    outputs: 1
+    resource_demands:
+      - resource_type: "vm" 
+        demand:  
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          cpu: [[1,2],[2,4],[0,501]]
+          out: 
+            - [1,0]   
+      - resource_type: "container" 
+        demand:  
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          cpu: [[1,1],[5,5],[0,501]]
+          out: 
+            - [1,0]   
+      - resource_type: "container_gpu"
+        demand:
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          gpu: [[0,8],[0,9],[0,501]]
+          cpu: [[2,5],[9,5],[0,501]]
+          out: 
+            - [1,0]   
+  - name: "B"
+    type: "normal"
+    stateful: False
+    inputs: 1
+    outputs: 0
+    resource_demands:
+      - resource_type: "vm"  
+        demand:
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          cpu: [[1,0],[2,0],[0,501]]
+          out: 
+            - []   
+      - resource_type: "container" 
+        demand:  
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          cpu: [[5,5],[1,2],[0,501]]
+          out: 
+            - []   
+      - resource_type: "container_gpu"
+        demand:
+          boundary: [[0,5.1],[5.2,10.1],[10.2,1000]]
+          gpu: [[0,1],[0,3],[0,501]]
+          cpu: [[2,5],[9,5],[0,501]]
+          out: 
+            - []              
+
+# list of vLinks interconnecting the components (with at least src and dest)
+vlinks:
+  - src: "S"
+    src_output: 0
+    dest: "A"
+    dest_input: 0
+    max_delay: 50
+  - src: "A"
+    src_output: 0
+    dest: "B"
+    dest_input: 0
+    max_delay: 50
