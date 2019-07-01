@@ -1,7 +1,9 @@
 import yaml
 import random
 import logging
+import csv
 from son_mano_mv.multi_version import TemplateSchema as Template
+from son_mano_mv.multi_version import main_auto as main_auto
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -18,7 +20,8 @@ def create_template(payload):
     process_resource_demands()
     process_virtual_links(virtual_links)
     template = create_source_component_dict(descriptor)
-    LOG.info(template)
+    # LOG.info(template)
+    main_auto.main_auto('mip', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
     return template
 
 
@@ -167,6 +170,28 @@ def get_gpu_req_acc():
         k = y
     gpu.append([0, 5001])
     return gpu
+
+
+# Updates the scenario file with the template created
+def update_scenario_file(template_filename):
+    template_filename = 'templates: ../templates/' + template_filename
+    scenario_file = "/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv"
+
+    # read the scenario file.
+    with open(scenario_file, 'r') as csvFile:
+        reader = csv.reader(csvFile)
+        lines = list(reader)
+        found_at = 0
+        for index, line in enumerate(lines):
+            if len(line) == 1 and "templates:" in line[0]:
+                line[0] = template_filename
+                found_at = index
+        lines[found_at][0] = template_filename
+
+    # update the scenario file.
+    with open(scenario_file, 'w') as writeFile:
+        writer = csv.writer(writeFile)
+        writer.writerows(lines)
 
 
 def create_source_component(descriptor):
@@ -335,10 +360,11 @@ def create_source_component_dict(descriptor):
     )
 
     # print("creating template file: " + file_name)
-    # no_alias_dumper = yaml.SafeDumper
-    # no_alias_dumper.ignore_aliases = lambda self, data: True
-    # with open(file_name + '.yaml', 'w') as template_file:
-    #    yaml.dump(template_dict, template_file, default_flow_style=False, Dumper=no_alias_dumper)
+    no_alias_dumper = yaml.SafeDumper
+    no_alias_dumper.ignore_aliases = lambda self, data: True
+    with open("/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/templates/" + file_name + '.yaml', 'w') as template_file:
+        yaml.dump(template_dict, template_file, default_flow_style=False, Dumper=no_alias_dumper)
+    update_scenario_file(file_name + '.yaml')
     return template_dict
 
 

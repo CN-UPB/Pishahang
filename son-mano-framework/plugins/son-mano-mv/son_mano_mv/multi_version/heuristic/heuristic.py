@@ -2,11 +2,11 @@
 import math
 import logging
 from collections import OrderedDict			# for deterministic behavior
-from overlay.edge import Edge
-from overlay.instance import Instance
-from overlay.overlay import Overlay
-import heuristic.control
-import objective
+from son_mano_mv.multi_version.overlay.edge import Edge
+from son_mano_mv.multi_version.overlay.instance import Instance
+from son_mano_mv.multi_version.overlay.overlay import Overlay
+import son_mano_mv.multi_version.heuristic.control
+import son_mano_mv.multi_version.objective
 
 # global variables for easy access by all functions
 nodes, links, shortest_paths, overlays = None, None, None, None

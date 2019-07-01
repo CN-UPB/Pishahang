@@ -19,7 +19,7 @@
 # acknowledge the contributions of their colleagues of the SONATA
 # partner consortium (www.sonata-nfv.eu).
 
-FROM python:3.4-slim
+FROM continuumio/anaconda3
 MAINTAINER SONATA
 
 # define plugin name once
@@ -41,6 +41,13 @@ RUN python setup.py install
 # install actual plugin
 WORKDIR /plugins/${PLUGIN_BASE}
 RUN python setup.py develop
+
+# gurobi
+RUN conda config --add channels http://conda.anaconda.org/gurobi
+RUN conda install gurobi
+RUN pip install geopy
+RUN mkdir /opt/gurobi
+RUN echo TOKENSERVER=license3.uni-paderborn.de > /opt/gurobi/gurobi.lic
 
 CMD ["son-mano-mv"]
 

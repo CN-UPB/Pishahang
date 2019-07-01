@@ -1,12 +1,12 @@
 import math
 import time
 import logging
-import objective
+import son_mano_mv.multi_version.objective
 from collections import defaultdict
-from heuristic import heuristic
-from heuristic import improvement
-from heuristic import shortest_paths as sp
-from overlay.instance import Instance
+from son_mano_mv.multi_version.heuristic import heuristic
+from son_mano_mv.multi_version.heuristic import improvement
+from son_mano_mv.multi_version.heuristic import shortest_paths as sp
+from son_mano_mv.multi_version.overlay.instance import Instance
 
 class HeuristicInfeasible(Exception):
 	pass

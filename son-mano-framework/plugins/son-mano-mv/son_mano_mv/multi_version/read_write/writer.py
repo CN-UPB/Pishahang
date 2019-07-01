@@ -2,7 +2,7 @@ import csv
 from collections import defaultdict
 from datetime import datetime
 from gurobipy import *
-import objective
+import son_mano_mv.multi_version.objective as objective
 import math
 
 # save variable values globally => allows assigning and writing with nice format in separate functions

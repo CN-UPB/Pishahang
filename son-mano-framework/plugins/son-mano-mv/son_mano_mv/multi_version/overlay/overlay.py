@@ -1,6 +1,6 @@
 import copy
-from overlay.instance import Instance
-from overlay.edge import Edge
+from son_mano_mv.multi_version.overlay.instance import Instance
+from son_mano_mv.multi_version.overlay.edge import Edge
 
 
 class Overlay:

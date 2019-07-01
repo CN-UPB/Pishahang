@@ -3,14 +3,14 @@ import yaml
 import random
 from collections import defaultdict
 from gurobipy import *
-import template.adapter as adapter
-from fixed.source import Source
-from fixed.fixed_instance import FixedInstance
-from network.links import Links
-from network.nodes import Nodes
-from template.arc import Arc
-from template.component import Component
-from template.template import Template
+import son_mano_mv.multi_version.template.adapter as adapter
+from son_mano_mv.multi_version.fixed.source import Source
+from son_mano_mv.multi_version.fixed.fixed_instance import FixedInstance
+from son_mano_mv.multi_version.network.links import Links
+from son_mano_mv.multi_version.network.nodes import Nodes
+from son_mano_mv.multi_version.template.arc import Arc
+from son_mano_mv.multi_version.template.component import Component
+from son_mano_mv.multi_version.template.template import Template
 import networkx as nx
 import matplotlib.pyplot as plt
 from geopy.distance import vincenty

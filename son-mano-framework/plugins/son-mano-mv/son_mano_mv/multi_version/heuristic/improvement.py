@@ -1,8 +1,8 @@
 import copy
 import random
 import logging
-from heuristic import control
-from heuristic import heuristic
+from son_mano_mv.multi_version.heuristic import control
+from son_mano_mv.multi_version.heuristic import heuristic
 
 
 nodes, links, shortest_paths, overlays = None, None, None, None

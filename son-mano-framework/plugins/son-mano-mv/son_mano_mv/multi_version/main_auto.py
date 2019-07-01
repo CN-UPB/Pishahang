@@ -5,43 +5,50 @@ import sys
 import logging
 from datetime import datetime
 import os
-import read_write.reader as reader
-import read_write.writer as writer
+import son_mano_mv.multi_version.read_write.reader as reader
+import son_mano_mv.multi_version.read_write.writer as writer
 import math
+import logging
 # from mip import tep
 # from mip import tep_mulv
 # from mip import tep_mulv_proctime
-from mip import tep_mulv_lex
-from heuristic import control
-import objective
+from son_mano_mv.multi_version.mip import tep_mulv_lex
+from son_mano_mv.multi_version.heuristic import control
+import son_mano_mv.multi_version.objective as objective
 import networkx as nx
 import matplotlib.pyplot as plt
 from time import sleep
 
-# set objective for MIP and heuristic
-# obj = objective.COMBINED
-# obj = objective.TIME
-# obj = objective.COST
-obj = objective.TIMECOST
+logging.basicConfig(level=logging.INFO)
+LOG = logging.getLogger("plugin:mv")
+LOG.setLevel(logging.INFO)
 
-#data_rate_range = range(15,101,2)
-data_rate_range = range(23,24)
-# data_rate_range = range(1,101,2)
+def main_auto(_method, _scenario):
+    LOG.info('Calling main_auto')
+    # set objective for MIP and heuristic
+    # obj = objective.COMBINED
+    # obj = objective.TIME
+    # obj = objective.COST
+    obj = objective.TIMECOST
 
-seed = 1
+    #data_rate_range = range(15,101,2)
+    data_rate_range = range(23, 24)
+    # data_rate_range = range(1,101,2)
 
-for data_rate_parameter in data_rate_range:
-    sleep(1)
-    random.seed(seed)
+    seed = 1
+
+    for data_rate_parameter in data_rate_range:
+        sleep(1)
+        random.seed(seed)
 
     # read scenario input
-    if len(sys.argv) < 3:
-        print("MIP usage: python3 main.py mip <scenario>")
-        print("Heuristic usage: python3 main.py heuristic <scenario>")
-        print("Pareto usage: python3 main.py pareto <scenario> <objective> <bound1> <bound2> <bound3>")
-        exit(1)
-    method = sys.argv[1]
-    scenario = sys.argv[2]
+    # if len(sys.argv) < 3:
+    #     print("MIP usage: python3 main.py mip <scenario>")
+    #     print("Heuristic usage: python3 main.py heuristic <scenario>")
+    #     print("Pareto usage: python3 main.py pareto <scenario> <objective> <bound1> <bound2> <bound3>")
+    #     exit(1)
+    method = _method
+    scenario = _scenario
     # nodes, links, templates, sources, fixed, prev_embedding, events = reader.read_scenario(scenario)
     nodes, links, templates, sources, fixed, prev_embedding, events = reader.read_scenario(scenario)
 
@@ -94,12 +101,12 @@ for data_rate_parameter in data_rate_range:
     # solve with heuristic
     elif method == "heuristic":
         # use specified or random seed
-        if len(sys.argv) >= 4:
-            seed = int(sys.argv[3])
-            seed_subfolder = True       # put result in sub-folder of the chosen seed
-        else:
-            seed = random.randint(0, 9999)
-            seed_subfolder = False
+        # if len(sys.argv) >= 4:
+        #     seed = int(sys.argv[3])
+        #     seed_subfolder = True       # put result in sub-folder of the chosen seed
+        # else:
+        seed = random.randint(0, 9999)
+        seed_subfolder = False
         random.seed(seed)
         print("Using seed {}".format(seed))
 
