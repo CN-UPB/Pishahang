@@ -1,0 +1,15 @@
+{
+  "descriptor_version": "1.0",
+  "vendor": "eu.sonata-nfv.service-descriptor",
+  "name": "hello-web",
+  "version": "0.2",
+  "author": "Tobias Dierich",
+  "cloud_services": [
+    {
+      "service_id": "hello-web",
+      "service_vendor": "eu.sonata-nfv.cloud-service-descriptor",
+      "service_name": "hello-web",
+      "service_version": "0.2"
+    }
+  ]
+}
