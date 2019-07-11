@@ -5,10 +5,15 @@ technologies to provide orchestration for services deployed across multiple tech
 
 ## Useful Links
 
-* Paper: H. R. Kouchaksaraei, T. Dierich, H. Karl: [Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications.](https://ieeexplore.ieee.org/document/8460134)In IEEE 4th Conference on Network Softwarization (NetSoft), Montreal, Canada.
+### Papers: 
+* H. R. Kouchaksaraei, T. Dierich and H. Karl, [Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8460134&isnumber=8458492), 2018 4th IEEE Conference on Network Softwarization and Workshops (NetSoft), Montreal, QC, 2018, pp. 344-346. DOI: 10.1109/NETSOFT.2018.8460134
 
-* 1st Demo Video: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
-* 2nd Demo Video (service chaining support): https://www.youtube.com/watch?v=ceebA-BaoyM
+* H. R. Kouchaksaraei and H. Karl. 2019. [Service Function Chaining Across OpenStack and Kubernetes Domains](https://dl.acm.org/citation.cfm?id=3332505). In Proceedings of the 13th ACM International Conference on Distributed and Event-based Systems (DEBS '19). ACM, New York, NY, USA, 240-243. DOI: https://doi.org/10.1145/3328905.3332505
+
+### Demo videos:
+* Service deployment: https://www.youtube.com/watch?v=vd0vaP8jfNs&t=4s
+
+* Service chaining support: https://www.youtube.com/watch?v=zCci3-2gU44&t=22s
 
 ## Usage
 
