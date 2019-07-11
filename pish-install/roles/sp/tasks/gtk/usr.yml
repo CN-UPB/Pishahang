@@ -7,7 +7,7 @@
     state: started
     env:
       KEYCLOAK_ADDRESS: son-keycloak
-      KEYCLOAK_PORT: 5601
+      KEYCLOAK_PORT: "5601"
       KEYCLOAK_PATH: auth
       SONATA_REALM: sonata
       CLIENT_NAME: adapter 
