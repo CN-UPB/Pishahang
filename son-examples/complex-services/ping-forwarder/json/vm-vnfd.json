@@ -1,0 +1,36 @@
+{
+  "descriptor_version": "vnfd-schema-01",
+  "description": "ICMP ping request forwarder; VM-based VNF",
+  "name": "forwarder-vm-vnf",
+  "vendor": "eu.sonata-nfv.vnf-descriptor",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "virtual_deployment_units": [
+    {
+      "id": "vm-forwarder",
+      "description": "ICMP ping request forwarder",
+      "vm_image": "http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img",
+      "vm_image_format": "qcow2",
+      "resource_requirements": {
+        "cpu": {
+          "vcpus": 1
+        },
+        "memory": {
+          "size": 1,
+          "size_unit": "GB"
+        },
+        "storage": {
+          "size": 10,
+          "size_unit": "GB"
+        }
+      },
+      "connection_points": [
+        {
+          "id": "eth0",
+          "interface": "ipv4",
+          "type": "external"
+        }
+      ]
+    }
+  ]
+}
