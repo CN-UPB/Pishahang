@@ -24,7 +24,7 @@ Please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) wikipage for in
 
 This section will give a step-by-step guide how to deploy a service using the service platform.
 
-##### Connect OpenStack and Kubernetes to SONATA
+##### Connect OpenStack and Kubernetes to Pishahang
 
 This step assumes that you have connected to your Kubernetes cluster before using the *kubectl* command line tool.
 
