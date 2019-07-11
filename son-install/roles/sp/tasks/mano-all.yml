@@ -10,3 +10,4 @@
 - include: mano/placement.yml
 - include: mano/placementplugin.yml
 - include: mano/clm.yml
+- include: mano/sdn.yml

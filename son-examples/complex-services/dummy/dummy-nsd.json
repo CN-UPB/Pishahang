@@ -1,0 +1,16 @@
+{
+  "descriptor_version": "1.0",
+  "vendor": "eu.sonata-nfv.service-descriptor",
+  "name": "dummy-service",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "description": "A dummy Example.",
+  "network_functions": [
+    {
+      "vnf_id": "dummy-vnf",
+      "vnf_vendor": "eu.sonata-nfv.vnf-descriptor",
+      "vnf_name": "dummy-vnf",
+      "vnf_version": "1.0"
+    }
+  ]
+}

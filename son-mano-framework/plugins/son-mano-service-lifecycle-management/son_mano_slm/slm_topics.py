@@ -75,6 +75,9 @@ SRM_UPDATE = 'specific.manager.registry.ssm.update'
 SSM_TERM = 'specific.manager.registry.ssm.terminate'
 FSM_TERM = 'specific.manager.registry.fsm.terminate'
 
+# with sdn plugin
+MANO_CHAIN_DPLOY = 'chain.dploy.sdnplugin'
+
 # With Executive
 EXEC_PLACE = 'placement.executive.request'
 
@@ -84,6 +87,9 @@ PL_STATUS = "platform.management.plugin.status"
 # With monitoring
 MON_RECEIVE = "son.monitoring"
 FROM_MON_SSM = "monitor.ssm."
+
+# With sdn plugin
+SDN_CHAIN_DPLOY = "chain.dploy.sdnplugin"
 
 # REST APIs
 temp = os.environ.get("url_gk_api")

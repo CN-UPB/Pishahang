@@ -481,7 +481,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('vnf_deploy')
         add_schedule.append('vnfs_start')
         add_schedule.append('cs_deploy')
-        add_schedule.append('vnf_chain')
+        #add_schedule.append('vnf_chain')
         add_schedule.append('store_nsr')
         add_schedule.append('wan_configure')
         add_schedule.append('start_monitoring')
@@ -496,6 +496,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         return self.services[serv_id]['schedule']
 
+    def sdn_chain_response(self, serv_id):
+        
+        pass
+        
     def service_instance_pause(self, ch, method, prop, payload):
 
         pass
@@ -1718,10 +1722,24 @@ class ServiceLifecycleManager(ManoBasePlugin):
         This method instructs the IA how to chain the functions together.
         """
 
-        # We're gonna skip chaining for now if we're handling a complex service.
-        # TODO: Implement chaining for complex services
         if 'cosd' in self.services[serv_id]['service']:
             return
+
+        if 'vnfd' in self.services[serv_id]['service']:
+            return
+
+        # COSD chaining requires IPs to be sent to the SDN-Plugin
+        """if 'cosd' in self.services[serv_id]['service']:
+            corr_id = str(uuid.uuid4())
+            self.services[serv_id]['act_corr_id'] = corr_id
+
+            chaining_ips = self.services[serv_id]['connection_points']
+
+            self.manoconn.call_async(self.sdn_chain_response,
+                                 t.MANO_CHAIN_DPLOY,
+                                 yaml.dump(chaining_ips),
+                                 correlation_id=corr_id)"""
+            
 
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
@@ -1754,9 +1772,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
             chain['nap']['egresses'] = self.services[serv_id]['egress']
             nap_empty = False
 
-        # Check if `nap` is empty
-        if nap_empty:
-            chain.pop('nap')
+            # Check if `nap` is empty
+            if nap_empty:
+                chain.pop('nap')
 
         LOG.info(str(yaml.dump(chain)))
         self.manoconn.call_async(self.IA_chain_response,
@@ -2119,26 +2137,61 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        message = {}
-        message['service_instance_id'] = serv_id
+        chain = {}
+        chain["service_instance_id"] = serv_id
+        try:
+            chain["cosd"] = self.services[serv_id]['service']['cosd']
+        except:
+            chain["nsd"] = self.services[serv_id]['service']['nsd']
+
+        vnfrs = []
+        vnfds = []
+        csds = []
+        csrs = []
+
+        for function in self.services[serv_id]['function']:
+            vnfrs.append(function['vnfr'])
+            vnfd = function['vnfd']
+            vnfd['instance_uuid'] = function['id']
+            vnfds.append(vnfd)
+
+        for cloud_service in self.services[serv_id]['cloud_service']:
+            csrs.append(cloud_service['csr'])
+            csd = cloud_service['csd']
+            csd['instance_uuid'] = cloud_service['id']
+            csds.append(csd)
+
+        chain['vnfrs'] = vnfrs
+        chain['vnfds'] = vnfds
+        chain['csds'] = csds
+        chain['csrs'] = csrs
+
+        #message = {}
+        #message['service_instance_id'] = serv_id
 
         # Add egress and ingress fields
-        message['nap'] = {}
-        nap_empty = True
+        chain['nap'] = {}
+        #nap_empty = True
 
         if self.services[serv_id]['ingress'] is not None:
-            message['nap']['ingresses'] = self.services[serv_id]['ingress']
+            chain['nap']['ingresses'] = self.services[serv_id]['ingress']
             nap_empty = False
         if self.services[serv_id]['egress'] is not None:
-            message['nap']['egresses'] = self.services[serv_id]['egress']
+            chain['nap']['egresses'] = self.services[serv_id]['egress']
             nap_empty = False
 
-        # Check if `nap` is empty
-        if nap_empty:
-            message.pop('nap')
+        ## Check if `nap` is empty
+        #if nap_empty:
+        #    chain.pop('nap')
+        #else:
+        #    chain['nap']= message['nap']
+
+        if chain:
+            self.manoconn.call_async(self.wan_configure_response, t.MANO_CHAIN_DPLOY, yaml.dump(chain),correlation_id=corr_id)
+
 
         # Create ordered vim_list
-        ordered_vim = []
+        """ordered_vim = []
         calc_list = self.services[serv_id]['service']['ordered_vim_list']
         for vim in calc_list:
             ordered_vim.append({'uuid': vim, 'order': calc_list.index(vim)})
@@ -2148,7 +2201,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.manoconn.call_async(self.wan_configure_response,
                                  t.IA_CONF_WAN,
                                  yaml.dump(message),
-                                 correlation_id=corr_id)
+                                 correlation_id=corr_id)"""
 
         # # Pause the chain of tasks to wait for response
         self.services[serv_id]['pause_chain'] = True

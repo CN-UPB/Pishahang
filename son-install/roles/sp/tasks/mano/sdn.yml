@@ -1,20 +1,24 @@
 ---
 
-- name: MANO Service Life-cycle Management (SLM) (Docker container)
+- name: MANO SDN (Docker container)
   docker_container:
-    name: servicelifecyclemanagement
-    image: "pishahang/servicelifecyclemanagement"
+    name: sdn-plugin
+    image: "pishahang/sdn-controller"
     env:
       url_gk_api: "http://son-gtkapi:5000/api/v2/"
       url_nsr_repository: "http://son-catalogue-repos:4011/records/nsr/"
       url_vnfr_repository: "http://son-catalogue-repos:4011/records/vnfr/"
       url_monitoring_server: http://son-monitor-manager:8000/api/v1/
       broker_host: amqp://guest:guest@son-broker:5672/%2F
+      repo_host: "son-postgres"
+      repo_port: "5432"
+      repo_user: "{{ ia_repo_user }}"
+      repo_pass: "{{ ia_repo_pass }}"
     network_mode: bridge
     networks:
       - name: "{{ docker_network_name }}"
         aliases:
-          - servicelifecyclemanagement
+          - sdn-plugin
         links:
           - son-broker
     restart_policy: "always"
