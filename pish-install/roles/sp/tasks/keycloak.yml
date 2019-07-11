@@ -9,9 +9,9 @@
       #Default: KEYCLOAK_USER: admin KEYCLOAK_PASSWORD: admin
       KEYCLOAK_USER: "{{ gtk_keycloak_user }}" 
       KEYCLOAK_PASSWORD: "{{ gtk_keycloak_pass }}"
-      SONATA_USER: "sonata"
+      SONATA_USER: "pishahang"
       SONATA_PASSWORD: "1234"
-      SONATA_EMAIL: "sonatanfv@gmail.com"
+      SONATA_EMAIL: "pishahang@gmail.com"
     state: started
     network_mode: bridge
     networks:
