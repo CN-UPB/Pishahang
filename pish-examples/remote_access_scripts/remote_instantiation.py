@@ -15,10 +15,10 @@ import threading
 import time
 
 # the following 4 variables need to be populated with the right values
-USERNAME = "pishahang" # "USER"
-PASSWORD = "1234" #"PASS"
-HOST_URL = "131.234.29.71" #"HOST"
-NS_UUID  = "2f2a7f33-e654-40fa-acbe-50fe80da0043" # "UUID"
+USERNAME = "USER"
+PASSWORD = "PASS"
+HOST_URL = "HOST"
+NS_UUID  = "UUID"
 
 pishahang = wrappers.SONATAClient.Auth(HOST_URL)
 pishahang_nsd = wrappers.SONATAClient.Nsd(HOST_URL)
@@ -55,7 +55,7 @@ while counter < timeout:
         print ("Error in request status chaeking!")
         break
 
-    # checking if the instantion was successful
+    # checking if the instantiation was successful
     if request["status"] == "ERROR":
         print ("Error in service instantiation")
         break
@@ -63,7 +63,7 @@ while counter < timeout:
         print (request["status"] + " : Service has been successfully instantiated!")
         break
 
-    # printing  the current status and sleep
+    # printing the current status and sleep
     print (request["status"] + "...")
     time.sleep(sleep_interval)
     counter += sleep_interval
