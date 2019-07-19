@@ -1,5 +1,4 @@
 """
-
 A python script that can be used to instantiate a service in Pishahang remotely.
 
 Requirements:
@@ -15,10 +14,11 @@ import json
 import threading
 import time
 
-USERNAME = "Pishahang"#"USER"
-PASSWORD = "1234"#"PASS"
-HOST_URL = "131.234.29.71"#"HOST"
-NS_UUID  = "2f2a7f33-e654-40fa-acbe-50fe80da0043" #"UUID"
+# the following 4 variables need to be populated with the right values
+USERNAME = "USER"
+PASSWORD = "PASS"
+HOST_URL = "HOST"
+NS_UUID  = "UUID"
 
 pishahang = wrappers.SONATAClient.Auth(HOST_URL)
 pishahang_nsd = wrappers.SONATAClient.Nsd(HOST_URL)
