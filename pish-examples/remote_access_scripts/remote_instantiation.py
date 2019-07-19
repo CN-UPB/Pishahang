@@ -65,7 +65,7 @@ while counter < timeout:
 
     # printing  the current status and sleep
     print (request["status"] + "...")
-    time.sleep(2)
+    time.sleep(sleep_interval)
     counter += sleep_interval
 
 if counter > timeout:
