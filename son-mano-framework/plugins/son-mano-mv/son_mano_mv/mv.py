@@ -213,32 +213,56 @@ class MVPlugin(ManoBasePlugin):
 
         as_vm, as_container, as_accelerated = []
         as_vm, as_container, as_accelerated = self.get_components_as(result_file)
+        vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
 
         mapping = {}
 
         for function in functions:
             vnfd = function['vnfd']
             vdu = vnfd['virtual_deployment_units']
+            vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
             needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
             needed_mem = vdu[0]['resource_requirements']['memory']['size']
             needed_sto = vdu[0]['resource_requirements']['storage']['size']
 
             for vim in topology:
                 if vim['vim_type'] == 'Kubernetes':
-                    continue
-                if vim['vim_type'] == 'Heat':
-                    cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                    mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                    for as_container_function in as_container:
+                        if vnf_id in as_container_function:
+                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
 
-                    if cpu_req and mem_req:
-                        mapping[function['id']] = {}
-                        mapping[function['id']]['vim'] = vim['vim_uuid']
-                        vim['core_used'] = vim['core_used'] + needed_cpu
-                        vim['memory_used'] = vim['memory_used'] + needed_mem
-                        break
-                    continue
+                            if cpu_req and mem_req:
+                                mapping[function['id']] = {}
+                                mapping[function['id']]['vim'] = vim['vim_uuid']
+                                vim['core_used'] = vim['core_used'] + needed_cpu
+                                vim['memory_used'] = vim['memory_used'] + needed_mem
+                                break
+                if vim['vim_type'] == 'Heat':
+                    for as_vm_function in as_vm:
+                        if vnf_id in as_vm_function:
+                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+
+                            if cpu_req and mem_req:
+                                mapping[function['id']] = {}
+                                mapping[function['id']]['vim'] = vim['vim_uuid']
+                                vim['core_used'] = vim['core_used'] + needed_cpu
+                                vim['memory_used'] = vim['memory_used'] + needed_mem
+                                break
+
                 if vim['vim_type'] == 'Accelerated':
-                    continue
+                    for as_accelerated_function in as_accelerated:
+                        if vnf_id in as_accelerated_function:
+                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+
+                            if cpu_req and mem_req:
+                                mapping[function['id']] = {}
+                                mapping[function['id']]['vim'] = vim['vim_uuid']
+                                vim['core_used'] = vim['core_used'] + needed_cpu
+                                vim['memory_used'] = vim['memory_used'] + needed_mem
+                                break
 
         for cloud_service in cloud_services:
             csd = cloud_service['csd']

@@ -367,6 +367,20 @@ def create_source_component_dict(descriptor):
     return template_dict
 
 
+def get_name_id_mapping(descriptor):
+    name_id_mapping = []
+    virtual_functions = descriptor['network_functions']
+    for virtual_function in virtual_functions:
+        name_id = [virtual_function['vnf_name'], virtual_function['vnf_id']]
+        name_id_mapping.append(name_id)
+    return name_id_mapping
+
+
+def get_function_id(function_name, name_id_mapping):
+    for name_id in name_id_mapping:
+        if function_name == name_id[0]:
+            return name_id[1]
+
 # create_template()
 
 
