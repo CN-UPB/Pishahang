@@ -34,6 +34,7 @@ import sys
 import concurrent.futures as pool
 # from multi_version import CreateTemplate
 from son_mano_mv.multi_version import CreateTemplate
+from son_mano_mv.multi_version.read_write.reader import reader
 
 # import psutil
 
@@ -128,6 +129,48 @@ class MVPlugin(ManoBasePlugin):
         super(self.__class__, self).on_registration_ok()
         LOG.debug("Received registration ok event.")
 
+    def get_components_as(result_file):
+        as_vm = []
+        as_container = []
+        as_accelerated = []
+        with open(result_file, "r") as result:
+            with open(result_file, "r") as temp:
+                reader = csv.reader(result, delimiter=" ")
+                data = [row for row in temp]
+                i = 0
+                for row in reader:
+                    i = i + 1
+                    if len(row) is not 0 and row[0] == '#':
+                        row = reader.remove_empty_values(row)  # deal with multiple spaces in a row leading to empty values
+                        if row[1] == 'as_vm:':
+                            vm_i = i
+                            while True:
+                                if data[vm_i] == "" or data[vm_i] == '\n':
+                                    # print("breaking out of loop")
+                                    break
+                                if data[vm_i] != "":
+                                    as_vm.append(data[vm_i])
+                                vm_i += 1
+
+                        if row[1] == 'as_container:':
+                            container_i = i
+                            while True:
+                                if data[container_i] == "" or data[container_i] == '\n':
+                                    break
+                                if data[container_i] != "":
+                                    as_container.append(data[container_i])
+                                container_i += 1
+                        if row[1] == 'as_accelerated:':
+                            accelerated_i = i
+                            while True:
+                                if data[accelerated_i] == "" or data[accelerated_i] == '\n':
+                                    # print("breaking out of loop")
+                                    break
+                                if data[accelerated_i] != "":
+                                    as_accelerated.append(data[accelerated_i])
+                                accelerated_i += 1
+        return as_vm, as_container, as_accelerated
+
 ##########################
 # Placement
 ##########################
@@ -141,7 +184,7 @@ class MVPlugin(ManoBasePlugin):
             return
 
         content = yaml.load(payload)
-        template = CreateTemplate.create_template(content)
+        result_file = CreateTemplate.create_template(content)
 
         LOG.info("MV request for service: " + content['serv_id'])
         topology = content['topology']
@@ -149,7 +192,7 @@ class MVPlugin(ManoBasePlugin):
         functions = content['functions'] if 'functions' in content else []
         cloud_services = content['cloud_services'] if 'cloud_services' in content else []
 
-        placement = self.placement(descriptor, functions, cloud_services, topology)
+        placement = self.placement(descriptor, functions, cloud_services, topology, result_file)
 
         response = {'mapping': placement}
         topic = 'mano.service.place'
@@ -161,12 +204,15 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV response sent for service: " + content['serv_id'])
         LOG.info(response)
 
-    def placement(self, descriptor, functions, cloud_services, topology):
+    def placement(self, descriptor, functions, cloud_services, topology, result_file):
         """
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
         """
         LOG.info("MV Embedding started on following topology: " + str(topology))
+
+        as_vm, as_container, as_accelerated = []
+        as_vm, as_container, as_accelerated = self.get_components_as(result_file)
 
         mapping = {}
 
@@ -180,15 +226,19 @@ class MVPlugin(ManoBasePlugin):
             for vim in topology:
                 if vim['vim_type'] == 'Kubernetes':
                     continue
-                cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                if vim['vim_type'] == 'Heat':
+                    cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                    mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
 
-                if cpu_req and mem_req:
-                    mapping[function['id']] = {}
-                    mapping[function['id']]['vim'] = vim['vim_uuid']
-                    vim['core_used'] = vim['core_used'] + needed_cpu
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
-                    break
+                    if cpu_req and mem_req:
+                        mapping[function['id']] = {}
+                        mapping[function['id']]['vim'] = vim['vim_uuid']
+                        vim['core_used'] = vim['core_used'] + needed_cpu
+                        vim['memory_used'] = vim['memory_used'] + needed_mem
+                        break
+                    continue
+                if vim['vim_type'] == 'Accelerated':
+                    continue
 
         for cloud_service in cloud_services:
             csd = cloud_service['csd']

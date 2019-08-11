@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
 LOG.setLevel(logging.INFO)
 
+
 def main_auto(_method, _scenario):
     LOG.info('Calling main_auto')
     # set objective for MIP and heuristic
@@ -30,6 +31,7 @@ def main_auto(_method, _scenario):
     # obj = objective.TIME
     # obj = objective.COST
     obj = objective.TIMECOST
+    result_file = ""
 
     #data_rate_range = range(15,101,2)
     data_rate_range = range(23, 24)
@@ -122,7 +124,7 @@ def main_auto(_method, _scenario):
 
             print("Initial embedding\n")
             init_time, runtime, obj_value, changed, overlays = control.solve(nodes, links, templates, {}, sources, fixed, obj)
-            writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, -1, "Initial embedding", nodes, links, seed, seed_subfolder, sources)
+            result_file = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, -1, "Initial embedding", nodes, links, seed, seed_subfolder, sources)
 
             # if events exists, update input accordingly and solve again for each event until last event is reached
             event_no = 0
@@ -133,10 +135,10 @@ def main_auto(_method, _scenario):
 
                 new_no, event, templates, sources, fixed = reader.read_event(events, event_no, templates, sources, fixed)
                 init_time, runtime, obj_value, changed, overlays = control.solve(nodes, links, templates, overlays, sources, fixed, obj)
-                writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, event_no, event, nodes, links, seed, seed_subfolder, sources)
+                result_file = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, event_no, event, nodes, links, seed, seed_subfolder, sources)
                 event_no = new_no
-
 
         # invalid method
         else:
             print("Invalid solving method: {}. Use 'mip' or 'heuristic'".format(method))
+    return result_file
