@@ -20,7 +20,7 @@ def create_template(payload):
     process_resource_demands()
     process_virtual_links(virtual_links)
     template = create_source_component_dict(descriptor)
-    result_file = main_auto.main_auto('mip', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
+    result_file = main_auto.main_auto('heuristic', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
     return result_file
 
 
