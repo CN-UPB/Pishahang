@@ -5,5 +5,5 @@
 network: ../substrates/eu_20_0_prob
 templates: ../templates/sonata-demo-1.yaml
 prev_embedding: 
-sources: ../sources/eval-sources-eu_20_0.yaml
+sources: ../sources/eval-sources5-eu_20_0.yaml
 fixed: 

@@ -31,10 +31,10 @@ import uuid
 import json
 import threading
 import sys
+import csv
 import concurrent.futures as pool
 # from multi_version import CreateTemplate
 from son_mano_mv.multi_version import CreateTemplate
-from son_mano_mv.multi_version.read_write.reader import reader
 
 # import psutil
 
@@ -128,8 +128,16 @@ class MVPlugin(ManoBasePlugin):
         """
         super(self.__class__, self).on_registration_ok()
         LOG.debug("Received registration ok event.")
+    
+    # remove empty values (from multiple delimiters in a row)
+    def remove_empty_values(self, line):
+        result = []
+        for i in range(len(line)):
+            if line[i] != "":
+                result.append(line[i])
+        return result
 
-    def get_components_as(result_file):
+    def get_components_as(self, result_file):
         as_vm = []
         as_container = []
         as_accelerated = []
@@ -141,7 +149,7 @@ class MVPlugin(ManoBasePlugin):
                 for row in reader:
                     i = i + 1
                     if len(row) is not 0 and row[0] == '#':
-                        row = reader.remove_empty_values(row)  # deal with multiple spaces in a row leading to empty values
+                        row = self.remove_empty_values(row)  # deal with multiple spaces in a row leading to empty values
                         if row[1] == 'as_vm:':
                             vm_i = i
                             while True:
@@ -211,7 +219,6 @@ class MVPlugin(ManoBasePlugin):
         """
         LOG.info("MV Embedding started on following topology: " + str(topology))
 
-        as_vm, as_container, as_accelerated = []
         as_vm, as_container, as_accelerated = self.get_components_as(result_file)
         vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
 
