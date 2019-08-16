@@ -128,9 +128,13 @@ class MVPlugin(ManoBasePlugin):
         """
         super(self.__class__, self).on_registration_ok()
         LOG.debug("Received registration ok event.")
-    
-    # remove empty values (from multiple delimiters in a row)
+
     def remove_empty_values(self, line):
+        """
+        remove empty values (from multiple delimiters in a row)
+        :param line: Receives the Line
+        :return: sends back after removing the empty value
+        """
         result = []
         for i in range(len(line)):
             if line[i] != "":
@@ -138,6 +142,13 @@ class MVPlugin(ManoBasePlugin):
         return result
 
     def get_components_as(self, result_file):
+        """
+        This method processes the generated result file and pulls out as_vm, as_container and as_accelerated component
+        from the file. To extract the components mentioned above, this method extracts all lines between #as_vm and an
+        empty line. Similarly for #as_container and #as_accelerated.
+        :param result_file: path of the result file generated.
+        :return: returns as_vm, as_container and as_accelerated arrays with function_id as element.
+        """
         as_vm = []
         as_container = []
         as_accelerated = []
@@ -192,6 +203,7 @@ class MVPlugin(ManoBasePlugin):
             return
 
         content = yaml.load(payload)
+        #  calls create_template to create the template from the payload and returns created result file.
         result_file = CreateTemplate.create_template(content)
 
         LOG.info("MV request for service: " + content['serv_id'])

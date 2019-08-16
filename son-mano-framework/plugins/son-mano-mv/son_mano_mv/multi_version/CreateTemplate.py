@@ -11,6 +11,11 @@ LOG.setLevel(logging.INFO)
 
 
 def create_template(payload):
+    """
+    Extracts descriptor, functions, virtual links from the payload and applies different utility functions on the payload.
+    :param payload: receives payload information from the multi version plugin
+    :return: generated result file path
+    """
     content = payload
     descriptor = content['nsd'] if 'nsd' in content else content['cosd']
     functions = content['functions']
@@ -20,6 +25,11 @@ def create_template(payload):
     process_resource_demands()
     process_virtual_links(virtual_links)
     template = create_source_component_dict(descriptor)
+    '''
+    Calls main_auto method and returns path of the result file generated.
+    @argument1: 'heuristic' runs heuristic algorithm on the template created to produce the results
+    @argument2: Path to the scenario file containing path of template, source and other required files.
+    '''
     result_file = main_auto.main_auto('heuristic', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
     return result_file
 
@@ -35,6 +45,12 @@ def create_template(payload):
 
 
 def pull_component_set(descriptor, functions):
+    """
+    Creates list of Components from the descriptor.
+    :param descriptor: contains the descriptor of the network service.
+    :param functions: contains list of virtual functions
+    :return:
+    """
     # print(functions[0]['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu'])
     for network_function in descriptor['network_functions']:
         component_name = network_function['vnf_name']
@@ -66,12 +82,21 @@ def process_inputs_outputs(virtual_links):
 
 
 def process_resource_demands():
+    """
+    sets the resource demand in the components of the template.
+    """
     for component in Template.components:
         component.resource_demands = process_demand(component)
         # demand = process_demand(resource_demand_vm)
 
 
 def process_demand(component):
+    """
+    Creates demands for the component (resource demand, demand_vm, demand_accelerated, time, etc.) Considers dummy data
+    rate intervals.
+    :param component: Component for which resource demand needs to be generated.
+    :return: resource demands with all its properties set.
+    """
     resource_demand = []
     demand_vm = []
     demand_accelerated = []
@@ -95,7 +120,7 @@ def process_demand(component):
         output = [(1 - total), 0]
         outputs.append(output)
     # VM
-    time = random_number
+    time = random_number  # Change it to 5 to get as_accelerated component in the result file
     cpu = get_cpu_req_vm(component.cpu_req)
     demand = Template.Demand(boundary, cpu, [], outputs, time)
     demand_vm.append(demand)
@@ -103,7 +128,7 @@ def process_demand(component):
     resource_demand.append(resource_demand_vm)
 
     # Accelerated
-    time = random_number / 2.5
+    time = random_number / 2.5  # Change it to 0.25 to get as_accelerated component in the result file
     cpu = get_cpu_req_acc()
     gpu = get_gpu_req_acc()
     demand = Template.Demand(boundary, cpu, gpu, outputs, time)
@@ -115,11 +140,16 @@ def process_demand(component):
 
 
 def process_virtual_links(virtual_links):
+    """
+    Creates objects of Virtual Links from the descriptor for the template.
+    :param virtual_links: list of Virtual Links
+    :return: Does not return anything.
+    """
     links = []
     for virtual_link in virtual_links:
         if virtual_link['connectivity_type'] == 'E-Line':
             links.append(virtual_link['connection_points_reference'])
-    max_delay = random.randint(1, 100)
+    max_delay = random.randint(1, 100)  # Considers some randomly generated dummy number for max delay.
     for virtual_link in links:
         if virtual_link[0] == 'input' or virtual_link[1] == 'input':
             if virtual_link[0] == 'input':
@@ -140,6 +170,12 @@ def process_virtual_links(virtual_links):
 
 
 def get_cpu_req_vm(cpu_req):
+    """
+    Generates random array of CPU requirements for data rate intervals.
+    :param cpu_req: number of cpu required by the virtual function
+    :return: List of number of CPUs required (First element represents minimum CPU requirement, second element represents
+    maximum CPU requirement. Example: [1,3] for data rate [10, 24.99999]
+    """
     cpu = []
     for i in range(3):
         cpu.append([0, cpu_req])
@@ -148,6 +184,11 @@ def get_cpu_req_vm(cpu_req):
 
 
 def get_cpu_req_acc():
+    """
+    Generates random array of CPU requirements for data rate intervals for Accelerated version of resource.
+    :return: List of number of CPUs required (First element represents minimum CPU requirement, second element represents
+    maximum CPU requirement. Example: [1,3] for data rate [10, 24.99999]
+    """
     cpu = []
     k = 1
     for i in range(3):
@@ -160,6 +201,11 @@ def get_cpu_req_acc():
 
 
 def get_gpu_req_acc():
+    """
+    Generates random GPU requirements for data rate intervals.
+    :return: List of number of GPUs required (First element represents minimum GPU requirement, second element represents
+    maximum GPU requirement. Example: [1,3] for data rate [10, 24.99999]
+    """
     gpu = []
     k = 1
     for i in range(3):
@@ -171,8 +217,12 @@ def get_gpu_req_acc():
     return gpu
 
 
-# Updates the scenario file with the template created
 def update_scenario_file(template_filename):
+    """
+    Updates the scenario file with the name of newly created template file name.
+    :param template_filename: name of the template file created.
+    :return: Does not return anything, just updates the file.
+    """
     template_filename = 'templates: ../templates/' + template_filename
     scenario_file = "/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv"
 
@@ -193,101 +243,22 @@ def update_scenario_file(template_filename):
         writer.writerows(lines)
 
 
-def create_source_component(descriptor):
-    # print(descriptor['name'])
-    file_name = descriptor['name']
-
-    template_data = {}
-    template_data['name'] = file_name
-
-    demand = {}
-    demand['demand'] = []
-    demand['demand'].append({
-        'boundary': "[[0, 9.99999], [10, 24.99999], [25, 74.99999], [75, 1000]]",
-        'cpu': "[[0, 0], [0, 0], [0, 0], [0, 0]]",
-        'out': '[1, 0]',
-        'time': 0
-    })
-    resource_demands = {}
-    resource_demands['resource_demands'] = []
-    resource_demands['resource_demands'].append({
-        'resource_type': "vm",
-        'demand': demand['demand']
-    })
-    template_data['components'] = []
-    template_data['components'].append({
-        'name': 'S',
-        'type': "source",
-        'stateful': False,
-        'inputs': 0,
-        'outputs': 1,
-        'resource_demands': resource_demands['resource_demands'],
-        'group': "[-1, -1]"
-    })
-
-    # Rest of the components
-    for component in Template.components:
-        resource_demands_component = {}
-        resource_demands_component['resource_demands'] = []
-        for resource_demand in component.resource_demands:
-            demands_component = {}
-            demands_component['demand'] = []
-            for demand_temp in resource_demand.demand:
-                if len(demand_temp.gpu) == 0:
-                    demands_component['demand'].append({
-                        'boundary': str(demand_temp.boundary),
-                        'cpu': str(demand_temp.cpu),
-                        'out': str(demand_temp.out),
-                        'time': demand_temp.time
-                    })
-                else:
-                    demands_component['demand'].append({
-                        'boundary': str(demand_temp.boundary),
-                        'cpu': str(demand_temp.cpu),
-                        'gpu': str(demand_temp.gpu),
-                        'out': str(demand_temp.out),
-                        'time': demand_temp.time
-                    })
-
-            resource_demands_component['resource_demands'].append({
-                'resource_type': resource_demand.resource_type,
-                'demand': demands_component['demand']
-            })
-        template_data['components'].append({
-            'name': component.id,
-            'type': component.type,
-            'stateful': False,
-            'inputs': component.inputs,
-            'outputs': component.outputs,
-            'resource_demands': resource_demands_component['resource_demands'],
-            'group': "[-1, -1]"
-        })
-
-    template_data["vlinks"] = []
-    for virtual_link in Template.virtual_links:
-        template_data["vlinks"].append({
-            "src": virtual_link.src,
-            "src_output": virtual_link.src_output,
-            "dest": virtual_link.dest,
-            "dest_input": virtual_link.dest_input,
-            "max_delay": virtual_link.max_delay
-        })
-
-    # print("creating template file: " + file_name)
-    with open(file_name + '.yaml', 'w') as template_file:
-        yaml.dump(template_data, template_file)
-
-
 def create_source_component_dict(descriptor):
+    """
+    Creates the source component, creates different dicts to hold different components and its properties and in the end
+    writes them to a yaml template file.
+    :param descriptor: Takes descriptor to pull the name.
+    :return: Does not return anything. Creates a template file in the end.
+    """
     # print(descriptor['name'])
     file_name = descriptor['name']
     components = []
 
     source_demand_dict = dict(
-        boundary=[[0, 9.99999], [10, 24.99999], [25, 74.99999], [75, 1000]],
-        cpu=[[0, 0], [0, 0], [0, 0], [0, 0]],
+        boundary=[[0, 9.99999], [10, 24.99999], [25, 74.99999], [75, 1000]],  # Dummy data rate intervals
+        cpu=[[0, 0], [0, 0], [0, 0], [0, 0]],  # Number of CPUs required for source component is always 0
         out=[1, 0],
-        time=0
+        time=0  # Since there is no processing happening on source, time is 0
     )
     resource_demands = []
     source_resource_demands_dict = dict(
@@ -363,11 +334,18 @@ def create_source_component_dict(descriptor):
     no_alias_dumper.ignore_aliases = lambda self, data: True
     with open("/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/templates/" + file_name + '.yaml', 'w') as template_file:
         yaml.dump(template_dict, template_file, default_flow_style=False, Dumper=no_alias_dumper)
-    update_scenario_file(file_name + '.yaml')
+    update_scenario_file(file_name + '.yaml')  # After creating the template, this method updates the scenario file with
+    # newly created template file name.
+
     return template_dict
 
 
 def get_name_id_mapping(descriptor):
+    """
+    Creates a list of key, value pairs of the name and function id of virtual network function
+    :param descriptor: descriptor of the network service
+    :return: List of name, id pairs of the functions consists in the service descriptor.
+    """
     name_id_mapping = []
     virtual_functions = descriptor['network_functions']
     for virtual_function in virtual_functions:
@@ -377,10 +355,15 @@ def get_name_id_mapping(descriptor):
 
 
 def get_function_id(function_name, name_id_mapping):
+    """
+    Returns the function_id of the Virtual function.
+    :param function_name: name of the virtual function.
+    :param name_id_mapping: List of key, value pair of the name as key and function id as value.
+    :return: virtual function name.
+    """
     for name_id in name_id_mapping:
         if function_name == name_id[0]:
             return name_id[1]
 
-# create_template()
 
 
