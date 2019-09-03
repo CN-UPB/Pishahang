@@ -22,8 +22,8 @@ DATA_TAB_4 = '\t\t\t\t   '
 def main():
     pcap = Pcap('capture.pcap')
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-    conn.bind(("ens32",3))
-
+    conn.bind(("eth0",3))
+    print ("all good so far")
     while True:
         raw_data, addr = conn.recvfrom(65535)
         pcap.write(raw_data)
