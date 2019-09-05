@@ -76,20 +76,33 @@ class MACandIPrecorder(object):
             time=message.get("time"),
         )
 
-        record.save()
-        LOG.info("MAC and IP pair registered: %r" % record)
-
-        # return result
-        response = {
-            "status": "OK",
-            "id": pid,
-            "mac": record.mac,
-            "ip": record.ip,
-            "time": record.time,
-            "error": None
-        }
-        self.manoconn.notify(
-            'rtmp.mac.ip.recorder', json.dumps(response), correlation_id=properties.correlation_id)
+        try:
+            record.save()
+            LOG.info("MAC and IP pair recorded: %r" % record)
+            # return result
+            response = {
+                "status": "OK",
+                "id": pid,
+                "mac": record.mac,
+                "ip": record.ip,
+                "time": record.time,
+                "error": None
+            }
+            self.manoconn.notify(
+                'rtmp.mac.ip.recorder', json.dumps(response), correlation_id=properties.correlation_id)
+        except BaseException as err:
+            LOG.info("MAC and IP recroding failed: %r" % str(err))
+            # return result
+            response = {
+                "status": "Failed",
+                "id": pid,
+                "mac": record.mac,
+                "ip": record.ip,
+                "time": record.time,
+                "error": str(err)
+            }
+            self.manoconn.notify(
+                'rtmp.mac.ip.recorder', json.dumps(response), correlation_id=properties.correlation_id)
 
 
 def main():

@@ -14,8 +14,8 @@ class mac_ip_pair(Document):
     We use mongoengine as ORM to interact with MongoDB.
     """
     id = StringField(primary_key=True, required=True)
-    mac = StringField(required=True)
-    ip = StringField(required=True)
+    mac = StringField(required=True, unique=True)
+    ip = StringField(required=True, unique=True)
     time = StringField(required=False)
 
     def __repr__(self):
