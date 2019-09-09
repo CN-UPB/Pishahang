@@ -6,7 +6,7 @@ As shown in the following figure, the VNF consists of 4 containers inluding:
 
 ### (1) RTMP packet sniffer: 
 
-Using python socket library, this container captures all incomming traffic into a specifc network interface. Then, it inspects the packets headers and extracts MAC and IP address of all TCP packet with source or destination port number 1935. The pair of MAC and IP addrreses are then forwarded to MAC/IP recorder container though the message broker container. 
+Using python socket library, this container captures all incomming traffic into a specifc network interface. Then, it inspects the packets headers and extracts MAC and IP address of all TCP packet with source or destination port number 1935. The pair of MAC and IP addrreses are then forwarded to MAC/IP recorder though the message broker. 
 
 ### (2) MAC/IP recorder and REST APIs: 
 
