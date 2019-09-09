@@ -1,0 +1,3 @@
+[console_scripts]
+mac-ip-recorder = mac_ip_recorder.__main__:main
+

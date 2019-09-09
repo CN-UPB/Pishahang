@@ -1,6 +1,6 @@
 import socket
 import struct
-from general import *
+from rtmp_sniffer.helpers.general import *
 
 
 class Ethernet:

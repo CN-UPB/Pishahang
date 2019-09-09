@@ -7,9 +7,9 @@ import os
 import time
 from mongoengine import DoesNotExist
 
-from mac_ip_recorder import messaging
-from mac_ip_recorder import model
-from mac_ip_recorder import interface
+from mac_ip_recorder.helpers import messaging
+from mac_ip_recorder.helpers import model
+from mac_ip_recorder.helpers import interface
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("mac-ip-recorder")

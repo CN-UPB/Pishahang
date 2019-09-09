@@ -1,4 +1,4 @@
-from sniffer import sniffer
+from rtmp_sniffer import sniffer
 
 
 def main():

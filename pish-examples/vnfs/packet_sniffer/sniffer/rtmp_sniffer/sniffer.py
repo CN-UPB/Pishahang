@@ -1,27 +1,17 @@
 import socket
 from datetime import datetime
-from general import *
-from helpers import messaging
-from networking.ethernet import Ethernet
-from networking.ipv4 import IPv4
-from networking.icmp import ICMP
-from networking.tcp import TCP
-from networking.udp import UDP
-from networking.pcap import Pcap
-from networking.http import HTTP
+from rtmp_sniffer.helpers.general import *
+from rtmp_sniffer.helpers import messaging
+from rtmp_sniffer.helpers.ethernet import Ethernet
+from rtmp_sniffer.helpers.ipv4 import IPv4
+from rtmp_sniffer.helpers.icmp import ICMP
+from rtmp_sniffer.helpers.tcp import TCP
+from rtmp_sniffer.helpers.udp import UDP
+from rtmp_sniffer.helpers.http import HTTP
 import logging
 import yaml
+import os
 
-
-TAB_1 = '\t - '
-TAB_2 = '\t\t - '
-TAB_3 = '\t\t\t - '
-TAB_4 = '\t\t\t\t - '
-
-DATA_TAB_1 = '\t   '
-DATA_TAB_2 = '\t\t   '
-DATA_TAB_3 = '\t\t\t   '
-DATA_TAB_4 = '\t\t\t\t   '
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("rtmp-sniffer")
@@ -36,6 +26,11 @@ class RTMPSniffer(object):
         self.name = "sniffer"
         self.start_running=True
         self.topic = "rtmp.mac.ip.recorder"
+
+        if 'nic_id' in os.environ:
+            self.port = os.environ['nic_id']
+        else:
+            self.port = 'eth0'
 
         while True:
             try:
@@ -55,37 +50,31 @@ class RTMPSniffer(object):
 
     def sniffer(self):
         conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-        conn.bind(("ens32",3))
+        conn.bind((self.port,3))
         LOG.info ("Packet capturing has been started!")
         while True:
             raw_data, addr = conn.recvfrom(65535)
             eth = Ethernet(raw_data)
-            LOG.info(TAB_1 + 'Destination: {}, Source: {}, Protocol: {}'.format(eth.dest_mac, eth.src_mac, eth.proto))
+            LOG.info('Destination: {}, Source: {}, Protocol: {}'.format(eth.dest_mac, eth.src_mac, eth.proto))
 
             # IPv4
             if eth.proto == 8:
                 ipv4 = IPv4(eth.data)
-                LOG.info(TAB_1 + 'IPv4 Packet:')
-                LOG.info(TAB_2 + 'Version: {}, Header Length: {}, TTL: {},'.format(ipv4.version, ipv4.header_length, ipv4.ttl))
-                LOG.info(TAB_2 + 'Protocol: {}, Source: {}, Target: {}'.format(ipv4.proto, ipv4.src, ipv4.target))
+                LOG.info('IPv4 Packet => Version: {}, Header Length: {}, TTL: {}, Protocol: {}, Source: {}, Target: {}'.format(ipv4.version,
+                ipv4.header_length, ipv4.ttl, ipv4.proto, ipv4.src, ipv4.target))
 
                 # ICMP
                 if ipv4.proto == 1:
                     icmp = ICMP(ipv4.data)
-                    LOG.info(TAB_1 + 'ICMP Packet:')
-                    LOG.info(TAB_2 + 'Type: {}, Code: {}, Checksum: {},'.format(icmp.type, icmp.code, icmp.checksum))
-                    LOG.info(TAB_2 + 'ICMP Data:')
-                    LOG.info(format_multi_line(DATA_TAB_3, icmp.data))
+                    LOG.info('ICMP Packet => Type: {}, Code: {}, Checksum: {},'.format(icmp.type, icmp.code, icmp.checksum))
 
                 # TCP
                 elif ipv4.proto == 6:
                     tcp = TCP(ipv4.data)
-                    LOG.info(TAB_1 + 'TCP Segment:')
-                    LOG.info(TAB_2 + 'Source Port: {}, Destination Port: {}'.format(tcp.src_port, tcp.dest_port))
-                    LOG.info(TAB_2 + 'Sequence: {}, Acknowledgment: {}'.format(tcp.sequence, tcp.acknowledgment))
-                    LOG.info(TAB_2 + 'Flags:')
-                    LOG.info(TAB_3 + 'URG: {}, ACK: {}, PSH: {}'.format(tcp.flag_urg, tcp.flag_ack, tcp.flag_psh))
-                    LOG.info(TAB_3 + 'RST: {}, SYN: {}, FIN:{}'.format(tcp.flag_rst, tcp.flag_syn, tcp.flag_fin))
+                    LOG.info('TCP Segment => Source Port: {}, Destination Port: {} Sequence: {}, Acknowledgment: {}'.format(tcp.src_port,
+                    tcp.dest_port, tcp.sequence, tcp.acknowledgment))
+                    LOG.info('Flags => URG: {}, ACK: {}, PSH: {} RST: {}, SYN: {}, FIN:{}'.format(tcp.flag_urg, tcp.flag_ack,
+                    tcp.flag_psh, tcp.flag_rst, tcp.flag_syn, tcp.flag_fin))
 
                     #RTMP
                     # to ask - which MAC-IP pair shoudl be recorded? SRC or DST?
@@ -109,33 +98,18 @@ class RTMPSniffer(object):
 
                         # HTTP
                         if tcp.src_port == 80 or tcp.dest_port == 80:
-                            LOG.info(TAB_2 + 'HTTP Data:')
                             try:
                                 http = HTTP(tcp.data)
                                 http_info = str(http.data).split('\n')
                                 for line in http_info:
-                                    LOG.info(DATA_TAB_3 + str(line))
+                                    LOG.info(str(line))
                             except:
-                                LOG.info(format_multi_line(DATA_TAB_3, tcp.data))
-                        else:
-                            LOG.info(TAB_2 + 'TCP Data:')
-                            LOG.info(format_multi_line(DATA_TAB_3, tcp.data))
+                                LOG.info('...')
 
                 # UDP
                 elif ipv4.proto == 17:
                     udp = UDP(ipv4.data)
-                    LOG.info(TAB_1 + 'UDP Segment:')
-                    LOG.info(TAB_2 + 'Source Port: {}, Destination Port: {}, Length: {}'.format(udp.src_port, udp.dest_port, udp.size))
-
-                # Other IPv4
-                else:
-                    LOG.info(TAB_1 + 'Other IPv4 Data:')
-                    LOG.info(format_multi_line(DATA_TAB_2, ipv4.data))
-
-            else:
-                LOG.info('Ethernet Data:')
-                LOG.info(format_multi_line(DATA_TAB_1, eth.data))
-
+                    LOG.info('UDP Segment => Source Port: {}, Destination Port: {}, Length: {}'.format(udp.src_port, udp.dest_port, udp.size))
 
 
 def main():

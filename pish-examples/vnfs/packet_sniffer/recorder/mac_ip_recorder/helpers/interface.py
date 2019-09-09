@@ -4,7 +4,7 @@ import json
 from flask import Flask, request
 import flask_restful as fr
 from mongoengine import DoesNotExist
-from mac_ip_recorder import model
+from mac_ip_recorder.helpers import model
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("mac-ip-recorder:interface")

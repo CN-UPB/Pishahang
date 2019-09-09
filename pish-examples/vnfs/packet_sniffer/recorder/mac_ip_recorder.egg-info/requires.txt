@@ -1,0 +1,6 @@
+mongoengine
+amqpstorm
+PyYAML
+Flask>=0.10.1
+flask-restful
+requests
