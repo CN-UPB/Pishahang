@@ -1,6 +1,6 @@
 # RTMP packet sniffer
 
-As shown in the following figure, the VNF consists of 4 VNFs inluding: 
+As shown in the following figure, the VNF consists of 4 containers inluding: 
 
 ![alt text](https://github.com/CN-UPB/Pishahang/blob/master/pish-examples/vnfs/packet_sniffer/figures/arc.png)
 
