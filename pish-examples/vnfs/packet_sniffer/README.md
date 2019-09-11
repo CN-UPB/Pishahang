@@ -23,3 +23,74 @@ MangoDB is used as a data base
 ### (4) Massage broker: 
 
 RabbitMQ is used as a message broker and provides a channel for inter-container communications.
+
+## Building
+
+The following commands in `packet_sniffer` directory should be used to build the containers.
+
+#### RTMP Packet Sniffer
+
+`sudo docker build -t pishahang/rtmp-sniffer -f sniffer/Dockerfile .`
+
+#### MAC/IP recorder and REST APIs
+
+`sudo docker build -t pishahang/rtmp-recorder -f recorder/Dockerfile .`
+
+## Usage
+
+The following instaction works on Ubuntu 16.04. It should also work on other Ubuntu versions but it hasn't been tested. 
+
+
+To run the containers, first, you need to install Docker which can be done using the following command.
+
+```
+$ sudo apt-get update
+$ sudo apt-get install -y docker.io
+```
+
+Now that we have docker running, we should create a docker network to provide the connectivity between containers. This can be done using the following command.
+
+```
+$ sudo docker network create pishahang
+```
+
+The next step is to run the containers using the commands below.
+
+(1) Message broker
+```
+sudo docker run -d -p 5672:5672 --name broker --net=pishahang rabbitmq:3-management
+```
+(2) MongoDB
+```
+sudo docker run -d -p 27017:27017 --name mongo --net=pishahang mongo
+```
+(3) RTMP packet sniffer
+```
+sudo docker run -d --name sniffer --net=pishahang pishahang/rtmp-sniffer
+```
+(4) MAC/IP recorder and REST APIs
+```
+sudo docker run -d --name recorder --net=pishahang -p 8001:8001 pishahang/rtmp-recorder
+```
+
+Now you can see the status of containers using the following command.
+
+```
+sudo docker ps -a
+```
+## Test
+
+To test the containers, send some trrafic to rtmp sniffer to see if it can capture the packets or not. The packet should be sent to the sniffer Ip address. To know th IP address of the container do the followings:
+
+(1) Access the container terminal: `sudo docker exec -it sniffer /bin/bash`
+
+(2) then `ifconfig`
+
+To test the APIs you can do the followings:
+
+(1) Getting all records: `curl -X GET -H "Content-Type: application/json" http://localhost:8001/api/records`
+
+(2) Getting specific Mac address: `curl -X GET -H "Content-Type: application/json" http://localhost:8001/api/records/mac/<IP address>`
+
+(3) Getting specific IP address: `curl -X GET -H "Content-Type: application/json" http://localhost:8001/api/records/ip/<MAC address>`
+
