@@ -38,8 +38,7 @@ The following commands in `packet_sniffer` directory should be used to build the
 
 ## Usage
 
-The following instaction works on Ubuntu 16.04. It should also work on other Ubuntu versions but it hasn't been tested. 
-
+The following instructions work on Ubuntu 16.04. It should also work on other Ubuntu versions but it hasn't been tested.
 
 To run the containers, first, you need to install Docker which can be done using the following command.
 
@@ -48,7 +47,7 @@ $ sudo apt-get update
 $ sudo apt-get install -y docker.io
 ```
 
-Now that we have docker running, we should create a docker network to provide the connectivity between containers. This can be done using the following command.
+Now that we have Docker running, you should create a docker network to provide the connectivity between containers. This can be done using the following command.
 
 ```
 $ sudo docker network create pishahang
@@ -80,11 +79,11 @@ sudo docker ps -a
 ```
 ## Test
 
-To test the containers, send some trrafic to rtmp sniffer to see if it can capture the packets or not. The packet should be sent to the sniffer Ip address. To know th IP address of the container do the followings:
+To test the containers, send some traffic to RTMP sniffer to see if it can capture the packets or not. The packet should be sent to the sniffer Ip address. To know the IP address of the container, do the followings:
 
 (1) Access the container terminal: `sudo docker exec -it sniffer /bin/bash`
 
-(2) then `ifconfig`
+(2) Then `ifconfig`
 
 To test the APIs you can do the followings:
 
