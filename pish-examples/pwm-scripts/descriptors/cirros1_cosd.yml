@@ -1,0 +1,11 @@
+---
+descriptor_version: "1.0"
+vendor: "eu.sonata-nfv.service-descriptor"
+name: "cirros1"
+version: "0.2"
+author: "T3-Scramble"
+cloud_services:
+- service_id: "cirros-image1"
+  service_vendor: "eu.sonata-nfv.cloud-service-descriptor"
+  service_name: "cirros-image-1"
+  service_version: "0.2"

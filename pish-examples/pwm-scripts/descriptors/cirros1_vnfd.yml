@@ -1,0 +1,27 @@
+---
+descriptor_version: vnfd-schema-01
+description: A basic VNF descriptor with load generator and one VDU
+name: cirros-image-1
+vendor: pg-scramble
+version: '1.0'
+author: pg-scramble
+virtual_deployment_units:
+- id: cirros-image-1
+  description: cirros-image-1
+  vm_image: "cirros-image-1"
+  vm_image_format: qcow2
+  resource_requirements:
+    cpu:
+      vcpus: 1
+    memory:
+      size: 512
+      size_unit: MB
+    storage:
+      size: 1
+      size_unit: GB
+  connection_points:
+  - id: eth0
+    interface: ipv4
+    type: internal
+
+# Image name on openstack should be "pg-scramble_cirros-image-1_1.0_cirros-image-1"

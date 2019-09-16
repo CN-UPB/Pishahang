@@ -1,0 +1,21 @@
+---
+descriptor_version: "2.0"
+vendor: "eu.sonata-nfv.cloud-service-descriptor"
+name: "cirros-image-1"
+version: "0.2"
+author: pg-scramble
+description: "Deploy a cirros docker image"
+virtual_deployment_units:
+- id: "cirros-image-1"
+  name: "cirros-image-1"
+  service_image: "cirros"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "ssh"
+    protocol: "TCP"
+    port: 22
+    target_port: 22
+  resource_requirements:
+    memory:
+      size: 32
+      size_unit: "Mi"
