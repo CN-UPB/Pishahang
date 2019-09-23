@@ -36,19 +36,19 @@ ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
 
 # install son-mano-base to be able to use the plugin base class etc.
 WORKDIR /son-mano-base
-RUN python setup.py install
+RUN /opt/conda/bin/python setup.py install
 
 # install actual plugin
 WORKDIR /plugins/${PLUGIN_BASE}
-RUN python setup.py develop
+RUN /opt/conda/bin/python setup.py develop
 
 # gurobi
-RUN conda config --add channels http://conda.anaconda.org/gurobi
-RUN conda install gurobi
-RUN pip install geopy
+RUN /opt/conda/bin/conda config --add channels http://conda.anaconda.org/gurobi
+RUN /opt/conda/bin/conda install gurobi
+RUN /opt/conda/bin/pip install geopy
 RUN mkdir /opt/gurobi
 RUN echo TOKENSERVER=license3.uni-paderborn.de > /opt/gurobi/gurobi.lic
 
-CMD ["son-mano-mv"]
+CMD ["/opt/conda/bin/son-mano-mv"]
 
 
