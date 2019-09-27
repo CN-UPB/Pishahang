@@ -204,7 +204,9 @@ class MVPlugin(ManoBasePlugin):
 
         content = yaml.load(payload)
         #  calls create_template to create the template from the payload and returns created result file.
-        result_file = CreateTemplate.create_template(content)
+        _template_generator = CreateTemplate.TemplateGenerator(content)
+
+        result_file = _template_generator.create_template()
 
         LOG.info("MV request for service: " + content['serv_id'])
         topology = content['topology']
