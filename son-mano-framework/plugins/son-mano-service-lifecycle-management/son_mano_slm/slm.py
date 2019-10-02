@@ -2814,6 +2814,11 @@ class ServiceLifecycleManager(ManoBasePlugin):
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
         LOG.info("Service " + serv_id + ": Placement response received")
 
+        LOG.info("resp Mapping")
+        LOG.info(content["mapping"]["functions"])
+        LOG.info(content["mapping"]["cloud_services"])
+
+
         if mapping is None:
             # The GK should be informed that the placement failed and the
             # deployment was aborted.
@@ -2828,13 +2833,17 @@ class ServiceLifecycleManager(ManoBasePlugin):
             # Add mapping to ledger
             LOG.info("Service " + serv_id + ": Placement completed")
             LOG.debug("Calculated SLM placement: " + str(mapping))
-            self.services[serv_id]['service']['mapping'] = mapping
-            for function in self.services[serv_id]['function']:
-                vnf_id = function['id']
-                function['vim_uuid'] = mapping[vnf_id]['vim']
-            for cloud_service in self.services[serv_id]['cloud_service']:
-                cs_id = cloud_service['id']
-                cloud_service['vim_uuid'] = mapping[cs_id]['vim']
+            # self.services[serv_id]['service']['mapping'] = mapping
+
+            self.services[serv_id]['function'] = content["mapping"]["functions"]
+            self.services[serv_id]['cloud_service'] = content["mapping"]["cloud_services"]
+
+            # for function in self.services[serv_id]['function']:
+            #     vnf_id = function['id']
+            #     function['vim_uuid'] = mapping[vnf_id]['vim']
+            # for cloud_service in self.services[serv_id]['cloud_service']:
+            #     cs_id = cloud_service['id']
+            #     cloud_service['vim_uuid'] = mapping[cs_id]['vim']
 
         # Check if the placement does not contain any loops
         vim_list = tools.get_ordered_vim_list(self.services[serv_id])

@@ -697,4 +697,12 @@ def write_heuristic_result(init_time, runtime, obj_value, changed, overlays, sce
                 edges.update(ol.edges)
             save_heuristic_variables(changed, instances, edges, nodes, links)
             write_variables(writer, nodes, links, True)
-    return result_file
+
+
+    result_data = {
+        "result_file": result_file,
+        "as_vm": [str(v[0]) for v in as_vm],
+        "as_container": [v[0] for v in as_container],
+        "as_accelerated": [str(v[0]) for v in as_accelerated]
+    }
+    return result_data

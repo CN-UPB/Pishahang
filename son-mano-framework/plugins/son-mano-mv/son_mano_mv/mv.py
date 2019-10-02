@@ -141,54 +141,6 @@ class MVPlugin(ManoBasePlugin):
                 result.append(line[i])
         return result
 
-    def get_components_as(self, result_file):
-        """
-        This method processes the generated result file and pulls out as_vm, as_container and as_accelerated component
-        from the file. To extract the components mentioned above, this method extracts all lines between #as_vm and an
-        empty line. Similarly for #as_container and #as_accelerated.
-        :param result_file: path of the result file generated.
-        :return: returns as_vm, as_container and as_accelerated arrays with function_id as element.
-        """
-        as_vm = []
-        as_container = []
-        as_accelerated = []
-        with open(result_file, "r") as result:
-            with open(result_file, "r") as temp:
-                reader = csv.reader(result, delimiter=" ")
-                data = [row for row in temp]
-                i = 0
-                for row in reader:
-                    i = i + 1
-                    if len(row) is not 0 and row[0] == '#':
-                        row = self.remove_empty_values(row)  # deal with multiple spaces in a row leading to empty values
-                        if row[1] == 'as_vm:':
-                            vm_i = i
-                            while True:
-                                if data[vm_i] == "" or data[vm_i] == '\n':
-                                    # print("breaking out of loop")
-                                    break
-                                if data[vm_i] != "":
-                                    as_vm.append(data[vm_i])
-                                vm_i += 1
-
-                        if row[1] == 'as_container:':
-                            container_i = i
-                            while True:
-                                if data[container_i] == "" or data[container_i] == '\n':
-                                    break
-                                if data[container_i] != "":
-                                    as_container.append(data[container_i])
-                                container_i += 1
-                        if row[1] == 'as_accelerated:':
-                            accelerated_i = i
-                            while True:
-                                if data[accelerated_i] == "" or data[accelerated_i] == '\n':
-                                    # print("breaking out of loop")
-                                    break
-                                if data[accelerated_i] != "":
-                                    as_accelerated.append(data[accelerated_i])
-                                accelerated_i += 1
-        return as_vm, as_container, as_accelerated
 
 ##########################
 # Placement
@@ -205,8 +157,7 @@ class MVPlugin(ManoBasePlugin):
         content = yaml.load(payload)
         #  calls create_template to create the template from the payload and returns created result file.
         _template_generator = CreateTemplate.TemplateGenerator(content)
-
-        result_file = _template_generator.create_template()
+        result_data = _template_generator.create_template()
 
         LOG.info("MV request for service: " + content['serv_id'])
         topology = content['topology']
@@ -214,7 +165,7 @@ class MVPlugin(ManoBasePlugin):
         functions = content['functions'] if 'functions' in content else []
         cloud_services = content['cloud_services'] if 'cloud_services' in content else []
 
-        placement = self.placement(descriptor, functions, cloud_services, topology, result_file)
+        placement = self.placement(descriptor, functions, cloud_services, topology, result_data)
 
         response = {'mapping': placement}
         topic = 'mano.service.place'
@@ -226,89 +177,102 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV response sent for service: " + content['serv_id'])
         LOG.info(response)
 
-    def placement(self, descriptor, functions, cloud_services, topology, result_file):
+    def placement(self, descriptor, functions, cloud_services, topology, result_data):
         """
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
         """
         LOG.info("MV Embedding started on following topology: " + str(topology))
 
-        as_vm, as_container, as_accelerated = self.get_components_as(result_file)
+        as_vm, as_container, as_accelerated = result_data["as_vm"], result_data["as_container"], result_data["as_accelerated"]
         vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
+
+        if "S" in as_vm: as_vm.remove("S")
+
+        # LOG.info("\n\nas_vm: ", str(as_vm), "\n\nas_container: ", str(as_container), "\n\nas_accelerated: ", str(as_accelerated))
+
+        LOG.info("as_vm")
+        LOG.info(as_vm)
+        LOG.info("as_container")
+        LOG.info(as_container)
+        LOG.info("as_accelerated")
+        LOG.info(as_accelerated)
 
         mapping = {}
 
-        for function in functions:
-            vnfd = function['vnfd']
-            vdu = vnfd['virtual_deployment_units']
-            vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
-            needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
-            needed_mem = vdu[0]['resource_requirements']['memory']['size']
-            needed_sto = vdu[0]['resource_requirements']['storage']['size']
-
-            for vim in topology:
-                if vim['vim_type'] == 'Kubernetes':
-                    for as_container_function in as_container:
-                        if vnf_id in as_container_function:
-                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
-
-                            if cpu_req and mem_req:
-                                mapping[function['id']] = {}
-                                mapping[function['id']]['vim'] = vim['vim_uuid']
-                                vim['core_used'] = vim['core_used'] + needed_cpu
-                                vim['memory_used'] = vim['memory_used'] + needed_mem
-                                break
-                if vim['vim_type'] == 'Heat':
-                    for as_vm_function in as_vm:
-                        if vnf_id in as_vm_function:
-                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
-
-                            if cpu_req and mem_req:
-                                mapping[function['id']] = {}
-                                mapping[function['id']]['vim'] = vim['vim_uuid']
-                                vim['core_used'] = vim['core_used'] + needed_cpu
-                                vim['memory_used'] = vim['memory_used'] + needed_mem
-                                break
-
-                if vim['vim_type'] == 'Accelerated':
-                    for as_accelerated_function in as_accelerated:
-                        if vnf_id in as_accelerated_function:
-                            cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                            mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
-
-                            if cpu_req and mem_req:
-                                mapping[function['id']] = {}
-                                mapping[function['id']]['vim'] = vim['vim_uuid']
-                                vim['core_used'] = vim['core_used'] + needed_cpu
-                                vim['memory_used'] = vim['memory_used'] + needed_mem
-                                break
-
-        for cloud_service in cloud_services:
-            csd = cloud_service['csd']
-            vdu = csd['virtual_deployment_units']
-            needed_mem = 0
-            if 'resource_requirements' in vdu[0] and 'memory' in vdu[0]['resource_requirements']:
+        if len(as_vm) > 0:
+            # FIXME: should support multiple VDU?
+            LOG.info("VM Mapping")
+            for function in functions:
+                vnfd = function['vnfd']
+                vdu = vnfd['virtual_deployment_units']
+                vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
+                needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
                 needed_mem = vdu[0]['resource_requirements']['memory']['size']
+                needed_sto = vdu[0]['resource_requirements']['storage']['size']
 
-            for vim in topology:
-                if vim['vim_type'] != 'Kubernetes':
-                    continue
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                for vim in topology:
+                    if vim['vim_type'] == 'Heat':
+                        for as_vm_function in as_vm:
+                            if vnf_id in as_vm_function:
+                                cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
 
-                if mem_req:
-                    mapping[cloud_service['id']] = {}
-                    mapping[cloud_service['id']]['vim'] = vim['vim_uuid']
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
-                    break
+                                if cpu_req and mem_req:
+                                    function["vim_uuid"] = vim['vim_uuid']
+                                    vim['core_used'] = vim['core_used'] + needed_cpu
+                                    vim['memory_used'] = vim['memory_used'] + needed_mem
+                                    break
+
+        elif len(as_accelerated) > 0:
+            # FIXME: should support multiple VDU?
+            LOG.info("Accelerated Mapping")
+            cloud_services = functions
+            functions = []
+
+            for cloud_service in cloud_services:
+                cloud_service['csd'] = cloud_service['vnfd']
+                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd']['virtual_deployment_units_acc']
+                csd = cloud_service['csd']
+
+                vdu = csd['virtual_deployment_units']
+                needed_mem = 0
+                if 'resource_requirements' in vdu[0] and 'memory' in vdu[0]['resource_requirements']:
+                    needed_mem = vdu[0]['resource_requirements']['memory']['size']
+
+                for vim in topology:
+
+                    # For our use case, we use kubernetes for accelerated images
+                    if vim['vim_type'] != 'Kubernetes':
+                        continue
+                    mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+
+                    if mem_req:
+                        cloud_service["vim_uuid"] = vim['vim_uuid']
+                        vim['memory_used'] = vim['memory_used'] + needed_mem
+                        break
+
+
+        mapping["functions"] = functions
+        mapping["cloud_services"] = cloud_services
+
+        LOG.info("Functions \n\n\n")
+        LOG.info(functions)
+
+        LOG.info("Cloud_services \n\n\n")
+        LOG.info(cloud_services)
+
+        LOG.info("Mapping \n\n\n")
+        LOG.info(mapping)
+
+        return mapping
 
         # Check if all VNFs and CSs have been mapped
-        if len(mapping.keys()) == len(functions) + len(cloud_services):
-            return mapping
-        else:
-            LOG.info("Placement was not possible")
-            return None
+        # if len(mapping.keys()) == len(functions) + len(cloud_services):
+        #     return mapping
+        # else:
+        #     LOG.info("Placement was not possible")
+        #     return None
 
 
 def main():

@@ -63,7 +63,7 @@ def main_auto(_method, _scenario):
             # model = tep_mulv_proctime.solve(nodes, links, templates, prev_embedding, sources, fixed)
             model = tep_mulv_lex.solve(nodes, links, templates, prev_embedding, sources, fixed)
             # model = tep_extended.solve(nodes, links, templates, prev_embedding, sources, fixed, scenario, obj)
-            writer.write_mip_result(model, scenario, nodes, links, obj, sources, fixed, seed)
+            result_file = writer.write_mip_result(model, scenario, nodes, links, obj, sources, fixed, seed)
 
         elif method == "drawnet":
             NG = nx.DiGraph()
@@ -124,8 +124,7 @@ def main_auto(_method, _scenario):
 
             print("Initial embedding\n")
             init_time, runtime, obj_value, changed, overlays = control.solve(nodes, links, templates, {}, sources, fixed, obj)
-            result_file = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, -1, "Initial embedding", nodes, links, seed, seed_subfolder, sources)
-
+            result_data = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, -1, "Initial embedding", nodes, links, seed, seed_subfolder, sources)
             # if events exists, update input accordingly and solve again for each event until last event is reached
             event_no = 0
             while events is not None and event_no is not None:
@@ -135,10 +134,10 @@ def main_auto(_method, _scenario):
 
                 new_no, event, templates, sources, fixed = reader.read_event(events, event_no, templates, sources, fixed)
                 init_time, runtime, obj_value, changed, overlays = control.solve(nodes, links, templates, overlays, sources, fixed, obj)
-                result_file = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, event_no, event, nodes, links, seed, seed_subfolder, sources)
+                result_data = writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, event_no, event, nodes, links, seed, seed_subfolder, sources)
                 event_no = new_no
 
         # invalid method
         else:
             print("Invalid solving method: {}. Use 'mip' or 'heuristic'".format(method))
-    return result_file
+    return result_data

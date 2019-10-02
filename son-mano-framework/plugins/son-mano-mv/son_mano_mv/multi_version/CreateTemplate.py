@@ -59,8 +59,8 @@ class TemplateGenerator():
         @argument1: 'heuristic' runs heuristic algorithm on the template created to produce the results
         @argument2: Path to the scenario file containing path of template, source and other required files.
         '''
-        result_file = main_auto.main_auto('heuristic', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
-        return result_file
+        result_data = main_auto.main_auto('heuristic', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
+        return result_data
 
 
     def pull_component_set(self, descriptor, functions):
@@ -139,7 +139,7 @@ class TemplateGenerator():
             output = [(1 - total), 0]
             outputs.append(output)
         # VM
-        time = random_number  # Change it to 5 to get as_accelerated component in the result file
+        time = 5  # Change it to 60 to get as_accelerated component in the result file
         cpu = self.get_cpu_req_vm(component.cpu_req)
         demand = Template.Demand(boundary, cpu, [], outputs, time)
         demand_vm.append(demand)
@@ -147,7 +147,7 @@ class TemplateGenerator():
         resource_demand.append(resource_demand_vm)
 
         # Accelerated
-        time = random_number / 2.5  # Change it to 0.25 to get as_accelerated component in the result file
+        time = 0.25  
         cpu = self.get_cpu_req_acc()
         gpu = self.get_gpu_req_acc()
         demand = Template.Demand(boundary, cpu, gpu, outputs, time)
