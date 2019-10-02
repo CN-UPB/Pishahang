@@ -1,0 +1,64 @@
+---
+descriptor_version: '1.0'
+vendor: "pg-scramble"
+name: "cirros_3VNFS"
+version: '1.0'
+author: "pg-scramble"
+description: "Cirros NS"  
+network_functions:
+  - vnf_id: "cirros-image1"
+    vnf_vendor: "pg-scramble"
+    vnf_name: "cirros-image-1"
+    vnf_version: '1.0'
+  - vnf_id: "cirros-image2"
+    vnf_vendor: "pg-scramble"
+    vnf_name: "cirros-image-2"
+    vnf_version: '1.0'
+  - vnf_id: "cirros-image3"
+    vnf_vendor: "pg-scramble"
+    vnf_name: "cirros-image-3"
+    vnf_version: '1.0'
+
+connection_points:
+  - id: "mgmt"
+    interface: "ipv4"
+    type: "management"
+  - id: "input"
+    interface: "ipv4"
+    type: "external"
+  - id: "output"
+    interface: "ipv4"
+    type: "external"
+
+##
+## The virtual links that interconnect
+## the different connections points.
+##
+virtual_links:
+  - id: "mgmt"
+    connectivity_type: "E-LAN"
+    connection_points_reference:
+      - "cirros-image1:mgmt"
+      - "cirros-image2:mgmt"
+      - "cirros-image3:mgmt"
+      - "mgmt"
+  - id: "input-2-iperf"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "input"
+      - "cirros-image1:input"
+  - id: "iperf-2-firewall"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "cirros-image1:output"
+      - "cirros-image2:input"
+  - id: "firewall-2-tcpdump"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "cirros-image2:output"
+      - "cirros-image3:input"
+  - id: "tcpdump-2-output"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "cirros-image3:output"
+      - "output"
