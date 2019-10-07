@@ -37,10 +37,11 @@ def get_function_id(function_name, name_id_mapping):
 
 class TemplateGenerator():
 
-    def __init__(self, payload):
+    def __init__(self, payload, mon_metrics):
         self.template_components = []
         self.template_virtual_links = []
 
+        self.mon_metrics = mon_metrics
         self.content = payload
         self.descriptor = self.content['nsd'] if 'nsd' in self.content else self.content['cosd']
         self.functions = self.content['functions']
@@ -59,6 +60,7 @@ class TemplateGenerator():
         @argument1: 'heuristic' runs heuristic algorithm on the template created to produce the results
         @argument2: Path to the scenario file containing path of template, source and other required files.
         '''
+        # FIXME: scenario_file should not be hardcoded?
         result_data = main_auto.main_auto('heuristic', '/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv')
         return result_data
 
@@ -139,7 +141,10 @@ class TemplateGenerator():
             output = [(1 - total), 0]
             outputs.append(output)
         # VM
-        time = 5  # Change it to 60 to get as_accelerated component in the result file
+        # FIXME: Should do this calculation differently
+        _time_cal_vm = self.mon_metrics["time_vm"]
+        time = _time_cal_vm  # Change it to 60 to get as_accelerated component in the result file
+        ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
         cpu = self.get_cpu_req_vm(component.cpu_req)
         demand = Template.Demand(boundary, cpu, [], outputs, time)
         demand_vm.append(demand)
@@ -147,7 +152,9 @@ class TemplateGenerator():
         resource_demand.append(resource_demand_vm)
 
         # Accelerated
-        time = 0.25  
+        # FIXME: Should do this calculation differently
+        _time_cal_acc = self.mon_metrics["time_acc"]
+        time = _time_cal_acc
         cpu = self.get_cpu_req_acc()
         gpu = self.get_gpu_req_acc()
         demand = Template.Demand(boundary, cpu, gpu, outputs, time)
@@ -243,6 +250,7 @@ class TemplateGenerator():
         :return: Does not return anything, just updates the file.
         """
         template_filename = 'templates: ../templates/' + template_filename
+        # FIXME: scenario_file should not be hardcoded?
         scenario_file = "/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/eval-scen1-mulv.csv"
 
         # read the scenario file.

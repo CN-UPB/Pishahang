@@ -70,6 +70,8 @@ class MVPlugin(ManoBasePlugin):
         ver = "0.1-dev"
         des = "This is the Multiversion plugin"
 
+        self.mon_metrics = {}
+
         super(self.__class__, self).__init__(version=ver,
                                              description=des,
                                              auto_register=auto_register,
@@ -154,9 +156,14 @@ class MVPlugin(ManoBasePlugin):
         if prop.app_id == self.name:
             return
 
+        # FIXME: This should be calculated based on mintoring thread
+        ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
+        self.mon_metrics["time_vm"] = 60 # Change it to 60 to get as_accelerated component in the result file 
+        self.mon_metrics["time_acc"] = 0.25
+
         content = yaml.load(payload)
         #  calls create_template to create the template from the payload and returns created result file.
-        _template_generator = CreateTemplate.TemplateGenerator(content)
+        _template_generator = CreateTemplate.TemplateGenerator(content, self.mon_metrics)
         result_data = _template_generator.create_template()
 
         LOG.info("MV request for service: " + content['serv_id'])
