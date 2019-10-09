@@ -625,8 +625,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
     def monitoring_feedback(self, ch, method, prop, payload):
 
-        LOG.info("Monitoring message received")
-        LOG.info(payload)
+        # LOG.info("Monitoring message received")
+        # LOG.info(payload)
 
         try:
             content = json.loads(str(payload))
@@ -2262,18 +2262,29 @@ class ServiceLifecycleManager(ManoBasePlugin):
         functions = self.services[serv_id]['function']
         cloud_services = self.services[serv_id]['cloud_service']
         userdata = self.services[serv_id]['user_data']
-
-
         topology = self.services[serv_id]['infrastructure']['topology']
-        self.active_services[serv_id] = {}
-        self.active_services[serv_id]['functions'] = functions
-        self.active_services[serv_id]['topology'] = topology
 
+        self.active_services[serv_id] = {}
 
         error = None
         try:
             LOG.debug("MV Monitoring")        
-            LOG.debug(self.services[serv_id])        
+
+            for _function in functions:
+                for _vdu in _function['vnfr']['virtual_deployment_units']:
+                    for _vnfi in _vdu['vnfc_instance']:
+                        # LOG.info(_vnfi)
+                        for _t in topology:
+                            # LOG.info(_t)
+                            if _t['vim_uuid'] == _vnfi['vim_id']:
+                                LOG.info("VNF is on")
+                                LOG.info(_vnfi['vim_id'])
+                                _instance_id = tools.get_nova_server_info(serv_id, _t)
+                                _charts = tools.get_netdata_charts(_instance_id, _t)
+                                LOG.info(_instance_id)
+                                LOG.info(_charts)
+                                self.active_services[serv_id]['charts'] = _charts
+                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
 
         except:
             LOG.info("Service " + serv_id + ": timeout on monitoring server.")
@@ -2988,25 +2999,22 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
     def run(self):
         while(True):
-            LOG.info("SLM Thread")
+            LOG.info("\nSLM Thread\n")
             try:
                 for _service, _service_meta in self.active_services.items():
                     LOG.info(_service)
-                    for _function in _service_meta['functions']:
-                        for _vdu in _function['vnfr']['virtual_deployment_units']:
-                            for _vnfi in _vdu['vnfc_instance']:
-                                # LOG.info(_vnfi)
-                                for _t in _service_meta['topology']:
-                                    # LOG.info(_t)
-                                    if _t['vim_uuid'] == _vnfi['vim_id']:
-                                        LOG.info("VNF is on")
-                                        LOG.info(_vnfi['vim_id'])
-                
+                    _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
+                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+                    LOG.info("### CPU ###")
+                    LOG.info(_metrics["cpu"])
+                    LOG.info("### BANDWIDTH ###")
+                    LOG.info(_metrics["bandwidth"])
+
             except Exception as e:
                 LOG.error("SLM Thread Error")
                 LOG.error(e)
 
-            time.sleep(5)
+            time.sleep(10)
 
 
 def main():
