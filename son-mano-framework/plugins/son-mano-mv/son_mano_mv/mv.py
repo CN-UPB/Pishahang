@@ -158,7 +158,7 @@ class MVPlugin(ManoBasePlugin):
 
         # FIXME: This should be calculated based on mintoring thread
         ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        self.mon_metrics["time_vm"] = 60 # Change it to 60 to get as_accelerated component in the result file 
+        self.mon_metrics["time_vm"] = 5 # Change it to 60 to get as_accelerated component in the result file 
         self.mon_metrics["time_acc"] = 0.25
 
         content = yaml.load(payload)

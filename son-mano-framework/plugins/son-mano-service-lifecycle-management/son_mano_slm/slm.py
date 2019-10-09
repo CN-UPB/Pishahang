@@ -80,6 +80,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Create the ledger that saves state
         self.services = {}
 
+        # Create topology 
+        # TODO: Make is consistant
+        self.active_services = {}
+
         # The frequency of state sharing events
         self.state_share_frequency = 1
 
@@ -484,7 +488,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # add_schedule.append('vnf_chain')
         add_schedule.append('store_nsr')
         add_schedule.append('wan_configure')
-        # add_schedule.append('start_monitoring')
+        add_schedule.append('start_mv_monitoring')
         add_schedule.append('inform_gk_instantiation')
 
         self.services[serv_id]['schedule'].extend(add_schedule)
@@ -565,7 +569,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         if orig == 'GK':
             add_schedule.append('contact_gk')
-        # add_schedule.append("stop_monitoring")
+        add_schedule.append("stop_monitoring")
         add_schedule.append("wan_deconfigure")
         # add_schedule.append("vnf_unchain")
         add_schedule.append("vnfs_stop")
@@ -2249,6 +2253,41 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         return
 
+    def start_mv_monitoring(self, serv_id):
+        # TODO: Fetch instance name from OS and add it to list of monitoring instances
+        # FIXME: Guess we need another plugin or move this to mvplugin?
+        is_nsd = 'nsd' in self.services[serv_id]['service']
+        LOG.info("Service " + serv_id + ": Setting up MV Monitoring Manager")
+        service = self.services[serv_id]['service']
+        functions = self.services[serv_id]['function']
+        cloud_services = self.services[serv_id]['cloud_service']
+        userdata = self.services[serv_id]['user_data']
+
+
+        topology = self.services[serv_id]['infrastructure']['topology']
+        self.active_services[serv_id] = {}
+        self.active_services[serv_id]['functions'] = functions
+        self.active_services[serv_id]['topology'] = topology
+
+
+        error = None
+        try:
+            LOG.debug("MV Monitoring")        
+            LOG.debug(self.services[serv_id])        
+
+        except:
+            LOG.info("Service " + serv_id + ": timeout on monitoring server.")
+            error = {'http_code': '0',
+                     'message': 'Timeout when contacting server'}
+
+        # If an error occured, the workflow is aborted and the GK is informed
+        if error is not None:
+            LOG.info("ERROR trying to start monitoring thread")
+            self.error_handling(serv_id, t.GK_CREATE, error)
+
+        return
+
+
     def start_monitoring(self, serv_id):
         """
         This method instructs the monitoring manager to start monitoring
@@ -2321,6 +2360,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         # If an error occured, the workflow is aborted and the GK is informed
         if error is not None:
+            LOG.info("ERROR trying to start monitoring thread")
             self.error_handling(serv_id, t.GK_CREATE, error)
 
         return
@@ -2945,6 +2985,28 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Instantiation aborted, cleanup completed")
 
         # TODO: Delete the records
+
+    def run(self):
+        while(True):
+            LOG.info("SLM Thread")
+            try:
+                for _service, _service_meta in self.active_services.items():
+                    LOG.info(_service)
+                    for _function in _service_meta['functions']:
+                        for _vdu in _function['vnfr']['virtual_deployment_units']:
+                            for _vnfi in _vdu['vnfc_instance']:
+                                # LOG.info(_vnfi)
+                                for _t in _service_meta['topology']:
+                                    # LOG.info(_t)
+                                    if _t['vim_uuid'] == _vnfi['vim_id']:
+                                        LOG.info("VNF is on")
+                                        LOG.info(_vnfi['vim_id'])
+                
+            except Exception as e:
+                LOG.error("SLM Thread Error")
+                LOG.error(e)
+
+            time.sleep(5)
 
 
 def main():
