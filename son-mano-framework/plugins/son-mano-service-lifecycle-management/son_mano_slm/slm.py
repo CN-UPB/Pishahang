@@ -81,8 +81,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services = {}
 
         # Create topology 
-        # TODO: Make is consistant
-        self.active_services = {}
 
         # The frequency of state sharing events
         self.state_share_frequency = 1
@@ -2256,6 +2254,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
     def start_mv_monitoring(self, serv_id):
         # TODO: Fetch instance name from OS and add it to list of monitoring instances
         # FIXME: Guess we need another plugin or move this to mvplugin?
+        corr_id = str(uuid.uuid4())
+        self.services[serv_id]['act_corr_id'] = corr_id
+
         is_nsd = 'nsd' in self.services[serv_id]['service']
         LOG.info("Service " + serv_id + ": Setting up MV Monitoring Manager")
         service = self.services[serv_id]['service']
@@ -2264,27 +2265,22 @@ class ServiceLifecycleManager(ManoBasePlugin):
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
 
-        self.active_services[serv_id] = {}
+        content = {
+            'functions': functions,
+            'topology': topology,
+            'serv_id': serv_id
+        }
 
         error = None
         try:
             LOG.debug("MV Monitoring")        
 
-            for _function in functions:
-                for _vdu in _function['vnfr']['virtual_deployment_units']:
-                    for _vnfi in _vdu['vnfc_instance']:
-                        # LOG.info(_vnfi)
-                        for _t in topology:
-                            # LOG.info(_t)
-                            if _t['vim_uuid'] == _vnfi['vim_id']:
-                                LOG.info("VNF is on")
-                                LOG.info(_vnfi['vim_id'])
-                                _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_id, _t)
-                                LOG.info(_instance_id)
-                                LOG.info(_charts)
-                                self.active_services[serv_id]['charts'] = _charts
-                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+            self.manoconn.call_async(self.resp_mv_mon,
+                                    t.MANO_MV_MON,
+                                    yaml.dump(content),
+                                    correlation_id=corr_id)
+
+            LOG.info("Service " + serv_id + ": MV Monitoring Info sent")
 
         except:
             LOG.info("Service " + serv_id + ": timeout on monitoring server.")
@@ -2297,6 +2293,18 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.error_handling(serv_id, t.GK_CREATE, error)
 
         return
+
+# 
+    def resp_mv_mon(self, ch, method, prop, payload):
+        """
+        This method handles the response on mv monitoring request
+        """
+        content = yaml.load(payload)
+
+        serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
+        LOG.info("Service " + serv_id + ": Placement response received")
+
+        LOG.info("resp Mapping")
 
 
     def start_monitoring(self, serv_id):
@@ -2996,25 +3004,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Instantiation aborted, cleanup completed")
 
         # TODO: Delete the records
-
-    def run(self):
-        while(True):
-            LOG.info("\nSLM Thread\n")
-            try:
-                for _service, _service_meta in self.active_services.items():
-                    LOG.info(_service)
-                    _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
-                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                    LOG.info("### CPU ###")
-                    LOG.info(_metrics["cpu"])
-                    LOG.info("### BANDWIDTH ###")
-                    LOG.info(_metrics["bandwidth"])
-
-            except Exception as e:
-                LOG.error("SLM Thread Error")
-                LOG.error(e)
-
-            time.sleep(10)
 
 
 def main():

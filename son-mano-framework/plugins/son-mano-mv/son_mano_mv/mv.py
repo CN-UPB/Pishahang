@@ -37,8 +37,13 @@ import concurrent.futures as pool
 from son_mano_mv.multi_version import CreateTemplate
 
 # import psutil
+try:
+    from son_mano_mv import mv_helpers as tools
+except:
+    import mv_helpers as tools
 
 from sonmanobase.plugin import ManoBasePlugin
+
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -71,6 +76,8 @@ class MVPlugin(ManoBasePlugin):
         des = "This is the Multiversion plugin"
 
         self.mon_metrics = {}
+        # TODO: Make is consistant
+        self.active_services = {}
 
         super(self.__class__, self).__init__(version=ver,
                                              description=des,
@@ -94,6 +101,8 @@ class MVPlugin(ManoBasePlugin):
 
         # The topic on which deploy requests are posted.
         topic = 'mano.service.place'
+        mv_mon_topic = 'mano.service.mv_mon'
+        self.manoconn.subscribe(self.mon_request, mv_mon_topic)
         self.manoconn.subscribe(self.placement_request, topic)
 
         LOG.info("Subscribed to topic: " + str(topic))
@@ -147,6 +156,42 @@ class MVPlugin(ManoBasePlugin):
 ##########################
 # Placement
 ##########################
+
+
+    def mon_request(self, ch, method, prop, payload):
+        """
+        This method handles a placement request
+        """
+        if prop.app_id == self.name:
+            return
+
+        content = yaml.load(payload)
+
+        LOG.info("MV MON request for service: " + content['serv_id'])
+
+        topology = content['topology']
+        functions = content['functions'] if 'functions' in content else []
+        cloud_services = content['cloud_services'] if 'cloud_services' in content else []
+        serv_id = content['serv_id']
+
+        self.active_services[serv_id] = {}
+
+        for _function in functions:
+            for _vdu in _function['vnfr']['virtual_deployment_units']:
+                for _vnfi in _vdu['vnfc_instance']:
+                    # LOG.info(_vnfi)
+                    for _t in topology:
+                        # LOG.info(_t)
+                        if _t['vim_uuid'] == _vnfi['vim_id']:
+                            LOG.info("VNF is on")
+                            LOG.info(_vnfi['vim_id'])
+                            _instance_id = tools.get_nova_server_info(serv_id, _t)
+                            _charts = tools.get_netdata_charts(_instance_id, _t)
+                            LOG.info(_instance_id)
+                            LOG.info(_charts)
+                            self.active_services[serv_id]['charts'] = _charts
+                            self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+
 
     def placement_request(self, ch, method, prop, payload):
         """
@@ -206,6 +251,7 @@ class MVPlugin(ManoBasePlugin):
         LOG.info(as_accelerated)
 
         mapping = {}
+        mapping_counter = 0
 
         if len(as_vm) > 0:
             # FIXME: should support multiple VDU?
@@ -229,6 +275,7 @@ class MVPlugin(ManoBasePlugin):
                                     function["vim_uuid"] = vim['vim_uuid']
                                     vim['core_used'] = vim['core_used'] + needed_cpu
                                     vim['memory_used'] = vim['memory_used'] + needed_mem
+                                    mapping_counter += 1
                                     break
 
         elif len(as_accelerated) > 0:
@@ -257,29 +304,50 @@ class MVPlugin(ManoBasePlugin):
                     if mem_req:
                         cloud_service["vim_uuid"] = vim['vim_uuid']
                         vim['memory_used'] = vim['memory_used'] + needed_mem
+                        mapping_counter += 1
                         break
 
 
         mapping["functions"] = functions
         mapping["cloud_services"] = cloud_services
 
-        LOG.info("Functions \n\n\n")
-        LOG.info(functions)
+        # LOG.info("Functions \n\n\n")
+        # LOG.info(functions)
 
-        LOG.info("Cloud_services \n\n\n")
-        LOG.info(cloud_services)
+        # LOG.info("Cloud_services \n\n\n")
+        # LOG.info(cloud_services)
 
-        LOG.info("Mapping \n\n\n")
-        LOG.info(mapping)
+        # LOG.info("Mapping \n\n\n")
+        # LOG.info(mapping)
+
+        # Check if all VNFs and CSs have been mapped
+        if mapping_counter == len(functions) + len(cloud_services):
+            return mapping
+        else:
+            LOG.info("Placement was not possible")
+            return None
 
         return mapping
 
-        # Check if all VNFs and CSs have been mapped
-        # if len(mapping.keys()) == len(functions) + len(cloud_services):
-        #     return mapping
-        # else:
-        #     LOG.info("Placement was not possible")
-        #     return None
+
+    def run(self):
+        while(True):
+            LOG.info("\nSLM Thread\n")
+            try:
+                for _service, _service_meta in self.active_services.items():
+                    LOG.info(_service)
+                    _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
+                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+                    LOG.info("### CPU ###")
+                    LOG.info(_metrics["cpu"])
+                    LOG.info("### BANDWIDTH ###")
+                    LOG.info(_metrics["bandwidth"])
+
+            except Exception as e:
+                LOG.error("SLM Thread Error")
+                LOG.error(e)
+
+            time.sleep(10)
 
 
 def main():
