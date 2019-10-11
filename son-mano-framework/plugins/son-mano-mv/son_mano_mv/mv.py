@@ -160,38 +160,56 @@ class MVPlugin(ManoBasePlugin):
 
     def mon_request(self, ch, method, prop, payload):
         """
-        This method handles a placement request
+        This method handles a MV Monitoringrequest
         """
         if prop.app_id == self.name:
             return
 
         content = yaml.load(payload)
-
-        LOG.info("MV MON request for service: " + content['serv_id'])
-
-        topology = content['topology']
-        functions = content['functions'] if 'functions' in content else []
-        cloud_services = content['cloud_services'] if 'cloud_services' in content else []
         serv_id = content['serv_id']
 
-        self.active_services[serv_id] = {}
+        LOG.info("MV MON request for service: " + serv_id)
 
-        for _function in functions:
-            for _vdu in _function['vnfr']['virtual_deployment_units']:
-                for _vnfi in _vdu['vnfc_instance']:
-                    # LOG.info(_vnfi)
-                    for _t in topology:
-                        # LOG.info(_t)
-                        if _t['vim_uuid'] == _vnfi['vim_id']:
-                            LOG.info("VNF is on")
-                            LOG.info(_vnfi['vim_id'])
-                            _instance_id = tools.get_nova_server_info(serv_id, _t)
-                            _charts = tools.get_netdata_charts(_instance_id, _t)
-                            LOG.info(_instance_id)
-                            LOG.info(_charts)
-                            self.active_services[serv_id]['charts'] = _charts
-                            self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+        if content['request_type'] == "START":
+            topology = content['topology']
+            functions = content['functions'] if 'functions' in content else []
+            cloud_services = content['cloud_services'] if 'cloud_services' in content else []
 
+            self.active_services[serv_id] = {}
+
+            for _function in functions:
+                for _vdu in _function['vnfr']['virtual_deployment_units']:
+                    for _vnfi in _vdu['vnfc_instance']:
+                        # LOG.info(_vnfi)
+                        for _t in topology:
+                            # LOG.info(_t)
+                            if _t['vim_uuid'] == _vnfi['vim_id']:
+                                LOG.info("VNF is on")
+                                LOG.info(_vnfi['vim_id'])
+                                _instance_id = tools.get_nova_server_info(serv_id, _t)
+                                _charts = tools.get_netdata_charts(_instance_id, _t)
+                                LOG.info(_instance_id)
+                                LOG.info(_charts)
+                                self.active_services[serv_id]['charts'] = _charts
+                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+
+            LOG.info("Waiting")
+            time.sleep(10)
+            MV_CHANGE_VERSION = "mano.instances.change"
+            self.manoconn.call_async(self.handle_resp_change,
+                                    MV_CHANGE_VERSION,
+                                    yaml.dump(content))
+
+        elif content['request_type'] == "STOP":
+            self.active_services.pop(serv_id, None)
+            LOG.info("Monitoring stopped")
+
+        else:
+            LOG.info("Request type not suppoted")
+
+
+    def handle_resp_change(self):
+        LOG.info("MV Handle Change Request ")
 
     def placement_request(self, ch, method, prop, payload):
         """

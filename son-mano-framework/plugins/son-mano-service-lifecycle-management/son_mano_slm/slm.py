@@ -172,6 +172,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # The topic on which plugin status info is shared
         self.manoconn.subscribe(self.plugin_status, t.PL_STATUS)
 
+        # The topic on which plugin status info is shared
+        self.manoconn.subscribe(self.service_change_version, t.MV_CHANGE_VERSION)
+
 #        # The topic on which the FLM receives deploy request from SLM
 #        self.manoconn.subscribe(self.flm_deploy, t.MANO_DEPLOY)
 
@@ -567,7 +570,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         if orig == 'GK':
             add_schedule.append('contact_gk')
-        add_schedule.append("stop_monitoring")
+        # add_schedule.append("stop_monitoring")
+        add_schedule.append("stop_mv_monitoring")
         add_schedule.append("wan_deconfigure")
         # add_schedule.append("vnf_unchain")
         add_schedule.append("vnfs_stop")
@@ -2251,6 +2255,25 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         return
 
+    def service_change_version(self, ch, method, prop, payload):
+        """
+        This function handles a received message on the mano.instances.change
+        topic.
+        """
+
+        # Check if the messages comes from the GK or is forward by another SLM
+        if prop.app_id == self.name:
+            return
+
+        corr_id = str(uuid.uuid4())
+        
+        content = yaml.load(payload)
+        serv_id = content['serv_id']
+        LOG.info("Termination request received for service " + str(serv_id))
+
+        self.terminate_workflow(serv_id,
+                                corr_id)
+
     def start_mv_monitoring(self, serv_id):
         # TODO: Fetch instance name from OS and add it to list of monitoring instances
         # FIXME: Guess we need another plugin or move this to mvplugin?
@@ -2266,6 +2289,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         topology = self.services[serv_id]['infrastructure']['topology']
 
         content = {
+            'request_type': "START",
             'functions': functions,
             'topology': topology,
             'serv_id': serv_id
@@ -2294,7 +2318,39 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         return
 
-# 
+    def stop_mv_monitoring(self, serv_id):
+        corr_id = str(uuid.uuid4())
+        self.services[serv_id]['act_corr_id'] = corr_id
+
+        is_nsd = 'nsd' in self.services[serv_id]['service']
+        LOG.info("Service " + serv_id + ": Stopping MV Monitoring")
+
+        content = {
+            'request_type': "STOP",
+            'serv_id': serv_id
+        }
+
+        error = None
+        try:
+            self.manoconn.call_async(self.resp_mv_mon,
+                                    t.MANO_MV_MON,
+                                    yaml.dump(content),
+                                    correlation_id=corr_id)
+
+            LOG.info("Service " + serv_id + ": MV Monitoring Info sent")
+
+        except:
+            LOG.info("Service " + serv_id + ": timeout on monitoring server.")
+            error = {'message': 'Timeout when contacting server'}
+
+        # If an error occured, the workflow is aborted and the GK is informed
+        if error is not None:
+            LOG.info("ERROR trying to start monitoring thread")
+            self.error_handling(serv_id, t.GK_CREATE, error)
+
+        return
+
+
     def resp_mv_mon(self, ch, method, prop, payload):
         """
         This method handles the response on mv monitoring request

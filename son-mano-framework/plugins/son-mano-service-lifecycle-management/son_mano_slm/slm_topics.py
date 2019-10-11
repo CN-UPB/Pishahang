@@ -52,6 +52,9 @@ MANO_CONFIG = "mano.function.configure"
 MANO_STOP = "mano.function.stop"
 MANO_SCALE = "mano.function.scale"
 
+# With other SLM
+MV_CHANGE_VERSION = "mano.instances.change"
+
 # With gatekeeper or other SLM
 WC_CREATE = "*.instances.create"
 WC_PAUSE = "*.instance.pause"
