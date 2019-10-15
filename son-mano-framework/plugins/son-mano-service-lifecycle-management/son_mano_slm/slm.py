@@ -425,6 +425,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Bypass for backwards compatibility, to be removed after
         # transition to new version of SLM is completed
         message = yaml.load(payload)
+        # LOG.info("SLM Service Create PAYLOAD")
+        # LOG.info(payload)
+
 
         # Extract the correlation id and generate a reduced id
         corr_id = properties.correlation_id
@@ -2274,6 +2277,102 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.terminate_workflow(serv_id,
                                 corr_id)
 
+        LOG.info(payload)
+
+        time.sleep(30)
+        LOG.info("Service " + serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
+        time.sleep(3)
+
+        # Generate an istance uuid for the service
+        serv_id = str(uuid.uuid4())
+        # Add the service to the ledger and add instance ids
+        self.services[serv_id] = {}
+        self.services[serv_id]['service'] = {}
+
+        self.services[serv_id]['service']['nsd'] = content['nsd']
+        self.services[serv_id]['service']['id'] = serv_id
+
+        if 'functions' in content:
+            for _function in content['functions']:
+                _function['id'] = str(uuid.uuid4())
+            self.services[serv_id]['function'] = content['functions']
+
+        if 'cloud_services' in content:
+            for _function in content['cloud_services']:
+                _function['id'] = str(uuid.uuid4())
+            self.services[serv_id]['cloud_service'] = content['cloud_services']
+
+        # Add to correlation id to the ledger
+        self.services[serv_id]['original_corr_id'] = corr_id
+
+        self.services[serv_id]['infrastructure'] = {}
+
+        # Create the service schedule
+        self.services[serv_id]['schedule'] = []
+
+        # Create a log for the task results
+        self.services[serv_id]['task_log'] = []
+
+        # Create counter for vnfs and css
+        self.services[serv_id]['vnfs_to_resp'] = 0
+        self.services[serv_id]['css_to_resp'] = 0
+
+        # Create the chain pause and kill flag
+        self.services[serv_id]['pause_chain'] = False
+        self.services[serv_id]['kill_chain'] = False
+
+        # Add ingress and egress fields
+        self.services[serv_id]['ingress'] = None
+        self.services[serv_id]['egress'] = None
+
+        self.services[serv_id]['user_data'] = content['user_data']
+
+        # Add keys to ledger
+        try:
+            keys = content['user_data']['customer']['keys']
+            self.services[serv_id]['public_key'] = keys['public']
+            self.services[serv_id]['private_key'] = keys['private']
+        except:
+            msg = ": extracting keys failed " + str(content['user_data'])
+            LOG.info("Service " + serv_id + msg)
+            self.services[serv_id]['public_key'] = None
+            self.services[serv_id]['private_key'] = None
+
+        # Add workflow to ledger
+        self.services[serv_id]['topic'] = t.GK_CREATE
+        self.services[serv_id]['current_workflow'] = 'instantiation'
+
+        # Schedule the tasks that the SLM should do for this request.
+        add_schedule = []
+
+        # add_schedule.append('validate_deploy_request')
+        # add_schedule.append('contact_gk')
+
+        add_schedule.append('request_topology')
+
+        # Perform the placement
+        add_schedule.append('SLM_mapping')
+
+        add_schedule.append('ia_prepare')
+        add_schedule.append('vnf_deploy')
+        add_schedule.append('vnfs_start')
+        add_schedule.append('cs_deploy')
+        # add_schedule.append('vnf_chain')
+        add_schedule.append('store_nsr')
+        add_schedule.append('wan_configure')
+        add_schedule.append('start_mv_monitoring')
+        add_schedule.append('inform_gk_instantiation')
+
+        self.services[serv_id]['schedule'].extend(add_schedule)
+
+        msg = ": New instantiation request received. Instantiation started."
+        LOG.info("Service " + serv_id + msg)
+        # Start the chain of tasks
+        self.start_next_task(serv_id)
+        
+        return
+
+
     def start_mv_monitoring(self, serv_id):
         # TODO: Fetch instance name from OS and add it to list of monitoring instances
         # FIXME: Guess we need another plugin or move this to mvplugin?
@@ -2288,12 +2387,29 @@ class ServiceLifecycleManager(ManoBasePlugin):
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
 
-        content = {
-            'request_type': "START",
-            'functions': functions,
-            'topology': topology,
-            'serv_id': serv_id
-        }
+        if 'nsd' in self.services[serv_id]['service']:
+            NSD = self.services[serv_id]['service']['nsd']
+            functions = self.services[serv_id]['function']
+
+            content = {'nsd': NSD,
+                        'user_data': userdata,
+                        'request_type': "START",
+                       'functions': functions,
+                       'topology': topology,
+                       'serv_id': serv_id}
+        else:
+            COSD = self.services[serv_id]['service']['cosd']
+            functions = self.services[serv_id]['function']
+            cloud_services = self.services[serv_id]['cloud_service']
+
+            content = {'cosd': COSD,
+                        'user_data': userdata,
+                        'request_type': "START",
+                       'functions': functions,
+                       'cloud_services': cloud_services,
+                       'topology': topology,
+                       'serv_id': serv_id}
+
 
         error = None
         try:
