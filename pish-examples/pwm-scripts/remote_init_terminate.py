@@ -14,15 +14,15 @@ import threading
 import time
 
 # the following 4 variables need to be populated with the right values
-USERNAME = "USER"
-PASSWORD = "PASS"
-HOST_URL = "serverdemo"
+USERNAME = "sonata"
+PASSWORD = "1234"
+HOST_URL = "serverdemo1.cs.upb.de"
 
-VNFDNAME = "cirros1" 
+VNFDNAME = "cirros1"
 NSDNAME = "cirros1" #  Keep this same as this key _n['nsd']['name']
 DESCRIPTORS_PATH = "/home/ashwin/Documents/WHB-Hadi/src/Pishahang/pish-examples/pwm-scripts/descriptors"
 
-TERMINATE_NS = True
+TERMINATE_NS = False
 
 pishahang = wrappers.SONATAClient.Auth(HOST_URL)
 pishahang_nsd = wrappers.SONATAClient.Nsd(HOST_URL)

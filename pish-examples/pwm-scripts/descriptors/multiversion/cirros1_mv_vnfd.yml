@@ -10,6 +10,15 @@ virtual_deployment_units:
   description: cirros-image-1
   vm_image: "cirros-image-1"
   vm_image_format: qcow2
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
   resource_requirements:
     cpu:
       vcpus: 1
@@ -22,7 +31,7 @@ virtual_deployment_units:
   connection_points:
   - id: eth0
     interface: ipv4
-    type: internal
+    type: external
 
 virtual_deployment_units_acc:
 - id: "cirros-image-1"
@@ -34,9 +43,75 @@ virtual_deployment_units_acc:
     protocol: "TCP"
     port: 22
     target_port: 22
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
   resource_requirements:
     memory:
       size: 32
       size_unit: "Mi"
 
-# Image name on openstack should be "pg-scramble_cirros-image-1_1.0_cirros-image-1"
+virtual_deployment_units_con:
+- id: "cirros-image-1"
+  name: "cirros-image-1"
+  service_image: "cirros"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "ssh"
+    protocol: "TCP"
+    port: 22
+    target_port: 22
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
+  resource_requirements:
+    memory:
+      size: 32
+      size_unit: "Mi"      
+
+monitoring_rules:
+  - name: "mon:rule:vm_cpu_perc"
+    description: "Trigger events if CPU load is above 10 percent."
+    duration: 5
+    duration_unit: "s"
+    condition: "cirros-image-1:vm_cpu_perc > 0"
+    notification:
+      - name: "notification01"
+        type: "rabbitmq_message"
+
+  # - name: "mon:rule:vm_mem_perc"
+  #   description: "Trigger events if memory consumption is above 10 percent."
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_mem_perc > 0"
+  #   notification:
+  #     - name: "notification02"
+  #       type: "rabbitmq_message"
+  # - name: "mon:rule:rx"
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_net_rx_MB > 10"
+  #   notification:
+  #     - name: "notification03"
+  #       type: "rabbitmq_message"
+  # - name: "mon:rule:tx"
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_net_tx_MB > 10"
+  #   notification:
+  #     - name: "notification04"
+  #       type: "rabbitmq_message"      
+
+# Image name on openstack should be "pg-scramble_cirros-image-1-mv_1.0_cirros-image-1"

@@ -4,7 +4,7 @@ import json
 USERNAME = "sonata"
 PASSWORD = "1234"
 
-HOST_URL = "manodemo2.cs.upb.de"
+HOST_URL = "serverdemo1.cs.upb.de"
 
 sonata_nsd = wrappers.SONATAClient.Nsd(HOST_URL)
 sonata_auth = wrappers.SONATAClient.Auth(HOST_URL)
