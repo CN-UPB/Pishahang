@@ -168,37 +168,46 @@ class MVPlugin(ManoBasePlugin):
         content = yaml.load(payload)
         serv_id = content['serv_id']
 
+        is_nsd = content['is_nsd']
+
         LOG.info("MV MON request for service: " + serv_id)
 
         if content['request_type'] == "START":
-            topology = content['topology']
-            functions = content['functions'] if 'functions' in content else []
-            cloud_services = content['cloud_services'] if 'cloud_services' in content else []
-
             self.active_services[serv_id] = {}
+            self.active_services[serv_id]['charts'] = []
+            self.active_services[serv_id]['vim_endpoint'] = ""
+            self.active_services[serv_id]['function_versions'] = content['function_versions']
+            
+            if is_nsd:
+                topology = content['topology']
+                functions = content['functions'] if 'functions' in content else []
 
-            for _function in functions:
-                for _vdu in _function['vnfr']['virtual_deployment_units']:
-                    for _vnfi in _vdu['vnfc_instance']:
-                        # LOG.info(_vnfi)
-                        for _t in topology:
-                            # LOG.info(_t)
-                            if _t['vim_uuid'] == _vnfi['vim_id']:
-                                LOG.info("VNF is on")
-                                LOG.info(_vnfi['vim_id'])
-                                _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_id, _t)
-                                LOG.info(_instance_id)
-                                LOG.info(_charts)
-                                self.active_services[serv_id]['charts'] = _charts
-                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+                for _function in functions:
+                    for _vdu in _function['vnfr']['virtual_deployment_units']:
+                        for _vnfi in _vdu['vnfc_instance']:
+                            # LOG.info(_vnfi)
+                            for _t in topology:
+                                # LOG.info(_t)
+                                if _t['vim_uuid'] == _vnfi['vim_id']:
+                                    LOG.info("VNF is on")
+                                    LOG.info(_vnfi['vim_id'])
+                                    _instance_id = tools.get_nova_server_info(serv_id, _t)
+                                    _charts = tools.get_netdata_charts(_instance_id, _t)
+                                    LOG.info(_instance_id)
+                                    LOG.info(_charts)
+                                    self.active_services[serv_id]['charts'] = _charts
+                                    self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+                                    self.active_services[serv_id]['metadata'] = content
+                                    self.active_services[serv_id]['is_nsd'] = is_nsd
+            else:
+                LOG.info("Not OpenStack monitoting")
+                self.active_services[serv_id]['is_nsd'] = is_nsd
+                self.active_services[serv_id]['metadata'] = content
 
             LOG.info("Waiting")
             time.sleep(10)
-            MV_CHANGE_VERSION = "mano.instances.change"
-            self.manoconn.call_async(self.handle_resp_change,
-                                    MV_CHANGE_VERSION,
-                                    yaml.dump(content))
+
+            self.request_version_change(serv_id)
 
         elif content['request_type'] == "STOP":
             self.active_services.pop(serv_id, None)
@@ -206,6 +215,16 @@ class MVPlugin(ManoBasePlugin):
 
         else:
             LOG.info("Request type not suppoted")
+
+
+    def request_version_change(self, serv_id):
+            MV_CHANGE_VERSION = "mano.instances.change"
+            content = self.active_services[serv_id]['metadata']
+            content['function_versions'] = self.active_services[serv_id]['function_versions']
+
+            self.manoconn.call_async(self.handle_resp_change,
+                                    MV_CHANGE_VERSION,
+                                    yaml.dump(content))
 
 
     def handle_resp_change(self):
@@ -221,7 +240,7 @@ class MVPlugin(ManoBasePlugin):
 
         # FIXME: This should be calculated based on mintoring thread
         ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        self.mon_metrics["time_vm"] = 5 # Change it to 60 to get as_accelerated component in the result file 
+        self.mon_metrics["time_vm"] = 60 # Change it to 60 to get as_accelerated component in the result file 
         self.mon_metrics["time_acc"] = 0.25
 
         content = yaml.load(payload)
@@ -231,11 +250,10 @@ class MVPlugin(ManoBasePlugin):
 
         LOG.info("MV request for service: " + content['serv_id'])
         topology = content['topology']
-        descriptor = content['nsd'] if 'nsd' in content else content['cosd']
-        functions = content['functions'] if 'functions' in content else []
-        cloud_services = content['cloud_services'] if 'cloud_services' in content else []
+        descriptor = content['nsd']
+        functions = content['functions']
 
-        placement = self.placement(descriptor, functions, cloud_services, topology, result_data)
+        placement = self.placement(descriptor, functions, topology, result_data)
 
         response = {'mapping': placement}
         topic = 'mano.service.place'
@@ -247,7 +265,7 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV response sent for service: " + content['serv_id'])
         LOG.info(response)
 
-    def placement(self, descriptor, functions, cloud_services, topology, result_data):
+    def placement(self, descriptor, functions, topology, result_data):
         """
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
@@ -270,6 +288,8 @@ class MVPlugin(ManoBasePlugin):
 
         mapping = {}
         mapping_counter = 0
+        # FIXME: designed only for 1
+        is_nsd = True
 
         if len(as_vm) > 0:
             # FIXME: should support multiple VDU?
@@ -323,11 +343,13 @@ class MVPlugin(ManoBasePlugin):
                         cloud_service["vim_uuid"] = vim['vim_uuid']
                         vim['memory_used'] = vim['memory_used'] + needed_mem
                         mapping_counter += 1
+                        is_nsd = False
                         break
 
 
         mapping["functions"] = functions
         mapping["cloud_services"] = cloud_services
+        mapping["is_nsd"] = is_nsd
 
         # LOG.info("Functions \n\n\n")
         # LOG.info(functions)

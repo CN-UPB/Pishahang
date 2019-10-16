@@ -1608,7 +1608,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
     def store_nsr(self, serv_id):
 
         # TODO: get request_status from response from IA on chain
-        is_nsd = 'nsd' in self.services[serv_id]['service']
+        is_nsd = self.services[serv_id]['service']["is_nsd"]
         request_status = 'normal operation'
 
         if request_status == 'normal operation':
@@ -1676,7 +1676,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     self.error_handling(serv_id, t.GK_CREATE, error)
                     return
 
-        descriptor = self.services[serv_id]['service']['nsd'] if is_nsd else self.services[serv_id]['service']['cosd']
+        descriptor = self.services[serv_id]['service']['nsd']
+        # descriptor = self.services[serv_id]['service']['nsd'] if is_nsd else self.services[serv_id]['service']['cosd']
 
         vnfr_ids = []
         for function in self.services[serv_id]['function']:
@@ -1698,6 +1699,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         try:
             header = {'Content-Type': 'application/json'}
             url = t.NSR_REPOSITORY_URL + 'ns-instances' if is_nsd else t.COSR_REPOSITORY_URL + 'cos-instances'
+            LOG.debug("Record to be stored URL:  - - " + url)
+            LOG.debug(is_nsd)            
+
             record_resp = requests.post(url,
                                      data=json.dumps(record),
                                      headers=header,
@@ -2274,14 +2278,16 @@ class ServiceLifecycleManager(ManoBasePlugin):
         serv_id = content['serv_id']
         LOG.info("Termination request received for service " + str(serv_id))
 
-        self.terminate_workflow(serv_id,
+        is_nsd = content['is_nsd']
+
+        # FIXME: add cosd termination
+        if is_nsd:
+            self.terminate_workflow(serv_id,
                                 corr_id)
 
-        LOG.info(payload)
-
-        time.sleep(30)
+        # LOG.info(payload)
         LOG.info("Service " + serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
-        time.sleep(3)
+        time.sleep(5)
 
         # Generate an istance uuid for the service
         serv_id = str(uuid.uuid4())
@@ -2293,14 +2299,11 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['service']['id'] = serv_id
 
         if 'functions' in content:
-            for _function in content['functions']:
+            for _function in content['function_versions']:
                 _function['id'] = str(uuid.uuid4())
-            self.services[serv_id]['function'] = content['functions']
+            self.services[serv_id]['function'] = content['function_versions']
 
-        if 'cloud_services' in content:
-            for _function in content['cloud_services']:
-                _function['id'] = str(uuid.uuid4())
-            self.services[serv_id]['cloud_service'] = content['cloud_services']
+        self.services[serv_id]['function_versions'] = content['function_versions']
 
         # Add to correlation id to the ledger
         self.services[serv_id]['original_corr_id'] = corr_id
@@ -2379,37 +2382,24 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        is_nsd = 'nsd' in self.services[serv_id]['service']
+        is_nsd = self.services[serv_id]['service']["is_nsd"]
         LOG.info("Service " + serv_id + ": Setting up MV Monitoring Manager")
         service = self.services[serv_id]['service']
         functions = self.services[serv_id]['function']
-        cloud_services = self.services[serv_id]['cloud_service']
+        function_versions = self.services[serv_id]['function_versions']
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
 
-        if 'nsd' in self.services[serv_id]['service']:
-            NSD = self.services[serv_id]['service']['nsd']
-            functions = self.services[serv_id]['function']
+        NSD = self.services[serv_id]['service']['nsd']
 
-            content = {'nsd': NSD,
-                        'user_data': userdata,
-                        'request_type': "START",
-                       'functions': functions,
-                       'topology': topology,
-                       'serv_id': serv_id}
-        else:
-            COSD = self.services[serv_id]['service']['cosd']
-            functions = self.services[serv_id]['function']
-            cloud_services = self.services[serv_id]['cloud_service']
-
-            content = {'cosd': COSD,
-                        'user_data': userdata,
-                        'request_type': "START",
-                       'functions': functions,
-                       'cloud_services': cloud_services,
-                       'topology': topology,
-                       'serv_id': serv_id}
-
+        content = {'nsd': NSD,
+                    'is_nsd': is_nsd,
+                    'user_data': userdata,
+                    'request_type': "START",
+                    'functions': functions,
+                    'function_versions': function_versions,
+                    'topology': topology,
+                    'serv_id': serv_id}
 
         error = None
         try:
@@ -2438,7 +2428,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        is_nsd = 'nsd' in self.services[serv_id]['service']
+        is_nsd = self.services[serv_id]['service']["is_nsd"]
         LOG.info("Service " + serv_id + ": Stopping MV Monitoring")
 
         content = {
@@ -2562,7 +2552,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         LOG.info("Service " + serv_id + ": Reporting result to GK")
 
-        is_nsd = 'nsd' in self.services[serv_id]['service']
+        is_nsd = self.services[serv_id]['service']["is_nsd"]
 
         message = {}
 
@@ -2641,8 +2631,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         msg = ": NSD uuid is " + str(descriptor['uuid'])
         LOG.info("Service " + serv_id + msg)
 
+        self.services[serv_id]['function_versions'] = []
         self.services[serv_id]['function'] = []
         self.services[serv_id]['cloud_service'] = []
+
         for key in payload.keys():
             if key[:4] == 'VNFD':
                 vnf_id = str(uuid.uuid4())
@@ -2656,6 +2648,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                                  'vnfd': vnfd,
                                  'id': vnf_id}
                 self.services[serv_id]['function'].append(vnf_base_dict)
+                self.services[serv_id]['function_versions'].append(vnf_base_dict)
+
             elif key[:3] == 'CSD':
                 cs_id = str(uuid.uuid4())
                 msg = "CSD instance id generated: " + cs_id
@@ -2786,7 +2780,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             request_returned_with_error(request)
             return
 
-        self.services[serv_id]['service']['nsd' if is_ns else 'cosd'] = request['content']['nsd' if is_ns else 'cosd']
+        self.services[serv_id]['service']['nsd'] = request['content']['nsd']
+        # self.services[serv_id]['service']['nsd' if is_ns else 'cosd'] = request['content']['nsd' if is_ns else 'cosd']
         LOG.info("Service " + serv_id + ": Recreating ledger: Descriptor retrieved.")
 
         # Retrieve the function records based on the service record
@@ -2862,7 +2857,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                  serv_id + ": Recreating ledger: VNFDs and CSDs retrieved.")
 
         # Retrieve the deployed SSMs based on the NSD
-        descriptor = self.services[serv_id]['service']['nsd' if is_ns else 'cosd']
+        descriptor = self.services[serv_id]['service']['nsd']
         ssm_dict = tools.get_sm_from_descriptor(descriptor)
 
         self.services[serv_id]['service']['ssm'] = ssm_dict
@@ -3001,24 +2996,14 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         LOG.info("Service " + serv_id + ": Calculating the placement")
         topology = self.services[serv_id]['infrastructure']['topology']
-        if 'nsd' in self.services[serv_id]['service']:
-            NSD = self.services[serv_id]['service']['nsd']
-            functions = self.services[serv_id]['function']
 
-            content = {'nsd': NSD,
-                       'functions': functions,
-                       'topology': topology,
-                       'serv_id': serv_id}
-        else:
-            COSD = self.services[serv_id]['service']['cosd']
-            functions = self.services[serv_id]['function']
-            cloud_services = self.services[serv_id]['cloud_service']
+        NSD = self.services[serv_id]['service']['nsd']
+        functions = self.services[serv_id]['function']
 
-            content = {'cosd': COSD,
-                       'functions': functions,
-                       'cloud_services': cloud_services,
-                       'topology': topology,
-                       'serv_id': serv_id}
+        content = {'nsd': NSD,
+                    'functions': functions,
+                    'topology': topology,
+                    'serv_id': serv_id}
 
         content['nap'] = {}
 
@@ -3068,6 +3053,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
             self.services[serv_id]['function'] = content["mapping"]["functions"]
             self.services[serv_id]['cloud_service'] = content["mapping"]["cloud_services"]
+            self.services[serv_id]['service']["is_nsd"] = content["mapping"]["is_nsd"]
 
             # for function in self.services[serv_id]['function']:
             #     vnf_id = function['id']
