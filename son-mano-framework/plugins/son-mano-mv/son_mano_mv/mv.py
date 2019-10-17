@@ -169,7 +169,7 @@ class MVPlugin(ManoBasePlugin):
         serv_id = content['serv_id']
 
         LOG.info("MV MON request for service: " + serv_id)
-        LOG.info(content)
+        # LOG.info(content)
 
         if content['request_type'] == "START":
             is_nsd = content['is_nsd']
@@ -177,6 +177,7 @@ class MVPlugin(ManoBasePlugin):
             self.active_services[serv_id]['charts'] = []
             self.active_services[serv_id]['vim_endpoint'] = ""
             self.active_services[serv_id]['function_versions'] = content['function_versions']
+            self.active_services[serv_id]['version_changed'] = False
             topology = content['topology']
             functions = content['functions'] if 'functions' in content else []
             cloud_services = content['cloud_services'] if 'cloud_services' in content else []
@@ -194,11 +195,11 @@ class MVPlugin(ManoBasePlugin):
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
                                     _charts = tools.get_netdata_charts(_instance_id, _t)
                                     LOG.info(_instance_id)
-                                    LOG.info(_charts)
+                                    LOG.info(len(_charts))
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
-                                    self.active_services[serv_id]['is_nsd'] = is_nsd
+                                    self.active_services[serv_id]['is_nsd'] = is_nsd                                    
             else:
                 LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
@@ -221,11 +222,6 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
 
-            LOG.info("Waiting")
-            time.sleep(10)
-
-            self.request_version_change(serv_id)
-
         elif content['request_type'] == "STOP":
             self.active_services.pop(serv_id, None)
             LOG.info("Monitoring stopped")
@@ -234,10 +230,12 @@ class MVPlugin(ManoBasePlugin):
             LOG.info("Request type not suppoted")
 
 
-    def request_version_change(self, serv_id):
+    def request_version_change(self, serv_id, time_vm=6, time_acc=0.25):
             MV_CHANGE_VERSION = "mano.instances.change"
             content = self.active_services[serv_id]['metadata']
             content['function_versions'] = self.active_services[serv_id]['function_versions']
+            content['time_vm'] = time_vm
+            content['time_acc'] = time_acc
 
             self.manoconn.call_async(self.handle_resp_change,
                                     MV_CHANGE_VERSION,
@@ -255,12 +253,13 @@ class MVPlugin(ManoBasePlugin):
         if prop.app_id == self.name:
             return
 
+        content = yaml.load(payload)
+
         # FIXME: This should be calculated based on mintoring thread
         ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        self.mon_metrics["time_vm"] = 6 # Change it to 60 to get as_accelerated component in the result file 
-        self.mon_metrics["time_acc"] = 0.25
+        self.mon_metrics["time_vm"] = content['time_vm'] # Change it to 60 to get as_accelerated component in the result file 
+        self.mon_metrics["time_acc"] = content['time_acc']
 
-        content = yaml.load(payload)
         #  calls create_template to create the template from the payload and returns created result file.
         _template_generator = CreateTemplate.TemplateGenerator(content, self.mon_metrics)
         result_data = _template_generator.create_template()
@@ -280,7 +279,7 @@ class MVPlugin(ManoBasePlugin):
                              correlation_id=prop.correlation_id)
 
         LOG.info("MV response sent for service: " + content['serv_id'])
-        LOG.info(response)
+        # LOG.info(response)
 
     def placement(self, descriptor, functions, topology, result_data):
         """
@@ -402,6 +401,21 @@ class MVPlugin(ManoBasePlugin):
                     LOG.info(_metrics["cpu"])
                     LOG.info("### BANDWIDTH ###")
                     LOG.info(_metrics["bandwidth"])
+
+                    # TODO: map bandwidth with time
+                    # 1080 ~ 2GB per hour ~ 30 MB per min
+                    # Let's say the VNF can handle avg 60MB per min, otherwise switch
+                    # wget -O /dev/null http://speedtest.belwue.net/100M
+
+                    if not self.active_services[_service]['version_changed']:
+                        try:
+                            if _metrics["bandwidth"]['data'][0][1] >= 30:
+                                LOG.info("### BANDWIDTH Limit reached ###")
+                                # FIXME: need to identify vm or acc or what is deployed already
+                                self.active_services[_service]['version_changed'] = True
+                                self.request_version_change(_service, time_vm=60, time_acc=0.25)
+                        except Exception as e:
+                            LOG.error("Monitoring still not active")
 
                     LOG.info("\n\n ########################## \n\n")
 

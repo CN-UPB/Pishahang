@@ -701,7 +701,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
 
         LOG.info("Service " + serv_id + ": Topology received from IA.")
-        LOG.debug("Requested info on topology: " + str(message))
+        # LOG.debug("Requested info on topology: " + str(message))
 
         # Add topology to ledger
         self.services[serv_id]['infrastructure']['topology'] = message
@@ -2295,6 +2295,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id] = {}
         self.services[serv_id]['service'] = {}
 
+        self.services[serv_id]['time_vm'] = content['time_vm']
+        self.services[serv_id]['time_acc'] = content['time_acc']
+
         self.services[serv_id]['service']['nsd'] = content['nsd']
         self.services[serv_id]['service']['id'] = serv_id
 
@@ -2636,6 +2639,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['function_versions'] = []
         self.services[serv_id]['function'] = []
         self.services[serv_id]['cloud_service'] = []
+        self.services[serv_id]['time_vm'] = 6
+        self.services[serv_id]['time_acc'] = 0.25
 
         for key in payload.keys():
             if key[:4] == 'VNFD':
@@ -3005,7 +3010,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         content = {'nsd': NSD,
                     'functions': functions,
                     'topology': topology,
-                    'serv_id': serv_id}
+                    'serv_id': serv_id,
+                    'time_vm': self.services[serv_id]['time_vm'],
+                    'time_acc': self.services[serv_id]['time_acc']
+                    }
 
         content['nap'] = {}
 
@@ -3033,8 +3041,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Service " + serv_id + ": Placement response received")
 
         LOG.info("resp Mapping")
-        LOG.info(content["mapping"]["functions"])
-        LOG.info(content["mapping"]["cloud_services"])
+        # LOG.info(content["mapping"]["functions"])
+        # LOG.info(content["mapping"]["cloud_services"])
 
 
         if mapping is None:
@@ -3050,7 +3058,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         else:
             # Add mapping to ledger
             LOG.info("Service " + serv_id + ": Placement completed")
-            LOG.debug("Calculated SLM placement: " + str(mapping))
+            # LOG.debug("Calculated SLM placement: " + str(mapping))
             # self.services[serv_id]['service']['mapping'] = mapping
 
             self.services[serv_id]['function'] = content["mapping"]["functions"]
