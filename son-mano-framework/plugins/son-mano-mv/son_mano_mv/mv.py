@@ -168,20 +168,20 @@ class MVPlugin(ManoBasePlugin):
         content = yaml.load(payload)
         serv_id = content['serv_id']
 
-        is_nsd = content['is_nsd']
-
         LOG.info("MV MON request for service: " + serv_id)
+        LOG.info(content)
 
         if content['request_type'] == "START":
+            is_nsd = content['is_nsd']
             self.active_services[serv_id] = {}
             self.active_services[serv_id]['charts'] = []
             self.active_services[serv_id]['vim_endpoint'] = ""
             self.active_services[serv_id]['function_versions'] = content['function_versions']
+            topology = content['topology']
+            functions = content['functions'] if 'functions' in content else []
+            cloud_services = content['cloud_services'] if 'cloud_services' in content else []
             
             if is_nsd:
-                topology = content['topology']
-                functions = content['functions'] if 'functions' in content else []
-
                 for _function in functions:
                     for _vdu in _function['vnfr']['virtual_deployment_units']:
                         for _vnfi in _vdu['vnfc_instance']:
@@ -201,8 +201,25 @@ class MVPlugin(ManoBasePlugin):
                                     self.active_services[serv_id]['is_nsd'] = is_nsd
             else:
                 LOG.info("Not OpenStack monitoting")
-                self.active_services[serv_id]['is_nsd'] = is_nsd
-                self.active_services[serv_id]['metadata'] = content
+                for _function in cloud_services:
+                    for _vdu in _function['csr']['virtual_deployment_units']:
+                        # LOG.info(_vnfi)
+                        for _t in topology:
+                            # LOG.info(_t)
+                            if _t['vim_uuid'] == _vdu['vim_id']:
+                                LOG.info("VNF is on")
+                                LOG.info(_vdu['vim_id'])
+                                LOG.info(_t['vim_endpoint'])
+                                # FIXME: Timer for creation delay (Add a loop?)
+                                time.sleep(10)
+                                _instance_id = tools.get_k8_pod_info(serv_id, _t)
+                                _charts = tools.get_netdata_charts(_instance_id, _t)
+                                LOG.info(_instance_id)
+                                LOG.info(_charts)
+                                self.active_services[serv_id]['charts'] = _charts
+                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
+                                self.active_services[serv_id]['metadata'] = content
+                                self.active_services[serv_id]['is_nsd'] = is_nsd
 
             LOG.info("Waiting")
             time.sleep(10)
@@ -240,7 +257,7 @@ class MVPlugin(ManoBasePlugin):
 
         # FIXME: This should be calculated based on mintoring thread
         ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        self.mon_metrics["time_vm"] = 60 # Change it to 60 to get as_accelerated component in the result file 
+        self.mon_metrics["time_vm"] = 6 # Change it to 60 to get as_accelerated component in the result file 
         self.mon_metrics["time_acc"] = 0.25
 
         content = yaml.load(payload)
@@ -293,6 +310,7 @@ class MVPlugin(ManoBasePlugin):
 
         if len(as_vm) > 0:
             # FIXME: should support multiple VDU?
+            cloud_services = []
             LOG.info("VM Mapping")
             for function in functions:
                 vnfd = function['vnfd']
@@ -375,6 +393,8 @@ class MVPlugin(ManoBasePlugin):
             LOG.info("\nSLM Thread\n")
             try:
                 for _service, _service_meta in self.active_services.items():
+                    LOG.info("\n\n ########################## \n\n")
+
                     LOG.info(_service)
                     _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
                     # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
@@ -382,6 +402,8 @@ class MVPlugin(ManoBasePlugin):
                     LOG.info(_metrics["cpu"])
                     LOG.info("### BANDWIDTH ###")
                     LOG.info(_metrics["bandwidth"])
+
+                    LOG.info("\n\n ########################## \n\n")
 
             except Exception as e:
                 LOG.error("SLM Thread Error")

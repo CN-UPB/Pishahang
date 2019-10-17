@@ -2386,6 +2386,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Service " + serv_id + ": Setting up MV Monitoring Manager")
         service = self.services[serv_id]['service']
         functions = self.services[serv_id]['function']
+        cloud_services = self.services[serv_id]['cloud_service']
         function_versions = self.services[serv_id]['function_versions']
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
@@ -2397,6 +2398,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'user_data': userdata,
                     'request_type': "START",
                     'functions': functions,
+                    'cloud_services': cloud_services,
                     'function_versions': function_versions,
                     'topology': topology,
                     'serv_id': serv_id}
@@ -2428,7 +2430,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        is_nsd = self.services[serv_id]['service']["is_nsd"]
+        # is_nsd = self.services[serv_id]['service']["is_nsd"]
         LOG.info("Service " + serv_id + ": Stopping MV Monitoring")
 
         content = {
