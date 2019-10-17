@@ -72,7 +72,7 @@ class TemplateGenerator():
         :param functions: contains list of virtual functions
         :return:
         """
-        # print(functions[0]['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu'])
+        # #print(functions[0]['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu'])
         for network_function in descriptor['network_functions']:
             component_name = network_function['vnf_name']
             component_id = network_function['vnf_id']
@@ -82,7 +82,7 @@ class TemplateGenerator():
             for component in self.template_components:
                 if component_name == function['vnfd']['name']:
                     component.cpu_req = function['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu']['vcpus']
-            # print(function['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu'])
+            # #print(function['vnfd']['virtual_deployment_units'][0]['resource_requirements']['cpu'])
 
 
     def process_inputs_outputs(self, virtual_links):
@@ -277,7 +277,7 @@ class TemplateGenerator():
         :param descriptor: Takes descriptor to pull the name.
         :return: Does not return anything. Creates a template file in the end.
         """
-        # print(descriptor['name'])
+        # #print(descriptor['name'])
         file_name = descriptor['name']
         components = []
 
@@ -356,7 +356,7 @@ class TemplateGenerator():
             vlinks=vlinks
         )
 
-        # print("creating template file: " + file_name)
+        # #print("creating template file: " + file_name)
         no_alias_dumper = yaml.SafeDumper
         no_alias_dumper.ignore_aliases = lambda self, data: True
         with open("/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/templates/" + file_name + '.yaml', 'w') as template_file:

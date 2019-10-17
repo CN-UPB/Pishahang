@@ -72,7 +72,7 @@ def reset_global():
 def split_link(link):
     split = link[1:-1].split(", ")          # cut off parenthesis and split, removing the ", "
     start = split[0].replace("'", "")       # get rid of ' around the node-names
-    print(link)
+    #print(link)
     end = split[1].replace("'", "")
     return start, end
 
@@ -451,7 +451,7 @@ def save_mip_variables(model):
             elif v.varName.startswith("edge_dr"):
                 edge_dr[(split[2], split[3], split[4])] = round(v.x, 6)
             elif v.varName.startswith("link_dr"):
-                print(split[5])
+                #print(split[5])
                 link = split_link(split[5])     # split link into two nodes
                 link_dr[(split[2], split[3], split[4], link[0], link[1])] = round(v.x, 6)
             elif v.varName.startswith("link_used"):
@@ -481,15 +481,15 @@ def save_mip_variables(model):
                 max_resource_cost = round(v.x, 6)               
             elif v.varName.startswith("max_processing_time"):
                 max_processing_time = round(v.x, 6)                       
-                # print("aaa")
-                # print(processing_time)        
+                # #print("aaa")
+                # #print(processing_time)        
             else:
                 pass
                 # raise ValueError("Unkown variable {}".format(v.varName))
 
     # total_cost = 0
     # for k,v in compute_cost.items():
-    #     # print(k,v,processing_time)
+    #     # #print(k,v,processing_time)
     #     if k in processing_time.keys():
     #         total_cost += v * processing_time[k]
         
@@ -507,7 +507,7 @@ def write_mip_result(model, scenario, nodes, links, obj, sources, fixed, seed, b
 
     with open(result_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile, delimiter="\t")
-        print("Writing solution to {}".format(result_file))
+        #print("Writing solution to {}".format(result_file))
 
         # write input information
         writer.writerow(["End time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
@@ -660,7 +660,7 @@ def write_heuristic_result(init_time, runtime, obj_value, changed, overlays, sce
 
     with open(result_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile, delimiter="\t")
-        print("Writing solution to {}".format(result_file))
+        #print("Writing solution to {}".format(result_file))
 
         # write input information
         writer.writerow(["End time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")])

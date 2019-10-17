@@ -44,25 +44,25 @@ class Instance:
 		return hash((self.component, self.location))
 
 	def print_linked(self):
-		print("Linked stateful instances of {}".format(self))
+		#print("Linked stateful instances of {}".format(self))
 		for j in self.linked_stateful.keys():
 			linked_j_str = "\t{}: ".format(j)
 			for i in self.linked_stateful[j]:
 				linked_j_str += "{} ".format(i)
-			print(linked_j_str)
+			#print(linked_j_str)
 
 	# return cpu consumption based on all ingoing edges
 	def consumed_cpu(self, version=None, ignore_idle=None):
 		if version is None:
 			version = self.version
-		# print("CONSUMED CPU", self.input_dr(), self.sum_input_dr(), version, ignore_idle)
-		# print("CONSUMED CPU", self.component, self.component.cpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version, ignore_idle))
+		# #print("CONSUMED CPU", self.input_dr(), self.sum_input_dr(), version, ignore_idle)
+		# #print("CONSUMED CPU", self.component, self.component.cpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version, ignore_idle))
 		return self.component.cpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version, ignore_idle)
 
 	def consumed_cpu_func(self, version=None):
 		if version is None:
 			version = self.version
-		# print("CONSUMED CPU FUNC", self.component.cpu_req(self.input_dr(), self.sum_input_dr())["func"][version])
+		# #print("CONSUMED CPU FUNC", self.component.cpu_req(self.input_dr(), self.sum_input_dr())["func"][version])
 		return self.component.cpu_req(self.input_dr(), self.sum_input_dr())["func"][version]
 
 	# # return mem consumption based on all ingoing edges
@@ -76,7 +76,7 @@ class Instance:
 		# if version == "vm" or version == "container":
 			# return 0
 		# else:
-		# print("CONSUMED GPU", self.component, self.component.gpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version))
+		# #print("CONSUMED GPU", self.component, self.component.gpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version))
 		return self.component.gpu_req_heuristic(self.input_dr(), self.sum_input_dr(), version)
 
 	# return the ingoing data rate of each input as vector/list based on all ingoing edges
@@ -127,7 +127,7 @@ class Instance:
 
 		# get input of edge and total number of inputs
 		i = edge.arc.dest_in
-		# print("iiiiii", i)
+		# #print("iiiiii", i)
 		# if edge.direction == "backward":
 		# 	input += self.component.inputs
 

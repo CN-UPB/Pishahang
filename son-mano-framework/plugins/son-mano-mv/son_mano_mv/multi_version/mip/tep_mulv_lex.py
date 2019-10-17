@@ -14,16 +14,16 @@ def solve(nodes, links, templates, prev_embedding, sources, fixed):
         arcs.update(template.arcs)
 
     # print input
-    print("Templates:", *templates, sep=" ")
-    print("Components:", *components, sep=" ")
-    print("Arcs:", *arcs, sep=" ")
-    print("Sources:", *sources, sep=" ")
-    print("Fixed instances:", *fixed, sep=" ")
+    #print("Templates:", *templates, sep=" ")
+    #print("Components:", *components, sep=" ")
+    #print("Arcs:", *arcs, sep=" ")
+    #print("Sources:", *sources, sep=" ")
+    #print("Fixed instances:", *fixed, sep=" ")
     if prev_embedding:
         print("Previous overlay exists")
     else:
         print("No previous overlay exists")
-    print()
+    #print()
 
     # set old instance locations based on previous overlay
     old = {}
@@ -302,7 +302,7 @@ def solve(nodes, links, templates, prev_embedding, sources, fixed):
     # but small enought to 1/BIG_M being larger than model.params.IntFeasTol (def: 1e-05) to avoid wrong integers
     # Constraint numbers mapped to equation numbers of the paper submitted to TNSM
     BIG_M = 6000
-    print("Big M: %d, IntFeasTol: %s" % (BIG_M, model.params.IntFeasTol))
+    #print("Big M: %d, IntFeasTol: %s" % (BIG_M, model.params.IntFeasTol))
     model.setParam(GRB.Param.Threads, 1)
     #model.setParam("PSDTol",5e5)
     # model.setParam("MIPFocus",3)
@@ -430,7 +430,7 @@ def solve(nodes, links, templates, prev_embedding, sources, fixed):
     # for j in components: 
         # if j.ingress:
             # for v in nodes.ids:
-                # print("SOS",[outgoing[j, v, k] for k in range(j.outputs)])
+                # #print("SOS",[outgoing[j, v, k] for k in range(j.outputs)])
                 # model.addSOS(GRB.SOS_TYPE1, [outgoing[j, v, k] for k in range(j.outputs)])
 
 
@@ -829,7 +829,7 @@ def solve(nodes, links, templates, prev_embedding, sources, fixed):
 
     PRINT_DETAILS = False
     if model.status == GRB.Status.OPTIMAL:
-        print('The optimal objective is %g' % model.objVal)
+        #print('The optimal objective is %g' % model.objVal)
 
         if PRINT_DETAILS:  # all variables != 0
             for v in model.getVars():  # to print all vars != 0
@@ -889,11 +889,11 @@ def solve(nodes, links, templates, prev_embedding, sources, fixed):
 
     elif model.status == GRB.Status.INFEASIBLE:  # do IIS (if infeasible)
         print('The model is infeasible.')
-        # print('The model is infeasible; computing IIS')
+        # #print('The model is infeasible; computing IIS')
         # model.computeIIS()
-        # print('\nThe following constraint(s) cannot be satisfied:')
+        # #print('\nThe following constraint(s) cannot be satisfied:')
         # for c in model.getConstrs():
         #     if c.IISConstr:
-        #         print('%s' % c.constrName)
+        #         #print('%s' % c.constrName)
 
     return model

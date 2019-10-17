@@ -22,17 +22,17 @@ class Template:
         return hash(self.name)
 
     def print(self):
-        print("Template " + self.name + ":")
+        #print("Template " + self.name + ":")
 
         string = "  Components: "
         for component in self.components:
             string += str(component) + ", "
-        print(string)
+        #print(string)
 
         string = "  Arcs: "
         for arc in self.arcs:
             string += str(arc) + ", "
-        print(string)
+        #print(string)
 
     # return source component (assuming there is only one)
     def source(self):
@@ -128,7 +128,7 @@ class Template:
             #         out_dr[(j, "backward", k_out)] = out_drs[k_out]
 
         total_dr = sum(out_dr.values())
-        print("{}'s weight: {}\n".format(self, total_cpu+total_mem+total_dr))
+        #print("{}'s weight: {}\n".format(self, total_cpu+total_mem+total_dr))
         return total_cpu + total_gpu + total_dr
 
 

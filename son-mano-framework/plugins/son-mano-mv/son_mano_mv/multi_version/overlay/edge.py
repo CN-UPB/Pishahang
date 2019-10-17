@@ -33,6 +33,6 @@ class Edge:
 		return hash((self.source, self.dest))
 
 	def print(self):
-		print("Edge from {} to {} with data rate {}".format(self.source, self.dest, self.dr))
+		#print("Edge from {} to {} with data rate {}".format(self.source, self.dest, self.dr))
 		for path in self.paths:
 			print("\tNodes on path (dr {}): ".format(self.dr / len(self.paths)), *path, sep=" ")

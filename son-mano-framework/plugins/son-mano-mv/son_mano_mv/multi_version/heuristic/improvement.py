@@ -38,7 +38,7 @@ def reset_overlay(template, instance, overlays_to_modify):
 		# end_reached = True when an end instance was reached; the next non-end instance reverses the direction
 		# necessary to switch after last and not first end instance; the latter leads to incorrect behavior
 		end_reached = False
-		print("Topological order of reseted overlay:", *ol.topological_order(), sep=" ")
+		#print("Topological order of reseted overlay:", *ol.topological_order(), sep=" ")
 		for i in ol.topological_order():
 			if i.component.end:
 				end_reached = True
@@ -88,14 +88,14 @@ def improve(arg_nodes, arg_links, templates, arg_overlays, sources, fixed, arg_s
 			# ignore source or fixed instances, which have to be at a specific location
 			non_fixed_instances = [i for i in ol.instances if not i.component.source and not i.fixed]
 			if len(non_fixed_instances) == 0:
-				print("Skip modification of {}'s overlay because all instances are fixed".format(t))
+				#print("Skip modification of {}'s overlay because all instances are fixed".format(t))
 				logging.info("Skip modification of {}'s overlay because all instances are fixed".format(t))
 				continue
 			rand_instance = random.choice(non_fixed_instances)
 			tabu.add((rand_instance.component, rand_instance.location))
 
-			print("\n--Iteration {}: Modifying overlay of {}--".format(total_outer_iterations, ol.template))
-			print("Set random instance {} of {}'s overlay to tabu and rebuild overlay".format(rand_instance, ol.template))
+			#print("\n--Iteration {}: Modifying overlay of {}--".format(total_outer_iterations, ol.template))
+			#print("Set random instance {} of {}'s overlay to tabu and rebuild overlay".format(rand_instance, ol.template))
 			logging.info("--Iteration {}: Modifying overlay of {}--".format(total_outer_iterations, ol.template))
 			logging.info("Set random instance {} of {}'s overlay to tabu and rebuild overlay".format(rand_instance, ol.template))
 
@@ -104,37 +104,37 @@ def improve(arg_nodes, arg_links, templates, arg_overlays, sources, fixed, arg_s
 
 			# update solution
 			new_obj_value = control.objective_value(modified_overlays)
-			print("Objective value of modified overlays: {}".format(new_obj_value))
+			#print("Objective value of modified overlays: {}".format(new_obj_value))
 			logging.info("Objective value of modified overlays: {}".format(new_obj_value))
 			incumbent_obj_value = control.objective_value(incumbent_overlays)
 			if new_obj_value < incumbent_obj_value:
-				print("\tImproved objective value -> new incumbent solution")
+				#print("\tImproved objective value -> new incumbent solution")
 				logging.info("\tImproved objective value -> new incumbent solution")
 				incumbent_overlays = copy.deepcopy(modified_overlays)
 				if new_obj_value < control.objective_value(best_overlays):
-					print("\tNew best solution")
+					#print("\tNew best solution")
 					logging.info("\tNew best solution")
 					best_overlays = copy.deepcopy(modified_overlays)
 					unsuccessful_iterations = 0
 			# even update incumbent solution if it is slightly worse (50% chance)
 			elif new_obj_value <= 1.1 * incumbent_obj_value:
 				if random.random() < 0.5:
-					print("\tOnly slightly worse objective value; new incumbent solution")
+					#print("\tOnly slightly worse objective value; new incumbent solution")
 					logging.info("\tOnly slightly worse objective value; new incumbent solution")
 					incumbent_overlays = copy.deepcopy(modified_overlays)
 				else:
-					print("\tOnly slightly worse objective value; solution discarded")
+					#print("\tOnly slightly worse objective value; solution discarded")
 					logging.info("\tOnly slightly worse objective value; solution discarded")
 			else:
-				print("\tWorse objective value -> solution discarded after last inner loop")
+				#print("\tWorse objective value -> solution discarded after last inner loop")
 				logging.info("\tWorse objective value -> solution discarded after this iteration")
 				# keep using modified_overlays during the remainder of the inner loop
 
-	print("\n---Heuristic finished---")
-	print("Total outer loop iterations: {}".format(total_outer_iterations))
+	#print("\n---Heuristic finished---")
+	#print("Total outer loop iterations: {}".format(total_outer_iterations))
 	logging.info("---Heuristic finished---")
 	logging.info("Total outer loop iterations: {}".format(total_outer_iterations))
-	print("Best overlays:")
+	#print("Best overlays:")
 	for ol in best_overlays.values():
 		ol.print()
 

@@ -58,7 +58,7 @@ def update_stateful(template):
 
             # if not used in both directions, set to non-stateful
             if not (used_forward and used_backward):
-                print("Stateful component {} is not used bidirectionally and is set to non-stateful.".format(j))
+                #print("Stateful component {} is not used bidirectionally and is set to non-stateful.".format(j))
                 j.stateful = False
 
 
@@ -250,9 +250,9 @@ def read_sources(file, source_components):
             data_rate = src["data_rate"]
 
             loc = src["node"]
-            # print("SRCLOC",loc)
+            # #print("SRCLOC",loc)
             # loc1 = random.randint(0,19)
-            # print("RANDOM SRCLOC",loc1)
+            # #print("RANDOM SRCLOC",loc1)
 
             # sources.append(Source(str(loc1), component, data_rate))
             sources.append(Source(src["node"], component, data_rate))
@@ -291,7 +291,7 @@ def read_prev_embedding(file, components):
             prev_embedding[comp] = []
             for embedding in entry["embeddings"]:
                 prev_embedding[comp].append([embedding["node"], embedding["resource_type"]])
-    print("PREV_EMBEDDING",prev_embedding)
+    #print("PREV_EMBEDDING",prev_embedding)
     return prev_embedding
 
 
@@ -308,7 +308,7 @@ def read_event(file, event_no, templates, sources, fixed):
 
         # handle event and update corresponding input
         if event_row[0] == "templates:":
-            print("Update templates: {}\n".format(event_row[1:]))
+            #print("Update templates: {}\n".format(event_row[1:]))
             templates = []
             for template_file in event_row[1:]:                 # iterate over all templates, skipping the "templates:"
                 path = os.path.join(directory, template_file)
@@ -317,7 +317,7 @@ def read_event(file, event_no, templates, sources, fixed):
             templates = adapter.adapt_for_reuse(templates)      # add ports etc on the fly
 
         elif event_row[0] == "sources:":
-            print("Update sources: {}\n".format(event_row[1]))
+            #print("Update sources: {}\n".format(event_row[1]))
 
             # collect source components
             source_components = set()
@@ -328,7 +328,7 @@ def read_event(file, event_no, templates, sources, fixed):
             sources = read_sources(path, source_components)
 
         elif event_row[0] == "fixed:":
-            print("Update fixed instances: {}\n".format(event_row[1]))
+            #print("Update fixed instances: {}\n".format(event_row[1]))
 
             # collect non-source components of used templates
             possible_components = set()

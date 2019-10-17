@@ -62,7 +62,7 @@ class Overlay:
 			result.append(i)
 			processed.add(i)
 			unprocessed.remove(i)
-		# print("topological_order", result)
+		# #print("topological_order", result)
 		return result
 
 		##### OLD ####
@@ -96,5 +96,5 @@ class Overlay:
 
 	def print(self):
 		print("Overlay of {}".format(self.template))
-		print("\t{} instances:".format(len(self.instances)), *self.instances, sep=" ")
-		print("\t{} edges:".format(len(self.edges)), *self.edges, sep=" ")
+		#print("\t{} instances:".format(len(self.instances)), *self.instances, sep=" ")
+		#print("\t{} edges:".format(len(self.edges)), *self.edges, sep=" ")

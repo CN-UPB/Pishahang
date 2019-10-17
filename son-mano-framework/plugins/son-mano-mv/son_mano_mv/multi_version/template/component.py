@@ -65,7 +65,7 @@ class Component:
 
         for d in resource_demands:
             if d["resource_type"] == "vm":
-                print(d["demand"])
+                #print(d["demand"])
                 self.boundary["vm"] = d["demand"]["boundary"]
                 self.cpu["vm"] = d["demand"]["cpu"]
                 self.dr["vm"] = d["demand"]["out"]
@@ -82,7 +82,7 @@ class Component:
                 self.dr["accelerated"] = d["demand"]["out"]
                 self.time["accelerated"] = d["demand"]["time"]
 
-        print("BOUNDARIES ", self.name, self.boundary)        
+        #print("BOUNDARIES ", self.name, self.boundary)        
 
         self.group = group
 
@@ -137,10 +137,10 @@ class Component:
             type = "Component"
         if self.stateful:
             type += " (stateful)"
-        # print("{} {} with CPU: {}, mem: {}".format(type, self, self.cpu, self.mem))
-        print("{} {} with CPU: {}, GPU: {}".format(type, self, self.cpu, self.gpu))
-        # print("{} {} with resource demands: {}".format(type, self, self.resource_demands))
-        print("\t{} inputs, {} outputs, data rate: {}".format(self.inputs, self.outputs, self.dr))
+        # #print("{} {} with CPU: {}, mem: {}".format(type, self, self.cpu, self.mem))
+        #print("{} {} with CPU: {}, GPU: {}".format(type, self, self.cpu, self.gpu))
+        # #print("{} {} with resource demands: {}".format(type, self, self.resource_demands))
+        #print("\t{} inputs, {} outputs, data rate: {}".format(self.inputs, self.outputs, self.dr))
 
 
     def build_lookup_table(self, boundaries, demands):
@@ -148,7 +148,7 @@ class Component:
         for i,b in enumerate(boundaries):
             for x in range(b[0], b[-1] + 1):
                 boundary_dict[x] = demands[i]
-        # print(boundary_dict)
+        # #print(boundary_dict)
         return boundary_dict
 
     def lookup_function(self, boundary_dict, incoming_sum):
@@ -160,17 +160,17 @@ class Component:
     #     return f
 
     def get_right_function(self, boundaries, demands, indr):
-        # print("SUM OF INPUTS ", self.name, indr)
+        # #print("SUM OF INPUTS ", self.name, indr)
         f = []
-        # print("SELECTED", self.name, f)
+        # #print("SELECTED", self.name, f)
         for i,b in enumerate(boundaries):
             if(indr >= b[0] and indr <= b[1]):
-                # print("IN, INDEX, BOUND", self.name, indr, i, b)
-                # print("SELECTED", self.name, demands[i])
+                # #print("IN, INDEX, BOUND", self.name, indr, i, b)
+                # #print("SELECTED", self.name, demands[i])
                 f = demands[i]
                 break
                 # return demands[b]
-        # print("ELSE!!")
+        # #print("ELSE!!")
         return f 
 
     # def constant_factor_cpu(self, incoming_sum):
@@ -178,7 +178,7 @@ class Component:
     #     #     raise ValueError("Mismatch of #incoming data rates and inputs")
     #     const = {}
     #     if self.source:
-    #         # print("IS SOURCE", self.name)
+    #         # #print("IS SOURCE", self.name)
     #         const["vm"] = 0
     #         const["container"] = 0
     #         const["accelerated"] = 0
@@ -202,7 +202,7 @@ class Component:
     #         func = self.get_right_function(self.boundary["accelerated"], self.cpu["accelerated"], incoming_sum)         
     #         const["accelerated"] = func[-1]
 
-    #     # print("CONST CPU ", self.name, const)
+    #     # #print("CONST CPU ", self.name, const)
     #     return const
 
     # def constant_factor_gpu(self, incoming_sum):
@@ -215,14 +215,14 @@ class Component:
     #         # func = self.get_right_function(self.boundary["container_gpu"], self.gpu, total)         
     #         const = func[-1]
 
-    #     # print("CONST GPU ", self.name, const)
+    #     # #print("CONST GPU ", self.name, const)
     #     return const        
 
 
     def cpu_req_inrange(self, incoming, index, version):
         requirement = 0 
         if self.source:
-            # print("IS SOURCE", self.name)
+            # #print("IS SOURCE", self.name)
             return requirement 
 
         if self.cpu[version][0] == [-1]:
@@ -233,13 +233,13 @@ class Component:
             for i in range(self.inputs):
                 requirement += func[i] * incoming[i]
 
-        print("CPU", self.name, index, version, requirement)
+        #print("CPU", self.name, index, version, requirement)
         return requirement 
 
     def constant_factor_cpu_inrange(self, index, version):
         const = 0 
         if self.source:
-            # print("IS SOURCE", self.name)
+            # #print("IS SOURCE", self.name)
             return const 
 
         if self.cpu[version][0] == [-1]:
@@ -260,7 +260,7 @@ class Component:
             for i in range(self.inputs):
                 requirement += func[i] * incoming[i]
 
-        print("GPU", self.name, index, requirement)
+        #print("GPU", self.name, index, requirement)
         return requirement
 
 
@@ -279,7 +279,7 @@ class Component:
     def cpu_req(self, incoming, incoming_sum):
         if len(incoming) != self.inputs:
             raise ValueError("Mismatch of #incoming data rates and inputs")
-        # print("INPUT ", self.name, incoming)
+        # #print("INPUT ", self.name, incoming)
 
 
         # Initialize to idle consumption - if a resource type is not present in the template, set the demand to 0
@@ -287,7 +287,7 @@ class Component:
         requirement = {} 
         requirement["func"] = {"vm": [], "container": [], "accelerated": []}
         if self.source:
-            # print("IS SOURCE", self.name)
+            # #print("IS SOURCE", self.name)
             requirement["vm"] = 0
             requirement["container"] = 0
             requirement["accelerated"] = 0
@@ -296,7 +296,7 @@ class Component:
         if self.cpu["vm"][0] == [-1]:
             requirement["vm"] = 1e3 
         elif self.cpu["vm"][0] != [-1]:
-            # print("INCOMING", sum(incoming))
+            # #print("INCOMING", sum(incoming))
             # func = self.get_right_function(self.boundary["vm"], self.cpu["vm"], incoming[0])
             func = self.get_right_function(self.boundary["vm"], self.cpu["vm"], incoming_sum)
             requirement["vm"] = func[-1] 
@@ -325,8 +325,8 @@ class Component:
                 requirement["accelerated"] += func[i] * incoming[i]    # linear function
             requirement["func"]["accelerated"] = func
 
-        print("FUNCCCCCC", self, incoming_sum, requirement["func"])
-        # print("CPU ",self.name, requirement)
+        #print("FUNCCCCCC", self, incoming_sum, requirement["func"])
+        # #print("CPU ",self.name, requirement)
         return requirement
 
     # def cpu_req_heuristic(self, incoming, incoming_sum, version, ignore_idle=None):
@@ -346,7 +346,7 @@ class Component:
     #         requirement = 0
     #     if self.cpu[version][0] != [-1]:
     #         func = self.get_right_function(self.boundary[version], self.cpu[version], incoming_sum)
-    #         print("FUNC", self, self.boundary[version], incoming_sum, func)
+    #         #print("FUNC", self, self.boundary[version], incoming_sum, func)
     #         requirement = func[-1] 
     #         for i in range(self.inputs):
     #             requirement += func[i] * incoming[i]    # linear function   
@@ -363,7 +363,7 @@ class Component:
             return requirement
 
         if self.cpu[version][0] == [-1]:
-            # print("CPU VERSION",self.cpu)
+            # #print("CPU VERSION",self.cpu)
             requirement = None  
         elif incoming_sum >= self.get_bounds(version)[3]:
             return math.inf
@@ -371,7 +371,7 @@ class Component:
             requirement = 0
         if self.cpu[version][0] != [-1]:
             func = self.get_right_function(self.boundary[version], self.cpu[version], incoming_sum)
-            # print("FUNC", self, self.boundary[version], incoming_sum, func)
+            # #print("FUNC", self, self.boundary[version], incoming_sum, func)
             requirement = func[-1] 
             for i in range(self.inputs):
                 requirement += func[i] * incoming[i]    # linear function   
@@ -388,7 +388,7 @@ class Component:
         # Calculate GPU requirement based on the given coefficients
 
         # if self.source:
-        #     print("IS SOURCE", self.name)
+        #     #print("IS SOURCE", self.name)
         #     requirement = 0
         #     return requirement
 
@@ -401,7 +401,7 @@ class Component:
             for i in range(self.inputs):
                 requirement += func[i] * incoming[i]    # linear function
 
-        # print("GPU ", self.name, requirement)
+        # #print("GPU ", self.name, requirement)
         return requirement  
 
     # GPU requirement based on the incoming data rates and the specified function
@@ -413,7 +413,7 @@ class Component:
         # Calculate GPU requirement based on the given coefficients
 
         # if self.source:
-        #     print("IS SOURCE", self.name)
+        #     #print("IS SOURCE", self.name)
         #     requirement = 0
         #     return requirement
         requirement = 0
@@ -428,7 +428,7 @@ class Component:
         #         for i in range(self.inputs):
         #             requirement += func[i] * incoming[i]    # linear function
 
-        # # print("GPU ", self.name, requirement)
+        # # #print("GPU ", self.name, requirement)
         # return requirement  
 
 
@@ -442,7 +442,7 @@ class Component:
                 return math.inf
             if self.gpu[0] != [-1]:
                 func = self.get_right_function(self.boundary[version], self.gpu, incoming_sum)
-                # print("FUNC", self, self.boundary[version], incoming_sum, func)
+                # #print("FUNC", self, self.boundary[version], incoming_sum, func)
                 requirement = func[-1] 
                 for i in range(self.inputs):
                     requirement += func[i] * incoming[i]    # linear function   
@@ -465,7 +465,7 @@ class Component:
     #         for i in range(self.inputs):
     #             requirement += func[i] * incoming[i]    # linear function
 
-    #     # print("GPU ", self.name, requirement)
+    #     # #print("GPU ", self.name, requirement)
     #     return requirement 
 
 
@@ -502,7 +502,7 @@ class Component:
                 out_dr["accelerated"] += function[i] * in_vector[i]                        
             # self.out_datarate = out_dr["accelerated"]
 
-        print("OUTGOING", self.name, out_dr)
+        #print("OUTGOING", self.name, out_dr)
         return out_dr
 
     def outgoing_generic(self, in_vector, output):
@@ -535,7 +535,7 @@ class Component:
     # assumption: all ports are reused the same number of times
     # def adapt(self, reuses):
     #     if reuses < 2:  # < 2 uses => only used by one template => no reuse => no extension required
-    #         print("{} doesn't need extension. It's only used by {} template.".format(self, reuses))
+    #         #print("{} doesn't need extension. It's only used by {} template.".format(self, reuses))
     #         return
 
     #     # update resource consumption functions

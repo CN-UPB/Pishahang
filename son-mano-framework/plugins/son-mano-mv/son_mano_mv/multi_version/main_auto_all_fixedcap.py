@@ -39,9 +39,9 @@ for data_rate_parameter in data_rate_range:
 
     # read scenario input
     if len(sys.argv) < 3:
-        print("MIP usage: python3 main.py mip <scenario>")
-        print("Heuristic usage: python3 main.py heuristic <scenario>")
-        print("Pareto usage: python3 main.py pareto <scenario> <objective> <bound1> <bound2> <bound3>")
+        #print("MIP usage: python3 main.py mip <scenario>")
+        #print("Heuristic usage: python3 main.py heuristic <scenario>")
+        #print("Pareto usage: python3 main.py pareto <scenario> <objective> <bound1> <bound2> <bound3>")
         exit(1)
     method = sys.argv[1]
     scenario = sys.argv[2]
@@ -67,9 +67,9 @@ for data_rate_parameter in data_rate_range:
             NG.add_edge(*eid)
 
         label_delay = {}
-        # print(links.delay)
+        # #print(links.delay)
         for l in links.delay.keys():
-            # print(l,links.delay[l])
+            # #print(l,links.delay[l])
             label_delay[l] = round(links.delay[l])
         # label_delay = links.delay
         # pos = nx.shell_layout(NG)
@@ -104,7 +104,7 @@ for data_rate_parameter in data_rate_range:
             seed = random.randint(0, 9999)
             seed_subfolder = False
         random.seed(seed)
-        print("Using seed {}".format(seed))
+        #print("Using seed {}".format(seed))
 
         # set up logging into file Data/logs/heuristic/scenario_timestamp_seed.log
         # logging.disable(logging.CRITICAL)     # disable logging
@@ -116,14 +116,14 @@ for data_rate_parameter in data_rate_range:
         logging.info("Starting initial embedding at {}".format(timestamp))
 
 
-        print("Initial embedding\n")
+        #print("Initial embedding\n")
         init_time, runtime, obj_value, changed, overlays = control.solve(nodes, links, templates, {}, sources, fixed, obj)
         writer.write_heuristic_result(init_time, runtime, obj_value, changed, overlays.values(), scenario, obj, -1, "Initial embedding", nodes, links, seed, seed_subfolder, sources)
 
         # if events exists, update input accordingly and solve again for each event until last event is reached
         event_no = 0
         while events is not None and event_no is not None:
-            print("\n------------------------------------------------\n")
+            #print("\n------------------------------------------------\n")
             logging.info("\n------------------------------------------------\n")
             logging.info("Embedding event {} at {}".format(event_no, datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
 
@@ -135,4 +135,4 @@ for data_rate_parameter in data_rate_range:
 
     # invalid method
     else:
-        print("Invalid solving method: {}. Use 'mip' or 'heuristic'".format(method))
+        #print("Invalid solving method: {}. Use 'mip' or 'heuristic'".format(method))
