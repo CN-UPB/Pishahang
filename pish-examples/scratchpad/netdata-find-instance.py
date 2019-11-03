@@ -2,9 +2,9 @@ import json
 import requests
 
 # TODO: make verify=false as a fallback
-HOST = "sonatavim.cs.upb.de"
+HOST = "serverdemo2.cs.upb.de"
 LAST_SEC_AVG = 30
-INSTANCE_ID = "instance-0000001f"
+INSTANCE_ID = "578cf5c9-455c-4351-ae82-7b03482468f3"
 
 netdata_url = "http://{host}:19999/api/v1/charts".format(host=HOST)
 r = requests.get(netdata_url, verify=False)
@@ -12,7 +12,7 @@ r = requests.get(netdata_url, verify=False)
 if r.status_code == requests.codes.ok:
     print("success")
     _result_json = json.loads(r.text)
-    charts = [key for key in _result_json['charts'].keys() if 'instance-0000001f' in key.lower()]
+    charts = [key for key in _result_json['charts'].keys() if INSTANCE_ID in key.lower()]
 
 print(charts)
 
