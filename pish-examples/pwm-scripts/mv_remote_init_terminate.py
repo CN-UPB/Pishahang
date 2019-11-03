@@ -18,8 +18,8 @@ USERNAME = "sonata"
 PASSWORD = "1234"
 HOST_URL = "serverdemo1.cs.upb.de"
 
-VNFDNAME = "cirros1_mv"
-NSDNAME = "cirros1_mv" #  Keep this same as this key _n['nsd']['name']
+VNFDNAME = "transcoder_mv"
+NSDNAME = "transcoder_mv" #  Keep this same as this key _n['nsd']['name']
 DESCRIPTORS_PATH = "/home/ashwin/Documents/WHB-Hadi/src/Pishahang/pish-examples/pwm-scripts/descriptors/multiversion"
 
 TERMINATE_NS = False

@@ -1,0 +1,123 @@
+---
+descriptor_version: vnfd-schema-01
+description: Trasncoder VNF with multiple versions
+name: transcoder-image-1-mv
+vendor: cn-upb
+version: '1.0'
+author: Ashwin Prasad
+virtual_deployment_units:
+- id: transcoder-image-1
+  description: transcoder-image-1
+  vm_image: "transcoder-image-1"
+  vm_image_format: qcow2
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
+  resource_requirements:
+    cpu:
+      vcpus: 8
+    memory:
+      size: 16
+      size_unit: GB
+    storage:
+      size: 10
+      size_unit: GB
+  connection_points:
+  - id: eth0
+    interface: ipv4
+    type: external
+
+virtual_deployment_units_acc:
+- id: "transcoder-image-1"
+  name: "transcoder-image-1"
+  service_image: "pgscramble/transcoder-cn:0.9"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "http"
+    protocol: "TCP"
+    port: 80
+    target_port: 80
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
+  environment:
+    - name: runtime
+      value: nvidia
+  resource_requirements:
+    memory:
+      size: 4096
+      size_unit: "Mi"
+
+virtual_deployment_units_con:
+- id: "transcoder-image-1"
+  name: "transcoder-image-1"
+  service_image: "transcoder"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "http"
+    protocol: "TCP"
+    port: 8080
+    target_port: 80
+  monitoring_parameters:
+    - name: "vm_cpu_perc"
+      unit: "Percentage"
+    - name: "vm_mem_pers"
+      unit: "Percentage"
+    - name: "vm_net_rx_MB"
+      unit: "MB"
+    - name: "vm_net_tx_MB"
+      unit: "Mbps"  
+  resource_requirements:
+    memory:
+      size: 32
+      size_unit: "Mi"      
+
+monitoring_rules:
+  - name: "mon:rule:vm_cpu_perc"
+    description: "Trigger events if CPU load is above 10 percent."
+    duration: 5
+    duration_unit: "s"
+    condition: "transcoder-image-1:vm_cpu_perc > 0"
+    notification:
+      - name: "notification01"
+        type: "rabbitmq_message"
+
+
+# port forwarding 8080:3000 (port:target-port) as you’d do with docker run -p 8080:3000 my-app (external:internal)        
+
+# - name: "mon:rule:vm_mem_perc"
+  #   description: "Trigger events if memory consumption is above 10 percent."
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_mem_perc > 0"
+  #   notification:
+  #     - name: "notification02"
+  #       type: "rabbitmq_message"
+  # - name: "mon:rule:rx"
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_net_rx_MB > 10"
+  #   notification:
+  #     - name: "notification03"
+  #       type: "rabbitmq_message"
+  # - name: "mon:rule:tx"
+  #   duration: 10
+  #   duration_unit: "s"
+  #   condition: "cirros-image-1:vm_net_tx_MB > 10"
+  #   notification:
+  #     - name: "notification04"
+  #       type: "rabbitmq_message"      
+
+# Image name on openstack should be "cn-upb_transcoder-image-1-mv_1.0_transcoder-image-1"
