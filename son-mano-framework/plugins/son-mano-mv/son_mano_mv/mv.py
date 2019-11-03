@@ -44,6 +44,7 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
+CLASSIFIER_IP="131.234.250.117"
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -169,7 +170,7 @@ class MVPlugin(ManoBasePlugin):
         serv_id = content['serv_id']
 
         LOG.info("MV MON request for service: " + serv_id)
-        # LOG.info(content)
+        LOG.info(content)
 
         if content['request_type'] == "START":
             is_nsd = content['is_nsd']
@@ -181,7 +182,7 @@ class MVPlugin(ManoBasePlugin):
             topology = content['topology']
             functions = content['functions'] if 'functions' in content else []
             cloud_services = content['cloud_services'] if 'cloud_services' in content else []
-            
+           
             if is_nsd:
                 for _function in functions:
                     for _vdu in _function['vnfr']['virtual_deployment_units']:
@@ -199,7 +200,15 @@ class MVPlugin(ManoBasePlugin):
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
-                                    self.active_services[serv_id]['is_nsd'] = is_nsd                                    
+                                    self.active_services[serv_id]['is_nsd'] = is_nsd                                                                        
+                                    self.active_services[serv_id]['network'] = {
+                                        "ip": _vnfi["connection_points"][0]["interface"]["address"],
+                                        "port": 80
+                                    } 
+                                    tools.switch_classifier(
+                                        classifier_ip=CLASSIFIER_IP,
+                                        vnf_ip=self.active_services[serv_id]['network']['ip'],
+                                        vnf_port=self.active_services[serv_id]['network']['port'])
             else:
                 LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
@@ -213,14 +222,19 @@ class MVPlugin(ManoBasePlugin):
                                 LOG.info(_t['vim_endpoint'])
                                 # FIXME: Timer for creation delay (Add a loop?)
                                 time.sleep(10)
-                                _instance_id = tools.get_k8_pod_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_id, _t)
-                                LOG.info(_instance_id)
+                                _instance_meta = tools.get_k8_pod_info(serv_id, _t)
+                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t)
+                                LOG.info(_instance_meta)
                                 LOG.info(_charts)
                                 self.active_services[serv_id]['charts'] = _charts
                                 self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
+                                self.active_services[serv_id]['ports'] = _instance_meta
+                                tools.switch_classifier(
+                                    classifier_ip=CLASSIFIER_IP, 
+                                    vnf_ip=_instance_meta['ip'], 
+                                    vnf_port=_instance_meta['port'])
 
         elif content['request_type'] == "STOP":
             self.active_services.pop(serv_id, None)
@@ -406,10 +420,10 @@ class MVPlugin(ManoBasePlugin):
                     # 1080 ~ 2GB per hour ~ 30 MB per min
                     # Let's say the VNF can handle avg 60MB per min, otherwise switch
                     # wget -O /dev/null http://speedtest.belwue.net/100M
-
+                    # kubectl exec -it cirros-image-1-f589429e-6ee9-44f6-9347-d8f4f27392ca-q6cbt -- busybox wget -O /dev/null http://speedtest.belwue.net/100M
                     if not self.active_services[_service]['version_changed']:
                         try:
-                            if _metrics["bandwidth"]['data'][0][1] >= 30:
+                            if abs(_metrics["bandwidth"]['data'][0][2]) >= 800:
                                 LOG.info("### BANDWIDTH Limit reached ###")
                                 # FIXME: need to identify vm or acc or what is deployed already
                                 self.active_services[_service]['version_changed'] = True

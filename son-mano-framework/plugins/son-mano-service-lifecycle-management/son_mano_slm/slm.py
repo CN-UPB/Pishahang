@@ -2275,19 +2275,14 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         
         content = yaml.load(payload)
-        serv_id = content['serv_id']
-        LOG.info("Termination request received for service " + str(serv_id))
+        term_serv_id = content['serv_id']
+        LOG.info("Termination request received for service " + str(term_serv_id))
 
         is_nsd = content['is_nsd']
 
-        # FIXME: add cosd termination
-        if is_nsd:
-            self.terminate_workflow(serv_id,
-                                corr_id)
-
         # LOG.info(payload)
-        LOG.info("Service " + serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
-        time.sleep(5)
+        # LOG.info("Service " + serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
+        # time.sleep(5)
 
         # Generate an istance uuid for the service
         serv_id = str(uuid.uuid4())
@@ -2374,6 +2369,17 @@ class ServiceLifecycleManager(ManoBasePlugin):
         msg = ": New instantiation request received. Instantiation started."
         LOG.info("Service " + serv_id + msg)
         # Start the chain of tasks
+
+        LOG.info("Service " + term_serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
+        time.sleep(5)
+
+
+        # FIXME: add cosd termination
+        if is_nsd:
+            corr_id = str(uuid.uuid4())
+            self.terminate_workflow(term_serv_id,
+                                corr_id)
+
         self.start_next_task(serv_id)
         
         return
@@ -2639,8 +2645,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['function_versions'] = []
         self.services[serv_id]['function'] = []
         self.services[serv_id]['cloud_service'] = []
-        self.services[serv_id]['time_vm'] = 6
-        self.services[serv_id]['time_acc'] = 0.25
+        self.services[serv_id]['time_vm'] = 60
+        self.services[serv_id]['time_acc'] = 0.50
 
         for key in payload.keys():
             if key[:4] == 'VNFD':

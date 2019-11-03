@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
 LOG.setLevel(logging.INFO)
 
-ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tbjRxd2oiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjQ1YmQ4OTQ3LTQxZjQtNDdiOS04ZmI2LWY3M2NkNTU3MDc4ZSIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.g7x2RYwiiAj4IQxTHhF_cHFrJ80P0BD2gTMe3zNY3B6k2tNwzB0LzSbJi8FL1fbgu1SSPq8ykQ34-8jE67bpRsofJD2nPfLNwSECr9tFLeVMcYQtHL-8xyvEXcUr6o7MbMlI4Geh5J5dhdWtiq3Bo1D3BXIV1eOJ_wTYO6EekcpZB7thbKOffi6JImLbhHEywssWu4_G5U5jgbnKpRy4xp54ZoPZFvWrlS9PnSkFca2-U--HFJFNwRhg5xNREa5ON9RFZ2f0dIst2zkIriFzoYEu0iekpauE5nEVMkfWP8f-7drNFIW0KjaMzDpMZzQGleqWP-0MwTeuW9XFv1-Ylg"
+ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tNXJmbjgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImMyNjY2OThlLTkzMDktNGM1ZS04YjgzLTAyMGFkNWNiZWY2ZiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.q760MUAznU5DUm4cAfYuGd2T5-mOQvCB-bYfZE4FhBf9nSCKntE9_W_sKoBAjhmVp59GKPLb_MXBoUZJKrAXh4KcE4JByX_XvAO656bbDrQ4OyB2_d26yB4dq-JTtfos7BrXOCg3tIRnkCeXjfj7eTul71yCTdqQ9Ac0XSaZFh-rDwlqPVegK9PSIG6WAKNVFKhIih9KXOqsJmiYkw2itstXC3le81lglmrquzcW5Mcp-_vnm4t7pTYz7aVN5XpOkY4xL_Y94Q1aD3BGmZhJlHAxdy_8QTNRxMqXQLYPQ6Zwf-H0wQgy1WARh7-Zkh0SeTYXQEb8QsngQZz4CNzDaQ"
 
 def get_k8_pod_info(serv_id, topology):
     K8_URL = "https://{}".format(topology['vim_endpoint'])
@@ -25,20 +25,32 @@ def get_k8_pod_info(serv_id, topology):
     aConfiguration.api_key = {"authorization": "Bearer " + ATOKEN}
 
     aApiClient = k8client.ApiClient(aConfiguration)
-
     v1 = k8client.CoreV1Api(aApiClient)
+
     _servers = v1.list_namespaced_pod(namespace='default', watch=False)
-
-
     for _s in _servers.items:
-        if _s.metadata.labels['service'] == serv_id:
-            return _s._metadata.uid
+        if 'service' in _s.metadata.labels:
+            if _s.metadata.labels['service'] == serv_id:
+                # FIXME: ip should be floating ip of pod
+                _uid = _s._metadata.uid
+
+    _servers = v1.list_namespaced_service(namespace='default', watch=False)
+    for _s in _servers.items:
+        if 'service' in _s.metadata.labels:
+            if _s.metadata.labels['service'] == serv_id:
+                # FIXME: ip should be floating ip of pod
+                return {
+                    "ip": topology['vim_endpoint'],
+                    "port": _s._spec._ports[0].node_port,
+                    "uid": _uid
+                }
+
 
 
 def get_nova_server_info(serv_id, topology):
     AUTH_URL = "http://{}/identity/v3".format(topology['vim_endpoint'])
     # FIXME: Shouldnt be hardcoded, obviously
-    OS_USERNAME = "demo"
+    OS_USERNAME = "admin"
     OS_PASSWORD = "1234"
     OS_PROJECT = "demo"
 
@@ -73,6 +85,26 @@ def get_netdata_charts(instance_id, topology):
         return charts
     else:
         return []
+
+def switch_classifier(classifier_ip, vnf_ip, vnf_port, classifier_port=8080):
+
+    classifier_url = "http://{classifier_ip}:{classifier_port}/switch?ip={vnf_ip}&port={vnf_port}".format(
+            classifier_ip=classifier_ip, 
+            classifier_port=classifier_port, 
+            vnf_ip=vnf_ip,
+            vnf_port=vnf_port)
+
+    r = requests.get(classifier_url, verify=False)
+
+    LOG.debug("classifier")
+    LOG.debug(classifier_url)
+    LOG.debug(r.text)
+
+    if r.status_code == requests.codes.ok:
+        return True
+    else:
+        return False
+
 
 
 def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=30):
