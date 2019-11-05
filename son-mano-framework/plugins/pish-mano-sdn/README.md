@@ -1,3 +1,3 @@
-# Pishahang's service lifecycle manager plugin
+# Pishahang's SDN controller manager plugin
 
 
