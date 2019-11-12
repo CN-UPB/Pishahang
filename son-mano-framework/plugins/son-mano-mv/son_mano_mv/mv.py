@@ -170,7 +170,7 @@ class MVPlugin(ManoBasePlugin):
         serv_id = content['serv_id']
 
         LOG.info("MV MON request for service: " + serv_id)
-        LOG.info(content)
+        # LOG.info(content)
 
         if content['request_type'] == "START":
             is_nsd = content['is_nsd']
@@ -191,12 +191,12 @@ class MVPlugin(ManoBasePlugin):
                             for _t in topology:
                                 # LOG.info(_t)
                                 if _t['vim_uuid'] == _vnfi['vim_id']:
-                                    LOG.info("VNF is on")
-                                    LOG.info(_vnfi['vim_id'])
+                                    # LOG.info("VNF is on")
+                                    # LOG.info(_vnfi['vim_id'])
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
                                     _charts = tools.get_netdata_charts(_instance_id, _t)
                                     LOG.info(_instance_id)
-                                    LOG.info(len(_charts))
+                                    # LOG.info(len(_charts))
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
@@ -217,15 +217,16 @@ class MVPlugin(ManoBasePlugin):
                         for _t in topology:
                             # LOG.info(_t)
                             if _t['vim_uuid'] == _vdu['vim_id']:
-                                LOG.info("VNF is on")
-                                LOG.info(_vdu['vim_id'])
-                                LOG.info(_t['vim_endpoint'])
+                                # LOG.info("VNF is on")
+                                # LOG.info(_vdu['vim_id'])
+                                # LOG.info(_t['vim_endpoint'])
                                 # FIXME: Timer for creation delay (Add a loop?)
                                 time.sleep(10)
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
                                 _charts = tools.get_netdata_charts(_instance_meta['uid'], _t)
+                                LOG.info("K8 UUID")
                                 LOG.info(_instance_meta)
-                                LOG.info(_charts)
+                                # LOG.info(_charts)
                                 self.active_services[serv_id]['charts'] = _charts
                                 self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                 self.active_services[serv_id]['metadata'] = content
@@ -421,15 +422,19 @@ class MVPlugin(ManoBasePlugin):
                     # Let's say the VNF can handle avg 60MB per min, otherwise switch
                     # wget -O /dev/null http://speedtest.belwue.net/100M
                     # kubectl exec -it cirros-image-1-f589429e-6ee9-44f6-9347-d8f4f27392ca-q6cbt -- busybox wget -O /dev/null http://speedtest.belwue.net/100M
+
                     if not self.active_services[_service]['version_changed']:
                         try:
-                            if abs(_metrics["bandwidth"]['data'][0][2]) >= 800:
-                                LOG.info("### BANDWIDTH Limit reached ###")
-                                # FIXME: need to identify vm or acc or what is deployed already
-                                self.active_services[_service]['version_changed'] = True
-                                self.request_version_change(_service, time_vm=60, time_acc=0.25)
+                            if self.active_services[_service]['is_nsd']:
+                                if abs(_metrics["bandwidth"]['data'][0][2]) >= 1500:
+                                    LOG.info("### BANDWIDTH Limit reached ###")
+                                    # FIXME: need to identify vm or acc or what is deployed already
+                                    self.active_services[_service]['version_changed'] = True
+                                    self.request_version_change(_service, time_vm=60, time_acc=0.25)
+                            # TODO: Add acc switch back
                         except Exception as e:
                             LOG.error("Monitoring still not active")
+                            LOG.error(e)
 
                     LOG.info("\n\n ########################## \n\n")
 

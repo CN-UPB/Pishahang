@@ -2645,7 +2645,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['function_versions'] = []
         self.services[serv_id]['function'] = []
         self.services[serv_id]['cloud_service'] = []
-        self.services[serv_id]['time_vm'] = 60
+        self.services[serv_id]['time_vm'] = 1
         self.services[serv_id]['time_acc'] = 0.50
 
         for key in payload.keys():
