@@ -1,5 +1,38 @@
 # Remote service instantion using Postman
 
+## Retrieving the token 
+
+<B>URL:</B>
+
+`http://<IP>/api/v2/sessions`
+
+<B>Method:</B>
+
+`POST`
+
+<B>Body</B>
+
+`{"username": "<user>", "password": "<pass>"}`
+
+<B> Possible response </B>
+
+'"username": "pishahang",
+    "session_began_at": "2019-11-27 08:58:35 UTC",
+    "token": {
+        "access_token": "TOKEN",
+        "expires_in": 1200,
+        "refresh_expires_in": 1800,
+        "refresh_token": "TOKEN",
+        "token_type": "bearer",
+        "not-before-policy": 0,
+        "session_state": "63774142-afc6-4d47-a7d1-cebf320dec37"
+    }
+}'
+
+The value of the `access_token` should be used in the following call
+
+## Service instantiation 
+
 <B>URL:</B>
 
 `http://<IP address>:32001/api/v2/requests`
