@@ -10,7 +10,7 @@
 
 <B>Body:</B>
 
-'{"service_uuid":"<Service ID>","ingresses":[],"egresses":[]}'
+`{"service_uuid":"<Service ID>","ingresses":[],"egresses":[]}`
 
 <B>Token:</B>
 
