@@ -1,0 +1,12 @@
+---
+descriptor_version: '1.0'
+vendor: eu.sonata-nfv.service-descriptor
+name: core_network
+version: '1.0'
+author: Hadi Razzaghi
+description: Consisting of one VM-based VNF that provides OAI-Core Network
+network_functions:
+- vnf_id: oai_cn
+  vnf_vendor: eu.sonata-nfv.vnf-descriptor
+  vnf_name: oai_cn-vnf
+  vnf_version: '1.0'
