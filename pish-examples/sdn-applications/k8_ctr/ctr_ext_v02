@@ -174,13 +174,14 @@ class ExampleSwitch13(app_manager.RyuApp):
 
                 elif in_port == 2:
                     re_vlan = self._vlan_id_retrieval(dst)
-                    actions.append(parser.OFPActionSetField(eth_src= HOST_MAC))
-                    actions.append(parser.OFPActionSetField(ipv4_src= HOST_IP))
-                    actions.append(parser.OFPActionPushVlan(ether.ETH_TYPE_8021Q))
-                    actions.append(parser.OFPActionSetField(vlan_vid=self.vid_present(re_vlan)))
-                    actions.append(parser.OFPActionOutput(1, ofproto.OFPCML_NO_BUFFER))
-                    match = parser.OFPMatch(eth_type=0x0800, in_port=2)
-                    self.add_flow(datapath, 100, match, actions)
+                    if re_vlan != None:
+                        actions.append(parser.OFPActionSetField(eth_src= HOST_MAC))
+                        actions.append(parser.OFPActionSetField(ipv4_src= HOST_IP))
+                        actions.append(parser.OFPActionPushVlan(ether.ETH_TYPE_8021Q))
+                        actions.append(parser.OFPActionSetField(vlan_vid=self.vid_present(re_vlan)))
+                        actions.append(parser.OFPActionOutput(1, ofproto.OFPCML_NO_BUFFER))
+                        match = parser.OFPMatch(eth_type=0x0800, in_port=2)
+                        self.add_flow(datapath, 100, match, actions)
 
     def vid_present(self, vid):
         return vid | ofp.OFPVID_PRESENT
