@@ -44,7 +44,7 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
-CLASSIFIER_IP="131.234.250.117"
+CLASSIFIER_IP="IP"
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
