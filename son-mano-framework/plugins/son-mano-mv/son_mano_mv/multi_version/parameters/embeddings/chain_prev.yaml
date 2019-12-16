@@ -1,5 +1,0 @@
-- component: "B"
-  embeddings:
-    - node: 14
-      resource_type: "vm"
-

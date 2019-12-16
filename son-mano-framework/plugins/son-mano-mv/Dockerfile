@@ -19,7 +19,7 @@
 # acknowledge the contributions of their colleagues of the SONATA
 # partner consortium (www.sonata-nfv.eu).
 
-FROM continuumio/anaconda3
+FROM python:3.4-slim
 MAINTAINER SONATA
 
 # define plugin name once
@@ -31,24 +31,17 @@ ENV broker_exchange son-kernel
 # add generic project files
 ADD son-mano-base /son-mano-base
 
+# install son-mano-base to be able to use the plugin base class etc.
+WORKDIR /son-mano-base
+RUN python setup.py install
+
 # add plugin related files
 ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
 
-# install son-mano-base to be able to use the plugin base class etc.
-WORKDIR /son-mano-base
-RUN /opt/conda/bin/python setup.py install
-
 # install actual plugin
 WORKDIR /plugins/${PLUGIN_BASE}
-RUN /opt/conda/bin/python setup.py develop
+RUN python setup.py develop
 
-# gurobi
-RUN /opt/conda/bin/conda config --add channels http://conda.anaconda.org/gurobi
-RUN /opt/conda/bin/conda install gurobi
-RUN /opt/conda/bin/pip install geopy
-RUN mkdir /opt/gurobi
-RUN echo TOKENSERVER=license3.uni-paderborn.de > /opt/gurobi/gurobi.lic
-
-CMD ["/opt/conda/bin/son-mano-mv"]
+CMD ["son-mano-mv"]
 
 

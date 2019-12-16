@@ -1,9 +1,0 @@
-- node: "18"
-  component: "S"
-  data_rate: 50
-- node: "0"
-  component: "S"
-  data_rate: 50
-- node: "16"
-  component: "S"
-  data_rate: 20

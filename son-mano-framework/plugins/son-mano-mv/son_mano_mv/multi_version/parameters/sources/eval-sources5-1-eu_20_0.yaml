@@ -1,6 +1,0 @@
-- node: "7"
-  component: "S"
-  data_rate: 1
-- node: "0"
-  component: "S"
-  data_rate: 1

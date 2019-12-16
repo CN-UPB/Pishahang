@@ -33,8 +33,6 @@ import threading
 import sys
 import csv
 import concurrent.futures as pool
-# from multi_version import CreateTemplate
-from son_mano_mv.multi_version import CreateTemplate
 
 # import psutil
 try:
@@ -45,6 +43,7 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
+SWITCH_DEDUG = True
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -205,10 +204,10 @@ class MVPlugin(ManoBasePlugin):
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
                                     } 
-                                    tools.switch_classifier(
-                                        classifier_ip=CLASSIFIER_IP,
-                                        vnf_ip=self.active_services[serv_id]['network']['ip'],
-                                        vnf_port=self.active_services[serv_id]['network']['port'])
+                                    # tools.switch_classifier(
+                                    #     classifier_ip=CLASSIFIER_IP,
+                                    #     vnf_ip=self.active_services[serv_id]['network']['ip'],
+                                    #     vnf_port=self.active_services[serv_id]['network']['port'])
             else:
                 LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
@@ -232,10 +231,10 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
                                 self.active_services[serv_id]['ports'] = _instance_meta
-                                tools.switch_classifier(
-                                    classifier_ip=CLASSIFIER_IP, 
-                                    vnf_ip=_instance_meta['ip'], 
-                                    vnf_port=_instance_meta['port'])
+                                # tools.switch_classifier(
+                                #     classifier_ip=CLASSIFIER_IP, 
+                                #     vnf_ip=_instance_meta['ip'], 
+                                #     vnf_port=_instance_meta['port'])
 
         elif content['request_type'] == "STOP":
             self.active_services.pop(serv_id, None)
@@ -245,16 +244,18 @@ class MVPlugin(ManoBasePlugin):
             LOG.info("Request type not suppoted")
 
 
-    def request_version_change(self, serv_id, time_vm=6, time_acc=0.25):
-            MV_CHANGE_VERSION = "mano.instances.change"
-            content = self.active_services[serv_id]['metadata']
-            content['function_versions'] = self.active_services[serv_id]['function_versions']
-            content['time_vm'] = time_vm
-            content['time_acc'] = time_acc
+    def request_version_change(self, serv_id, as_vm=False, as_container=False, as_accelerated=False):
+        MV_CHANGE_VERSION = "mano.instances.change"
+        content = self.active_services[serv_id]['metadata']
+        content['function_versions'] = self.active_services[serv_id]['function_versions']
 
-            self.manoconn.call_async(self.handle_resp_change,
-                                    MV_CHANGE_VERSION,
-                                    yaml.dump(content))
+        content['as_vm'] = as_vm
+        content['as_container'] = as_container
+        content['as_accelerated'] = as_accelerated
+
+        self.manoconn.call_async(self.handle_resp_change,
+                                MV_CHANGE_VERSION,
+                                yaml.dump(content))
 
 
     def handle_resp_change(self):
@@ -272,12 +273,27 @@ class MVPlugin(ManoBasePlugin):
 
         # FIXME: This should be calculated based on mintoring thread
         ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        self.mon_metrics["time_vm"] = content['time_vm'] # Change it to 60 to get as_accelerated component in the result file 
-        self.mon_metrics["time_acc"] = content['time_acc']
+        # self.mon_metrics["time_vm"] = content['time_vm'] # Change it to 60 to get as_accelerated component in the result file 
+        # self.mon_metrics["time_acc"] = content['time_acc']
+
+        as_vm, as_container, as_accelerated = False, False, False
+        
+        if content['as_vm']:
+            as_vm = True
+        elif content['as_container']:
+            as_container = True
+        elif content['as_accelerated']:
+            as_accelerated = True
 
         #  calls create_template to create the template from the payload and returns created result file.
-        _template_generator = CreateTemplate.TemplateGenerator(content, self.mon_metrics)
-        result_data = _template_generator.create_template()
+        # _template_generator = CreateTemplate.TemplateGenerator(content, self.mon_metrics)
+        # result_data = _template_generator.create_template()
+
+        result_data = {
+            "as_vm": as_vm,
+            "as_container": as_container,
+            "as_accelerated": as_accelerated
+        }
 
         LOG.info("MV request for service: " + content['serv_id'])
         topology = content['topology']
@@ -304,9 +320,9 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV Embedding started on following topology: " + str(topology))
 
         as_vm, as_container, as_accelerated = result_data["as_vm"], result_data["as_container"], result_data["as_accelerated"]
-        vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
+        # vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
 
-        if "S" in as_vm: as_vm.remove("S")
+        # if "S" in as_vm: as_vm.remove("S")
 
         # LOG.info("\n\nas_vm: ", str(as_vm), "\n\nas_container: ", str(as_container), "\n\nas_accelerated: ", str(as_accelerated))
 
@@ -322,33 +338,31 @@ class MVPlugin(ManoBasePlugin):
         # FIXME: designed only for 1
         is_nsd = True
 
-        if len(as_vm) > 0:
+        if as_vm:
             # FIXME: should support multiple VDU?
             cloud_services = []
             LOG.info("VM Mapping")
             for function in functions:
                 vnfd = function['vnfd']
                 vdu = vnfd['virtual_deployment_units']
-                vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
+                # vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
                 needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
                 needed_mem = vdu[0]['resource_requirements']['memory']['size']
                 needed_sto = vdu[0]['resource_requirements']['storage']['size']
 
                 for vim in topology:
                     if vim['vim_type'] == 'Heat':
-                        for as_vm_function in as_vm:
-                            if vnf_id in as_vm_function:
-                                cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                        cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
+                        mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
 
-                                if cpu_req and mem_req:
-                                    function["vim_uuid"] = vim['vim_uuid']
-                                    vim['core_used'] = vim['core_used'] + needed_cpu
-                                    vim['memory_used'] = vim['memory_used'] + needed_mem
-                                    mapping_counter += 1
-                                    break
+                        if cpu_req and mem_req:
+                            function["vim_uuid"] = vim['vim_uuid']
+                            vim['core_used'] = vim['core_used'] + needed_cpu
+                            vim['memory_used'] = vim['memory_used'] + needed_mem
+                            mapping_counter += 1
+                            break
 
-        elif len(as_accelerated) > 0:
+        elif as_accelerated:
             # FIXME: should support multiple VDU?
             LOG.info("Accelerated Mapping")
             cloud_services = functions
@@ -426,11 +440,18 @@ class MVPlugin(ManoBasePlugin):
                     if not self.active_services[_service]['version_changed']:
                         try:
                             if self.active_services[_service]['is_nsd']:
-                                if abs(_metrics["bandwidth"]['data'][0][2]) >= 1500:
-                                    LOG.info("### BANDWIDTH Limit reached ###")
-                                    # FIXME: need to identify vm or acc or what is deployed already
-                                    self.active_services[_service]['version_changed'] = True
-                                    self.request_version_change(_service, time_vm=60, time_acc=0.25)
+                                if SWITCH_DEDUG:
+                                    with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+                                        data = f.read().rstrip()
+                                        if data == "1":
+                                            self.active_services[_service]['version_changed'] = True
+                                            self.request_version_change(_service, as_accelerated=True)
+                                else:
+                                    if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
+                                        LOG.info("### BANDWIDTH Limit reached ###")
+                                        # FIXME: need to identify vm or acc or what is deployed already
+                                        self.active_services[_service]['version_changed'] = True
+                                        self.request_version_change(_service, as_vm=False, as_container=False, as_accelerated=True)
                             # TODO: Add acc switch back
                         except Exception as e:
                             LOG.error("Monitoring still not active")

@@ -2290,8 +2290,12 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id] = {}
         self.services[serv_id]['service'] = {}
 
-        self.services[serv_id]['time_vm'] = content['time_vm']
-        self.services[serv_id]['time_acc'] = content['time_acc']
+        # self.services[serv_id]['time_vm'] = content['time_vm']
+        # self.services[serv_id]['time_acc'] = content['time_acc']
+
+        self.services[serv_id]['as_vm'] = content['as_vm']
+        self.services[serv_id]['as_container'] = content['as_container']
+        self.services[serv_id]['as_accelerated'] = content['as_accelerated']
 
         self.services[serv_id]['service']['nsd'] = content['nsd']
         self.services[serv_id]['service']['id'] = serv_id
@@ -2645,8 +2649,11 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['function_versions'] = []
         self.services[serv_id]['function'] = []
         self.services[serv_id]['cloud_service'] = []
-        self.services[serv_id]['time_vm'] = 1
-        self.services[serv_id]['time_acc'] = 0.50
+        # self.services[serv_id]['time_vm'] = 1
+        # self.services[serv_id]['time_acc'] = 0.50
+        self.services[serv_id]['as_vm'] = True
+        self.services[serv_id]['as_container'] = False
+        self.services[serv_id]['as_accelerated'] = False
 
         for key in payload.keys():
             if key[:4] == 'VNFD':
@@ -3017,8 +3024,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'functions': functions,
                     'topology': topology,
                     'serv_id': serv_id,
-                    'time_vm': self.services[serv_id]['time_vm'],
-                    'time_acc': self.services[serv_id]['time_acc']
+                    'as_vm': self.services[serv_id]['as_vm'],
+                    'as_container': self.services[serv_id]['as_container'],
+                    'as_accelerated': self.services[serv_id]['as_accelerated']
                     }
 
         content['nap'] = {}
