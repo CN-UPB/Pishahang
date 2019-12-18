@@ -45,9 +45,9 @@ development: &common_settings
     records:
       model: RecordManagerService
       env_var_url: RECORD_MANAGEMENT_URL
-    licences:
-      model: LicenceManagerService
-      env_var_url: LICENCE_MANAGEMENT_URL
+    # licences:
+    #   model: LicenceManagerService
+    #   env_var_url: LICENCE_MANAGEMENT_URL
     vims:
       model: VimManagerService
       env_var_url: VIM_MANAGEMENT_URL

@@ -7,6 +7,18 @@ echo "$dir"
 echo "##############################################"
 echo "##############################################"
 
+echo "Starting gtkapi.."
+cd "$dir/son-gkeeper/son-gtkapi"
+
+sudo docker stop son-gtkapi
+sudo docker rm son-gtkapi
+# sudo docker build -t son-gtkapi -f Dockerfile .
+
+sudo docker run -d --name son-gtkapi --net=son-sp --network-alias=son-gtkapi -p 5000:5000 -p 32001:5000  son-gtkapi
+
+echo "##############################################"
+echo "##############################################"
+
 echo "Starting BSS.."
 cd "$dir/son-bss"
 echo "$(pwd)"

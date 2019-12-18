@@ -2383,6 +2383,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
             corr_id = str(uuid.uuid4())
             self.terminate_workflow(term_serv_id,
                                 corr_id)
+        else:
+            self.roll_back_instantiation(term_serv_id)
+            self.stop_mv_monitoring(term_serv_id)
 
         self.start_next_task(serv_id)
         
@@ -2441,7 +2444,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
     def stop_mv_monitoring(self, serv_id):
         corr_id = str(uuid.uuid4())
-        self.services[serv_id]['act_corr_id'] = corr_id
+        # self.services[serv_id]['act_corr_id'] = corr_id
 
         # is_nsd = self.services[serv_id]['service']["is_nsd"]
         LOG.info("Service " + serv_id + ": Stopping MV Monitoring")
@@ -2651,9 +2654,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['cloud_service'] = []
         # self.services[serv_id]['time_vm'] = 1
         # self.services[serv_id]['time_acc'] = 0.50
-        self.services[serv_id]['as_vm'] = True
+        self.services[serv_id]['as_vm'] = False
         self.services[serv_id]['as_container'] = False
-        self.services[serv_id]['as_accelerated'] = False
+        self.services[serv_id]['as_accelerated'] = True
 
         for key in payload.keys():
             if key[:4] == 'VNFD':
@@ -3179,9 +3182,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
                              correlation_id=corr_id)
 
         # Kill the SSMs and FSMs
-        self.terminate_ssms(serv_id, require_resp=False)
+        # self.terminate_ssms(serv_id, require_resp=False)
 
-        self.terminate_fsms(serv_id, require_resp=False)
+        # self.terminate_fsms(serv_id, require_resp=False)
 
         LOG.info("Instantiation aborted, cleanup completed")
 

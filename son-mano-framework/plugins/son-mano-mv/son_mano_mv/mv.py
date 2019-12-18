@@ -43,7 +43,7 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
-SWITCH_DEDUG = True
+SWITCH_DEBUG = True
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -71,7 +71,7 @@ class MVPlugin(ManoBasePlugin):
         """
 
         # call super class (will automatically connect to
-        # broker and register the Placement plugin to the plugin manger)
+        # broker and register the Multi-version plugin to the plugin manger)
         ver = "0.1-dev"
         des = "This is the Multiversion plugin"
 
@@ -87,14 +87,14 @@ class MVPlugin(ManoBasePlugin):
 
     def __del__(self):
         """
-        Destroy Placement plugin instance. De-register. Disconnect.
+        Destroy Multi-version plugin instance. De-register. Disconnect.
         :return:
         """
         super(self.__class__, self).__del__()
 
     def declare_subscriptions(self):
         """
-        Declare topics that Placement Plugin subscribes on.
+        Declare topics that Multi-version Plugin subscribes on.
         """
         # We have to call our super class here
         super(self.__class__, self).declare_subscriptions()
@@ -120,13 +120,13 @@ class MVPlugin(ManoBasePlugin):
         :return:
         """
         super(self.__class__, self).on_lifecycle_start(ch, mthd, prop, msg)
-        LOG.info("Placement plugin started and operational.")
+        LOG.info("Multi-version plugin started and operational.")
 
     def deregister(self):
         """
         Send a deregister request to the plugin manager.
         """
-        LOG.info('Deregistering Placement plugin with uuid ' + str(self.uuid))
+        LOG.info('Deregistering Multi-version plugin with uuid ' + str(self.uuid))
         message = {"uuid": self.uuid}
         self.manoconn.notify("platform.management.plugin.deregister",
                              json.dumps(message))
@@ -134,7 +134,7 @@ class MVPlugin(ManoBasePlugin):
 
     def on_registration_ok(self):
         """
-        This method is called when the Placement plugin
+        This method is called when the Multi-version plugin
         is registered to the plugin mananger
         """
         super(self.__class__, self).on_registration_ok()
@@ -440,19 +440,33 @@ class MVPlugin(ManoBasePlugin):
                     if not self.active_services[_service]['version_changed']:
                         try:
                             if self.active_services[_service]['is_nsd']:
-                                if SWITCH_DEDUG:
+                                if SWITCH_DEBUG:
                                     with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                         data = f.read().rstrip()
-                                        if data == "1":
+                                        LOG.info("SWITCH_DEBUG:VM: " + data)
+                                        if data == "ACC":
                                             self.active_services[_service]['version_changed'] = True
                                             self.request_version_change(_service, as_accelerated=True)
                                 else:
                                     if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
                                         LOG.info("### BANDWIDTH Limit reached ###")
-                                        # FIXME: need to identify vm or acc or what is deployed already
                                         self.active_services[_service]['version_changed'] = True
-                                        self.request_version_change(_service, as_vm=False, as_container=False, as_accelerated=True)
-                            # TODO: Add acc switch back
+                                        self.request_version_change(_service, as_accelerated=True)
+                            else:
+                                if SWITCH_DEBUG:
+                                    with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+                                        data = f.read().rstrip()
+                                        LOG.info("SWITCH_DEBUG:ACC: " + data)
+                                        if data == "VM":
+                                            self.active_services[_service]['version_changed'] = True
+                                            self.request_version_change(_service, as_vm=True)
+                                else:
+                                    if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
+                                        LOG.info("### BANDWIDTH Limit reached ###")
+                                        self.active_services[_service]['version_changed'] = True
+                                        self.request_version_change(_service, as_vm=True)
+
+
                         except Exception as e:
                             LOG.error("Monitoring still not active")
                             LOG.error(e)
