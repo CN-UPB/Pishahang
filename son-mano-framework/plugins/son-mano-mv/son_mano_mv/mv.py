@@ -193,9 +193,9 @@ class MVPlugin(ManoBasePlugin):
                                     # LOG.info("VNF is on")
                                     # LOG.info(_vnfi['vim_id'])
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                    _charts = tools.get_netdata_charts(_instance_id, _t)
+                                    _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd']['monitoring_parameters'])
                                     LOG.info(_instance_id)
-                                    # LOG.info(len(_charts))
+                                    # LOG.info(_charts)
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
@@ -204,6 +204,8 @@ class MVPlugin(ManoBasePlugin):
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
                                     }
+                                    self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd']['monitoring_parameters']
+                                    self.active_services[serv_id]['monitoring_rules'] = _function['vnfd']['monitoring_rules']
                                     # Start monitoring thread
                                     self.monitoring_thread(serv_id)
                                     # tools.switch_classifier(
@@ -224,7 +226,7 @@ class MVPlugin(ManoBasePlugin):
                                 # FIXME: Timer for creation delay (Add a loop?)
                                 time.sleep(10)
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t)
+                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd']['monitoring_parameters'])
                                 LOG.info("K8 UUID")
                                 LOG.info(_instance_meta)
                                 # LOG.info(_charts)
@@ -233,6 +235,8 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
                                 self.active_services[serv_id]['ports'] = _instance_meta
+                                self.active_services[serv_id]['monitoring_parameters'] = _function['csd']['monitoring_parameters']
+                                self.active_services[serv_id]['monitoring_rules'] = _function['csd']['monitoring_rules']
                                 # Start monitoring thread
                                 self.monitoring_thread(serv_id)
                                 # tools.switch_classifier(
@@ -291,10 +295,11 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['version_changed'] = True
                                 self.request_version_change(serv_id, as_vm=True)
 
-                time.sleep(10)
             except Exception as e:
                 LOG.error("Error")
                 LOG.error(e)
+
+            time.sleep(10)
 
 
     def request_version_change(self, serv_id, as_vm=False, as_container=False, as_accelerated=False):

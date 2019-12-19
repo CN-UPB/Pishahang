@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
 LOG.setLevel(logging.INFO)
 
-ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4td2c3azQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjM4Y2IxZWFhLWRmOWEtNDJkNy04MmE2LTU0NzU3MTZmNDZlZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.bQ4UyJx8FPsjZp7wXSY506Xjdeu94L_w4B_omc_L7EQsvJjbiOmqOQcyFcptx0KARRuYELzQCPwbNVzozdalqK0BEZdshZ4OvuqK7_BqhC3XTsj0qqfUH_Z3FePe3IpYTnVix8oOdPRjH80f1mypmlbO7V5tZDRkZex96harr2xD1to1Oav4CFFERa4ROTyMAR96dbZYX_18xTJgA9EC7YHUhDyOAHJnw3dVIT8mLQQXvEQoZJJI1pcoKEGKy7D4p5xk5fRhc4IgcPlLrgkYIiLzrqQGzQ3Y5NManaks3mmqKGxcb-DIdR3QOxCTtgjMG8zQvuYkx9M2arNADQN5qQ"
+ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tNXJmbjgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImMyNjY2OThlLTkzMDktNGM1ZS04YjgzLTAyMGFkNWNiZWY2ZiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.q760MUAznU5DUm4cAfYuGd2T5-mOQvCB-bYfZE4FhBf9nSCKntE9_W_sKoBAjhmVp59GKPLb_MXBoUZJKrAXh4KcE4JByX_XvAO656bbDrQ4OyB2_d26yB4dq-JTtfos7BrXOCg3tIRnkCeXjfj7eTul71yCTdqQ9Ac0XSaZFh-rDwlqPVegK9PSIG6WAKNVFKhIih9KXOqsJmiYkw2itstXC3le81lglmrquzcW5Mcp-_vnm4t7pTYz7aVN5XpOkY4xL_Y94Q1aD3BGmZhJlHAxdy_8QTNRxMqXQLYPQ6Zwf-H0wQgy1WARh7-Zkh0SeTYXQEb8QsngQZz4CNzDaQ"
 
 def get_k8_pod_info(serv_id, topology):
     K8_URL = "https://{}".format(topology['vim_endpoint'])
@@ -71,7 +71,7 @@ def get_nova_server_info(serv_id, topology):
         if _s.name.split(".")[2] == serv_id:
             return _s._info['OS-EXT-SRV-ATTR:instance_name']
 
-def get_netdata_charts(instance_id, topology):
+def get_netdata_charts(instance_id, topology, _charts_parameters):
     netdata_url = "http://{host}:19999/api/v1/charts".format(host=topology['vim_endpoint'])
     r = requests.get(netdata_url, verify=False)
 
@@ -79,9 +79,12 @@ def get_netdata_charts(instance_id, topology):
     LOG.debug(netdata_url)
     LOG.debug(r.text)
 
+    # _charts_parameters = ["cpu", "net_eth0"]
     if r.status_code == requests.codes.ok:
         _result_json = json.loads(r.text)
         charts = [key for key in _result_json['charts'].keys() if instance_id in key.lower()]
+        # Select only the monitoring parameters
+        charts = [_c for _c in charts if any(_cp in _c for _cp in _charts_parameters)]
         return charts
     else:
         return []
