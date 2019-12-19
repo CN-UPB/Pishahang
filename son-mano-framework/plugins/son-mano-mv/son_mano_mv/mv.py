@@ -203,7 +203,9 @@ class MVPlugin(ManoBasePlugin):
                                     self.active_services[serv_id]['network'] = {
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
-                                    } 
+                                    }
+                                    # Start monitoring thread
+                                    self.monitoring_thread(serv_id)
                                     # tools.switch_classifier(
                                     #     classifier_ip=CLASSIFIER_IP,
                                     #     vnf_ip=self.active_services[serv_id]['network']['ip'],
@@ -231,6 +233,8 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
                                 self.active_services[serv_id]['ports'] = _instance_meta
+                                # Start monitoring thread
+                                self.monitoring_thread(serv_id)
                                 # tools.switch_classifier(
                                 #     classifier_ip=CLASSIFIER_IP, 
                                 #     vnf_ip=_instance_meta['ip'], 
@@ -242,6 +246,55 @@ class MVPlugin(ManoBasePlugin):
 
         else:
             LOG.info("Request type not suppoted")
+
+    @tools.run_async
+    def monitoring_thread(self, serv_id):
+        # TODO: Add pre-monitoring loop logic
+        while(serv_id in self.active_services):
+            try:
+                LOG.info("Monitoring Thread " + serv_id)
+                _service_meta = self.active_services[serv_id]
+
+                _metrics = tools.get_netdata_charts_instance(_service_meta['charts'],
+                                                             _service_meta['vim_endpoint'])
+                # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+                LOG.info("### CPU ###")
+                LOG.info(_metrics["cpu"])
+                LOG.info("### BANDWIDTH ###")
+                LOG.info(_metrics["bandwidth"])
+
+                if not self.active_services[serv_id]['version_changed']:
+                    if self.active_services[serv_id]['is_nsd']:
+                        if SWITCH_DEBUG:
+                            with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+                                data = f.read().rstrip()
+                                LOG.info("SWITCH_DEBUG:VM: " + data)
+                                if data == "ACC":
+                                    self.active_services[serv_id]['version_changed'] = True
+                                    self.request_version_change(serv_id, as_accelerated=True)
+                        else:
+                            if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
+                                LOG.info("### BANDWIDTH Limit reached ###")
+                                self.active_services[serv_id]['version_changed'] = True
+                                self.request_version_change(serv_id, as_accelerated=True)
+                    else:
+                        if SWITCH_DEBUG:
+                            with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+                                data = f.read().rstrip()
+                                LOG.info("SWITCH_DEBUG:ACC: " + data)
+                                if data == "VM":
+                                    self.active_services[serv_id]['version_changed'] = True
+                                    self.request_version_change(serv_id, as_vm=True)
+                        else:
+                            if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
+                                LOG.info("### BANDWIDTH Limit reached ###")
+                                self.active_services[serv_id]['version_changed'] = True
+                                self.request_version_change(serv_id, as_vm=True)
+
+                time.sleep(10)
+            except Exception as e:
+                LOG.error("Error")
+                LOG.error(e)
 
 
     def request_version_change(self, serv_id, as_vm=False, as_container=False, as_accelerated=False):
@@ -419,63 +472,63 @@ class MVPlugin(ManoBasePlugin):
     def run(self):
         while(True):
             LOG.info("\nSLM Thread\n")
-            try:
-                for _service, _service_meta in self.active_services.items():
-                    LOG.info("\n\n ########################## \n\n")
+            # try:
+            #     for _service, _service_meta in self.active_services.items():
+            #         LOG.info("\n\n ########################## \n\n")
 
-                    LOG.info(_service)
-                    _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
-                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                    LOG.info("### CPU ###")
-                    LOG.info(_metrics["cpu"])
-                    LOG.info("### BANDWIDTH ###")
-                    LOG.info(_metrics["bandwidth"])
+            #         LOG.info(_service)
+            #         _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
+            #         # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+            #         LOG.info("### CPU ###")
+            #         LOG.info(_metrics["cpu"])
+            #         LOG.info("### BANDWIDTH ###")
+            #         LOG.info(_metrics["bandwidth"])
 
-                    # TODO: map bandwidth with time
-                    # 1080 ~ 2GB per hour ~ 30 MB per min
-                    # Let's say the VNF can handle avg 60MB per min, otherwise switch
-                    # wget -O /dev/null http://speedtest.belwue.net/100M
-                    # kubectl exec -it cirros-image-1-f589429e-6ee9-44f6-9347-d8f4f27392ca-q6cbt -- busybox wget -O /dev/null http://speedtest.belwue.net/100M
+            #         # TODO: map bandwidth with time
+            #         # 1080 ~ 2GB per hour ~ 30 MB per min
+            #         # Let's say the VNF can handle avg 60MB per min, otherwise switch
+            #         # wget -O /dev/null http://speedtest.belwue.net/100M
+            #         # kubectl exec -it cirros-image-1-f589429e-6ee9-44f6-9347-d8f4f27392ca-q6cbt -- busybox wget -O /dev/null http://speedtest.belwue.net/100M
 
-                    if not self.active_services[_service]['version_changed']:
-                        try:
-                            if self.active_services[_service]['is_nsd']:
-                                if SWITCH_DEBUG:
-                                    with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
-                                        data = f.read().rstrip()
-                                        LOG.info("SWITCH_DEBUG:VM: " + data)
-                                        if data == "ACC":
-                                            self.active_services[_service]['version_changed'] = True
-                                            self.request_version_change(_service, as_accelerated=True)
-                                else:
-                                    if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
-                                        LOG.info("### BANDWIDTH Limit reached ###")
-                                        self.active_services[_service]['version_changed'] = True
-                                        self.request_version_change(_service, as_accelerated=True)
-                            else:
-                                if SWITCH_DEBUG:
-                                    with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
-                                        data = f.read().rstrip()
-                                        LOG.info("SWITCH_DEBUG:ACC: " + data)
-                                        if data == "VM":
-                                            self.active_services[_service]['version_changed'] = True
-                                            self.request_version_change(_service, as_vm=True)
-                                else:
-                                    if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
-                                        LOG.info("### BANDWIDTH Limit reached ###")
-                                        self.active_services[_service]['version_changed'] = True
-                                        self.request_version_change(_service, as_vm=True)
+            #         if not self.active_services[_service]['version_changed']:
+            #             try:
+            #                 if self.active_services[_service]['is_nsd']:
+            #                     if SWITCH_DEBUG:
+            #                         with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+            #                             data = f.read().rstrip()
+            #                             LOG.info("SWITCH_DEBUG:VM: " + data)
+            #                             if data == "ACC":
+            #                                 self.active_services[_service]['version_changed'] = True
+            #                                 self.request_version_change(_service, as_accelerated=True)
+            #                     else:
+            #                         if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
+            #                             LOG.info("### BANDWIDTH Limit reached ###")
+            #                             self.active_services[_service]['version_changed'] = True
+            #                             self.request_version_change(_service, as_accelerated=True)
+            #                 else:
+            #                     if SWITCH_DEBUG:
+            #                         with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
+            #                             data = f.read().rstrip()
+            #                             LOG.info("SWITCH_DEBUG:ACC: " + data)
+            #                             if data == "VM":
+            #                                 self.active_services[_service]['version_changed'] = True
+            #                                 self.request_version_change(_service, as_vm=True)
+            #                     else:
+            #                         if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
+            #                             LOG.info("### BANDWIDTH Limit reached ###")
+            #                             self.active_services[_service]['version_changed'] = True
+            #                             self.request_version_change(_service, as_vm=True)
 
 
-                        except Exception as e:
-                            LOG.error("Monitoring still not active")
-                            LOG.error(e)
+            #             except Exception as e:
+            #                 LOG.error("Monitoring still not active")
+            #                 LOG.error(e)
 
-                    LOG.info("\n\n ########################## \n\n")
+            #         LOG.info("\n\n ########################## \n\n")
 
-            except Exception as e:
-                LOG.error("SLM Thread Error")
-                LOG.error(e)
+            # except Exception as e:
+            #     LOG.error("SLM Thread Error")
+            #     LOG.error(e)
 
             time.sleep(10)
 
