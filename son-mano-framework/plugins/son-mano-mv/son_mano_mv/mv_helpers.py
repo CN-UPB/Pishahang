@@ -124,7 +124,7 @@ def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=30):
                 if "packets" in _c_name:
                     _instance_metrics["packets"] = _result_json
                 else:
-                    _instance_metrics["bandwidth"] = _result_json
+                    _instance_metrics["net"] = _result_json
             else:
                 _instance_metrics[_c_name] = _result_json
                 

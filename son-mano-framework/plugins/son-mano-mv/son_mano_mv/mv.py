@@ -253,59 +253,197 @@ class MVPlugin(ManoBasePlugin):
 
     @tools.run_async
     def monitoring_thread(self, serv_id):
-        # TODO: Add pre-monitoring loop logic
+        LOG.info("### Setting up monitoring thread: " + serv_id)
+        _rules = self.active_services[serv_id]['monitoring_rules']
+        # FIXME: should be individual to the rule?
+        _monitoring_freq = int(_rules[0]['duration'])
         while(serv_id in self.active_services):
             try:
                 LOG.info("Monitoring Thread " + serv_id)
                 _service_meta = self.active_services[serv_id]
 
                 _metrics = tools.get_netdata_charts_instance(_service_meta['charts'],
-                                                             _service_meta['vim_endpoint'])
+                                                             _service_meta['vim_endpoint'],
+                                                             avg_sec=_monitoring_freq)
+
                 # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
                 LOG.info("### CPU ###")
                 LOG.info(_metrics["cpu"])
-                LOG.info("### BANDWIDTH ###")
-                LOG.info(_metrics["bandwidth"])
+                LOG.info("### net ###")
+                LOG.info(_metrics["net"])
 
                 if not self.active_services[serv_id]['version_changed']:
                     if self.active_services[serv_id]['is_nsd']:
+                        # VM Monitoring
                         if SWITCH_DEBUG:
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
                                 LOG.info("SWITCH_DEBUG:VM: " + data)
                                 if data == "ACC":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, as_accelerated=True)
+                                    self.request_version_change(serv_id, switch_type="ACC")
+
                         else:
-                            if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
-                                LOG.info("### BANDWIDTH Limit reached ###")
-                                self.active_services[serv_id]['version_changed'] = True
-                                self.request_version_change(serv_id, as_accelerated=True)
+
+                            for _rule in _rules:
+                                if _rule['version'] == "VM":
+                                    if '>' in _rule['condition']:
+                                        _magnitude = int(_rule['condition'].split('>', 1)[-1].strip())
+                                        _parameter = _rule['condition'].split('>', 1)[0].strip()
+
+                                        if _parameter == "net":
+                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
+                                                            _rule['condition'], 
+                                                            _magnitude, 
+                                                            _parameter,
+                                                            _metrics["net"]['data'][0]))
+
+                                            if _rule['condition_extra'] == 'upload':
+                                                if abs(_metrics["net"]['data'][0][2]) > _magnitude:
+                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            elif _rule['condition_extra'] == 'download':
+                                                if abs(_metrics["net"]['data'][0][1]) > _magnitude:
+                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+
+                                        elif _parameter == "cpu":
+                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
+                                                            _rule['condition'], 
+                                                            _magnitude, 
+                                                            _parameter,
+                                                            _metrics["cpu"]['data'][0]))
+                                            if _rule['condition_extra'] == 'user':
+                                                if _metrics["cpu"]['data'][0][1] > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            if _rule['condition_extra'] == 'system':
+                                                if _metrics["cpu"]['data'][0][2] > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            if _rule['condition_extra'] == 'all':
+                                                if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+
+                                    elif '<' in _rule['condition']:
+                                        _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
+                                        _parameter = _rule['condition'].split('<', 1)[0].strip()
+                                        if _parameter == "net":
+                                            if _rule['condition_extra'] == 'upload':
+                                                if abs(_metrics["net"]['data'][0][2]) < _magnitude:
+                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            elif _rule['condition_extra'] == 'download':
+                                                if abs(_metrics["net"]['data'][0][1]) < _magnitude:
+                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+
                     else:
+                        # ACC Monitoring
                         if SWITCH_DEBUG:
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
                                 LOG.info("SWITCH_DEBUG:ACC: " + data)
                                 if data == "VM":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, as_vm=True)
+                                    self.request_version_change(serv_id, switch_type="VM")
+
                         else:
-                            if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
-                                LOG.info("### BANDWIDTH Limit reached ###")
-                                self.active_services[serv_id]['version_changed'] = True
-                                self.request_version_change(serv_id, as_vm=True)
+
+                            for _rule in _rules:
+                                if _rule['version'] == "ACC":
+                                    if '>' in _rule['condition']:
+                                        _magnitude = int(_rule['condition'].split('>', 1)[-1].strip())
+                                        _parameter = _rule['condition'].split('>', 1)[0].strip()
+
+                                        if _parameter == "net":
+                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
+                                                            _rule['condition'], 
+                                                            _magnitude, 
+                                                            _parameter,
+                                                            _metrics["net"]['data'][0]))
+                                            if _rule['condition_extra'] == 'upload':
+                                                if abs(_metrics["net"]['data'][0][2]) > _magnitude:
+                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            elif _rule['condition_extra'] == 'download':
+                                                if abs(_metrics["net"]['data'][0][1]) > _magnitude:
+                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+
+                                        elif _parameter == "cpu":
+                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
+                                                            _rule['condition'], 
+                                                            _magnitude, 
+                                                            _parameter,
+                                                            _metrics["cpu"]['data'][0]))
+                                            if _rule['condition_extra'] == 'user':
+                                                if _metrics["cpu"]['data'][0][1] > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            if _rule['condition_extra'] == 'system':
+                                                if _metrics["cpu"]['data'][0][2] > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            if _rule['condition_extra'] == 'all':
+                                                if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
+                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+
+                                    elif '<' in _rule['condition']:
+                                        _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
+                                        _parameter = _rule['condition'].split('<', 1)[0].strip()
+                                        if _parameter == "net":
+                                            if _rule['condition_extra'] == 'upload':
+                                                if abs(_metrics["net"]['data'][0][2]) < _magnitude:
+                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                            elif _rule['condition_extra'] == 'download':
+                                                if abs(_metrics["net"]['data'][0][1]) < _magnitude:
+                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
+                                                    self.active_services[serv_id]['version_changed'] = True
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
 
             except Exception as e:
                 LOG.error("Error")
                 LOG.error(e)
 
-            time.sleep(10)
+            time.sleep(_monitoring_freq)
+
+        LOG.info("### Stopping monitoring thread for: " + serv_id)
 
 
-    def request_version_change(self, serv_id, as_vm=False, as_container=False, as_accelerated=False):
+    def request_version_change(self, serv_id, switch_type):
         MV_CHANGE_VERSION = "mano.instances.change"
         content = self.active_services[serv_id]['metadata']
         content['function_versions'] = self.active_services[serv_id]['function_versions']
+
+        if switch_type == "VM":
+            as_vm = True
+            as_container = False
+            as_accelerated = False
+        elif switch_type == "ACC":
+            as_vm = False
+            as_container = False
+            as_accelerated = True
+        elif switch_type == "CON":
+            as_vm = False
+            as_container = True
+            as_accelerated = False
 
         content['as_vm'] = as_vm
         content['as_container'] = as_container
@@ -474,9 +612,9 @@ class MVPlugin(ManoBasePlugin):
         return mapping
 
 
-    def run(self):
-        while(True):
-            LOG.info("\nSLM Thread\n")
+    # def run(self):
+    #     while(True):
+    #         LOG.info("\nSLM Thread\n")
             # try:
             #     for _service, _service_meta in self.active_services.items():
             #         LOG.info("\n\n ########################## \n\n")
@@ -535,7 +673,7 @@ class MVPlugin(ManoBasePlugin):
             #     LOG.error("SLM Thread Error")
             #     LOG.error(e)
 
-            time.sleep(10)
+            # time.sleep(10)
 
 
 def main():
