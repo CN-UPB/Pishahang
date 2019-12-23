@@ -57,19 +57,25 @@ virtual_deployment_units_con:
       size: 32
       size_unit: "Mi"      
 
+monitoring_config:
+  fetch_frequency: 30
+  average_range: 30 
+
 monitoring_parameters:
   - cpu
   - net
 
-  # - packets
-  # - throttle_serviced_ops
-  # - throttle_io
-  # - mem_usage
-  # - pgfaults
-  # - mem_activity
-  # - writeback
-  # - mem
-  # - cpu_per_core
+# - cpu
+# - net
+# - packets
+# - mem
+# - mem_usage
+# - mem_usage_limit
+# - mem_activity  
+# - throttle_serviced_ops
+# - throttle_io
+# - pgfaults
+# - writeback
 
 monitoring_rules:
   - name: "acc:rule:net"

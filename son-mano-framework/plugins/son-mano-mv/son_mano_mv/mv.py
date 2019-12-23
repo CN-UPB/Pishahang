@@ -43,7 +43,7 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
-SWITCH_DEBUG = True
+SWITCH_DEBUG = False
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
@@ -206,6 +206,7 @@ class MVPlugin(ManoBasePlugin):
                                     }
                                     self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd']['monitoring_parameters']
                                     self.active_services[serv_id]['monitoring_rules'] = _function['vnfd']['monitoring_rules']
+                                    self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
                                     # Start monitoring thread
                                     self.monitoring_thread(serv_id)
                                     # tools.switch_classifier(
@@ -237,6 +238,7 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['ports'] = _instance_meta
                                 self.active_services[serv_id]['monitoring_parameters'] = _function['csd']['monitoring_parameters']
                                 self.active_services[serv_id]['monitoring_rules'] = _function['csd']['monitoring_rules']
+                                self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
                                 # Start monitoring thread
                                 self.monitoring_thread(serv_id)
                                 # tools.switch_classifier(
@@ -255,8 +257,7 @@ class MVPlugin(ManoBasePlugin):
     def monitoring_thread(self, serv_id):
         LOG.info("### Setting up monitoring thread: " + serv_id)
         _rules = self.active_services[serv_id]['monitoring_rules']
-        # FIXME: should be individual to the rule?
-        _monitoring_freq = int(_rules[0]['duration'])
+        mon_config = self.active_services[serv_id]['monitoring_config']
         while(serv_id in self.active_services):
             try:
                 LOG.info("Monitoring Thread " + serv_id)
@@ -264,13 +265,14 @@ class MVPlugin(ManoBasePlugin):
 
                 _metrics = tools.get_netdata_charts_instance(_service_meta['charts'],
                                                              _service_meta['vim_endpoint'],
-                                                             avg_sec=_monitoring_freq)
+                                                             avg_sec=mon_config['average_range'])
 
                 # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                LOG.info("### CPU ###")
-                LOG.info(_metrics["cpu"])
-                LOG.info("### net ###")
-                LOG.info(_metrics["net"])
+
+                # LOG.info("### CPU ###")
+                # LOG.info(_metrics["cpu"])
+                # LOG.info("### net ###")
+                # LOG.info(_metrics["net"])
 
                 if not self.active_services[serv_id]['version_changed']:
                     if self.active_services[serv_id]['is_nsd']:
@@ -422,7 +424,7 @@ class MVPlugin(ManoBasePlugin):
                 LOG.error("Error")
                 LOG.error(e)
 
-            time.sleep(_monitoring_freq)
+            time.sleep(mon_config['fetch_frequency'])
 
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
@@ -467,11 +469,6 @@ class MVPlugin(ManoBasePlugin):
 
         content = yaml.load(payload)
 
-        # FIXME: This should be calculated based on mintoring thread
-        ### SD: Time in system for requests (consists of actual computation time + waiting time of flows within the function)
-        # self.mon_metrics["time_vm"] = content['time_vm'] # Change it to 60 to get as_accelerated component in the result file 
-        # self.mon_metrics["time_acc"] = content['time_acc']
-
         as_vm, as_container, as_accelerated = False, False, False
         
         if content['as_vm']:
@@ -480,10 +477,6 @@ class MVPlugin(ManoBasePlugin):
             as_container = True
         elif content['as_accelerated']:
             as_accelerated = True
-
-        #  calls create_template to create the template from the payload and returns created result file.
-        # _template_generator = CreateTemplate.TemplateGenerator(content, self.mon_metrics)
-        # result_data = _template_generator.create_template()
 
         result_data = {
             "as_vm": as_vm,
@@ -516,9 +509,6 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV Embedding started on following topology: " + str(topology))
 
         as_vm, as_container, as_accelerated = result_data["as_vm"], result_data["as_container"], result_data["as_accelerated"]
-        # vnf_name_id_mapping = CreateTemplate.get_name_id_mapping(descriptor)
-
-        # if "S" in as_vm: as_vm.remove("S")
 
         # LOG.info("\n\nas_vm: ", str(as_vm), "\n\nas_container: ", str(as_container), "\n\nas_accelerated: ", str(as_accelerated))
 
@@ -541,7 +531,6 @@ class MVPlugin(ManoBasePlugin):
             for function in functions:
                 vnfd = function['vnfd']
                 vdu = vnfd['virtual_deployment_units']
-                # vnf_id = CreateTemplate.get_function_id(vnfd['name'], vnf_name_id_mapping)
                 needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
                 needed_mem = vdu[0]['resource_requirements']['memory']['size']
                 needed_sto = vdu[0]['resource_requirements']['storage']['size']
@@ -614,65 +603,6 @@ class MVPlugin(ManoBasePlugin):
 
     # def run(self):
     #     while(True):
-    #         LOG.info("\nSLM Thread\n")
-            # try:
-            #     for _service, _service_meta in self.active_services.items():
-            #         LOG.info("\n\n ########################## \n\n")
-
-            #         LOG.info(_service)
-            #         _metrics = tools.get_netdata_charts_instance(_service_meta['charts'], _service_meta['vim_endpoint'])
-            #         # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-            #         LOG.info("### CPU ###")
-            #         LOG.info(_metrics["cpu"])
-            #         LOG.info("### BANDWIDTH ###")
-            #         LOG.info(_metrics["bandwidth"])
-
-            #         # TODO: map bandwidth with time
-            #         # 1080 ~ 2GB per hour ~ 30 MB per min
-            #         # Let's say the VNF can handle avg 60MB per min, otherwise switch
-            #         # wget -O /dev/null http://speedtest.belwue.net/100M
-            #         # kubectl exec -it cirros-image-1-f589429e-6ee9-44f6-9347-d8f4f27392ca-q6cbt -- busybox wget -O /dev/null http://speedtest.belwue.net/100M
-
-            #         if not self.active_services[_service]['version_changed']:
-            #             try:
-            #                 if self.active_services[_service]['is_nsd']:
-            #                     if SWITCH_DEBUG:
-            #                         with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
-            #                             data = f.read().rstrip()
-            #                             LOG.info("SWITCH_DEBUG:VM: " + data)
-            #                             if data == "ACC":
-            #                                 self.active_services[_service]['version_changed'] = True
-            #                                 self.request_version_change(_service, as_accelerated=True)
-            #                     else:
-            #                         if abs(_metrics["bandwidth"]['data'][0][1]) >= 1500:
-            #                             LOG.info("### BANDWIDTH Limit reached ###")
-            #                             self.active_services[_service]['version_changed'] = True
-            #                             self.request_version_change(_service, as_accelerated=True)
-            #                 else:
-            #                     if SWITCH_DEBUG:
-            #                         with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
-            #                             data = f.read().rstrip()
-            #                             LOG.info("SWITCH_DEBUG:ACC: " + data)
-            #                             if data == "VM":
-            #                                 self.active_services[_service]['version_changed'] = True
-            #                                 self.request_version_change(_service, as_vm=True)
-            #                     else:
-            #                         if abs(_metrics["bandwidth"]['data'][0][1]) >= 10000:
-            #                             LOG.info("### BANDWIDTH Limit reached ###")
-            #                             self.active_services[_service]['version_changed'] = True
-            #                             self.request_version_change(_service, as_vm=True)
-
-
-            #             except Exception as e:
-            #                 LOG.error("Monitoring still not active")
-            #                 LOG.error(e)
-
-            #         LOG.info("\n\n ########################## \n\n")
-
-            # except Exception as e:
-            #     LOG.error("SLM Thread Error")
-            #     LOG.error(e)
-
             # time.sleep(10)
 
 

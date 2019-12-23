@@ -1,0 +1,200 @@
+{
+    "cpu": {
+        "data": [
+            [
+                1577101440,
+                0.1,
+                0.0333333
+            ]
+        ],
+        "labels": [
+            "time",
+            "user",
+            "system"
+        ]
+    },
+    "cpu_limit": {
+        "data": [
+            [
+                1577101440,
+                0.016
+            ]
+        ],
+        "labels": [
+            "time",
+            "used"
+        ]
+    },
+    "cpu_per_core": {
+        "data": [
+            [
+                1577101440,
+                0.0114125,
+                0.0698096,
+                0.0173671,
+                0.0057759,
+                0.0029193,
+                0.0687777,
+                0.0460726,
+                0.0091179
+            ]
+        ],
+        "labels": [
+            "time",
+            "cpu0",
+            "cpu1",
+            "cpu2",
+            "cpu3",
+            "cpu4",
+            "cpu5",
+            "cpu6",
+            "cpu7"
+        ]
+    },
+    "mem": {
+        "data": [
+            [
+                1577101440,
+                0,
+                1.0773438,
+                0,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "cache",
+            "rss",
+            "rss_huge",
+            "mapped_file"
+        ]
+    },
+    "mem_activity": {
+        "data": [
+            [
+                1577101440,
+                0.1804688,
+                -0.1954427
+            ]
+        ],
+        "labels": [
+            "time",
+            "in",
+            "out"
+        ]
+    },
+    "mem_usage": {
+        "data": [
+            [
+                1577101440,
+                6.913802,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "ram",
+            "swap"
+        ]
+    },
+    "mem_usage_limit": {
+        "data": [
+            [
+                1577101440,
+                15724.6642667,
+                6.913802
+            ]
+        ],
+        "labels": [
+            "time",
+            "available",
+            "used"
+        ]
+    },
+    "net": {
+        "data": [
+            [
+                1577101440,
+                1.252,
+                -0.4149529
+            ]
+        ],
+        "labels": [
+            "time",
+            "received",
+            "sent"
+        ]
+    },
+    "packets": {
+        "data": [
+            [
+                1577101440,
+                1.8666667,
+                -0.7874203,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "received",
+            "sent",
+            "multicast"
+        ]
+    },
+    "pgfaults": {
+        "data": [
+            [
+                1577101440,
+                0.3523437,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "pgfault",
+            "swap"
+        ]
+    },
+    "throttle_io": {
+        "data": [
+            [
+                1577101440,
+                0,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "read",
+            "write"
+        ]
+    },
+    "throttle_serviced_ops": {
+        "data": [
+            [
+                1577101440,
+                0,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "read",
+            "write"
+        ]
+    },
+    "writeback": {
+        "data": [
+            [
+                1577101440,
+                0,
+                0
+            ]
+        ],
+        "labels": [
+            "time",
+            "dirty",
+            "writeback"
+        ]
+    }
+}
