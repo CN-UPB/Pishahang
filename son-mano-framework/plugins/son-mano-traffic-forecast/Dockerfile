@@ -1,0 +1,25 @@
+FROM python:3.6
+
+# define plugin name once
+ENV PLUGIN_BASE son-mano-traffic-forecast
+# Configuration
+ENV broker_host amqp://guest:guest@son-broker:5672/%2F
+ENV broker_exchange son-kernel
+
+# add generic project files
+ADD son-mano-base /son-mano-base
+
+# install son-mano-base to be able to use the plugin base class etc.
+WORKDIR /son-mano-base
+RUN python setup.py install
+
+# add plugin related files
+ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
+
+# install actual plugin
+WORKDIR /plugins/${PLUGIN_BASE}
+RUN python setup.py develop
+
+CMD ["son-mano-traffic-forecast"]
+
+

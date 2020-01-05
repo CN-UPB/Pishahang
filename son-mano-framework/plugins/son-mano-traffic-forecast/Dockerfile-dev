@@ -1,0 +1,30 @@
+FROM python:3.6
+
+RUN apt-get update && apt-get install -y gcc
+
+# define plugin name once
+ENV PLUGIN_BASE son-mano-traffic-forecast
+# Configuration
+ENV broker_host amqp://guest:guest@son-broker:5672/%2F
+ENV broker_exchange son-kernel
+
+# add generic project files
+ADD son-mano-base /son-mano-base
+
+# install son-mano-base to be able to use the plugin base class etc.
+WORKDIR /son-mano-base
+RUN python setup.py install
+
+# add plugin related files
+ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
+
+# install actual plugin
+WORKDIR /plugins/${PLUGIN_BASE}
+RUN python setup.py develop
+
+# Install python requirements
+COPY /plugins/${PLUGIN_BASE}/requirements.txt ./
+RUN pip install --no-cache-dir -r /plugins/${PLUGIN_BASE}/requirements.txt
+
+CMD watchmedo auto-restart --recursive --pattern="*.py" --directory="." /bin/bash start.sh
+
