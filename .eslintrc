@@ -1,0 +1,14 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
+  "env": {
+    "es6": true
+  },
+  "extends": ["plugin:jest/recommended", "plugin:jest/style"],
+  "plugins": ["react-hooks", "jest"],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}
