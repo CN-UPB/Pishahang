@@ -20,7 +20,7 @@ Running the server in development mode:
 npm run dev
 ```
 
-Afterwards, open http://localhost:3000 in a browser of your choice.
+Afterwards, open <http://localhost:3000> in a browser of your choice.
 
 ### Running the tests
 
