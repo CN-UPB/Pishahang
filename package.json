@@ -37,6 +37,38 @@
     "@types/node": "^13.1.6",
     "@types/react": "^16.9.17",
     "@types/react-redux": "^7.1.5",
+    "eslint": "^6.8.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "husky": "^4.0.10",
+    "import-sort-style-module": "^6.0.0",
+    "jest": "^24.9.0",
+    "lint-staged": "^9.5.0",
+    "prettier": "^1.19.1",
+    "prettier-plugin-import-sort": "^0.0.3",
     "typescript": "^3.7.4"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "printWidth": 100
+  },
+  "importSort": {
+    ".ts, .tsx": {
+      "style": "module",
+      "parser": "typescript"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.ts(x)": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }
