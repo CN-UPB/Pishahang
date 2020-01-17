@@ -17,22 +17,22 @@ export const DrawerContent: React.FunctionComponent = () => (
   <>
     <Divider />
     <List>
-      <LinkedListItem text={"User Profile"} icon={Person} href={"user"}></LinkedListItem>
-      <LinkedListItem text={"Monitor"} icon={Dvr} href={"monitor"}></LinkedListItem>
+      <LinkedListItem text={"User Profile"} icon={Person} href={"/user"}></LinkedListItem>
+      <LinkedListItem text={"Monitor"} icon={Dvr} href={"/monitor"}></LinkedListItem>
     </List>
     <Divider />
     <List>
-      <LinkedListItem text={"VIM Settings"} icon={Settings} href={"vims"}></LinkedListItem>
+      <LinkedListItem text={"VIM Settings"} icon={Settings} href={"/vims"}></LinkedListItem>
     </List>
     <Divider />
     <List>
-      <LinkedListItem text={"Services"} icon={Dns} href={"catalogue/services"}></LinkedListItem>
+      <LinkedListItem text={"Services"} icon={Dns} href={"/catalogue/services"}></LinkedListItem>
       <LinkedListItem
         text={"Virtual Machines"}
         icon={Computer}
         href={"catalogue/vms"}
       ></LinkedListItem>
-      <LinkedListItem text={"Containers"} icon={WebAsset} href={"catalogue/cns"}></LinkedListItem>
+      <LinkedListItem text={"Containers"} icon={WebAsset} href={"/catalogue/cns"}></LinkedListItem>
     </List>
     <Divider />
     <List>
