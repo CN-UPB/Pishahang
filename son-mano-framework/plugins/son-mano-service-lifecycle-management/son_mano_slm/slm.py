@@ -2375,10 +2375,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Start the chain of tasks
 
         LOG.info("Service " + term_serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
-        time.sleep(5)
+        # time.sleep(5)
 
 
-        # FIXME: add cosd termination
+        # _term_time = time.time()
         if is_nsd:
             corr_id = str(uuid.uuid4())
             self.terminate_workflow(term_serv_id,
@@ -2386,6 +2386,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         else:
             self.roll_back_instantiation(term_serv_id)
             self.stop_mv_monitoring(term_serv_id)
+
+        # LOG.info("Termination Req Time : {} | is_nsd: {}".format(time.time()-_term_time, is_nsd) + "\n\n")
 
         self.start_next_task(serv_id)
         
@@ -2407,6 +2409,15 @@ class ServiceLifecycleManager(ManoBasePlugin):
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
 
+        deployed_version = "VM"
+
+        if self.services[serv_id]['as_vm']:
+            deployed_version = "VM"
+        elif self.services[serv_id]['as_container']:
+            deployed_version = "CON"
+        elif self.services[serv_id]['as_accelerated']:
+            deployed_version = "ACC"
+        
         NSD = self.services[serv_id]['service']['nsd']
 
         content = {'nsd': NSD,
@@ -2417,7 +2428,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'cloud_services': cloud_services,
                     'function_versions': function_versions,
                     'topology': topology,
-                    'serv_id': serv_id}
+                    'serv_id': serv_id,
+                    'deployed_version': deployed_version}
 
         error = None
         try:
@@ -2655,8 +2667,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # self.services[serv_id]['time_vm'] = 1
         # self.services[serv_id]['time_acc'] = 0.50
         self.services[serv_id]['as_vm'] = False
-        self.services[serv_id]['as_container'] = False
-        self.services[serv_id]['as_accelerated'] = True
+        self.services[serv_id]['as_container'] = True
+        self.services[serv_id]['as_accelerated'] = False
 
         for key in payload.keys():
             if key[:4] == 'VNFD':

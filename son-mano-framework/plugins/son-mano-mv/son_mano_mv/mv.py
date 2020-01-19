@@ -43,12 +43,18 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
-SWITCH_DEBUG = False
+SWITCH_DEBUG = True
+
+with open("MV-Logs.log", "w") as f:  
+    f.truncate()
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
 LOG.setLevel(logging.INFO)
 
+fh = logging.FileHandler('MV-Logs.log')
+fh.setLevel(logging.DEBUG)
+LOG.addHandler(fh)
 
 class MVPlugin(ManoBasePlugin):
     """
@@ -172,6 +178,7 @@ class MVPlugin(ManoBasePlugin):
         # LOG.info(content)
 
         if content['request_type'] == "START":
+            # LOG.info("EXP: Mon Time - {}".format(time.time()))
             is_nsd = content['is_nsd']
             self.active_services[serv_id] = {}
             self.active_services[serv_id]['charts'] = []
@@ -194,7 +201,7 @@ class MVPlugin(ManoBasePlugin):
                                     # LOG.info(_vnfi['vim_id'])
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
                                     _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd']['monitoring_parameters'])
-                                    LOG.info(_instance_id)
+                                    # LOG.info(_instance_id)
                                     # LOG.info(_charts)
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
@@ -207,6 +214,7 @@ class MVPlugin(ManoBasePlugin):
                                     self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd']['monitoring_parameters']
                                     self.active_services[serv_id]['monitoring_rules'] = _function['vnfd']['monitoring_rules']
                                     self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
+                                    self.active_services[serv_id]['deployed_version'] = content['deployed_version']
                                     # Start monitoring thread
                                     self.monitoring_thread(serv_id)
                                     # tools.switch_classifier(
@@ -214,7 +222,7 @@ class MVPlugin(ManoBasePlugin):
                                     #     vnf_ip=self.active_services[serv_id]['network']['ip'],
                                     #     vnf_port=self.active_services[serv_id]['network']['port'])
             else:
-                LOG.info("Not OpenStack monitoting")
+                # LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
                     for _vdu in _function['csr']['virtual_deployment_units']:
                         # LOG.info(_vnfi)
@@ -228,8 +236,8 @@ class MVPlugin(ManoBasePlugin):
                                 time.sleep(10)
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
                                 _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd']['monitoring_parameters'])
-                                LOG.info("K8 UUID")
-                                LOG.info(_instance_meta)
+                                # LOG.info("K8 UUID")
+                                # LOG.info(_instance_meta)
                                 # LOG.info(_charts)
                                 self.active_services[serv_id]['charts'] = _charts
                                 self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
@@ -239,6 +247,8 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['monitoring_parameters'] = _function['csd']['monitoring_parameters']
                                 self.active_services[serv_id]['monitoring_rules'] = _function['csd']['monitoring_rules']
                                 self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
+                                self.active_services[serv_id]['deployed_version'] = content['deployed_version']
+                                
                                 # Start monitoring thread
                                 self.monitoring_thread(serv_id)
                                 # tools.switch_classifier(
@@ -280,10 +290,13 @@ class MVPlugin(ManoBasePlugin):
                         if SWITCH_DEBUG:
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
-                                LOG.info("SWITCH_DEBUG:VM: " + data)
+                                # LOG.info("SWITCH_DEBUG:VM: " + data)
                                 if data == "ACC":
                                     self.active_services[serv_id]['version_changed'] = True
                                     self.request_version_change(serv_id, switch_type="ACC")
+                                if data == "CON":
+                                    self.active_services[serv_id]['version_changed'] = True
+                                    self.request_version_change(serv_id, switch_type="CON")
 
                         else:
 
@@ -353,10 +366,22 @@ class MVPlugin(ManoBasePlugin):
                         if SWITCH_DEBUG:
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
-                                LOG.info("SWITCH_DEBUG:ACC: " + data)
-                                if data == "VM":
-                                    self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, switch_type="VM")
+                                # LOG.info("SWITCH_DEBUG:ACC: " + data)
+                                if self.active_services[serv_id]['deployed_version'] == "CON":
+                                    if data == "ACC":
+                                        self.active_services[serv_id]['version_changed'] = True
+                                        self.request_version_change(serv_id, switch_type="ACC")
+                                    if data == "VM":
+                                        self.active_services[serv_id]['version_changed'] = True
+                                        self.request_version_change(serv_id, switch_type="VM")
+                                if self.active_services[serv_id]['deployed_version'] == "ACC":
+                                    if data == "CON":
+                                        self.active_services[serv_id]['version_changed'] = True
+                                        self.request_version_change(serv_id, switch_type="CON")
+                                    if data == "VM":
+                                        self.active_services[serv_id]['version_changed'] = True
+                                        self.request_version_change(serv_id, switch_type="VM")
+
 
                         else:
 
@@ -424,7 +449,10 @@ class MVPlugin(ManoBasePlugin):
                 LOG.error("Error")
                 LOG.error(e)
 
-            time.sleep(mon_config['fetch_frequency'])
+            if SWITCH_DEBUG:
+                time.sleep(2)
+            else:
+                time.sleep(mon_config['fetch_frequency'])
 
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
@@ -435,14 +463,17 @@ class MVPlugin(ManoBasePlugin):
         content['function_versions'] = self.active_services[serv_id]['function_versions']
 
         if switch_type == "VM":
+            LOG.info("Switch to VM")
             as_vm = True
             as_container = False
             as_accelerated = False
         elif switch_type == "ACC":
+            LOG.info("Switch to ACC")
             as_vm = False
             as_container = False
             as_accelerated = True
         elif switch_type == "CON":
+            LOG.info("Switch to CON")
             as_vm = False
             as_container = True
             as_accelerated = False
@@ -451,6 +482,7 @@ class MVPlugin(ManoBasePlugin):
         content['as_container'] = as_container
         content['as_accelerated'] = as_accelerated
 
+        # LOG.info("EXP: Req Time - {}".format(time.time()))
         self.manoconn.call_async(self.handle_resp_change,
                                 MV_CHANGE_VERSION,
                                 yaml.dump(content))
@@ -512,12 +544,12 @@ class MVPlugin(ManoBasePlugin):
 
         # LOG.info("\n\nas_vm: ", str(as_vm), "\n\nas_container: ", str(as_container), "\n\nas_accelerated: ", str(as_accelerated))
 
-        LOG.info("as_vm")
-        LOG.info(as_vm)
-        LOG.info("as_container")
-        LOG.info(as_container)
-        LOG.info("as_accelerated")
-        LOG.info(as_accelerated)
+        # LOG.info("as_vm")
+        # LOG.info(as_vm)
+        # LOG.info("as_container")
+        # LOG.info(as_container)
+        # LOG.info("as_accelerated")
+        # LOG.info(as_accelerated)
 
         mapping = {}
         mapping_counter = 0
@@ -527,7 +559,7 @@ class MVPlugin(ManoBasePlugin):
         if as_vm:
             # FIXME: should support multiple VDU?
             cloud_services = []
-            LOG.info("VM Mapping")
+            # LOG.info("VM Mapping")
             for function in functions:
                 vnfd = function['vnfd']
                 vdu = vnfd['virtual_deployment_units']
@@ -549,7 +581,7 @@ class MVPlugin(ManoBasePlugin):
 
         elif as_accelerated:
             # FIXME: should support multiple VDU?
-            LOG.info("Accelerated Mapping")
+            # LOG.info("Accelerated Mapping")
             cloud_services = functions
             functions = []
 
@@ -577,6 +609,35 @@ class MVPlugin(ManoBasePlugin):
                         is_nsd = False
                         break
 
+        elif as_container:
+            # FIXME: should support multiple VDU?
+            # LOG.info("Accelerated Mapping")
+            cloud_services = functions
+            functions = []
+
+            for cloud_service in cloud_services:
+                cloud_service['csd'] = cloud_service['vnfd']
+                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd']['virtual_deployment_units_con']
+                csd = cloud_service['csd']
+
+                vdu = csd['virtual_deployment_units']
+                needed_mem = 0
+                if 'resource_requirements' in vdu[0] and 'memory' in vdu[0]['resource_requirements']:
+                    needed_mem = vdu[0]['resource_requirements']['memory']['size']
+
+                for vim in topology:
+
+                    # For our use case, we use kubernetes for accelerated images
+                    if vim['vim_type'] != 'Kubernetes':
+                        continue
+                    mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+
+                    if mem_req:
+                        cloud_service["vim_uuid"] = vim['vim_uuid']
+                        vim['memory_used'] = vim['memory_used'] + needed_mem
+                        mapping_counter += 1
+                        is_nsd = False
+                        break
 
         mapping["functions"] = functions
         mapping["cloud_services"] = cloud_services
