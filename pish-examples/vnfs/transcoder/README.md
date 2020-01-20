@@ -60,6 +60,12 @@ The h264 encoder used here is `x264enc` which is designed to be run on any gener
 ## Accelerated Version
 The container based transcoder is built with an ubuntu 18.04 base system with support for Nvidia drivers. FFMPEG 4.0.4 is compiled from sources and along with it libraries to support nvidia hardware based h264 libraries are compiled. The build process is part of the Dockerfile.
 
+The drivers to support Nvidia hardware encoding is part of the docker container. The host system should have CUDA drivers installed so that the accelerated version can utilize it. 
+
+Nvidia provides a base docker container (`nvidia/cudagl:9.2-devel-ubuntu18.04`) that provides an environment for developing applications that utilize nvidia cuda cores.
+
+This docker container is orchestrated using kubernetes just like any other docker container. But this container is equipped with drivers to utilize GPU that is available on the host system.
+
 The h264 encoder used here is `h264_nvenc` which is designed to utilize Nvidia GPU. The parameters passed to the encoder is as follows
 
 + bitrate: **6000 kBit/s**
