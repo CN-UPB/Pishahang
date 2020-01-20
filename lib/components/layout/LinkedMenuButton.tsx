@@ -1,5 +1,6 @@
 import * as React from "react";
-import { ButtonLink } from "../../links/ButtonLink";
+
+import { ButtonLink } from "../links/ButtonLink";
 
 interface LinkedMenuButtonProps {
   text: string;

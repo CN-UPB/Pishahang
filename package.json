@@ -21,6 +21,8 @@
   "homepage": "https://github.com/CN-UPB/pg-entangle#readme",
   "dependencies": {
     "@material-ui/core": "^4.8.3",
+    "@material-ui/icons": "^4.5.1",
+    "material-ui-icons": "^1.0.0-beta.36",
     "next": "^9.1.7",
     "next-redux-cookie-wrapper": "^1.0.1",
     "next-redux-saga": "^4.1.2",
@@ -68,7 +70,6 @@
   "lint-staged": {
     "**/*.ts(x)": [
       "prettier --write",
-      "eslint",
       "git add"
     ]
   },
@@ -79,8 +80,14 @@
     "env": {
       "es6": true
     },
-    "extends": ["plugin:jest/recommended", "plugin:jest/style"],
-    "plugins": ["react-hooks", "jest"],
+    "extends": [
+      "plugin:jest/recommended",
+      "plugin:jest/style"
+    ],
+    "plugins": [
+      "react-hooks",
+      "jest"
+    ],
     "rules": {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn"
