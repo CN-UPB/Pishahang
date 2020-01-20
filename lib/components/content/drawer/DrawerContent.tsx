@@ -30,7 +30,7 @@ export const DrawerContent: React.FunctionComponent = () => (
       <LinkedListItem
         text={"Virtual Machines"}
         icon={Computer}
-        href={"catalogue/vms"}
+        href={"/catalogue/vms"}
       ></LinkedListItem>
       <LinkedListItem text={"Containers"} icon={WebAsset} href={"/catalogue/cns"}></LinkedListItem>
     </List>
