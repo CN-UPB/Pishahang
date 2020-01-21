@@ -91,7 +91,7 @@ export const Page: React.FunctionComponent<Props> = ({
             open
           >
             <div>
-              <div className={classes.logo}>Test1</div>
+              <div className={classes.logo}>PISHAHANG</div>
               <DrawerContent />
             </div>
           </MaterialDrawer>
