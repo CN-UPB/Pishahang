@@ -1,0 +1,135 @@
+# Development docker-compose.yml override
+version: "3.3"
+
+services:
+  # Influxdb for monitoring
+  son-monitor-influxdb:
+    build: ./son-monitor/influxDB
+
+  # Keycloak
+  son-keycloak:
+    build: ./son-gkeeper/son-keycloak
+
+  # Gatekeeper GUI
+  son-gui:
+    build: ./son-gui
+
+  # Gatekeeper BSS
+  son-bss:
+    build: ./son-bss
+
+  # Gatekeeper -----------------------------------------------------------------
+  # SONATA Validator
+  son-validate:
+    # build: ?
+
+  # Gatekeeper Packages
+  son-gtkpkg:
+    build: ./son-gkeeper/son-gtkpkg
+
+  # Gatekeeper Services
+  son-gtksrv:
+    build: ./son-gkeeper/son-gtksrv
+
+  # Gatekeeper Cloud Services
+  son-gtkcsrv:
+    build: ./son-gkeeper/son-gtkcsrv
+
+  # Gatekeeper Functions
+  son-gtkfnct:
+    build: ./son-gkeeper/son-gtkfnct
+
+  # Gatekeeper Records
+  son-gtkrec:
+    build: ./son-gkeeper/son-gtkrec
+
+  # Gatekeeper VIM
+  son-gtkvim:
+    build: ./son-gkeeper/son-gtkvim
+
+  # Gatekeeper License Manager
+  son-gtklic:
+    build: ./son-gkeeper/son-gtklic
+
+  # Gatekeeper Key Performance Indicators
+  son-gtkkpi:
+    build: ./son-gkeeper/son-gtkkpi
+
+  # Gatekeeper User Management
+  son-gtkusr:
+    build: ./son-gkeeper/son-gtkusr
+
+  # Gatekeeper Rate Limiter
+  son-gtkrlt:
+    build: ./son-gkeeper/son-gtkrlt
+
+  # Gatekeeper API
+  son-gtkapi:
+    build: ./son-gkeeper/son-gtkapi
+
+  # Repositories ---------------------------------------------------------------
+  son-catalogue-repos:
+    build: ./son-catalogue-repos
+
+  # MANO framework -------------------------------------------------------------
+  # MANO Plug-in Manager
+  pluginmanager:
+    build: ./son-mano-framework/son-mano-pluginmanager
+
+  # MANO Service Life-cycle Management
+  servicelifecyclemanagement:
+    build: ./son-mano-framework/plugins/son-mano-service-lifecycle-management
+
+  # MANO Function Lifecycle Management Plugin
+  functionlifecyclemanagement:
+    build: ./son-mano-framework/plugins/son-mano-function-lifecycle-management
+
+  # MANO Specific Manager Registry (SMR)
+  specificmanagerregistry:
+    build: ./son-mano-framework/son-mano-specificmanager/son-mano-specific-manager-registry
+
+  # MANO Placement Executive Plugin
+  placementexecutive:
+    build: ./son-mano-framework/plugins/son-mano-placement-executive
+
+  # MANO Placement Plugin
+  placementplugin:
+    build: ./son-mano-framework/plugins/son-mano-placement
+
+  # MANO Cloud Service Life-cycle Management (CLM)
+  cloudservicelifecyclemanagement:
+    build: ./son-mano-framework/plugins/son-mano-cloud-service-lifecycle-management
+
+  # MANO SDN
+  sdn-plugin:
+    build: ./son-mano-framework/plugins/pish-mano-sdn
+
+  # Infastructure Adaptor ------------------------------------------------------
+  # Infrastructure Abstractor VIM Adaptor
+  son-sp-infrabstract:
+    build: ./son-sp-infrabstract/vim-adaptor
+
+  # Infrastructure Abstractor WIM Adaptor
+  wim-adaptor:
+    build: ./son-sp-infrabstract/wim-adaptor
+
+  # Monitoring -----------------------------------------------------------------
+  # Monitoring Push Gateway
+  son-monitor-pushgateway:
+    build: ./son-monitor/pushgateway
+
+  # Monitoring – Prometheus
+  son-monitor-prometheus:
+    build: ./son-monitor/prometheus
+
+  # Monitoring Manager
+  son-monitor-manager:
+    build: ./son-monitor/manager
+
+  # Monitoring – Probe
+  son-monitor-probe:
+    # build: ./son-monitor/ ?
+
+  # Security Gateway -----------------------------------------------------------
+  son-sec-gw:
+    build: ./son-gkeeper/son-sec-gw

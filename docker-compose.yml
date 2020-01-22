@@ -1,5 +1,4 @@
-# The Pishahang production docker-compose file
-
+# Main Pishahang docker-compose file
 version: "3.3"
 
 networks:
@@ -108,7 +107,7 @@ services:
   # Gatekeeper GUI
   # gui.yml
   son-gui:
-    image: "tdierich/son-gui"
+    image: tdierich/son-gui
     restart: always
     depends_on:
       - son-gtkapi
@@ -121,8 +120,8 @@ services:
   # Gatekeeper BSS
   # bss.yml
   son-bss:
-    image: "tdierich/son-yo-gen-bss"
-    restart: "always"
+    image: tdierich/son-yo-gen-bss
+    restart: always
     command: "grunt serve:integration --gkApiUrl=http://${PUBLIC_DOMAIN_NAME}/api/v2 --hostname=0.0.0.0 --userManagementEnabled=true --licenseManagementEnabled=true --debug"
     networks:
       - pishanet
@@ -153,7 +152,7 @@ services:
   # Gatekeeper Packages
   # gtk/pkg.yml
   son-gtkpkg:
-    image: "sonatanfv/son-gtkpkg:${SONATA_VERSION}"
+    image: sonatanfv/son-gtkpkg:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -179,7 +178,7 @@ services:
       RACK_ENV: integration
       MQSERVER: amqp://guest:guest@son-broker:5672
       DATABASE_HOST: son-postgres
-      DATABASE_PORT: "5432"
+      DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_DB: ${GTK_DB_NAME}
@@ -193,7 +192,7 @@ services:
   # Gatekeeper Cloud Services
   # gtk/csrv.yml
   son-gtkcsrv:
-    image: "tdierich/son-gtkcsrv"
+    image: tdierich/son-gtkcsrv
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -204,7 +203,7 @@ services:
       RACK_ENV: integration
       MQSERVER: amqp://guest:guest@son-broker:5672
       DATABASE_HOST: son-postgres
-      DATABASE_PORT: "5432"
+      DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_DB: ${GTK_DB_NAME}
@@ -216,7 +215,7 @@ services:
   # Gatekeeper Functions
   # gtk/fnct.yml
   son-gtkfnct:
-    image: "sonatanfv/son-gtkfnct:${SONATA_VERSION}"
+    image: sonatanfv/son-gtkfnct:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -246,7 +245,7 @@ services:
   # Gatekeeper VIM
   # gtk/vim.yml
   son-gtkvim:
-    image: "sonatanfv/son-gtkvim:${SONATA_VERSION}"
+    image: sonatanfv/son-gtkvim:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -256,7 +255,7 @@ services:
       RACK_ENV: integration
       MQSERVER: amqp://guest:guest@son-broker:5672
       DATABASE_HOST: son-postgres
-      DATABASE_PORT: "5432"
+      DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_DB: ${GTK_DB_NAME}
@@ -269,13 +268,13 @@ services:
   # Gatekeeper License Manager
   # gtk/lic.yml
   son-gtklic:
-    image: "sonatanfv/son-gtklic:${SONATA_VERSION}"
+    image: sonatanfv/son-gtklic:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-postgres
     environment:
       DATABASE_HOST: son-postgres
-      DATABASE_PORT: "5432"
+      DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_DB: ${GTK_DB_NAME}
@@ -290,15 +289,15 @@ services:
   # Gatekeeper Key Performance Indicators
   # gtk/kpi.yml
   son-gtkkpi:
-    image: "sonatanfv/son-gtkkpi:${SONATA_VERSION}"
+    image: sonatanfv/son-gtkkpi:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-monitor-pushgateway
       - son-monitor-prometheus
     environment:
       PUSHGATEWAY_HOST: pushgateway
-      PUSHGATEWAY_PORT: "9091"
-      PROMETHEUS_PORT: "9090"
+      PUSHGATEWAY_PORT: 9091
+      PROMETHEUS_PORT: 9090
       RACK_ENV: integration
     networks:
       - pishanet
@@ -314,7 +313,7 @@ services:
       - son-keycloak
     environment:
       KEYCLOAK_ADDRESS: son-keycloak
-      KEYCLOAK_PORT: "5601"
+      KEYCLOAK_PORT: 5601
       KEYCLOAK_PATH: auth
       SONATA_REALM: sonata
       CLIENT_NAME: adapter
@@ -392,7 +391,7 @@ services:
   # MANO Plug-in Manager
   # mano/pluginmgr.yml
   pluginmanager:
-    image: "sonatanfv/pluginmanager:${SONATA_VERSION}"
+    image: sonatanfv/pluginmanager:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-mongo
@@ -427,8 +426,8 @@ services:
   # MANO Function Lifecycle Management Plugin
   # mano/flm.yml
   functionlifecyclemanagement:
-    image: "sonatanfv/functionlifecyclemanagement:${SONATA_VERSION}"
-    restart: "always"
+    image: sonatanfv/functionlifecyclemanagement:${SONATA_VERSION}
+    restart: always
     depends_on:
       - son-gtkapi
       - son-catalogue-repos
@@ -446,7 +445,7 @@ services:
   # MANO Specific Manager Registry (SMR)
   # mano/smr.yml
   specificmanagerregistry:
-    image: "sonatanfv/specificmanagerregistry:${SONATA_VERSION}"
+    image: sonatanfv/specificmanagerregistry:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -456,12 +455,12 @@ services:
     networks:
       - pishanet
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - /var/run/docker.sock:/var/run/docker.sock
 
   # MANO Placement Executive Plugin
   # mano/placement.yml
   placementexecutive:
-    image: "sonatanfv/placementexecutive:${SONATA_VERSION}"
+    image: sonatanfv/placementexecutive:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -504,7 +503,7 @@ services:
   # MANO SDN
   # mano/sdn.yml
   sdn-plugin:
-    image: "pishahang/sdn-controller"
+    image: pishahang/sdn-controller
     restart: always
     depends_on:
       - son-gtkapi
@@ -519,7 +518,7 @@ services:
       url_monitoring_server: http://son-monitor-manager:8000/api/v1/
       broker_host: amqp://guest:guest@son-broker:5672/%2F
       repo_host: son-postgres
-      repo_port: "5432"
+      repo_port: 5432
       repo_user: ${IA_REPO_USER}
       repo_pass: ${IA_REPO_PASS}
     networks:
@@ -538,7 +537,7 @@ services:
       broker_host: son-broker
       broker_uri: amqp://guest:guest@son-broker:5672/%2F
       repo_host: son-postgres
-      repo_port: "5432"
+      repo_port: 5432
       repo_user: ${IA_REPO_USER}
       repo_pass: ${IA_REPO_PASS}
       SONATA_SP_ADDRESS: ${PUBLIC_DOMAIN_NAME}
@@ -550,7 +549,7 @@ services:
   # Infrastructure Abstractor WIM Adaptor
   # ifta/wim-adaptor.yml
   wim-adaptor:
-    image: "sonatanfv/wim-adaptor:${SONATA_VERSION}"
+    image: sonatanfv/wim-adaptor:${SONATA_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -559,7 +558,7 @@ services:
       broker_host: son-broker
       broker_uri: amqp://guest:guest@son-broker:5672/%2F
       repo_host: son-postgres
-      repo_port: "5432"
+      repo_port: 5432
       repo_user: ${IA_REPO_USER}
       repo_pass: ${IA_REPO_PASS}
     networks:
@@ -569,7 +568,7 @@ services:
   # Monitoring Push Gateway
   # monit/pushgw.yml
   son-monitor-pushgateway:
-    image: "sonatanfv/son-monitor-pushgateway:${SONATA_VERSION}"
+    image: sonatanfv/son-monitor-pushgateway:${SONATA_VERSION}
     restart: always
     networks:
       pishanet:
@@ -600,7 +599,7 @@ services:
   # Monitoring Manager
   # monit/monitmgr.yml
   son-monitor-manager:
-    image: "tdierich/son-monitor-manager"
+    image: tdierich/son-monitor-manager
     restart: always
     networks:
       - pishanet
@@ -611,7 +610,7 @@ services:
   # Monitoring – Probe
   # monit/probe.yml
   son-monitor-probe:
-    image: "sonatanfv/son-monitor-probe:${SONATA_VERSION}"
+    image: sonatanfv/son-monitor-probe:${SONATA_VERSION}
     restart: always
     privileged: true
     depends_on:
@@ -620,17 +619,17 @@ services:
       NODE_NAME: ${HOSTNAME}
       PROM_SRV: http://son-monitor-pushgateway:9091/metrics
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "/:/rootfs:ro"
-      - "/proc:/myhost/proc"
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/rootfs:ro
+      - /proc:/myhost/proc
     networks:
       - pishanet
 
   # Security Gateway -----------------------------------------------------------
   # sec-gw.yml
   son-sec-gw:
-    image: "sonatanfv/son-sec-gw:${SONATA_VERSION}"
-    restart: "always"
+    image: sonatanfv/son-sec-gw:${SONATA_VERSION}
+    restart: always
     depends_on:
       - son-gui
       - son-bss
@@ -640,4 +639,4 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - "/etc/ssl/private/sonata/:/etc/nginx/cert/"
+      - /etc/ssl/private/sonata/:/etc/nginx/cert/
