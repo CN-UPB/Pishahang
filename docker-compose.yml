@@ -1,0 +1,643 @@
+# The Pishahang production docker-compose file
+
+version: "3.3"
+
+networks:
+  pishanet:
+    external: false
+
+services:
+  # postgreSQL database engine
+  # pgsql.yml
+  son-postgres:
+    image: ntboes/postgres-uuid #sonatanfv/son-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${GTK_DB_NAME}
+      POSTGRES_USER: ${GTK_DB_USER}
+      POSTGRES_PASSWORD: ${GTK_DB_PASS}
+    networks:
+      - pishanet
+    ports:
+      - 5432:5432
+
+  # MongoDB (used by Monitory)
+  # mongo.yml
+  son-mongo:
+    image: mongo
+    restart: always
+    networks:
+      pishanet:
+        aliases:
+          - mongo
+    ports:
+      - 27017:27017
+
+  # RedisDB (used by Validator and Gkapi)
+  # redis.yml
+  son-redis:
+    image: redis
+    restart: always
+    networks:
+      pishanet:
+        aliases:
+          - redis
+    ports:
+      - 6379:6379
+
+  # PostgreSQL database engine for monitoring
+  # pgsql-monitoring.yml
+  son-monitor-postgres:
+    image: ntboes/postgres-uuid
+    restart: always
+    environment:
+      POSTGRES_DB: ${MON_DB_NAME}
+      POSTGRES_USER: ${MON_DB_USER}
+      POSTGRES_PASSWORD: ${MON_DB_PASS}
+    command: postgres -p 5433
+    networks:
+      pishanet:
+        aliases:
+          - postgsql
+    ports:
+      - 5433:5432
+
+  # RabbitMQ message bus
+  # broker.yml
+  son-broker:
+    image: rabbitmq:3.6.15-management
+    restart: always
+    environment:
+      RABBITMQ_CONSOLE_LOG: new
+    networks:
+      pishanet:
+        aliases:
+          - broker
+    ports:
+      - 5672:5672
+
+  # Influxdb for monitoring
+  # influxdb.yml
+  son-monitor-influxdb:
+    image: tdierich/son-monitor-influxdb
+    restart: always
+    networks:
+      pishanet:
+        aliases:
+          - influxdb
+          - influx
+    ports:
+      - 8086:8086
+
+  # Keycloak
+  # keycloak.yml
+  son-keycloak:
+    image: tdierich/son-keycloak
+    restart: always
+    environment:
+      KEYCLOAK_USER: ${GTK_KEYCLOAK_USER}
+      KEYCLOAK_PASSWORD: ${GTK_KEYCLOAK_PASS}
+      SONATA_USER:
+      SONATA_PASSWORD:
+      SONATA_EMAIL:
+    networks:
+      - pishanet
+    ports:
+      - "5601:5601"
+
+  # Gatekeeper GUI
+  # gui.yml
+  son-gui:
+    image: "tdierich/son-gui"
+    restart: always
+    depends_on:
+      - son-gtkapi
+    environment:
+      MON_URL: http://${PUBLIC_DOMAIN_NAME}/monitoring
+      GK_URL: http://${PUBLIC_DOMAIN_NAME}/api/v2
+    networks:
+      - pishanet
+
+  # Gatekeeper BSS
+  # bss.yml
+  son-bss:
+    image: "tdierich/son-yo-gen-bss"
+    restart: "always"
+    command: "grunt serve:integration --gkApiUrl=http://${PUBLIC_DOMAIN_NAME}/api/v2 --hostname=0.0.0.0 --userManagementEnabled=true --licenseManagementEnabled=true --debug"
+    networks:
+      - pishanet
+    ports:
+      - "25001:1337"
+      - "25002:1338"
+
+  # Gatekeeper -----------------------------------------------------------------
+  # SONATA Validator
+  # gtk/val.yml
+  son-validate:
+    image: sonatanfv/son-validate:dev
+    restart: always
+    depends_on:
+      - son-redis
+    environment:
+      VAPI_DEBUG: "True"
+      VAPI_REDIS_HOST: son-redis
+      VAPI_PORT: 5050
+      SON_CLI_IN_DOCKER: 1
+    networks:
+      - pishanet
+    expose:
+      - 5050
+    ports:
+      - "5050:5050"
+
+  # Gatekeeper Packages
+  # gtk/pkg.yml
+  son-gtkpkg:
+    image: "sonatanfv/son-gtkpkg:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-catalogue-repos
+    environment:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+    networks:
+      - pishanet
+    ports:
+      - "5100:5100"
+
+  # Gatekeeper Services
+  # gtk/srv.yml
+  son-gtksrv:
+    image: tdierich/son-gtksrv
+    restart: always
+    depends_on:
+      - son-catalogue-repos
+      - son-broker
+      - son-postgres
+    environment:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+      MQSERVER: amqp://guest:guest@son-broker:5672
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: "5432"
+      POSTGRES_PASSWORD: ${GTK_DB_PASS}
+      POSTGRES_USER: ${GTK_DB_USER}
+      POSTGRES_DB: ${GTK_DB_NAME}
+    # TODO Add migration command directly to the container?
+    command: 'bash -c "bundle exec rake db:migrate && bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:5300"' # The first command used to be a separate ansible task, executed in an intermediate container before the final container was started
+    networks:
+      - pishanet
+    ports:
+      - "5300:5300"
+
+  # Gatekeeper Cloud Services
+  # gtk/csrv.yml
+  son-gtkcsrv:
+    image: "tdierich/son-gtkcsrv"
+    restart: always
+    depends_on:
+      - son-catalogue-repos
+      - son-broker
+      - son-postgres
+    environment:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+      MQSERVER: amqp://guest:guest@son-broker:5672
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: "5432"
+      POSTGRES_PASSWORD: ${GTK_DB_PASS}
+      POSTGRES_USER: ${GTK_DB_USER}
+      POSTGRES_DB: ${GTK_DB_NAME}
+    networks:
+      - pishanet
+    ports:
+      - "5250:5250"
+
+  # Gatekeeper Functions
+  # gtk/fnct.yml
+  son-gtkfnct:
+    image: "sonatanfv/son-gtkfnct:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-catalogue-repos
+    environment:
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      RACK_ENV: integration
+    networks:
+      - pishanet
+    ports:
+      - "5500:5500"
+
+  # Gatekeeper Records
+  # gtk/rec.yml
+  son-gtkrec:
+    image: tdierich/son-gtkrec
+    restart: always
+    depends_on:
+      - son-catalogue-repos
+    environment:
+      REPOSITORIES_URL: http://son-catalogue-repos:4011/records
+      RACK_ENV: integration
+    networks:
+      - pishanet
+    ports:
+      - "5800:5800"
+
+  # Gatekeeper VIM
+  # gtk/vim.yml
+  son-gtkvim:
+    image: "sonatanfv/son-gtkvim:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-broker
+      - son-postgres
+    environment:
+      # TODO: Is a catalogues URL missing here?
+      RACK_ENV: integration
+      MQSERVER: amqp://guest:guest@son-broker:5672
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: "5432"
+      POSTGRES_PASSWORD: ${GTK_DB_PASS}
+      POSTGRES_USER: ${GTK_DB_USER}
+      POSTGRES_DB: ${GTK_DB_NAME}
+    command: 'bash -c "bundle exec rake db:migrate && bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:5700"'
+    networks:
+      - pishanet
+    ports:
+      - "5700:5700"
+
+  # Gatekeeper License Manager
+  # gtk/lic.yml
+  son-gtklic:
+    image: "sonatanfv/son-gtklic:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-postgres
+    environment:
+      DATABASE_HOST: son-postgres
+      DATABASE_PORT: "5432"
+      POSTGRES_PASSWORD: ${GTK_DB_PASS}
+      POSTGRES_USER: ${GTK_DB_USER}
+      POSTGRES_DB: ${GTK_DB_NAME}
+    command: 'bash -c "python manage.py db upgrade && python manage.py runserver --host 0.0.0.0"'
+    networks:
+      - pishanet
+    expose:
+      - 5900 # TODO: Why 5900? Server is listening on 5000 AFAIK.
+    ports:
+      - "5900:5900"
+
+  # Gatekeeper Key Performance Indicators
+  # gtk/kpi.yml
+  son-gtkkpi:
+    image: "sonatanfv/son-gtkkpi:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-monitor-pushgateway
+      - son-monitor-prometheus
+    environment:
+      PUSHGATEWAY_HOST: pushgateway
+      PUSHGATEWAY_PORT: "9091"
+      PROMETHEUS_PORT: "9090"
+      RACK_ENV: integration
+    networks:
+      - pishanet
+    ports:
+      - "5400:5400"
+
+  # Gatekeeper User Management
+  # gtk/usr.yml
+  son-gtkusr:
+    image: tdierich/son-gtkusr
+    restart: always
+    depends_on:
+      - son-keycloak
+    environment:
+      KEYCLOAK_ADDRESS: son-keycloak
+      KEYCLOAK_PORT: "5601"
+      KEYCLOAK_PATH: auth
+      SONATA_REALM: sonata
+      CLIENT_NAME: adapter
+    networks:
+      - pishanet
+    ports:
+      - "5600:5600"
+
+  # Gatekeeper Rate Limiter
+  # gtk/rlt.yml
+  son-gtkrlt:
+    image: tdierich/son-gtkrlt
+    restart: always
+    depends_on:
+      - son-redis
+    environment:
+      REDIS_URL: redis://son-redis:6379
+    networks:
+      - pishanet
+    expose:
+      - 5150
+    ports:
+      - "5150:5150"
+
+  # Gatekeeper API
+  # gtk/api.yml
+  son-gtkapi:
+    image: tdierich/son-gtkapi
+    restart: always
+    depends_on:
+      - son-gtkusr
+      - son-gtklic
+      - son-monitor-manager
+      - son-catalogue-repos
+      - son-gtkpkg
+      - son-gtksrv
+      - son-gtkfnct
+      - son-gtkvim
+      - son-gtkrec
+      - son-gtkkpi
+      - son-validate
+      - son-gtkrlt
+    environment:
+      RACK_ENV: integration
+      USER_MANAGEMENT_URL: http://son-gtkusr:5600
+      LICENSE_MANAGEMENT_URL: http://son-gtklic:5900
+      METRICS_URL: http://son-monitor-manager:8000/api/v1
+      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      PACKAGE_MANAGEMENT_URL: http://son-gtkpkg:5100
+      SERVICE_MANAGEMENT_URL: http://son-gtksrv:5300
+      CLOUD_SERVICE_MANAGEMENT_URL: http://son-gtkcsrv:5250
+      FUNCTION_MANAGEMENT_URL: http://son-gtkfnct:5500
+      VIM_MANAGEMENT_URL: http://son-gtkvim:5700
+      RECORD_MANAGEMENT_URL: http://son-gtkrec:5800
+      KPI_MANAGEMENT_URL: http://son-gtkkpi:5400
+      VALIDATOR_URL: http://son-validate:5050
+      RATE_LIMITER_URL: http://son-gtkrlt:5150
+    networks:
+      - pishanet
+    ports:
+      - "32001:5000"
+
+  # Repositories ---------------------------------------------------------------
+  # repos.yml
+  son-catalogue-repos:
+    image: tdierich/son-catalogue-repos
+    restart: always
+    networks:
+      - pishanet
+    # dns_servers: "8.8.8.8"
+    ports:
+      - "4002:4011"
+
+  # MANO framework -------------------------------------------------------------
+  # MANO Plug-in Manager
+  # mano/pluginmgr.yml
+  pluginmanager:
+    image: "sonatanfv/pluginmanager:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-mongo
+      - son-broker
+    environment:
+      mongo_host: son-mongo
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+    ports:
+      - "8001:8001"
+
+  # MANO Service Life-cycle Management
+  # mano/slm.yml
+  servicelifecyclemanagement:
+    image: pishahang/servicelifecyclemanagement
+    restart: always
+    depends_on:
+      - son-gtkapi
+      - son-catalogue-repos
+      - son-monitor-manager
+      - son-broker
+    environment:
+      url_gk_api: http://son-gtkapi:5000/api/v2/
+      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+
+  # MANO Function Lifecycle Management Plugin
+  # mano/flm.yml
+  functionlifecyclemanagement:
+    image: "sonatanfv/functionlifecyclemanagement:${SONATA_VERSION}"
+    restart: "always"
+    depends_on:
+      - son-gtkapi
+      - son-catalogue-repos
+      - son-monitor-manager
+      - son-broker
+    environment:
+      url_gk_api: http://son-gtkapi:5000/api/v2/
+      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+
+  # MANO Specific Manager Registry (SMR)
+  # mano/smr.yml
+  specificmanagerregistry:
+    image: "sonatanfv/specificmanagerregistry:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-broker
+    environment:
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      broker_name: son-broker,broker
+    networks:
+      - pishanet
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  # MANO Placement Executive Plugin
+  # mano/placement.yml
+  placementexecutive:
+    image: "sonatanfv/placementexecutive:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-broker
+    environment:
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+
+  # MANO Placement Plugin
+  # mano/placementplugin.yml
+  placementplugin:
+    image: tdierich/placementplugin
+    restart: always
+    depends_on:
+      - son-broker
+    environment:
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+
+  # MANO Cloud Service Life-cycle Management (CLM)
+  # mano/clm.yml
+  cloudservicelifecyclemanagement:
+    image: tdierich/cloudservicelifecyclemanagement
+    restart: always
+    depends_on:
+      - son-gtkapi
+      - son-catalogue-repos
+      - son-monitor-manager
+      - son-broker
+    environment:
+      url_gk_api: http://son-gtkapi:5000/api/v2/
+      url_cosr_repository: http://son-catalogue-repos:4011/records/cosr/
+      url_vnfr_repository: http://son-catalogue-repos:4011/records/csr/
+      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+    networks:
+      - pishanet
+
+  # MANO SDN
+  # mano/sdn.yml
+  sdn-plugin:
+    image: "pishahang/sdn-controller"
+    restart: always
+    depends_on:
+      - son-gtkapi
+      - son-catalogue-repos
+      - son-monitor-manager
+      - son-broker
+      - son-postgres
+    environment:
+      url_gk_api: http://son-gtkapi:5000/api/v2/
+      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      repo_host: son-postgres
+      repo_port: "5432"
+      repo_user: ${IA_REPO_USER}
+      repo_pass: ${IA_REPO_PASS}
+    networks:
+      - pishanet
+
+  # Infastructure Adaptor ------------------------------------------------------
+  # Infrastructure Abstractor VIM Adaptor
+  # ifta/vim-adaptor.yml
+  son-sp-infrabstract:
+    image: tdierich/son-sp-infrabstract
+    restart: always
+    depends_on:
+      - son-broker
+      - son-postgres
+    environment:
+      broker_host: son-broker
+      broker_uri: amqp://guest:guest@son-broker:5672/%2F
+      repo_host: son-postgres
+      repo_port: "5432"
+      repo_user: ${IA_REPO_USER}
+      repo_pass: ${IA_REPO_PASS}
+      SONATA_SP_ADDRESS: ${PUBLIC_DOMAIN_NAME}
+    networks:
+      - pishanet
+    volumes:
+      - /root/terraform_data
+
+  # Infrastructure Abstractor WIM Adaptor
+  # ifta/wim-adaptor.yml
+  wim-adaptor:
+    image: "sonatanfv/wim-adaptor:${SONATA_VERSION}"
+    restart: always
+    depends_on:
+      - son-broker
+      - son-postgres
+    environment:
+      broker_host: son-broker
+      broker_uri: amqp://guest:guest@son-broker:5672/%2F
+      repo_host: son-postgres
+      repo_port: "5432"
+      repo_user: ${IA_REPO_USER}
+      repo_pass: ${IA_REPO_PASS}
+    networks:
+      - pishanet
+
+  # Monitoring -----------------------------------------------------------------
+  # Monitoring Push Gateway
+  # monit/pushgw.yml
+  son-monitor-pushgateway:
+    image: "sonatanfv/son-monitor-pushgateway:${SONATA_VERSION}"
+    restart: always
+    networks:
+      pishanet:
+        aliases:
+          - pushgateway
+    ports:
+      - "9091:9091"
+
+  # Monitoring – Prometheus
+  # monit/prometheus.yml
+  son-monitor-prometheus:
+    image: tdierich/son-monitor-prometheus
+    restart: always
+    depends_on:
+      - son-broker
+    environment:
+      RABBIT_URL: son-broker:5672
+      EMAIL_PASS: czBuQHRAX21vbl9zeXNfMTY=
+    networks:
+      pishanet:
+        aliases:
+          - prometheus
+    ports:
+      - "9090:9090"
+      - "9089:9089"
+      - "8002:8001"
+
+  # Monitoring Manager
+  # monit/monitmgr.yml
+  son-monitor-manager:
+    image: "tdierich/son-monitor-manager"
+    restart: always
+    networks:
+      - pishanet
+    ports:
+      - "8000:8000"
+      - "8888:8888"
+
+  # Monitoring – Probe
+  # monit/probe.yml
+  son-monitor-probe:
+    image: "sonatanfv/son-monitor-probe:${SONATA_VERSION}"
+    restart: always
+    privileged: true
+    depends_on:
+      - son-monitor-pushgateway
+    environment:
+      NODE_NAME: ${HOSTNAME}
+      PROM_SRV: http://son-monitor-pushgateway:9091/metrics
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/:/rootfs:ro"
+      - "/proc:/myhost/proc"
+    networks:
+      - pishanet
+
+  # Security Gateway -----------------------------------------------------------
+  # sec-gw.yml
+  son-sec-gw:
+    image: "sonatanfv/son-sec-gw:${SONATA_VERSION}"
+    restart: "always"
+    depends_on:
+      - son-gui
+      - son-bss
+    networks:
+      - pishanet
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/etc/ssl/private/sonata/:/etc/nginx/cert/"
