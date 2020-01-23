@@ -16,11 +16,13 @@ const useStyles = makeStyles({
   },
 });
 
-function createData(name: string, vendor: string, status: string) {
-  return { name, vendor, status };
+function createData(name: string, version: string, description: string) {
+  return { name, version, description };
 }
 
-const rows = [createData("forwarder-vm-vnf", " 	eu.sonata-nfv.vnf-descriptor", "active")];
+const rows = [
+  createData("ICMP-forwarder", "1.0", "ICMP forwarder; consists of CN- and VM-based VNFs"),
+];
 
 export const ServicesTable: React.FunctionComponent = () => {
   const classes = useStyles({});
@@ -32,10 +34,10 @@ export const ServicesTable: React.FunctionComponent = () => {
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell align="left">Vendor</TableCell>
-            <TableCell align="center" style={{ width: "160px" }}>
-              Status
+            <TableCell align="center" style={{ width: "20px" }}>
+              Version
             </TableCell>
+            <TableCell align="center">Description</TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
               Actions
             </TableCell>
@@ -47,8 +49,8 @@ export const ServicesTable: React.FunctionComponent = () => {
               <TableCell component="th" scope="row">
                 {row.name}
               </TableCell>
-              <TableCell align="left">{row.vendor}</TableCell>
-              <TableCell align="center">{row.status}</TableCell>
+              <TableCell align="left">{row.version}</TableCell>
+              <TableCell align="center">{row.description}</TableCell>
               <TableCell align="center">
                 <IconButton color="primary">
                   <InfoIcon />
