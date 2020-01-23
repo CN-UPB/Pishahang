@@ -1,7 +1,6 @@
-
-
-[[figures/pishahang_10.svg.png]]
-
+<p align="center">
+    <img width="600" src="./figures/pishahang-logo.svg">
+</p>
 
 # Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
 
