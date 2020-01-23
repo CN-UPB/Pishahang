@@ -7,7 +7,8 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { HighlightOff as Delete, Edit, Info as InfoIcon } from "@material-ui/icons";
+import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@material-ui/icons";
+//import PlayCircleButton from "@material-ui/icons";
 import React from "react";
 
 const useStyles = makeStyles({
@@ -56,7 +57,7 @@ export const ServicesTable: React.FunctionComponent = () => {
                   <InfoIcon />
                 </IconButton>
                 <IconButton>
-                  <Edit htmlColor={theme.palette.success.main} />
+                  <PlayCircleOutline htmlColor={theme.palette.success.main} />
                 </IconButton>
                 <IconButton color="primary">
                   <Delete htmlColor={theme.palette.error.main} />

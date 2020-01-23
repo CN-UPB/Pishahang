@@ -20,7 +20,7 @@ function createData(name: string, vendor: string, status: string) {
   return { name, vendor, status };
 }
 
-const rows = [createData("forwarder-vm-vnf", " 	eu.sonata-nfv.vnf-descriptor", "active")];
+const rows = [createData("forwarder-vm-vnf", "eu.sonata-nfv.vnf-descriptor", "active")];
 
 export const VnfdTable: React.FunctionComponent = () => {
   const classes = useStyles({});
