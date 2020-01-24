@@ -3,12 +3,12 @@ import { NextPage } from "next";
 import { Page } from "../../lib/components/layout/Page";
 import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
 
-const ContainersPage: NextPage = () => {
+const VirtualMachinesPage: NextPage = () => {
   return (
-    <Page title="Containers">
-      <VnfdTable pageName="Container"></VnfdTable>
+    <Page title="VM Based VNF Descriptors">
+      <VnfdTable></VnfdTable>
     </Page>
   );
 };
 
-export default ContainersPage;
+export default VirtualMachinesPage;
