@@ -27,12 +27,8 @@ export const DrawerContent: React.FunctionComponent = () => (
     <Divider />
     <List>
       <LinkedListItem text={"Services"} icon={Dns} href={"/catalogue/services"}></LinkedListItem>
-      <LinkedListItem
-        text={"Virtual Machines"}
-        icon={Computer}
-        href={"/catalogue/vms"}
-      ></LinkedListItem>
-      <LinkedListItem text={"Containers"} icon={WebAsset} href={"/catalogue/cns"}></LinkedListItem>
+      <LinkedListItem text={"VNFs"} icon={Computer} href={"/catalogue/vms"}></LinkedListItem>
+      <LinkedListItem text={"CNFs"} icon={WebAsset} href={"/catalogue/cns"}></LinkedListItem>
     </List>
     <Divider />
     <List>
