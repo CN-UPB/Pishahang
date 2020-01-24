@@ -18,7 +18,7 @@ export const DrawerContent: React.FunctionComponent = () => (
     <Divider />
     <List>
       <LinkedListItem text={"User Profile"} icon={Person} href={"/user"}></LinkedListItem>
-      <LinkedListItem text={"Monitor"} icon={Dvr} href={"/monitor"}></LinkedListItem>
+      <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
     </List>
     <Divider />
     <List>
