@@ -20,11 +20,24 @@ function createData(name: string, vendor: string, status: string) {
   return { name, vendor, status };
 }
 
-const rows = [createData("forwarder-vm-vnf", "eu.sonata-nfv.vnf-descriptor", "active")];
+type Props = {
+  /**
+   * Property to check page name
+   */
+  pageName?: any;
+};
 
-export const VnfdTable: React.FunctionComponent = () => {
+export const VnfdTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
+
+  let rows: any;
+
+  if (props.pageName === "Container") {
+    rows = [createData("forwarder-cn-vnf", "eu.sonata-nfv.cloud-service-descriptor", "active")];
+  } else {
+    rows = [createData("forwarder-vm-vnf", "eu.sonata-nfv.vnf-descriptor", "active")];
+  }
 
   return (
     <TableContainer component={Paper}>
