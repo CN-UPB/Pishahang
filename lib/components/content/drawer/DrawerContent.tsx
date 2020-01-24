@@ -26,16 +26,6 @@ export const DrawerContent: React.FunctionComponent = () => (
     </List>
     <Divider />
     <List>
-      <LinkedListItem text={"Services"} icon={Dns} href={"/services"}></LinkedListItem>
-    </List>
-    <Divider />
-    <List>
-      <LinkedListItem text={"VNFs"} icon={Computer} href={"/descriptors/vms"}></LinkedListItem>
-      <LinkedListItem text={"CNFs"} icon={WebAsset} href={"/descriptors/cns"}></LinkedListItem>
-      <LinkedListItem text={"FPGAs"} icon={WebAsset} href={"/descriptors/fpga"}></LinkedListItem>
-    </List>
-    <Divider />
-    <List>
       <LinkedListItem text={"Descriptors"} icon={Dns} href={""}></LinkedListItem>
     </List>
     <Divider />
@@ -43,6 +33,10 @@ export const DrawerContent: React.FunctionComponent = () => (
       <LinkedListItem text={"VNFs"} icon={Computer} href={"/descriptors/vms"}></LinkedListItem>
       <LinkedListItem text={"CNFs"} icon={WebAsset} href={"/descriptors/cns"}></LinkedListItem>
       <LinkedListItem text={"FPGAs"} icon={WebAsset} href={"/descriptors/fpga"}></LinkedListItem>
+    </List>
+    <Divider />
+    <List>
+      <LinkedListItem text={"Services"} icon={Dns} href={"/services"}></LinkedListItem>
     </List>
     <Divider />
     <List>
