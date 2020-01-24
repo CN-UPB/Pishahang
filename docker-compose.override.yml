@@ -74,35 +74,51 @@ services:
   # MANO framework -------------------------------------------------------------
   # MANO Plug-in Manager
   pluginmanager:
-    build: ./son-mano-framework/son-mano-pluginmanager
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./son-mano-pluginmanager/Dockerfile
 
   # MANO Service Life-cycle Management
   servicelifecyclemanagement:
-    build: ./son-mano-framework/plugins/son-mano-service-lifecycle-management
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/son-mano-service-lifecycle-management/Dockerfile
 
   # MANO Function Lifecycle Management Plugin
   functionlifecyclemanagement:
-    build: ./son-mano-framework/plugins/son-mano-function-lifecycle-management
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/son-mano-function-lifecycle-management/Dockerfile
 
   # MANO Specific Manager Registry (SMR)
   specificmanagerregistry:
-    build: ./son-mano-framework/son-mano-specificmanager/son-mano-specific-manager-registry
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./son-mano-specificmanager/son-mano-specific-manager-registry/Dockerfile
 
   # MANO Placement Executive Plugin
   placementexecutive:
-    build: ./son-mano-framework/plugins/son-mano-placement-executive
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/son-mano-placement-executive/Dockerfile
 
   # MANO Placement Plugin
   placementplugin:
-    build: ./son-mano-framework/plugins/son-mano-placement
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/son-mano-placement/Dockerfile
 
   # MANO Cloud Service Life-cycle Management (CLM)
   cloudservicelifecyclemanagement:
-    build: ./son-mano-framework/plugins/son-mano-cloud-service-lifecycle-management
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/son-mano-cloud-service-lifecycle-management/Dockerfile
 
   # MANO SDN
   sdn-plugin:
-    build: ./son-mano-framework/plugins/pish-mano-sdn
+    build:
+      context: ./son-mano-framework
+      dockerfile: ./plugins/pish-mano-sdn/Dockerfile
 
   # Infastructure Adaptor ------------------------------------------------------
   # Infrastructure Abstractor VIM Adaptor
