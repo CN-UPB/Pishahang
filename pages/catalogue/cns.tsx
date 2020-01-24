@@ -6,7 +6,7 @@ import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
 const ContainersPage: NextPage = () => {
   return (
     <Page title="Containers">
-      <VnfdTable></VnfdTable>
+      <VnfdTable pageName="Container"></VnfdTable>
     </Page>
   );
 };
