@@ -27,8 +27,15 @@ const useStyles = makeStyles((theme: Theme) =>
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
     },
-    logo: {
+    logoContainer: {
       ...theme.mixins.toolbar,
+      height: theme.mixins.toolbar.minHeight,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    logo: {
+      maxHeight: "100%",
     },
     drawerPaper: {
       width: drawerWidth,
@@ -39,6 +46,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     contentMarginTop: {
       marginTop: theme.mixins.toolbar.minHeight,
+      paddingTop: theme.spacing(4),
     },
   })
 );
@@ -91,7 +99,9 @@ export const Page: React.FunctionComponent<Props> = ({
             open
           >
             <div>
-              <div className={classes.logo}>PISHAHANG</div>
+              <div className={classes.logoContainer}>
+                <img className={classes.logo} src="/img/logo.svg" />
+              </div>
               <DrawerContent />
             </div>
           </MaterialDrawer>
