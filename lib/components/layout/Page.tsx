@@ -11,6 +11,7 @@ import Head from "next/head";
 import * as React from "react";
 
 import { DrawerContent } from "../content/drawer/DrawerContent";
+import { RightToolBarContent } from "../content/toolbar/RightToolBarContent";
 
 const drawerWidth = 240;
 
@@ -26,6 +27,9 @@ const useStyles = makeStyles((theme: Theme) =>
     appBar: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
+    },
+    toolbar: {
+      justifyContent: "space-between",
     },
     logoContainer: {
       ...theme.mixins.toolbar,
@@ -110,10 +114,11 @@ export const Page: React.FunctionComponent<Props> = ({
       <main className={contentClasses.join(" ")}>
         {hideToolbar || (
           <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar>
+            <Toolbar className={classes.toolbar}>
               <Typography variant="h6" noWrap>
                 {title}
               </Typography>
+              <RightToolBarContent />
             </Toolbar>
           </AppBar>
         )}
