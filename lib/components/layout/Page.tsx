@@ -31,6 +31,10 @@ const useStyles = makeStyles((theme: Theme) =>
     toolbar: {
       justifyContent: "space-between",
     },
+    rightToolbarContent: {
+      display: "flex",
+      flexWrap: "nowrap",
+    },
     logoContainer: {
       ...theme.mixins.toolbar,
       height: theme.mixins.toolbar.minHeight,
@@ -118,7 +122,7 @@ export const Page: React.FunctionComponent<Props> = ({
               <Typography variant="h6" noWrap>
                 {title}
               </Typography>
-              <RightToolBarContent />
+              <RightToolBarContent className={classes.rightToolbarContent} />
             </Toolbar>
           </AppBar>
         )}
