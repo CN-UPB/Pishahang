@@ -20,7 +20,6 @@
 # partner consortium (www.sonata-nfv.eu).
 
 FROM python:3.4-slim
-MAINTAINER SONATA
 
 # define plugin name once
 ENV PLUGIN_BASE son-mano-cloud-service-lifecycle-management
@@ -31,6 +30,8 @@ ENV broker_exchange son-kernel
 ENV url_gk_api http://son-gtkapi:5000/api/v2/
 ENV url_vnfr_repository http://son-catalogue-repos:4011/records/vnfr/
 ENV url_monitoring_server http://son-monitor-manager:8000/api/v1/
+
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
 
 # add generic project files
 ADD son-mano-base /son-mano-base

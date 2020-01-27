@@ -20,7 +20,6 @@
 # partner consortium (www.sonata-nfv.eu).
 
 FROM python:3.4-slim
-MAINTAINER SONATA
 
 # define plugin name once
 ENV PLUGIN_BASE son-mano-test-plugin
@@ -28,13 +27,14 @@ ENV PLUGIN_BASE son-mano-test-plugin
 ENV broker_host amqp://guest:guest@broker:5672/%2F
 ENV broker_exchange son-kernel
 
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
+
 # add generic project files
 ADD son-mano-base /son-mano-base
 ADD utils/delayedstart.sh /delayedstart.sh
 
 # add plugin related files
 ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
-
 
 # install son-mano-base to be able to use the plugin base class etc.
 WORKDIR /son-mano-base
@@ -46,5 +46,3 @@ RUN python setup.py develop
 
 
 CMD ["son-mano-test-plugin"]
-
-
