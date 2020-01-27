@@ -8,7 +8,7 @@ import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
 const ContainersPage: NextPage = () => {
   return (
     <Page title="CN Based VNF Descriptors">
-      <Fab variant="extended" color="primary" size="small" style={{ float: "right" }}>
+      <Fab color="secondary" size="small" style={{ float: "right" }} aria-label="Upload">
         <CloudUpload />
       </Fab>
       <VnfdTable pageName="Container"></VnfdTable>

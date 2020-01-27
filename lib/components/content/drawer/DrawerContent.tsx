@@ -7,10 +7,10 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import {
   Computer,
+  Dashboard,
   Dns,
   Dvr,
-  Person,
-  PowerSettingsNew,
+  ScatterPlotRounded,
   Settings,
   WebAsset,
 } from "@material-ui/icons";
@@ -42,6 +42,10 @@ export const DrawerContent: React.FunctionComponent = () => {
     <>
       <Divider />
       <List>
+        <LinkedListItem text={"Dashboard"} icon={Dashboard} href={""}></LinkedListItem>
+      </List>
+      <Divider />
+      <List>
         <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
       <Divider />
@@ -71,7 +75,11 @@ export const DrawerContent: React.FunctionComponent = () => {
       </Collapse>
       <Divider />
       <List>
-        <LinkedListItem text={"Services"} icon={Dns} href={"/services"}></LinkedListItem>
+        <LinkedListItem
+          text={"Services"}
+          icon={ScatterPlotRounded}
+          href={"/services"}
+        ></LinkedListItem>
       </List>
       <Divider />
     </>
