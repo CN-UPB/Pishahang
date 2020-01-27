@@ -11,7 +11,6 @@
 # limitations under the License.
 
 FROM python:3.4-slim
-MAINTAINER Pishahang
 
 # define plugin name once
 ENV PLUGIN_BASE pish-mano-sdn
@@ -30,8 +29,7 @@ ENV db_user sonatatest
 ENV db_password sonata
 ENV db_name vimregistry
 
-RUN apt-get update && apt-get install -y gcc
-RUN apt-get install -y python-pip
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
 RUN pip install pyzmq
 
 # add generic project files

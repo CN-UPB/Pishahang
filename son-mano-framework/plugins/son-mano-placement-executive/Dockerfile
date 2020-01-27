@@ -20,7 +20,6 @@
 # partner consortium (www.sonata-nfv.eu).
 
 FROM python:3.4-slim
-MAINTAINER SONATA
 
 # define plugin name once
 ENV PLUGIN_BASE son-mano-placement-executive
@@ -28,6 +27,8 @@ ENV PLUGIN_BASE son-mano-placement-executive
 ENV broker_host amqp://guest:guest@broker:5672/%2F
 ENV broker_exchange son-kernel
 ENV sm_broker_host amqp://specific-management:sonata@son-broker:5672
+
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
 
 # add generic project files
 ADD son-mano-base /son-mano-base
@@ -46,5 +47,3 @@ RUN python setup.py develop
 
 
 CMD ["son-mano-placement-executive"]
-
-

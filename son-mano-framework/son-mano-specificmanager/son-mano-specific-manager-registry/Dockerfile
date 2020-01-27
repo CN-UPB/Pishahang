@@ -1,5 +1,4 @@
 FROM python:3.4-slim
-MAINTAINER SONATA
 
 # configrurations
 
@@ -24,7 +23,7 @@ ENV DOCKER_HOST unix://var/run/docker.sock
 
 #ENV network_name broker,broker
 
-
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
 
 ADD son-mano-base /son-mano-base
 ADD son-mano-specificmanager/son-mano-specific-manager-registry /son-mano-specific-manager-registry
@@ -38,4 +37,3 @@ WORKDIR /son-mano-specific-manager-registry
 RUN python setup.py develop
 
 CMD ["son-mano-specific-manager-registry"]
-

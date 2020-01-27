@@ -25,13 +25,14 @@
 # partner consortium (www.sonata-nfv.eu).
 
 FROM python:3.4-slim
-MAINTAINER SONATA
 
 # configrurations
 ENV mongo_host mongo
 ENV mongo_port 27017
 ENV broker_host amqp://guest:guest@broker:5672/%2F
 ENV broker_exchange son-kernel
+
+RUN apt-get update && apt-get install -y python-pip gcc libpq-dev
 
 ADD son-mano-base /son-mano-base
 ADD son-mano-pluginmanager /son-mano-pluginmanager
@@ -46,4 +47,3 @@ WORKDIR /son-mano-pluginmanager
 RUN python setup.py develop
 
 CMD ["son-mano-pluginmanager"]
-
