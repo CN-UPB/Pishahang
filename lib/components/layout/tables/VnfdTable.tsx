@@ -10,34 +10,27 @@ import TableRow from "@material-ui/core/TableRow";
 import { HighlightOff as Delete, Edit, Info as InfoIcon } from "@material-ui/icons";
 import React from "react";
 
+import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
+import { VnfdMeta } from "../../../models/VnfdMeta";
+
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
   },
 });
 
-function createData(name: string, vendor: string, status: string) {
-  return { name, vendor, status };
-}
-
 type Props = {
   /**
    * Property to check page name
    */
   pageName?: any;
+  data: VnfdMeta[];
 };
 
 export const VnfdTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
-
-  let rows: any;
-
-  if (props.pageName === "Container") {
-    rows = [createData("forwarder-cn-vnf", "eu.sonata-nfv.cloud-service-descriptor", "active")];
-  } else {
-    rows = [createData("forwarder-vm-vnf", "eu.sonata-nfv.vnf-descriptor", "active")];
-  }
+  const showVnfdInfoDialog = useVnfdInfoDialog();
 
   return (
     <TableContainer component={Paper}>
@@ -55,15 +48,15 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (
-            <TableRow key={row.name}>
+          {props.data.map(row => (
+            <TableRow key={row.descriptor.name}>
               <TableCell component="th" scope="row">
-                {row.name}
+                {row.descriptor.name}
               </TableCell>
-              <TableCell align="left">{row.vendor}</TableCell>
+              <TableCell align="left">{row.descriptor.vendor}</TableCell>
               <TableCell align="center">{row.status}</TableCell>
               <TableCell align="center">
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
                 <IconButton>
