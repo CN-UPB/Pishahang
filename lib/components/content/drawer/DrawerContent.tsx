@@ -42,7 +42,11 @@ export const DrawerContent: React.FunctionComponent = () => {
     <>
       <Divider />
       <List>
-        <LinkedListItem text={"Dashboard"} icon={Dashboard} href={""}></LinkedListItem>
+        <LinkedListItem
+          text={"Dashboard"}
+          icon={Dashboard}
+          href={"/"} //Unable to add link to Page.tsx for use as Dashboard
+        ></LinkedListItem>
       </List>
       <Divider />
       <List>
@@ -64,6 +68,11 @@ export const DrawerContent: React.FunctionComponent = () => {
       </List>
       <Collapse in={descriptorsExpanded} timeout="auto" unmountOnExit>
         <List component="div" disablePadding className={classes.nestedList}>
+          <LinkedListItem
+            text={"Services"}
+            icon={ScatterPlotRounded}
+            href={"/descriptors/services"}
+          ></LinkedListItem>
           <LinkedListItem text={"VNFs"} icon={Computer} href={"/descriptors/vms"}></LinkedListItem>
           <LinkedListItem text={"CNFs"} icon={WebAsset} href={"/descriptors/cns"}></LinkedListItem>
           <LinkedListItem
