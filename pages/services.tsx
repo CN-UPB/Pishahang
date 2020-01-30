@@ -5,7 +5,7 @@ import { ServicesTable } from "../lib/components/layout/tables/ServicesTable";
 
 const ServicesPage: NextPage = () => {
   return (
-    <Page title="Services">
+    <Page title="Instantiated Services">
       <ServicesTable></ServicesTable>
     </Page>
   );
