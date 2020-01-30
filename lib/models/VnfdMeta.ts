@@ -1,6 +1,6 @@
 import { Vnfd } from "./Vnfd";
 
-export interface VnfdMetaBase {
+export interface VnfdMeta {
   md5: string;
   uuid: string;
   created_at: Date;
@@ -8,14 +8,5 @@ export interface VnfdMetaBase {
   signature?: string;
   status: "active"; // TODO what else?
   username?: string;
+  descriptor: Vnfd;
 }
-
-export interface VmVnfdMeta extends VnfdMetaBase {
-  vnfd: Vnfd;
-}
-
-export interface CnVnfdMeta extends VnfdMetaBase {
-  cfd: Vnfd;
-}
-
-// TODO The separation between these two model classes is ugly. Especially when we also add FPGAs.
