@@ -22,6 +22,7 @@
   "dependencies": {
     "@material-ui/core": "^4.8.3",
     "@material-ui/icons": "^4.5.1",
+    "axios": "^0.19.2",
     "formik": "^2.1.2",
     "formik-material-ui": "^2.0.0-alpha.3",
     "lodash": "^4.17.15",
