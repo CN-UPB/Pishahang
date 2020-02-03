@@ -4,10 +4,11 @@
   "description": "GUI for Pishahang",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "dev": "next",
+    "dev": "NODE_ENV=development PORT=3000 node server.js",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "npm run test -- --watch"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,7 @@
     "typesafe-actions": "5.1.0"
   },
   "devDependencies": {
+    "@types/jest": "^25.1.1",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.1.6",
     "@types/react": "^16.9.17",
@@ -49,13 +51,17 @@
     "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react-hooks": "^2.3.0",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^0.20.0",
     "husky": "^4.0.10",
     "import-sort-style-module": "^6.0.0",
-    "jest": "^24.9.0",
+    "jest": "^25.1.0",
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "prettier-plugin-import-sort": "^0.0.3",
-    "typescript": "^3.7.4"
+    "redux-saga-test-plan": "^4.0.0-rc.3",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5"
   },
   "prettier": {
     "trailingComma": "es5",
