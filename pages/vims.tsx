@@ -1,12 +1,12 @@
 import { NextPage } from "next";
 
-import { AddK8Form } from "../lib/components/forms/vims/AddK8Form";
+import { VimForm } from "../lib/components/forms/vims/VimForm";
 import { Page } from "../lib/components/layout/Page";
 
 const VimPage: NextPage = () => {
   return (
     <Page title="VIM Settings">
-      <AddK8Form></AddK8Form>
+      <VimForm />
     </Page>
   );
 };
