@@ -1,0 +1,113 @@
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "axios";
+
+import { ApiReply } from "./../models/ApiReply";
+import { Session } from "./../models/Session";
+import { getApiUrl } from "./index";
+
+class NullTokenError extends Error {
+  constructor() {
+    super("No authorization token is provided.");
+  }
+}
+
+/**
+ * Sends a login request to the API
+ *
+ * @param username The username to be submitted
+ * @param password The password to be submitted
+ *
+ * @returns An `ApiReply` object with a user-friendly error message in case of failure. In case of
+ * success, the resulting `Session` object is provided via the `payload` attribute.
+ */
+export async function login(username: string, password: string): Promise<ApiReply<Session>> {
+  try {
+    const reply = await axios.post(getApiUrl("sessions"), { username, password });
+    switch (reply.status) {
+      case 401:
+        return { success: false, message: "Invalid username or password" };
+      case 200:
+        return { success: true, payload: reply.data };
+    }
+  } catch (e) {
+    console.log(e);
+  }
+  return { success: false, message: "An unexpected error occurred. Please try again." };
+}
+
+/**
+ * Performs an HTTP request using axios and sets an `Authorization` header with the provided token.
+ * In case of authorization failure (when the server returns status code 401), the onAuthError
+ * method is invoked.
+ *
+ * @param method The request method
+ * @param url The request URL
+ * @param token The auth token to be used
+ * @param onAuthError A function that is invoked if the authorization fails
+ * @param throwAuthError Whether to throw errors on authorization failures (defaults to false)
+ * @param config An optional axios request config (use this to provide request data)
+ *
+ * @returns The axios response
+ * @throws `AxiosError` in case of failure
+ * @throws `NullTokenError` if the provided token is `null`
+ */
+export async function sendAuthorizedRequest(
+  method: Method,
+  url: string,
+  token: string,
+  onAuthError: () => any,
+  throwAuthError: boolean = false,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<any>> {
+  if (token === null) {
+    onAuthError();
+    if (throwAuthError) {
+      throw new NullTokenError();
+    }
+  }
+
+  const extendedConfig: AxiosRequestConfig = {
+    ...config,
+    method,
+    url,
+  };
+
+  // Add Authorization header
+  if (typeof extendedConfig.headers === "undefined") {
+    extendedConfig.headers = {};
+  }
+  extendedConfig.headers.Authorization = `Bearer ${token}`;
+
+  // Send request
+  try {
+    return await axios.request(extendedConfig);
+  } catch (error) {
+    if ((error as AxiosError).response?.status === 401) {
+      onAuthError();
+      if (throwAuthError) {
+        throw error;
+      }
+      return (error as AxiosError).response;
+    } else {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Sends a GET request using `sendAuthorizedRequest` to the API and returns the results.
+ *
+ * @param endpoint The APi-root-relative endpoint URI
+ * @param token The auth token
+ * @param onAuthError A function that is invoked if the authorization fails
+ *
+ * @returns The axios response
+ * @throws `AxiosError` in case of failure
+ */
+export function fetchApiDataAuthorized(
+  endpoint: string,
+  token: string,
+  onAuthError: () => any
+): Promise<AxiosResponse> {
+  console.log("fetchApiDataAuthorized");
+  return sendAuthorizedRequest("GET", getApiUrl(endpoint), token, onAuthError, true);
+}

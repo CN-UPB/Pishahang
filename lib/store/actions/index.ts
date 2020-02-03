@@ -1,8 +1,8 @@
 import * as GlobalActions from "./global";
-import * as UserActions from "./user";
+import * as AuthActions from "./auth";
 
 // Export all actions for usage in type definitions
 export default {
   global: GlobalActions,
-  owner: UserActions,
+  auth: AuthActions,
 };
