@@ -30,7 +30,7 @@ const ContainersPage: NextPage = () => {
 
   return (
     <Page title="CN Based VNF Descriptors">
-      <Fab color="secondary" size="small" style={{ float: "right" }} aria-label="Upload">
+      <Fab color="primary" size="small" style={{ float: "right" }} aria-label="Upload">
         <CloudUpload />
       </Fab>
       <VnfdTable pageName="Container" data={data}></VnfdTable>

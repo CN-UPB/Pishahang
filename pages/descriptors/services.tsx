@@ -8,7 +8,7 @@ import { ServicesTable } from "../../lib/components/layout/tables/ServicesTable"
 const ServicesPage: NextPage = () => {
   return (
     <Page title="Services Descriptors">
-      <Fab color="secondary" size="small" style={{ float: "right" }} aria-label="Upload">
+      <Fab color="primary" size="small" style={{ float: "right" }} aria-label="Upload">
         <CloudUpload />
       </Fab>
       <ServicesTable></ServicesTable>
