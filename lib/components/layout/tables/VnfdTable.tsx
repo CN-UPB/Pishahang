@@ -10,6 +10,7 @@ import TableRow from "@material-ui/core/TableRow";
 import { HighlightOff as Delete, Edit, Info as InfoIcon } from "@material-ui/icons";
 import React from "react";
 
+import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
 import { VnfdMeta } from "../../../models/VnfdMeta";
 
@@ -31,6 +32,7 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
   const showVnfdInfoDialog = useVnfdInfoDialog();
+  const showDescriptorEditorDialog = useDescriptorEditorDialog();
 
   return (
     <TableContainer component={Paper}>
@@ -59,7 +61,7 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
-                <IconButton>
+                <IconButton onClick={() => showDescriptorEditorDialog(row)}>
                   <Edit htmlColor={theme.palette.success.main} />
                 </IconButton>
                 <IconButton color="primary">
