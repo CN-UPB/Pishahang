@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "ax
 
 import { ApiReply } from "./../models/ApiReply";
 import { Session } from "./../models/Session";
+import { ApiDataEndpoint, ApiDataEndpointReturnType } from "./endpoints";
 import { getApiUrl } from "./index";
 
 export class NullTokenError extends Error {
@@ -95,18 +96,18 @@ export async function sendAuthorizedRequest(
 /**
  * Sends a GET request using `sendAuthorizedRequest` to the API and returns the results.
  *
- * @param endpoint The APi-root-relative endpoint URI
+ * @param endpoint The API endpoint
  * @param token The auth token
  * @param onAuthError A function that is invoked if the authorization fails
  *
  * @returns The axios response
  * @throws `AxiosError` in case of failure
  */
-export async function fetchApiDataAuthorized<Data = any>(
-  endpoint: string,
+export async function fetchApiDataAuthorized<E extends ApiDataEndpoint>(
+  endpoint: E,
   token: string,
   onAuthError: () => any
-): Promise<Data> {
+): Promise<ApiDataEndpointReturnType<E>> {
   console.log("fetchApiDataAuthorized");
   const reply = await sendAuthorizedRequest("GET", getApiUrl(endpoint), token, onAuthError, true);
   return reply.data;

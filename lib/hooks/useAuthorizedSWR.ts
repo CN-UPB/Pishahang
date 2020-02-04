@@ -3,23 +3,31 @@ import { useDispatch, useSelector } from "react-redux";
 import useSWR, { ConfigInterface } from "swr";
 
 import { NullTokenError, fetchApiDataAuthorized } from "../api/auth";
+import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../api/endpoints";
 import { authError } from "../store/actions/auth";
 import { selectAuthToken } from "../store/selectors/auth";
 
 /**
- * A wrapper hook around SWR that fetches data using `fetchApiDataAuthorized`. It gets the auth
- * token using the react-redux `useSelector` hook and dispatches an `authError` action when the
- * authentication fails.
+ * A wrapper hook around SWR that fetches data from GET API endpoints using
+ * `fetchApiDataAuthorized`. It gets the auth token using the react-redux `useSelector` hook and
+ * dispatches an `authError` action if the authentication fails.
  *
- * @param endpoint The API-root-relative resource URI to be fetched
- * @param swrConfig An optional SWR configuration object (where the `fetcher` key will be ignored)
+ * @param endpoint The API endpoint to fetch the data from
+ * @param swrConfig An optional SWR configuration object
  */
-export function useAuthorizedSWR<Data = any>(endpoint: string, swrConfig?: ConfigInterface) {
+export function useAuthorizedSWR<E extends ApiDataEndpoint>(
+  endpoint: E,
+  swrConfig?: ConfigInterface
+) {
   const token = useSelector(selectAuthToken);
   const dispatch = useDispatch();
 
-  const fetcher = (endpoint: string, token: string) =>
+  const fetcher = (endpoint: E, token: string) =>
     fetchApiDataAuthorized(endpoint, token, () => dispatch(authError()));
 
-  return useSWR<Data, AxiosError | NullTokenError>([endpoint, token], fetcher, swrConfig);
+  return useSWR<ApiDataEndpointReturnType<E>, AxiosError | NullTokenError>(
+    [endpoint, token],
+    fetcher,
+    swrConfig
+  );
 }
