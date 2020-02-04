@@ -1,28 +1,13 @@
-import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  Link,
-  MenuItem,
-  Theme,
-  Typography,
-  createStyles,
-  makeStyles,
-} from "@material-ui/core";
-import { ErrorMessage, Form, Formik, FormikProps } from "formik";
-import { Select, TextField } from "formik-material-ui";
+import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@material-ui/core";
+import { Form, Formik } from "formik";
+import { TextField } from "formik-material-ui";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
-type FormValues = {
-  email: string;
-  password: string;
-};
-const drawerWidth = 240;
+import { login } from "./../../store/actions/auth";
+import { selectLoginErrorMessage } from "../../store/selectors/auth";
+
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     logoContainer: {
@@ -37,20 +22,30 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
+type FormValues = {
+  username: string;
+  password: string;
+};
+
 export const LoginForm: React.FunctionComponent = () => {
-  const initialFormValues = {};
   const classes = useStyles({});
-  const onSubmit = async (values: FormValues) => {};
+  const loginErrorMessage = useSelector(selectLoginErrorMessage);
+  const dispatch = useDispatch();
+
+  const onSubmit = async (values: FormValues) => {
+    dispatch(login(values));
+    console.log(values);
+  };
 
   const validationSchema = Yup.object().shape({
-    email: Yup.string()
-      .email("Invalid email")
-      .required("Required"),
+    username: Yup.string().required("Required"),
     password: Yup.string().required("Required"),
-    confirmPassword: Yup.string()
-      .required("Required")
-      .oneOf([Yup.ref("password")], "Password does not match"),
   });
+
+  const initialFormValues: FormValues = {
+    username: "",
+    password: "",
+  };
 
   return (
     <Container maxWidth={"xs"}>
@@ -59,33 +54,32 @@ export const LoginForm: React.FunctionComponent = () => {
         onSubmit={onSubmit}
         validationSchema={validationSchema}
       >
-        {(formikProps: FormikProps<FormValues>) => (
-          <Form>
-            <Box padding={6}>
-              <div className={classes.logoContainer}>
-                <img className={classes.logo} src="/img/logo.svg" />
-              </div>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField name="email" label="Email" />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField name="password" label="Password" />
-                </Grid>
-                <Grid item xs={12} container alignItems="center" justify="center">
-                  <Box paddingTop={3}>
-                    <Button variant="contained" color="primary">
-                      Login
-                    </Button>
-                  </Box>
-                </Grid>
-                <Grid container alignItems="center" justify="center">
-                  <a href="">or, Register</a>
-                </Grid>
+        <Form>
+          <Box padding={6}>
+            <div className={classes.logoContainer}>
+              <img className={classes.logo} src="/img/logo.svg" />
+            </div>
+            <Grid container spacing={2}>
+              {loginErrorMessage}
+              <Grid item xs={12}>
+                <TextField name="username" label="User Name" />
               </Grid>
-            </Box>
-          </Form>
-        )}
+              <Grid item xs={12}>
+                <TextField name="password" label="Password" />
+              </Grid>
+              <Grid item xs={12} container alignItems="center" justify="center">
+                <Box paddingTop={3}>
+                  <Button type="submit" variant="contained" color="primary">
+                    Login
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid container alignItems="center" justify="center">
+                <a href="">or, Register</a>
+              </Grid>
+            </Grid>
+          </Box>
+        </Form>
       </Formik>
     </Container>
   );
