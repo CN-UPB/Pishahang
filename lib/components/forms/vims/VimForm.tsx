@@ -63,32 +63,35 @@ type FormValues = {
 };
 
 export const VimForm: React.FunctionComponent = () => {
-  const initialFormValues = {};
   const classes = useStyles(1);
+
   const onSubmit = async (values: FormValues) => {
     alert(values.city);
   };
+
   const validationSchema = Yup.object().shape({
     country: Yup.string().required("Required"),
     city: Yup.string().required("Required"),
-    awsVim: {
+    awsVim: Yup.object({
       accessKey: Yup.string().required("Required"),
       secretKey: Yup.string().required("Required"),
-    },
-    openStack: {
+    }),
+    openStack: Yup.object({
       vIMAddess: Yup.string().required("Required"),
       tenantId: Yup.string().required("Required"),
       tenantExternalId: Yup.string().required("Required"),
       tenantInternalId: Yup.string().required("Required"),
       userName: Yup.string().required("Required"),
       password: Yup.string().required("Required"),
-    },
-    kubernetes: {
+    }),
+    kubernetes: Yup.object({
       vIMAddess: Yup.string().required("Required"),
       serviceToken: Yup.string().required("Required"),
       cCC: Yup.string().required("Required"),
-    },
+    }),
   });
+
+  const initialFormValues: FormValues = {};
 
   return (
     <Container maxWidth={"md"}>
