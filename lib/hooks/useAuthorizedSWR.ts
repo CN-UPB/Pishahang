@@ -1,7 +1,8 @@
+import { AxiosError } from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import useSWR, { ConfigInterface } from "swr";
 
-import { fetchApiDataAuthorized } from "../api/auth";
+import { NullTokenError, fetchApiDataAuthorized } from "../api/auth";
 import { authError } from "../store/actions/auth";
 import { selectAuthToken } from "../store/selectors/auth";
 
@@ -13,12 +14,12 @@ import { selectAuthToken } from "../store/selectors/auth";
  * @param endpoint The API-root-relative resource URI to be fetched
  * @param swrConfig An optional SWR configuration object (where the `fetcher` key will be ignored)
  */
-export function useAuthorizedSWR(endpoint: string, swrConfig?: ConfigInterface) {
+export function useAuthorizedSWR<Data = any>(endpoint: string, swrConfig?: ConfigInterface) {
   const token = useSelector(selectAuthToken);
   const dispatch = useDispatch();
 
   const fetcher = (endpoint: string, token: string) =>
     fetchApiDataAuthorized(endpoint, token, () => dispatch(authError()));
 
-  return useSWR([endpoint, token], fetcher, swrConfig);
+  return useSWR<Data, AxiosError | NullTokenError>([endpoint, token], fetcher, swrConfig);
 }

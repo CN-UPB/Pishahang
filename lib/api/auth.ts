@@ -4,7 +4,7 @@ import { ApiReply } from "./../models/ApiReply";
 import { Session } from "./../models/Session";
 import { getApiUrl } from "./index";
 
-class NullTokenError extends Error {
+export class NullTokenError extends Error {
   constructor() {
     super("No authorization token is provided.");
   }
@@ -102,11 +102,12 @@ export async function sendAuthorizedRequest(
  * @returns The axios response
  * @throws `AxiosError` in case of failure
  */
-export function fetchApiDataAuthorized(
+export async function fetchApiDataAuthorized<Data = any>(
   endpoint: string,
   token: string,
   onAuthError: () => any
-): Promise<AxiosResponse> {
+): Promise<Data> {
   console.log("fetchApiDataAuthorized");
-  return sendAuthorizedRequest("GET", getApiUrl(endpoint), token, onAuthError, true);
+  const reply = await sendAuthorizedRequest("GET", getApiUrl(endpoint), token, onAuthError, true);
+  return reply.data;
 }
