@@ -1,10 +1,14 @@
-import { expectSaga, testSaga } from "redux-saga-test-plan";
-import { call, select } from "redux-saga/effects";
+import Router from "next/router";
+import { expectSaga } from "redux-saga-test-plan";
+import { call } from "redux-saga/effects";
 
 import { Session } from "./../../models/Session";
 import * as api from "../../api/auth";
 import * as actions from "./../actions/auth";
 import { loginSaga } from "./auth";
+
+// Mock Next.js router – it throws an error if imported in an environment other than client-side Next.js
+jest.mock("next/router");
 
 describe("loginSaga", () => {
   const session: Session = {
@@ -20,10 +24,11 @@ describe("loginSaga", () => {
     },
   };
 
-  it("should dispatch loginSuccess on successful login", () => {
+  it("should dispatch loginSuccess and redirect on successful login", () => {
     return expectSaga(loginSaga, actions.login({ username: "user", password: "pass" }))
       .provide([[call(api.login, "user", "pass"), { success: true, payload: session }]])
       .put(actions.loginSuccess(session))
+      .call(Router.push, "/")
       .run();
   });
 
