@@ -5,25 +5,25 @@ import * as React from "react";
 export const OpenStackFields: React.FunctionComponent = () => (
   <>
     <Grid item xs={6}>
-      <TextField name="vimAddress" label="VIM Address" />
+      <TextField name="openStack.vimAddress" label="VIM Address" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="tenantId" label="Tenant ID" />
+      <TextField name="openStack.tenantId" label="Tenant ID" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="tenantExternalId" label="Tenant External Network ID" />
+      <TextField name="openStack.tenantExternalId" label="Tenant External Network ID" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="tenantInternalId" label="Tenant Internal Router ID" />
+      <TextField name="openStack.tenantInternalId" label="Tenant Internal Router ID" />
     </Grid>
     <Grid item xs={12}>
-      <TextField name="domain" label="Domain" />
+      <TextField name="openStack.domain" label="Domain" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="userName" label="User Name" />
+      <TextField name="openStack.userName" label="User Name" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="password" label="Password" />
+      <TextField name="openStack.password" label="Password" />
     </Grid>
   </>
 );

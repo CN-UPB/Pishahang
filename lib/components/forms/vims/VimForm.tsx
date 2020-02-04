@@ -11,7 +11,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Form, Formik, FormikProps } from "formik";
+import { Form, Formik, FormikProps, yupToFormErrors } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
@@ -42,7 +42,7 @@ type FormValues = {
   country: string;
   city: string;
   kubernetes: {
-    vIMAddess: string;
+    vimAddressk: string;
     serviceToken: string;
     cCC: string;
   };
@@ -51,10 +51,11 @@ type FormValues = {
     secretKey: string;
   };
   openStack: {
-    vIMAddess: string;
+    vimAddress: string;
     tenantId: string;
     tenantExternalId: string;
     tenantInternalId: string;
+    domain: string;
     userName: string;
     password: string;
   };
@@ -66,32 +67,68 @@ export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
 
   const onSubmit = async (values: FormValues) => {
-    alert(values.city);
+    alert("Hei MAN! You Seriously Want to Submit IT!!!!");
   };
 
   const validationSchema = Yup.object().shape({
+    vimName: Yup.string().required("Required"),
     country: Yup.string().required("Required"),
     city: Yup.string().required("Required"),
-    awsVim: Yup.object({
-      accessKey: Yup.string().required("Required"),
-      secretKey: Yup.string().required("Required"),
+    awsVim: Yup.object().when("vimType", {
+      is: VimType.Aws,
+      then: Yup.object({
+        accessKey: Yup.string().required("Required"),
+        secretKey: Yup.string().required("Required"),
+      }),
     }),
-    openStack: Yup.object({
-      vIMAddess: Yup.string().required("Required"),
-      tenantId: Yup.string().required("Required"),
-      tenantExternalId: Yup.string().required("Required"),
-      tenantInternalId: Yup.string().required("Required"),
-      userName: Yup.string().required("Required"),
-      password: Yup.string().required("Required"),
+
+    openStack: Yup.object().when("vimType", {
+      is: VimType.OpenStack,
+      then: Yup.object({
+        vimAddress: Yup.string().required("Required"),
+        tenantId: Yup.string().required("Required"),
+        tenantExternalId: Yup.string().required("Required"),
+        tenantInternalId: Yup.string().required("Required"),
+        userName: Yup.string().required("Required"),
+        password: Yup.string().required("Required"),
+        domain: Yup.string().required("Required"),
+      }),
     }),
-    kubernetes: Yup.object({
-      vIMAddess: Yup.string().required("Required"),
-      serviceToken: Yup.string().required("Required"),
-      cCC: Yup.string().required("Required"),
+
+    kubernetes: Yup.object().when("vimType", {
+      is: VimType.Kubernetes,
+      then: Yup.object({
+        vimAddressk: Yup.string().required("Required"),
+        serviceToken: Yup.string().required("Required"),
+        cCC: Yup.string().required("Required"),
+      }),
     }),
   });
 
-  const initialFormValues: FormValues = {};
+  const initialFormValues: FormValues = {
+    country: "",
+    city: "",
+    vimName: "",
+    awsVim: {
+      accessKey: "",
+      secretKey: "",
+    },
+    kubernetes: {
+      vimAddressk: "",
+      serviceToken: "",
+      cCC: "",
+    },
+    openStack: {
+      vimAddress: "",
+      tenantId: "",
+      tenantExternalId: "",
+      tenantInternalId: "",
+      userName: "",
+      password: "",
+      domain: "",
+    },
+    vimType: VimType.OpenStack,
+  };
 
   return (
     <Container maxWidth={"md"}>
@@ -118,7 +155,7 @@ export const VimForm: React.FunctionComponent = () => {
               <Grid item xs={6} container justify="center">
                 <FormControl className={classes.formControl}>
                   <InputLabel id="vimVendor">VIM Vendor</InputLabel>
-                  <Select name="vimType">
+                  <Select name="vimType" inputProps={{ id: "some-id" }}>
                     <MenuItem value={VimType.Kubernetes}>Kubernetes</MenuItem>
                     <MenuItem value={VimType.OpenStack}>Openstack</MenuItem>
                     <MenuItem value={VimType.Aws}>AWS VIM</MenuItem>
@@ -130,7 +167,7 @@ export const VimForm: React.FunctionComponent = () => {
               {formikProps.values.vimType == VimType.Aws && <AwsFields />}
               <Grid item xs={12} container alignItems="center" justify="center">
                 <Box paddingTop={3}>
-                  <Button variant="contained" color="primary">
+                  <Button type="submit" variant="contained" color="primary">
                     Submit
                   </Button>
                 </Box>

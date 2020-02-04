@@ -5,13 +5,13 @@ import * as React from "react";
 export const KubernetesFields: React.FunctionComponent = () => (
   <>
     <Grid item xs={6}>
-      <TextField name="vimAddress" label="VIM Address" />
+      <TextField name="kubernetes.vimAddressk" label="VIM Address" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="serviceToken" label="Service Token" />
+      <TextField name="kubernetes.serviceToken" label="Service Token" />
     </Grid>
     <Grid item xs={6}>
-      <TextField name="cCC" label="Cluster CA Certificate" />
+      <TextField name="kubernetes.cCC" label="Cluster CA Certificate" />
     </Grid>
   </>
 );
