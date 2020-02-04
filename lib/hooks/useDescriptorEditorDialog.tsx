@@ -23,9 +23,7 @@ function useStateRef(initialValue) {
   return [value, setValue, ref];
 }
 
-export function useDescriptorEditorDialog(): (vnfdMeta: VnfdMeta) => void {
-  let data: VnfdMeta = null;
-
+export function useDescriptorEditorDialog(): () => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef("");
 
@@ -124,8 +122,7 @@ export function useDescriptorEditorDialog(): (vnfdMeta: VnfdMeta) => void {
     </GenericDialog>
   ));
 
-  return function showDescriptorEditorDialog(vnfdMeta: VnfdMeta) {
-    data = vnfdMeta;
+  return function showDescriptorEditorDialog() {
     showDialog();
   };
 }

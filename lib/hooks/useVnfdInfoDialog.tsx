@@ -14,7 +14,7 @@ import { useModal } from "react-modal-hook";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { VnfdMeta } from "../models/VnfdMeta";
 
-export function useVnfdInfoDialog(): (vnfdMeta: VnfdMeta) => void {
+export function useVnfdInfoDialog() {
   let data: VnfdMeta = null;
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
