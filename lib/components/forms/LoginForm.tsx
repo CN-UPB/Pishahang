@@ -7,6 +7,7 @@ import * as Yup from "yup";
 
 import { login } from "./../../store/actions/auth";
 import { selectLoginErrorMessage } from "../../store/selectors/auth";
+import { Link } from "../links/Link";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -32,10 +33,7 @@ export const LoginForm: React.FunctionComponent = () => {
   const loginErrorMessage = useSelector(selectLoginErrorMessage);
   const dispatch = useDispatch();
 
-  const onSubmit = async (values: FormValues) => {
-    dispatch(login(values));
-    console.log(values);
-  };
+  const onSubmit = async (values: FormValues) => dispatch(login(values));
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Required"),
@@ -65,7 +63,7 @@ export const LoginForm: React.FunctionComponent = () => {
                 <TextField name="username" label="User Name" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="password" label="Password" />
+                <TextField name="password" label="Password" type="password" />
               </Grid>
               <Grid item xs={12} container alignItems="center" justify="center">
                 <Box paddingTop={3}>
@@ -75,7 +73,7 @@ export const LoginForm: React.FunctionComponent = () => {
                 </Box>
               </Grid>
               <Grid container alignItems="center" justify="center">
-                <a href="">or, Register</a>
+                or&nbsp;<Link href="/register">register</Link>
               </Grid>
             </Grid>
           </Box>
