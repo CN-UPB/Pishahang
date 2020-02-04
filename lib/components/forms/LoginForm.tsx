@@ -1,28 +1,9 @@
-import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  Link,
-  MenuItem,
-  Theme,
-  Typography,
-  createStyles,
-  makeStyles,
-} from "@material-ui/core";
-import { ErrorMessage, Form, Formik, FormikProps } from "formik";
-import { Select, TextField } from "formik-material-ui";
+import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@material-ui/core";
+import { Form, Formik } from "formik";
+import { TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
 
-type FormValues = {
-  email: string;
-  password: string;
-};
-const drawerWidth = 240;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     logoContainer: {
@@ -37,10 +18,15 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
+type FormValues = {
+  email: string;
+  password: string;
+};
+
 export const LoginForm: React.FunctionComponent = () => {
-  const initialFormValues = {};
   const classes = useStyles({});
-  const onSubmit = async (values: FormValues) => {};
+
+  const onSubmit = () => {};
 
   const validationSchema = Yup.object().shape({
     email: Yup.string()
@@ -52,6 +38,11 @@ export const LoginForm: React.FunctionComponent = () => {
       .oneOf([Yup.ref("password")], "Password does not match"),
   });
 
+  const initialFormValues: FormValues = {
+    email: "",
+    password: "",
+  };
+
   return (
     <Container maxWidth={"xs"}>
       <Formik
@@ -59,33 +50,31 @@ export const LoginForm: React.FunctionComponent = () => {
         onSubmit={onSubmit}
         validationSchema={validationSchema}
       >
-        {(formikProps: FormikProps<FormValues>) => (
-          <Form>
-            <Box padding={6}>
-              <div className={classes.logoContainer}>
-                <img className={classes.logo} src="/img/logo.svg" />
-              </div>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField name="email" label="Email" />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField name="password" label="Password" />
-                </Grid>
-                <Grid item xs={12} container alignItems="center" justify="center">
-                  <Box paddingTop={3}>
-                    <Button variant="contained" color="primary">
-                      Login
-                    </Button>
-                  </Box>
-                </Grid>
-                <Grid container alignItems="center" justify="center">
-                  <a href="">or, Register</a>
-                </Grid>
+        <Form>
+          <Box padding={6}>
+            <div className={classes.logoContainer}>
+              <img className={classes.logo} src="/img/logo.svg" />
+            </div>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField name="email" label="Email" />
               </Grid>
-            </Box>
-          </Form>
-        )}
+              <Grid item xs={12}>
+                <TextField name="password" label="Password" />
+              </Grid>
+              <Grid item xs={12} container alignItems="center" justify="center">
+                <Box paddingTop={3}>
+                  <Button variant="contained" color="primary">
+                    Login
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid container alignItems="center" justify="center">
+                <a href="">or, Register</a>
+              </Grid>
+            </Grid>
+          </Box>
+        </Form>
       </Formik>
     </Container>
   );
