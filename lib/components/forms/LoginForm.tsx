@@ -2,7 +2,11 @@ import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@
 import { Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
+
+import { login } from "./../../store/actions/auth";
+import { selectLoginErrorMessage } from "../../store/selectors/auth";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -19,27 +23,27 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 type FormValues = {
-  email: string;
+  username: string;
   password: string;
 };
 
 export const LoginForm: React.FunctionComponent = () => {
   const classes = useStyles({});
+  const loginErrorMessage = useSelector(selectLoginErrorMessage);
+  const dispatch = useDispatch();
 
-  const onSubmit = () => {};
+  const onSubmit = async (values: FormValues) => {
+    dispatch(login(values));
+    console.log(values);
+  };
 
   const validationSchema = Yup.object().shape({
-    email: Yup.string()
-      .email("Invalid email")
-      .required("Required"),
+    username: Yup.string().required("Required"),
     password: Yup.string().required("Required"),
-    confirmPassword: Yup.string()
-      .required("Required")
-      .oneOf([Yup.ref("password")], "Password does not match"),
   });
 
   const initialFormValues: FormValues = {
-    email: "",
+    username: "",
     password: "",
   };
 
@@ -56,8 +60,9 @@ export const LoginForm: React.FunctionComponent = () => {
               <img className={classes.logo} src="/img/logo.svg" />
             </div>
             <Grid container spacing={2}>
+              {loginErrorMessage}
               <Grid item xs={12}>
-                <TextField name="email" label="Email" />
+                <TextField name="username" label="User Name" />
               </Grid>
               <Grid item xs={12}>
                 <TextField name="password" label="Password" />

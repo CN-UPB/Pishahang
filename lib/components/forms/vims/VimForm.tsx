@@ -71,19 +71,23 @@ export const VimForm: React.FunctionComponent = () => {
   const validationSchema = Yup.object().shape({
     country: Yup.string().required("Required"),
     city: Yup.string().required("Required"),
-    vimName: Yup.string().required("Required"),
-    vimVendor: Yup.string().required("Required"),
-    accessKey: Yup.string().required("Required"),
-    secretKey: Yup.string().required("Required"),
-    vimAddress: Yup.string().required("Required"),
-    tenantId: Yup.string().required("Required"),
-    tenantExternalId: Yup.string().required("Required"),
-    tenantInternalId: Yup.string().required("Required"),
-    domain: Yup.string().required("Required"),
-    userName: Yup.string().required("Required"),
-    password: Yup.string().required("Required"),
-    serviceToken: Yup.string().required("Required"),
-    cCC: Yup.string().required("Required"),
+    awsVim: {
+      accessKey: Yup.string().required("Required"),
+      secretKey: Yup.string().required("Required"),
+    },
+    openStack: {
+      vIMAddess: Yup.string().required("Required"),
+      tenantId: Yup.string().required("Required"),
+      tenantExternalId: Yup.string().required("Required"),
+      tenantInternalId: Yup.string().required("Required"),
+      userName: Yup.string().required("Required"),
+      password: Yup.string().required("Required"),
+    },
+    kubernetes: {
+      vIMAddess: Yup.string().required("Required"),
+      serviceToken: Yup.string().required("Required"),
+      cCC: Yup.string().required("Required"),
+    },
   });
 
   return (
