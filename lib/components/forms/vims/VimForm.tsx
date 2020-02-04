@@ -3,15 +3,13 @@ import {
   Button,
   Container,
   FormControl,
-  FormHelperText,
   Grid,
   InputLabel,
-  Link,
   MenuItem,
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Form, Formik, FormikProps, yupToFormErrors } from "formik";
+import { Form, Formik, FormikProps } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
@@ -66,7 +64,7 @@ type FormValues = {
 export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async () => {
     alert("Hei MAN! You Seriously Want to Submit IT!!!!");
   };
 
