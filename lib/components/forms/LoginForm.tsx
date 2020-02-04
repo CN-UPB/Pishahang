@@ -69,7 +69,7 @@ export const LoginForm: React.FunctionComponent = () => {
               </Grid>
               <Grid item xs={12} container alignItems="center" justify="center">
                 <Box paddingTop={3}>
-                  <Button variant="contained" color="primary">
+                  <Button type="submit" variant="contained" color="primary">
                     Login
                   </Button>
                 </Box>
