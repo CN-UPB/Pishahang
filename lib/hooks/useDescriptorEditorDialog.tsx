@@ -34,19 +34,14 @@ export function useDescriptorEditorDialog(): (vnfdMeta: VnfdMeta) => void {
    * @param newValue
    */
   function onChange(newValue) {
-    //console.log("change", newValue);
     setFormData(newValue);
-    console.log(newValue, " load ", formDataRef.current);
-    //event => setFormData(event.target.value);
   }
 
   /**
    * Sets changes on load of the editor
    * @param newValue
    */
-  function onLoad(newValue) {
-    console.log(">.<", newValue);
-  }
+  function onLoad(newValue) {}
 
   /**
    * Function for saving modified file
@@ -54,9 +49,7 @@ export function useDescriptorEditorDialog(): (vnfdMeta: VnfdMeta) => void {
   function onSave() {
     if (formDataRef.current !== "") {
       //save something only if changes are made
-      console.log("SAVED!! ", formDataRef.current);
     }
-    console.log("SAVED!! HIDE DIALOG ", formDataRef.current);
     hideDialog();
   }
 
@@ -67,9 +60,7 @@ export function useDescriptorEditorDialog(): (vnfdMeta: VnfdMeta) => void {
     if (formDataRef.current !== "") {
       //confirm close
       showConfirmDialog();
-      console.log("CONFIRM CLOSE " + formDataRef.current);
     }
-    console.log("HIDE DIALOG " + formDataRef.current);
     hideDialog();
   }
 
