@@ -22,16 +22,15 @@ class NullTokenError extends Error {
 export async function login(username: string, password: string): Promise<ApiReply<Session>> {
   try {
     const reply = await axios.post(getApiUrl("sessions"), { username, password });
-    switch (reply.status) {
+    return { success: true, payload: reply.data };
+  } catch (error) {
+    switch ((error as AxiosError).response?.status) {
       case 401:
         return { success: false, message: "Invalid username or password" };
-      case 200:
-        return { success: true, payload: reply.data };
+      default:
+        return { success: false, message: "An unexpected error occurred. Please try again." };
     }
-  } catch (e) {
-    console.log(e);
   }
-  return { success: false, message: "An unexpected error occurred. Please try again." };
 }
 
 /**
