@@ -25,7 +25,7 @@ services:
 
   # Gatekeeper Packages
   son-gtkpkg:
-    build: ./son-gkeeper/son-gtkpkg
+    # build: ./son-gkeeper/son-gtkpkg # Build fails, but will be removed anyway
 
   # Gatekeeper Services
   son-gtksrv:
@@ -49,11 +49,11 @@ services:
 
   # Gatekeeper License Manager
   son-gtklic:
-    build: ./son-gkeeper/son-gtklic
+    # build: ./son-gkeeper/son-gtklic # Build fails, but will be removed anyway
 
   # Gatekeeper Key Performance Indicators
   son-gtkkpi:
-    build: ./son-gkeeper/son-gtkkpi
+    # build: ./son-gkeeper/son-gtkkpi # Build fails, but will be removed anyway
 
   # Gatekeeper User Management
   son-gtkusr:
@@ -66,6 +66,10 @@ services:
   # Gatekeeper API
   son-gtkapi:
     build: ./son-gkeeper/son-gtkapi
+    volumes:
+    - ./son-gkeeper/son-gtkapi:/app
+    command: 'bash -c "bundle install --quiet && bundle exec rerun -- puma -C config/puma.rb -b tcp://0.0.0.0:5000"'
+    tty: true
 
   # Repositories ---------------------------------------------------------------
   son-catalogue-repos:
