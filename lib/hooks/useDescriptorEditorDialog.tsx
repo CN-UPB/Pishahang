@@ -26,7 +26,6 @@ function useStateRef(initialValue) {
 export function useDescriptorEditorDialog(): () => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef("");
-
   /**
    * Called during any change in the editor
    * @param newValue
@@ -49,6 +48,7 @@ export function useDescriptorEditorDialog(): () => void {
       //save something only if changes are made
     }
     hideDialog();
+    setFormData("");
   }
 
   /**
