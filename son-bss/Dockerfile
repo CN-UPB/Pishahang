@@ -1,15 +1,16 @@
-FROM node:5-slim
+FROM node:12-slim
 
 MAINTAINER Optare [fporto,srodriguez,jcunha]@optaresolutions.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -yq update && \
-    apt-get -yq install bash sudo git bzip2 jvm-7-avian-jre 
+    apt-get -yq install bash sudo git bzip2
+    #jvm-7-avian-jre 
     #openjdk-7-jdk
 
 # Install Bower & Grunt
-RUN npm install -g --silent bower@1.7.6 grunt@1.0.1 grunt-ng-constant@2.0.1
+RUN npm install -g grunt@1.0.1 grunt-ng-constant@2.0.1
 
 # Add a sonata user because grunt doesn't like being root
 RUN adduser --disabled-password --gecos "" sonata && \
@@ -25,8 +26,9 @@ WORKDIR /usr/local/bss/code
 
 USER sonata
 
-# bower install && npm install
-RUN bower install && sudo npm install
+# install npm and bower packages using yarn
+RUN yarn
+RUN yarn postinstall
 RUN sudo node ./node_modules/protractor/bin/webdriver-manager update
 
 # Your app should be listening in this port
