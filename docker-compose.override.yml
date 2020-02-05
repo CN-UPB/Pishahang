@@ -131,7 +131,7 @@ services:
 
   # Infrastructure Abstractor WIM Adaptor
   wim-adaptor:
-    build: ./son-sp-infrabstract/wim-adaptor
+    # build: ./son-sp-infrabstract/wim-adaptor # Build fails, but will be removed anyway
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
