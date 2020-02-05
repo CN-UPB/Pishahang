@@ -28,6 +28,7 @@
     "formik-material-ui": "^2.0.0-alpha.3",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
+    "material-ui-dropzone": "^2.4.7",
     "material-ui-icons": "^1.0.0-beta.36",
     "next": "^9.1.7",
     "next-redux-cookie-wrapper": "^1.0.1",
