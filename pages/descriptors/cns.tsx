@@ -1,12 +1,16 @@
 import Fab from "@material-ui/core/Fab";
 import { CloudUpload, DateRange } from "@material-ui/icons";
+import { SimpleFileUpload } from "formik-material-ui";
 import { NextPage } from "next";
 
 import { Page } from "../../lib/components/layout/Page";
 import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
+import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
 import { VnfdMeta } from "../../lib/models/VnfdMeta";
 
 const ContainersPage: NextPage = () => {
+  const showDescriptorUploadDialog = useDescriptorUploadDialog();
+
   const data: VnfdMeta[] = [
     {
       status: "active",
@@ -30,7 +34,13 @@ const ContainersPage: NextPage = () => {
 
   return (
     <Page title="CN Based VNF Descriptors">
-      <Fab color="primary" size="small" style={{ float: "right" }} aria-label="Upload">
+      <Fab
+        color="primary"
+        size="small"
+        style={{ float: "right" }}
+        aria-label="Upload"
+        onClick={showDescriptorUploadDialog}
+      >
         <CloudUpload />
       </Fab>
       <VnfdTable pageName="Container" data={data}></VnfdTable>

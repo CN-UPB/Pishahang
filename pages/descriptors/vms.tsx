@@ -4,9 +4,11 @@ import { NextPage } from "next";
 
 import { Page } from "../../lib/components/layout/Page";
 import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
+import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
 import { VnfdMeta } from "../../lib/models/VnfdMeta";
 
 const VirtualMachinesPage: NextPage = () => {
+  const showDescriptorUploadDialog = useDescriptorUploadDialog();
   const data: VnfdMeta[] = [
     {
       status: "active",
@@ -30,7 +32,13 @@ const VirtualMachinesPage: NextPage = () => {
 
   return (
     <Page title="VM Based VNF Descriptors">
-      <Fab color="primary" size="small" style={{ float: "right" }} aria-label="Upload">
+      <Fab
+        color="primary"
+        size="small"
+        style={{ float: "right" }}
+        aria-label="Upload"
+        onClick={showDescriptorUploadDialog}
+      >
         <CloudUpload />
       </Fab>
       <VnfdTable data={data}></VnfdTable>
