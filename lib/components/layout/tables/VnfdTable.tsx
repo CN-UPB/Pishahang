@@ -66,7 +66,10 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
                 <IconButton onClick={() => showDescriptorEditorDialog()}>
                   <Edit htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row)}>
+                <IconButton
+                  color="primary"
+                  onClick={() => showDescriptorDeleteDialog(row.uuid, row.descriptor.name)}
+                >
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>

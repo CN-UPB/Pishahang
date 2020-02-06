@@ -13,7 +13,6 @@ const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"
 
 function useStateRef(initialValue) {
   const [value, setValue] = React.useState(initialValue);
-
   const ref = React.useRef(value);
 
   React.useEffect(() => {

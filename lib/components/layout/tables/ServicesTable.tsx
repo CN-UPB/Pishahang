@@ -10,9 +10,9 @@ import TableRow from "@material-ui/core/TableRow";
 import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@material-ui/icons";
 import React from "react";
 
+import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
 import { Service } from "../../../models/Service";
-import { VnfdMeta } from "../../../models/VnfdMeta";
 
 const useStyles = makeStyles({
   table: {
@@ -32,6 +32,7 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
   const showServiceInfoDialog = useServiceInfoDialog();
+  const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
   return (
     <TableContainer component={Paper}>
@@ -63,7 +64,10 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
                 <IconButton>
                   <PlayCircleOutline htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton color="primary">
+                <IconButton
+                  color="primary"
+                  onClick={() => showDescriptorDeleteDialog(row.uuid, row.cosd.name)}
+                >
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>
