@@ -3,16 +3,29 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
-import { VnfdMeta } from "../models/VnfdMeta";
 
 export function useDescriptorDeleteDialog() {
-  let data: VnfdMeta = null;
+  let descriptorUUID,
+    descriptorName: string = "";
+  let dialogText =
+    "Are you sure you want to delete descriptor\nName: " +
+    { descriptorName } +
+    "\nUUID: " +
+    { descriptorUUID };
+
+  console.log(
+    "Are you sure you want to delete descriptor\nName: " +
+      descriptorName +
+      "\nUUID: " +
+      descriptorUUID
+  );
+
   /**
    * On Confirmation delete the descriptor and remove it from the Descriptor list
    */
   function deleteDescriptor() {
     //Delete descriptor and update descriptor list
-    //console.log(data.uuid);
+    console.log(descriptorUUID);
     hideConfirmDialog();
   }
 
@@ -23,7 +36,7 @@ export function useDescriptorDeleteDialog() {
     <TextDialog
       dialogId="ConfirmClose"
       dialogTitle="Delete Descriptor"
-      dialogText="Are you sure you want to delete this descriptor?"
+      dialogText={dialogText}
       open={open}
       onExited={onExited}
       onClose={hideConfirmDialog}
@@ -40,8 +53,16 @@ export function useDescriptorDeleteDialog() {
     ></TextDialog>
   ));
 
-  return function showDescriptorDeleteDialog(vnfdMeta: VnfdMeta) {
-    data = vnfdMeta;
+  return function showDescriptorDeleteDialog(uuid: string, name: string) {
+    descriptorUUID = uuid;
+    descriptorName = name;
+
+    console.log(
+      "Are you sure you want to delete descriptor\nName: " +
+        descriptorName +
+        "\nUUID: " +
+        descriptorUUID
+    );
     showConfirmDialog();
   };
 }
