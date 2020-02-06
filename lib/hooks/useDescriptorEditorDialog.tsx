@@ -46,9 +46,14 @@ export function useDescriptorEditorDialog(): () => void {
   function onSave() {
     if (formDataRef.current !== "") {
       //save something only if changes are made
+      console.log("SAVED ", formDataRef.current);
+      hideDialog();
+      setFormData("");
+    } else {
+      hideDialog();
+      console.log("SAVEDN ", formDataRef.current);
+      setFormData("");
     }
-    hideDialog();
-    setFormData("");
   }
 
   /**
@@ -58,8 +63,9 @@ export function useDescriptorEditorDialog(): () => void {
     if (formDataRef.current !== "") {
       //confirm close
       showConfirmDialog();
+    } else {
+      hideDialog();
     }
-    hideDialog();
   }
 
   /**
@@ -67,6 +73,7 @@ export function useDescriptorEditorDialog(): () => void {
    */
   function closeConfirmationDialog() {
     hideConfirmDialog();
+    hideDialog();
     setFormData("");
   }
 
@@ -83,7 +90,7 @@ export function useDescriptorEditorDialog(): () => void {
       onClose={hideConfirmDialog}
       buttons={
         <>
-          <Button variant="contained" onClick={showDialog} color="secondary" autoFocus>
+          <Button variant="contained" onClick={hideConfirmDialog} color="secondary" autoFocus>
             no
           </Button>
           <Button variant="contained" onClick={closeConfirmationDialog} color="primary" autoFocus>
