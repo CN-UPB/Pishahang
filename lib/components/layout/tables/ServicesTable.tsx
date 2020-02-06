@@ -8,8 +8,11 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@material-ui/icons";
-//import PlayCircleButton from "@material-ui/icons";
 import React from "react";
+
+import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
+import { Service } from "../../../models/Service";
+import { VnfdMeta } from "../../../models/VnfdMeta";
 
 const useStyles = makeStyles({
   table: {
@@ -17,17 +20,18 @@ const useStyles = makeStyles({
   },
 });
 
-function createData(name: string, version: string, description: string) {
-  return { name, version, description };
-}
+type Props = {
+  /**
+   * Property to check page name
+   */
+  pageName?: any;
+  data: Service[];
+};
 
-const rows = [
-  createData("ICMP-forwarder", "1.0", "ICMP forwarder; consists of CN- and VM-based VNFs"),
-];
-
-export const ServicesTable: React.FunctionComponent = () => {
+export const ServicesTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
+  const showServiceInfoDialog = useServiceInfoDialog();
 
   return (
     <TableContainer component={Paper}>
@@ -45,15 +49,15 @@ export const ServicesTable: React.FunctionComponent = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (
-            <TableRow key={row.name}>
+          {props.data.map(row => (
+            <TableRow key={row.cosd.name}>
               <TableCell component="th" scope="row">
-                {row.name}
+                {row.cosd.name}
               </TableCell>
-              <TableCell align="left">{row.version}</TableCell>
-              <TableCell align="center">{row.description}</TableCell>
+              <TableCell align="left">{row.cosd.version}</TableCell>
+              <TableCell align="center">{row.cosd.description}</TableCell>
               <TableCell align="center">
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => showServiceInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
                 <IconButton>
