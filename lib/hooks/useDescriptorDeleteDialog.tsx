@@ -12,7 +12,7 @@ export function useDescriptorDeleteDialog() {
    */
   function deleteDescriptor() {
     //Delete descriptor and update descriptor list
-    console.log(data.uuid);
+    //console.log(data.uuid);
     hideConfirmDialog();
   }
 
