@@ -85,7 +85,7 @@ export const DrawerContent: React.FunctionComponent = () => {
       <Divider />
       <List>
         <LinkedListItem
-          text={"Services"}
+          text={"Service Instances"}
           icon={ScatterPlotRounded}
           href={"/services"}
         ></LinkedListItem>
