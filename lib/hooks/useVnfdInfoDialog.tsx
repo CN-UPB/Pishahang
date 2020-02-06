@@ -87,6 +87,15 @@ export function useVnfdInfoDialog() {
               </TableCell>
               <TableCell align="left">{data.updated_at.toString()}</TableCell>
             </TableRow>
+
+            <TableRow>
+              <TableCell component="th" scope="row">
+                <Typography variant="body2" gutterBottom>
+                  UUID:
+                </Typography>
+              </TableCell>
+              <TableCell align="left">{data.uuid}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
