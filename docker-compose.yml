@@ -78,7 +78,7 @@ services:
   # Influxdb for monitoring
   # influxdb.yml
   son-monitor-influxdb:
-    image: tdierich/son-monitor-influxdb
+    image: pishahang/monitor-influxdb
     restart: always
     networks:
       pishanet:
@@ -91,7 +91,7 @@ services:
   # Keycloak
   # keycloak.yml
   son-keycloak:
-    image: tdierich/son-keycloak
+    image: pishahang/gtk-keycloak
     restart: always
     environment:
       KEYCLOAK_USER: ${GTK_KEYCLOAK_USER}
@@ -107,7 +107,7 @@ services:
   # Gatekeeper GUI
   # gui.yml
   son-gui:
-    image: tdierich/son-gui
+    image: pishahang/gui
     restart: always
     depends_on:
       - son-gtkapi
@@ -120,7 +120,7 @@ services:
   # Gatekeeper BSS
   # bss.yml
   son-bss:
-    image: tdierich/son-yo-gen-bss
+    image: pishahang/bss
     restart: always
     command: "grunt serve:integration --gkApiUrl=http://${PUBLIC_DOMAIN_NAME}/api/v2 --hostname=0.0.0.0 --userManagementEnabled=true --licenseManagementEnabled=true --debug"
     networks:
@@ -167,7 +167,7 @@ services:
   # Gatekeeper Services
   # gtk/srv.yml
   son-gtksrv:
-    image: tdierich/son-gtksrv
+    image: pishahang/gtk-services:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -192,7 +192,7 @@ services:
   # Gatekeeper Cloud Services
   # gtk/csrv.yml
   son-gtkcsrv:
-    image: tdierich/son-gtkcsrv
+    image: pishahang/gtk-cloud-services:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -215,7 +215,7 @@ services:
   # Gatekeeper Functions
   # gtk/fnct.yml
   son-gtkfnct:
-    image: sonatanfv/son-gtkfnct:${SONATA_VERSION}
+    image: pishahang/gtk-functions:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -230,7 +230,7 @@ services:
   # Gatekeeper Records
   # gtk/rec.yml
   son-gtkrec:
-    image: tdierich/son-gtkrec
+    image: pishahang/gtk-records:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-catalogue-repos
@@ -245,7 +245,7 @@ services:
   # Gatekeeper VIM
   # gtk/vim.yml
   son-gtkvim:
-    image: sonatanfv/son-gtkvim:${SONATA_VERSION}
+    image: pishahang/gtk-vims:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -307,7 +307,7 @@ services:
   # Gatekeeper User Management
   # gtk/usr.yml
   son-gtkusr:
-    image: tdierich/son-gtkusr
+    image: pishahang/gtk-user-management:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-keycloak
@@ -325,7 +325,7 @@ services:
   # Gatekeeper Rate Limiter
   # gtk/rlt.yml
   son-gtkrlt:
-    image: tdierich/son-gtkrlt
+    image: pishahang/gtk-rate-limiter:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-redis
@@ -341,7 +341,7 @@ services:
   # Gatekeeper API
   # gtk/api.yml
   son-gtkapi:
-    image: tdierich/son-gtkapi
+    image: pishahang/gtk-api:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkusr
@@ -379,7 +379,7 @@ services:
   # Repositories ---------------------------------------------------------------
   # repos.yml
   son-catalogue-repos:
-    image: tdierich/son-catalogue-repos
+    image: pishahang/catalogue-repos:${PISHAHANG_VERSION}
     restart: always
     networks:
       - pishanet
@@ -391,7 +391,7 @@ services:
   # MANO Plug-in Manager
   # mano/pluginmgr.yml
   pluginmanager:
-    image: sonatanfv/pluginmanager:${SONATA_VERSION}
+    image: pishahang/mano-pluginmanager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-mongo
@@ -407,7 +407,7 @@ services:
   # MANO Service Life-cycle Management
   # mano/slm.yml
   servicelifecyclemanagement:
-    image: pishahang/servicelifecyclemanagement
+    image: pishahang/mano-plugin-service-lifecycle-management:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -426,7 +426,7 @@ services:
   # MANO Function Lifecycle Management Plugin
   # mano/flm.yml
   functionlifecyclemanagement:
-    image: sonatanfv/functionlifecyclemanagement:${SONATA_VERSION}
+    image: pishahang/mano-plugin-function-lifecycle-management:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -445,7 +445,7 @@ services:
   # MANO Specific Manager Registry (SMR)
   # mano/smr.yml
   specificmanagerregistry:
-    image: sonatanfv/specificmanagerregistry:${SONATA_VERSION}
+    image: pishahang/mano-specificmanagerregistry:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -460,7 +460,7 @@ services:
   # MANO Placement Executive Plugin
   # mano/placement.yml
   placementexecutive:
-    image: sonatanfv/placementexecutive:${SONATA_VERSION}
+    image: pishahang/mano-plugin-placement-executive:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -472,7 +472,7 @@ services:
   # MANO Placement Plugin
   # mano/placementplugin.yml
   placementplugin:
-    image: tdierich/placementplugin
+    image: pishahang/mano-plugin-placement:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -484,7 +484,7 @@ services:
   # MANO Cloud Service Life-cycle Management (CLM)
   # mano/clm.yml
   cloudservicelifecyclemanagement:
-    image: tdierich/cloudservicelifecyclemanagement
+    image: pishahang/mano-plugin-cloud-service-lifecycle-management:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -503,7 +503,7 @@ services:
   # MANO SDN
   # mano/sdn.yml
   sdn-plugin:
-    image: pishahang/sdn-controller
+    image: pishahang/mano-plugin-sdn:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -528,7 +528,7 @@ services:
   # Infrastructure Abstractor VIM Adaptor
   # ifta/vim-adaptor.yml
   son-sp-infrabstract:
-    image: tdierich/son-sp-infrabstract
+    image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -568,7 +568,7 @@ services:
   # Monitoring Push Gateway
   # monit/pushgw.yml
   son-monitor-pushgateway:
-    image: sonatanfv/son-monitor-pushgateway:${SONATA_VERSION}
+    image: pishahang/monitor-pushgateway:${PISHAHANG_VERSION}
     restart: always
     networks:
       pishanet:
@@ -580,7 +580,7 @@ services:
   # Monitoring – Prometheus
   # monit/prometheus.yml
   son-monitor-prometheus:
-    image: tdierich/son-monitor-prometheus
+    image: pishahang/monitor-prometheus:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-broker
@@ -599,7 +599,7 @@ services:
   # Monitoring Manager
   # monit/monitmgr.yml
   son-monitor-manager:
-    image: tdierich/son-monitor-manager
+    image: pishahang/monitor-manager:${PISHAHANG_VERSION}
     restart: always
     networks:
       - pishanet
@@ -628,7 +628,7 @@ services:
   # Security Gateway -----------------------------------------------------------
   # sec-gw.yml
   son-sec-gw:
-    image: sonatanfv/son-sec-gw:${SONATA_VERSION}
+    image: pishahang/gtk-sec-gateway:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gui
