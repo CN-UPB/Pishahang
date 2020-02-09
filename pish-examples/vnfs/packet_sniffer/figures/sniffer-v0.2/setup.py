@@ -5,10 +5,10 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # configure plugin name here
-CONTAINER_NAME = "mac-ip-recorder"
+CONTAINER_NAME = "rtmp-sniffer"
 
 # generate a name without dashes
-CONTAINER_NAME_CLEAR = "mac_ip_recorder"
+CONTAINER_NAME_CLEAR = "rtmp_sniffer"
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -19,7 +19,7 @@ setup(
 
     version='1.0',
 
-    description='Recordes MAC and IP addresses of RTMP packets',
+    description='RTMP packet sniffer',
     long_description=long_description,
 
     # The project's main homepage.
@@ -33,7 +33,7 @@ setup(
     license='Apache 2.0',
 
     packages=find_packages(),
-    install_requires=['argparse', 'mongoengine', 'amqpstorm', 'PyYAML', 'Flask==0.10.1', 'flask-restful', 'requests', 'Jinja2==2.11.0'],
+    install_requires=['mongoengine', 'amqpstorm', 'PyYAML', 'pyzmq'],
     setup_requires=[],
 
     # To provide executable scripts, use entry points in preference to the

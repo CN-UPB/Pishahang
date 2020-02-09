@@ -49,5 +49,6 @@ def initialize(db="mac-ip-pair",
     LOG.info("Connected to MongoDB %r@%s:%d" % (db, host, port))
     if clear_db:
         # remove all old data from DB
+        LOG.info("Clearing  MongoDB")
         db_conn.drop_database(db)
         LOG.info("Cleared DB %r" % db)
