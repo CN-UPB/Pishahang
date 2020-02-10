@@ -26,6 +26,7 @@
     "axios": "^0.19.2",
     "formik": "^2.1.2",
     "formik-material-ui": "^2.0.0-alpha.3",
+    "i": "^0.3.6",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "material-ui-dropzone": "^2.4.7",
