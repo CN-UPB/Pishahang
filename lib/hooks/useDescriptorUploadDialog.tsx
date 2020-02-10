@@ -6,7 +6,7 @@ import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 
 export function useDescriptorUploadDialog() {
-  const acceptedFiles = ["text/yaml"];
+  const acceptedFiles = []; //Cannot get this to only allow for .yaml files upload
   /**
    * Display a dialog for uploading Descriptors...
    */
@@ -31,7 +31,7 @@ export function useDescriptorUploadDialog() {
         showPreviews={false}
         showAlerts={true}
         filesLimit={1}
-        dropzoneText={"drag or click to add descriptor files"}
+        dropzoneText={"Drag or Click"}
       ></FileSelector>
     </GenericDialog>
   ));

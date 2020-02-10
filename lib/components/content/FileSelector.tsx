@@ -19,14 +19,18 @@ type Props = {
 export const FileSelector: React.FunctionComponent<Props> = props => {
   let fileSizeInBytes = props.maxFileSize * 1048576;
   function handleChange(files) {
-    console.log(files);
+    let data = files;
+    console.log(data);
   }
+
   return (
     <DropzoneArea
       dropzoneText={props.dropzoneText}
       acceptedFiles={props.acceptedFiles}
       filesLimit={props.filesLimit}
       maxFileSize={fileSizeInBytes}
+      showPreviewsInDropzone={true}
+      showFileNamesInPreview={true}
       showPreviews={props.showPreviews}
       onChange={handleChange}
     />

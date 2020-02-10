@@ -3,9 +3,9 @@ import dynamic from "next/dynamic";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 
+import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
-import { VnfdMeta } from "../models/VnfdMeta";
 
 const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"), {
   ssr: false,
@@ -45,12 +45,10 @@ export function useDescriptorEditorDialog(): () => void {
   function onSave() {
     if (formDataRef.current !== "") {
       //save something only if changes are made
-      console.log("SAVED ", formDataRef.current);
       hideDialog();
       setFormData("");
     } else {
       hideDialog();
-      console.log("SAVEDN ", formDataRef.current);
       setFormData("");
     }
   }

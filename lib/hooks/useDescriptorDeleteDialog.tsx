@@ -5,20 +5,7 @@ import { useModal } from "react-modal-hook";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
 
 export function useDescriptorDeleteDialog() {
-  let descriptorUUID,
-    descriptorName: string = "";
-  let dialogText =
-    "Are you sure you want to delete descriptor\nName: " +
-    { descriptorName } +
-    "\nUUID: " +
-    { descriptorUUID };
-
-  console.log(
-    "Are you sure you want to delete descriptor\nName: " +
-      descriptorName +
-      "\nUUID: " +
-      descriptorUUID
-  );
+  let descriptorUUID, descriptorName: string;
 
   /**
    * On Confirmation delete the descriptor and remove it from the Descriptor list
@@ -36,7 +23,7 @@ export function useDescriptorDeleteDialog() {
     <TextDialog
       dialogId="ConfirmClose"
       dialogTitle="Delete Descriptor"
-      dialogText={dialogText}
+      dialogText={"Are you sure, you want to delete this descriptor? : " + descriptorName}
       open={open}
       onExited={onExited}
       onClose={hideConfirmDialog}
@@ -56,13 +43,6 @@ export function useDescriptorDeleteDialog() {
   return function showDescriptorDeleteDialog(uuid: string, name: string) {
     descriptorUUID = uuid;
     descriptorName = name;
-
-    console.log(
-      "Are you sure you want to delete descriptor\nName: " +
-        descriptorName +
-        "\nUUID: " +
-        descriptorUUID
-    );
     showConfirmDialog();
   };
 }
