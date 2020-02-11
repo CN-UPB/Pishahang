@@ -119,7 +119,7 @@ class RTMPSniffer(object):
                         LOG.info("RTMP packet found!!")
                         LOG.info("RTMP packet source MAC = '{0}' and source IP = '{1}'".format(eth.src_mac, ipv4.src))
                         LOG.info("RTMP packet destination MAC = '{0}' and destination IP = '{1}'".format(eth.dest_mac, ipv4.target))
-                        message = {"mac":eth.dest_mac, "ip":ipv4.target, "time":str(dateTimeObj)}
+                        message = {"mac":eth.src_mac, "ip":ipv4.src, "time":str(dateTimeObj)}
                         self.manoconn.call_async(self.response, self.topic, yaml.dump(message))
 
                     if len(tcp.data) > 0:
