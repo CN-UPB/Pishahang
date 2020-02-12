@@ -1,7 +1,7 @@
 ---
 descriptor_version: vnfd-schema-01
 description: Trasncoder VNF with multiple versions
-name: transcoder-image-1-mv
+name: transcoder-cpu-image-1-mv
 vendor: cn-upb
 version: '1.0'
 author: Ashwin Prasad
@@ -42,6 +42,7 @@ virtual_deployment_units_acc:
       size: 4096
       size_unit: "Mi"
 
+
 virtual_deployment_units_con:
 - id: "transcoder-image-1"
   name: "transcoder-image-1"
@@ -56,6 +57,7 @@ virtual_deployment_units_con:
     memory:
       size: 4096
       size_unit: "Mi"
+
 
 monitoring_config:
   fetch_frequency: 30
