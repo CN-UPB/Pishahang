@@ -3,15 +3,16 @@ import json
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from novaclient import client as nvclient
+from heatclient import client as hclient
 
 from kubernetes import client as k8client
 from kubernetes import config as k8config
 
 import logging
+from dateutil import parser
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
-LOG.setLevel(logging.INFO)
 
 ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tNXJmbjgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImMyNjY2OThlLTkzMDktNGM1ZS04YjgzLTAyMGFkNWNiZWY2ZiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.q760MUAznU5DUm4cAfYuGd2T5-mOQvCB-bYfZE4FhBf9nSCKntE9_W_sKoBAjhmVp59GKPLb_MXBoUZJKrAXh4KcE4JByX_XvAO656bbDrQ4OyB2_d26yB4dq-JTtfos7BrXOCg3tIRnkCeXjfj7eTul71yCTdqQ9Ac0XSaZFh-rDwlqPVegK9PSIG6WAKNVFKhIih9KXOqsJmiYkw2itstXC3le81lglmrquzcW5Mcp-_vnm4t7pTYz7aVN5XpOkY4xL_Y94Q1aD3BGmZhJlHAxdy_8QTNRxMqXQLYPQ6Zwf-H0wQgy1WARh7-Zkh0SeTYXQEb8QsngQZz4CNzDaQ"
 
@@ -130,6 +131,73 @@ def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=30):
                 
 
     return _instance_metrics
+
+def get_individual_times(serv_id, topology, ns_init_time):
+    AUTH_URL = "http://{}/identity/v3".format(topology['vim_endpoint'])
+    # FIXME: Shouldnt be hardcoded, obviously
+    OS_USERNAME = "admin"
+    OS_PASSWORD = "1234"
+    OS_PROJECT = "demo"
+
+    auth = v3.Password(auth_url=AUTH_URL,
+                username=OS_USERNAME,
+                password=OS_PASSWORD,
+                project_name=OS_PROJECT,
+                user_domain_id='default',
+                project_domain_id='default')
+
+    sess = session.Session(auth=auth)
+
+    heat = hclient.Client('1', session=sess)
+        
+    for _s in heat.stacks.list():
+        if _s.stack_name.split("SonataService-")[1] == serv_id:
+            events_list = heat.events.list(_s.id)
+
+            with open('{}.json'.format(serv_id), 'w') as f:
+                for i in events_list:
+                    json.dump(i._info, f)
+
+            server_created = parser.parse(events_list[-1].event_time)
+            launch_time = parser.parse(events_list[0].event_time)
+
+            ns_mano_time = float(server_created.strftime("%s")) - float(ns_init_time)
+            _vim_time = float(launch_time.strftime("%s")) - float(server_created.strftime("%s"))
+
+    return {
+        "ns_mano_time": ns_mano_time,
+        "vim_time": _vim_time
+        }
+
+
+def get_k8_pod_times(serv_id, topology):
+    K8_URL = "https://{}".format(topology['vim_endpoint'])
+
+    aConfiguration = k8client.Configuration()
+    aConfiguration.host = K8_URL
+
+    aConfiguration.verify_ssl = False
+    aConfiguration.api_key = {"authorization": "Bearer " + ATOKEN}
+
+    aApiClient = k8client.ApiClient(aConfiguration)
+    v1 = k8client.CoreV1Api(aApiClient)
+
+    _vim_time = 0
+    
+    _servers = v1.list_namespaced_pod(namespace='default', watch=False)
+
+    for _s in _servers.items:
+        if 'service' in _s.metadata.labels:
+            if _s.metadata.labels['service'] == serv_id:                
+                server_created = _s.metadata.creation_timestamp
+                launch_time = _s.status.container_statuses[0].state.running.started_at
+
+                _vim_time = float(launch_time.strftime("%s")) - float(server_created.strftime("%s"))
+
+    return {
+        "vim_time": _vim_time
+        }
+
 
 def run_async(func):
 	"""

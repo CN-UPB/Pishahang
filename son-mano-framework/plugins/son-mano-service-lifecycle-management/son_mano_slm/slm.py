@@ -52,10 +52,17 @@ try:
 except:
     import slm_topics as t
 
+with open("SLM-Logs.log", "w") as f:  
+    f.truncate()
+
+
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:slm")
 LOG.setLevel(logging.DEBUG)
 
+fh = logging.FileHandler('SLM-Logs.log')
+fh.setLevel(logging.INFO)
+LOG.addHandler(fh)
 
 class ServiceLifecycleManager(ManoBasePlugin):
     """
@@ -706,6 +713,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Add topology to ledger
         self.services[serv_id]['infrastructure']['topology'] = message
 
+        # LOG.info("EXP: request_topology - {}".format(time.time() - self.TIME_request_topology))
         # Continue with the scheduled tasks
         self.start_next_task(serv_id)
 
@@ -899,6 +907,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.services[serv_id]['act_corr_id'] = None
             self.start_next_task(serv_id)
 
+            # LOG.info("EXP: vnf_deploy - {}".format(time.time() - self.TIME_vnf_deploy))
+
     def resp_vnfs_csss(self, ch, method, prop, payload):
         """
         This method handles a response from the FLM to a vnf csss request.
@@ -933,6 +943,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.services[serv_id]['act_corr_id'] = None
             self.start_next_task(serv_id)
 
+            # LOG.info("EXP: vnfs_start - {}".format(time.time() - self.TIME_vnfs_start))
+
     def resp_prepare(self, ch, method, prop, payload):
         """
         This method handles a response to a prepare request.
@@ -949,6 +961,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             msg = ": Error occured while preparing vims, aborting workflow"
             LOG.info("Service " + serv_id + msg)
             self.error_handling(serv_id, t.GK_CREATE, response['message'])
+
+        # LOG.info("EXP: ia_prepare - {}".format(time.time() - self.TIME_ia_prepare))
 
         self.start_next_task(serv_id)
 
@@ -983,7 +997,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         :param serv_id: The instance uuid of the service
         """
-
+        # self.TIME_request_topology = time.time()
+        
         # Generate correlation_id for the call, for future reference
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
@@ -1005,6 +1020,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         :param serv_id: The instance uuid of the service
         """
+        # self.TIME_ia_prepare = time.time()
 
         msg = ": Requesting IA to prepare the infrastructure."
         LOG.info("Service " + serv_id + msg)
@@ -1074,6 +1090,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         This method triggeres the deployment of all the vnfs.
         """
+        # self.TIME_vnf_deploy = time.time()
 
         if len(self.services[serv_id]['function']) == 0:
             msg = ": Service doesn't contain any functions. Skipping VNF deploy."
@@ -1112,6 +1129,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         Deploy the cloud services of the complex service.
         """
+        # self.TIME_cs_deploy = time.time()
         if len(self.services[serv_id]['cloud_service']) == 0:
             msg = ": Service doesn't contain any cloud services. Skipping CS deploy."
             LOG.info("Service " + serv_id + msg)
@@ -1178,6 +1196,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             LOG.info("Deployment of CSs completed.")
             self.services[serv_id]['act_corr_id'] = None
             self.start_next_task(serv_id)
+            # LOG.info("EXP: cs_deploy - {}".format(time.time() - self.TIME_cs_deploy))
 
 
     def vnfs_start(self, serv_id):
@@ -1185,6 +1204,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         This method gives a trigger to the FLM for each VNF that needs
         a FSM start life cycle event.
         """
+        # self.TIME_vnfs_start = time.time()
+
         if len(self.services[serv_id]['function']) == 0:
             msg = ": Service doesn't contain any functions. Skipping VNFs start."
             LOG.info("Service " + serv_id + msg)
@@ -1606,6 +1627,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                              correlation_id=corr_id)
 
     def store_nsr(self, serv_id):
+        # self.TIME_store_nsr = time.time()
 
         # TODO: get request_status from response from IA on chain
         is_nsd = self.services[serv_id]['service']["is_nsd"]
@@ -1724,6 +1746,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         if error is not None:
             self.error_handling(serv_id, t.GK_CREATE, error)
 
+        # LOG.info("EXP: store_nsr - {}".format(time.time() - self.TIME_store_nsr))
         return
 
     def vnf_chain(self, serv_id):
@@ -2127,6 +2150,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         This method configures the WAN of a service
         """
+        # self.TIME_wan_configure = time.time()
 
         LOG.info("Service " + serv_id + ": WAN Configuration")
         corr_id = str(uuid.uuid4())
@@ -2183,6 +2207,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.error_handling(serv_id, t.GK_CREATE, error)
 
         self.start_next_task(serv_id)
+        # LOG.info("EXP: wan_configure - {}".format(time.time() - self.TIME_wan_configure))
+
 
     def wan_deconfigure(self, serv_id):
         """
@@ -2357,12 +2383,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         # Perform the placement
         add_schedule.append('SLM_mapping')
-
         add_schedule.append('ia_prepare')
         add_schedule.append('vnf_deploy')
         add_schedule.append('vnfs_start')
         add_schedule.append('cs_deploy')
-        # add_schedule.append('vnf_chain')
         add_schedule.append('store_nsr')
         add_schedule.append('wan_configure')
         add_schedule.append('start_mv_monitoring')
@@ -2397,6 +2421,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
     def start_mv_monitoring(self, serv_id):
         # TODO: Fetch instance name from OS and add it to list of monitoring instances
         # FIXME: Guess we need another plugin or move this to mvplugin?
+        # self.TIME_start_mv_monitoring = time.time()
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
@@ -2497,6 +2522,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Service " + serv_id + ": Placement response received")
 
         LOG.info("resp Mapping")
+        # LOG.info("EXP: start_mv_monitoring - {}".format(time.time() - self.TIME_start_mv_monitoring))
 
 
     def start_monitoring(self, serv_id):
@@ -2580,6 +2606,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         This method informs the gatekeeper.
         """
+        # self.TIME_inform_gk_instantiation = time.time()
         LOG.info("Service " + serv_id + ": Reporting result to GK")
 
         is_nsd = self.services[serv_id]['service']["is_nsd"]
@@ -2609,6 +2636,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                              yaml.dump(message),
                              correlation_id=orig_corr_id)
 
+        # LOG.info("EXP: inform_gk_instantiation - {}".format(time.time() - self.TIME_inform_gk_instantiation))
+        
     def inform_gk(self, serv_id):
         """
         This method informs the gatekeeper.
@@ -3026,6 +3055,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         :param serv_id: The instance uuid of the service
         """
+        # self.TIME_SLM_mapping = time.time()
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
@@ -3116,6 +3146,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             LOG.info("Service " + serv_id + ": VIM list ordered")
             self.services[serv_id]['service']['ordered_vim_list'] = vim_list
 
+        # LOG.info("EXP: SLM_mapping - {}".format(time.time() - self.TIME_SLM_mapping))
         self.start_next_task(serv_id)
 
     def update_slm_configuration(self, plugin_dict):

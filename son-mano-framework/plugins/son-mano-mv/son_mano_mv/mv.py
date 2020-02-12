@@ -84,6 +84,7 @@ class MVPlugin(ManoBasePlugin):
         self.mon_metrics = {}
         # TODO: Make is consistant
         self.active_services = {}
+        # self.EXP_REQ_TIME = 0
 
         super(self.__class__, self).__init__(version=ver,
                                              description=des,
@@ -178,7 +179,8 @@ class MVPlugin(ManoBasePlugin):
         # LOG.info(content)
 
         if content['request_type'] == "START":
-            # LOG.info("EXP: Mon Time - {}".format(time.time()))
+            # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
+
             is_nsd = content['is_nsd']
             self.active_services[serv_id] = {}
             self.active_services[serv_id]['charts'] = []
@@ -199,6 +201,13 @@ class MVPlugin(ManoBasePlugin):
                                 if _t['vim_uuid'] == _vnfi['vim_id']:
                                     # LOG.info("VNF is on")
                                     # LOG.info(_vnfi['vim_id'])
+                                    # _instance_timings = tools.get_individual_times(serv_id, _t, self.EXP_REQ_TIME)
+                                    # LOG.info("EXP: VIM Time - {}\nEXP: MANO Time - {}\nEXP: Total Time - {}\n".format(
+                                    #         _instance_timings["vim_time"],
+                                    #         _instance_timings["ns_mano_time"],
+                                    #         _instance_timings["vim_time"] + _instance_timings["ns_mano_time"]
+                                    #         ))
+
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
                                     _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd']['monitoring_parameters'])
                                     # LOG.info(_instance_id)
@@ -234,6 +243,10 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info(_t['vim_endpoint'])
                                 # FIXME: Timer for creation delay (Add a loop?)
                                 time.sleep(10)
+                                # _instance_timings = tools.get_k8_pod_times(serv_id, _t)
+                                # LOG.info("EXP: K8 VIM Time - {}\n".format(
+                                #         _instance_timings["vim_time"]
+                                #         ))
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
                                 _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd']['monitoring_parameters'])
                                 # LOG.info("K8 UUID")
@@ -482,7 +495,8 @@ class MVPlugin(ManoBasePlugin):
         content['as_container'] = as_container
         content['as_accelerated'] = as_accelerated
 
-        # LOG.info("EXP: Req Time - {}".format(time.time()))
+        # self.EXP_REQ_TIME = time.time()
+        # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
         self.manoconn.call_async(self.handle_resp_change,
                                 MV_CHANGE_VERSION,
                                 yaml.dump(content))
@@ -530,7 +544,7 @@ class MVPlugin(ManoBasePlugin):
                              yaml.dump(response),
                              correlation_id=prop.correlation_id)
 
-        LOG.info("MV response sent for service: " + content['serv_id'])
+        # LOG.info("MV response sent for service: " + content['serv_id'])
         # LOG.info(response)
 
     def placement(self, descriptor, functions, topology, result_data):
