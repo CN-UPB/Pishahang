@@ -38,12 +38,12 @@ from ryu.ofproto import ofproto_v1_3_parser as parser
 
 
 # datapath id of switches
-PISH_EXT_SWITCH = 14038004465425
+PISH_EXT_SWITCH = 189250950663770
 PISH_INT_SWITCH = 227070286987073
 
 # the MAC/IP of the k8 node
-HOST_MAC = "0c:c4:7a:44:ff:11" #"b4:96:91:52:8d:30"
-HOST_IP = "192.168.220.6" #"192.168.230.201"
+HOST_MAC = "62:58:fc:1c:75:48" #"b4:96:91:52:8d:30"
+HOST_IP = "192.168.20.88" #"192.168.230.201"
 
 fg= []
 q = Queue()
@@ -79,6 +79,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.vlan_dst_ip_mac = {}
         #self.vlan_dst_ip_mac[10] = {"IP":"10.112.0.16", "MAC":"7a:b1:ce:3d:1a:0c"}
         p1 = Process(target=check_forwarding_graph, args=(q,)).start()
+        self.fgs = {}
+
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -113,13 +115,20 @@ class ExampleSwitch13(app_manager.RyuApp):
         ip_dst = None
 
 
+        try:
+            if self.fgs["IP"] != None:
+                ip_dst = self.fgs["IP"]
+                ("Sniffer IP already recieved %r" % self.fgs)
+        except:
+            pass
+
         if not q.empty():
             # new forwarding graph(s) received; convert to flow rules
-            forwarding_graph = q.get(block=False)
+            self.fgs = q.get(block=False)
             #self.forwarding_graphs.append(forwarding_graph)
-            print (forwarding_graph)
+            print ("Sniffer IP recieved %r" % self.fgs)
             try:
-                ip_dst = forwarding_graph["IP"]
+                ip_dst = self.fgs["IP"]
             except BaseException as err:
                 print (str(err))
 
@@ -144,11 +153,11 @@ class ExampleSwitch13(app_manager.RyuApp):
         vlan_id = None
         if vlan_pkt:
             vlan_id = vlan_pkt.vid
-        
-        if arp_pkt:                        
+
+        if arp_pkt:
             self._handle_arp(datapath, in_port, eth_pkt, arp_pkt)
             return
-        
+
         if ip_pkt:
             dst_ip = ip_pkt.dst
             src_ip = ip_pkt.src
@@ -157,22 +166,24 @@ class ExampleSwitch13(app_manager.RyuApp):
         #    self.vlan_src_ip_mac.append({"vlan":vlan_id, "MAC":src, "IP":src_ip})
 
         if ip_pkt:
-            if in_port == 1:
+            if in_port == 2 and ip_dst != None:
+                print ("++++")
                 #actions.append(parser.OFPActionSetField(eth_dst= self.vlan_dst_ip_mac[vlan_id]["MAC"]))
                 actions.append(parser.OFPActionSetField(ipv4_dst= ip_dst))
                 #actions.append(parser.OFPActionPopVlan())
-                actions.append(parser.OFPActionOutput(2, ofproto.OFPCML_NO_BUFFER))
-                match = parser.OFPMatch(eth_type=0x0800, in_port=1) #, vlan_vid= 4106)
+                print ("*****")
+                actions.append(parser.OFPActionOutput(1, ofproto.OFPCML_NO_BUFFER))
+                match = parser.OFPMatch(eth_type=0x0800, in_port=2) #, vlan_vid= 4106)
                 self.add_flow(datapath, 100, match, actions)
-            elif in_port == 2:
+            elif in_port == 1:
                 #re_vlan = self._vlan_id_retrieval(dst)
                 actions.append(parser.OFPActionSetField(eth_src= HOST_MAC))
                 actions.append(parser.OFPActionSetField(ipv4_src= HOST_IP))
                 actions.append(parser.OFPActionSetField(ipv4_dst= "192.168.220.5"))
                 #actions.append(parser.OFPActionPushVlan(ether.ETH_TYPE_8021Q))
                 #actions.append(parser.OFPActionSetField(vlan_vid=self.vid_present(re_vlan)))
-                actions.append(parser.OFPActionOutput(1, ofproto.OFPCML_NO_BUFFER))
-                match = parser.OFPMatch(eth_type=0x0800, in_port=2)
+                actions.append(parser.OFPActionOutput(2, ofproto.OFPCML_NO_BUFFER))
+                match = parser.OFPMatch(eth_type=0x0800, in_port=1)
                 self.add_flow(datapath, 100, match, actions)
 
     def vid_present(self, vid):
@@ -238,4 +249,3 @@ class ExampleSwitch13(app_manager.RyuApp):
             if self.vlan_src_ip_mac[i]["MAC"] == dst_mac:
                 re_vlan = self.vlan_src_ip_mac[i]["vlan"]
                 return re_vlan
-            
