@@ -10,7 +10,7 @@
       "id": "sniffer-1",
       "service_image": "pishahang/rtmp-sniffer",
       "service_name": "sniffer",
-      "service_type": "LoadBalancer",
+      "service_type": "ClusterIP",
       "service_ports": [
         {
           "name": "sniffer",
