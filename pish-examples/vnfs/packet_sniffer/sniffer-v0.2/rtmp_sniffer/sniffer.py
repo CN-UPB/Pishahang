@@ -40,6 +40,8 @@ class RTMPSniffer(object):
         else:
             self.ctr_ip = '131.234.250.207'
 
+        self.host_ip = None
+
         self.update_ctr(self.ctr_ip)
 
         while True:
@@ -68,9 +70,9 @@ class RTMPSniffer(object):
            ip = str(subprocess.check_output('hostname -I', shell=True))
            nc = len(ip)-3
            ip = ip[2:nc]
-           host_ip = ip.strip()
-           LOG.info("HOST IP Address= {0}".format(host_ip))
-           mapping = {"VLAN": "10", "IP":host_ip, "MAC":"00:50:56:b8:11:c9"}
+           self.host_ip = ip.strip()
+           LOG.info("HOST IP Address= {0}".format(self.host_ip))
+           mapping = {"VLAN": "10", "IP":self.host_ip, "MAC":"00:50:56:b8:11:c9"}
            socket.send_json(mapping)
            LOG.info("Received " + socket.recv_json()["reply"] + " event from SDN controller.")
        except BaseException as err:
@@ -103,10 +105,11 @@ class RTMPSniffer(object):
                     tcp.dest_port, tcp.sequence, tcp.acknowledgment))
                     LOG.info('Flags => URG: {}, ACK: {}, PSH: {} RST: {}, SYN: {}, FIN:{}'.format(tcp.flag_urg, tcp.flag_ack,
                     tcp.flag_psh, tcp.flag_rst, tcp.flag_syn, tcp.flag_fin))
-
+                    
                     #RTMP
                     # to ask - which MAC-IP pair shoudl be recorded? SRC or DST?
-                    if tcp.src_port == 1935:
+
+                    if tcp.src_port == 1935 and ipv4.src != self.host_ip:
                         dateTimeObj = datetime.now()
                         LOG.info("RTMP packet found!!")
                         LOG.info("RTMP packet source MAC = '{0}' and source IP = '{1}'".format(eth.src_mac, ipv4.src))
@@ -114,7 +117,7 @@ class RTMPSniffer(object):
                         message = {"mac":eth.src_mac, "ip":ipv4.src, "time":str(dateTimeObj)}
                         self.manoconn.call_async(self.response, self.topic, yaml.dump(message))
 
-                    if tcp.dest_port ==1935:
+                    if tcp.dest_port ==1935 and ipv4.src != self.host_ip:
                         dateTimeObj = datetime.now()
                         LOG.info("RTMP packet found!!")
                         LOG.info("RTMP packet source MAC = '{0}' and source IP = '{1}'".format(eth.src_mac, ipv4.src))
