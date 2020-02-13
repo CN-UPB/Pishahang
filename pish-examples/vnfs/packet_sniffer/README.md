@@ -15,7 +15,7 @@ This container listens to a specific topic in massage broker to receives the ext
 #### `/api/records`  shows all the records.
 #### `/api/records/mac/<string:ip_address>` retrieves MAC address based on given IP address.
 #### `/api/records/ip/<string:mac_address>` retrieves IP address based on given MAC address.
-#### `/api/clear/db` restarts the DB, clearing all recoeds.
+#### `/api/clear/db` restarts the DB, clearing all records.
 
 ### (3) Database: 
 
