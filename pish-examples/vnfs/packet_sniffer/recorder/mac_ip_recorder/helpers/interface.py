@@ -52,6 +52,17 @@ class RecorderIPEndpoint(fr.Resource):
             LOG.error("Lookup error: %r" % mac_ip_pair_mac)
             return {}, 404
 
+class ClearDBEndpoint(fr.Resource):
+
+    def get(self):
+        LOG.debug("Clearing DB!")
+        try:
+            model.initialize()
+            return {"DB_restart":"succeeded"}, 200
+        except DoesNotExist as e:
+            LOG.error("Lookup error: %r" % mac_ip_pair_mac)
+            return {"DB_restart":"failed"}, 404
+
 # reference to plugin manager
 PM = None
 # setup Flask
@@ -59,6 +70,7 @@ app = Flask(__name__)
 api = fr.Api(app)
 # register endpoints
 api.add_resource(RecordersEndpoint, "/api/records")
+api.add_resource(ClearDBEndpoint, "/api/clear/db")
 api.add_resource(RecorderIDEndpoint, "/api/records/id/<string:mac_ip_pair_id>")
 api.add_resource(RecorderMACEndpoint, "/api/records/mac/<string:mac_ip_pair_ip>")
 api.add_resource(RecorderIPEndpoint, "/api/records/ip/<string:mac_ip_pair_mac>")
