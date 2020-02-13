@@ -11,9 +11,9 @@ RUN apt-get install nano
 
 # broker main vhost; used for communication among containers
 ENV broker_host amqp://guest:guest@rabbitmq:5672/%2F
-ENV CTR_IPA 131.234.250.207
+ENV CTR_IPA 10.10.79.88
 
-ADD sniffer /sniffer
+ADD sniffer-v0.2 /sniffer
 
 WORKDIR /sniffer
 RUN python setup.py develop
