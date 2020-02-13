@@ -12,9 +12,10 @@ Using python socket library, this container captures all incoming traffic into a
 
 This container listens to a specific topic in massage broker to receives the extracted records of MAC-IP-TimeStamp from packet sniffer. It then saves the record into the MongoDB database. It also provides REST APIs which allows retrieving MAC and IP addresses. The Rest APIs are as follows:
 
-#### `/api/records`  shows all the records
-#### `/api/records/mac/<string:ip_address>` retrieves MAC address based on given IP address
-#### `/api/records/ip/<string:mac_address>` retrieves IP address based on given MAC address
+#### `/api/records`  shows all the records.
+#### `/api/records/mac/<string:ip_address>` retrieves MAC address based on given IP address.
+#### `/api/records/ip/<string:mac_address>` retrieves IP address based on given MAC address.
+#### `/api/clear/db` restarts the DB, clearing all recoeds.
 
 ### (3) Database: 
 
@@ -93,3 +94,4 @@ To test the APIs you can do the followings:
 
 (3) Getting specific IP address: `curl -X GET -H "Content-Type: application/json" http://localhost:8001/api/records/ip/<MAC address>`
 
+(4) Clearing DB:`curl -X GET -H "Content-Type: application/json" http://localhost:8001/api/clear/db`
