@@ -45,7 +45,7 @@ virtual_deployment_units_acc:
 virtual_deployment_units_con:
 - id: "transcoder-image-1"
   name: "transcoder-image-1"
-  service_image: "pgscramble/transcoder-cpu-cn:0.9"
+  service_image: "pgscramble/transcoder-cpu-cn:0.95"
   service_type: "LoadBalancer"
   service_ports:
   - name: "http"
