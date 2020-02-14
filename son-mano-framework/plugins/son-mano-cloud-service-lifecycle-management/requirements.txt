@@ -1,1 +1,2 @@
-watchdog
+watchdog==0.10.2
+argh==0.26.2

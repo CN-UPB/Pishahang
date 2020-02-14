@@ -2696,8 +2696,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # self.services[serv_id]['time_vm'] = 1
         # self.services[serv_id]['time_acc'] = 0.50
         self.services[serv_id]['as_vm'] = False
-        self.services[serv_id]['as_container'] = True
-        self.services[serv_id]['as_accelerated'] = False
+        self.services[serv_id]['as_container'] = False
+        self.services[serv_id]['as_accelerated'] = True
 
         for key in payload.keys():
             if key[:4] == 'VNFD':

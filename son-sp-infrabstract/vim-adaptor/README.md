@@ -55,6 +55,18 @@ You can run Unit and Module tests using docker compose. Just run in `son-sp-infr
 `docker-compose -f docker-compose-test.yml build`
 `docker-compose -f docker-compose-test.yml up`
 
+#### Dev
+
+sudo docker stop son-sp-infrabstract
+sudo docker rm son-sp-infrabstract
+
+sudo docker build -t son-sp-infrabstract -f Dockerfile-dev .
+sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-sp-infrabstract -v $(pwd)/adaptor:/adaptor son-sp-infrabstract
+
+sudo docker logs son-sp-infrabstract -f
+
+sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-sp-infrabstract -v $(pwd)/adaptor:/adaptor tdierich/son-sp-infrabstract
+
 After the test, remember to tear down the compose running:
 
 `docker-compose -f docker-compose-test.yml down`
