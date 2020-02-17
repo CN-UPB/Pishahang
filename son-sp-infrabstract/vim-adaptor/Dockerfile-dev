@@ -24,6 +24,18 @@ RUN chmod +x /etc/init.d/son-sp-infra
 RUN chmod +x /terraform.sh
 RUN ./terraform.sh
 
+ADD ./terraform /root/terraform
+RUN chmod +x /root/terraform
+
+# Enable k8 plugin 
+RUN mkdir /root/.terraform.d
+RUN mkdir /root/.terraform.d/plugins
+ADD ./terraform-provider-kubernetes /root/.terraform.d/plugins/terraform-provider-kubernetes
+RUN chmod +x /root/.terraform.d/plugins/terraform-provider-kubernetes
+
+RUN mkdir /root/.kube
+ADD ./kube_config /root/.kube/config
+
 WORKDIR /adaptor
 
 ENV broker_host son-broker

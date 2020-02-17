@@ -67,6 +67,8 @@ sudo docker logs son-sp-infrabstract -f
 
 sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-sp-infrabstract -v $(pwd)/adaptor:/adaptor tdierich/son-sp-infrabstract
 
+sudo docker exec -it son-sp-infrabstract /bin/bash
+
 After the test, remember to tear down the compose running:
 
 `docker-compose -f docker-compose-test.yml down`
