@@ -41,6 +41,13 @@ resource "kubernetes_replication_controller" "{{ vdu.getId() }}-{{ serviceId }}"
                 memory = "{{ vdu.getResourceRequirements().getMemory().getSize() }}{{ vdu.getResourceRequirements().getMemory().getSizeUnit() }}"
                 {% endif %}
               }
+
+              limits {
+                extended_resources = {
+                  "nvidia.com/gpu" = 1
+                }
+              }
+
             }
         {% endif %}
 

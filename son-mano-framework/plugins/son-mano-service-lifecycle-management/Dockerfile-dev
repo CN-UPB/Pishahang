@@ -19,7 +19,7 @@
 # acknowledge the contributions of their colleagues of the SONATA
 # partner consortium (www.sonata-nfv.eu).
 
-FROM python:3.5-slim
+FROM python:3.6-slim
 MAINTAINER SONATA
 
 # define plugin name once
