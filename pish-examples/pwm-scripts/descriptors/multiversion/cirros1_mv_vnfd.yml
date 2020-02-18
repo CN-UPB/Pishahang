@@ -38,6 +38,8 @@ virtual_deployment_units_acc:
     memory:
       size: 32
       size_unit: "Mi"
+    gpu:
+      gpus: 1
 
 virtual_deployment_units_con:
 - id: "cirros-image-1"

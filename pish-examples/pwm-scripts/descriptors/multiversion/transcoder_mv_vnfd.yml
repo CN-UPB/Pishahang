@@ -41,6 +41,8 @@ virtual_deployment_units_acc:
     memory:
       size: 4096
       size_unit: "Mi"
+    gpu:
+      gpus: 1
 
 virtual_deployment_units_con:
 - id: "transcoder-image-1"
