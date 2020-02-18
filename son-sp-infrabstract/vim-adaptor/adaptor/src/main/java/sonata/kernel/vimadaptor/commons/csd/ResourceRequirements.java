@@ -10,6 +10,9 @@ public class ResourceRequirements {
     @JsonProperty("memory")
     private MemoryRequirements memory;
 
+    @JsonProperty("gpu")
+    private GpuRequirements gpu;
+
     public CpuRequirements getCpu() {
         return cpu;
     }
@@ -25,4 +28,14 @@ public class ResourceRequirements {
     public void setMemory(MemoryRequirements memory) {
         this.memory = memory;
     }
+
+    public GpuRequirements getGpu() {
+        return gpu;
+    }
+
+    public void setGpu(GpuRequirements gpu) {
+        this.gpu = gpu;
+    }
+
+
 }

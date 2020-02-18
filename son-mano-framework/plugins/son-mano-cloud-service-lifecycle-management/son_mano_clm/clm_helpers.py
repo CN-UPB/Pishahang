@@ -73,6 +73,8 @@ def build_csr(ia_csr, csd):
         vdu['id'] = ia_vdu['id']
         vdu['vim_id'] = ia_vdu['vim_id']
         if 'resource_requirements' in csd_vdu:
+            # FIXME: Dirty fix to avoid changinf csr schema on son-catalog
+            csd_vdu['resource_requirements'].pop('gpu')
             vdu['resource_requirements'] = csd_vdu['resource_requirements']
         vdu['service_image'] = csd_vdu['service_image']
         vdu['service_type'] = csd_vdu['service_type']
