@@ -1,7 +1,7 @@
 import { NextPage } from "next";
 
 import { Page } from "../lib/components/layout/Page";
-import { ServicesTable } from "../lib/components/layout/tables/ServicesTable";
+import { ServiceInstancesTable } from "../lib/components/layout/tables/ServiceInstancesTable";
 import { useDescriptorUploadDialog } from "../lib/hooks/useDescriptorUploadDialog";
 import { Service } from "../lib/models/Service";
 
@@ -32,7 +32,7 @@ const ServicesPage: NextPage = () => {
   ];
   return (
     <Page title="Instantiated Services">
-      <ServicesTable data={data}></ServicesTable>
+      <ServiceInstancesTable data={data}></ServiceInstancesTable>
     </Page>
   );
 };
