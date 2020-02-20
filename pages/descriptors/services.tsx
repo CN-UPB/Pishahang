@@ -6,7 +6,6 @@ import { Page } from "../../lib/components/layout/Page";
 import { ServicesTable } from "../../lib/components/layout/tables/ServicesTable";
 import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
 import { Service } from "../../lib/models/Service";
-import { VnfdMeta } from "../../lib/models/VnfdMeta";
 
 const ServicesPage: NextPage = () => {
   const showDescriptorUploadDialog = useDescriptorUploadDialog();
