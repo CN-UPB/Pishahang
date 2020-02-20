@@ -6,10 +6,12 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import {
+  AccountTreeRounded,
   Computer,
   Dashboard,
   Dns,
   Dvr,
+  MoneyRounded,
   ScatterPlotRounded,
   Settings,
   WebAsset,
@@ -58,21 +60,24 @@ export const DrawerContent: React.FunctionComponent = () => {
       </List>
       <Divider />
       <List>
+        <LinkedListItem
+          text={"Service Descriptors"}
+          icon={AccountTreeRounded}
+          href={"/descriptors/services"}
+        ></LinkedListItem>
+      </List>
+      <Divider />
+      <List>
         <ListItem button onClick={toggleDescriptorsExpanded}>
           <ListItemIcon>
             <Dns />
           </ListItemIcon>
-          <ListItemText primary="Descriptors" />
+          <ListItemText primary="Function Descriptors" />
           {descriptorsExpanded ? <ExpandLess /> : <ExpandMore />}
         </ListItem>
       </List>
       <Collapse in={descriptorsExpanded} timeout="auto" unmountOnExit>
         <List component="div" disablePadding className={classes.nestedList}>
-          <LinkedListItem
-            text={"Services"}
-            icon={ScatterPlotRounded}
-            href={"/descriptors/services"}
-          ></LinkedListItem>
           <LinkedListItem text={"VNFs"} icon={Computer} href={"/descriptors/vms"}></LinkedListItem>
           <LinkedListItem text={"CNFs"} icon={WebAsset} href={"/descriptors/cns"}></LinkedListItem>
           <LinkedListItem
@@ -82,6 +87,14 @@ export const DrawerContent: React.FunctionComponent = () => {
           ></LinkedListItem>
         </List>
       </Collapse>
+      <Divider />
+      <List>
+        <LinkedListItem
+          text={"Version Descriptors"}
+          icon={MoneyRounded}
+          href={"/versiondescriptor"}
+        ></LinkedListItem>
+      </List>
       <Divider />
       <List>
         <LinkedListItem
