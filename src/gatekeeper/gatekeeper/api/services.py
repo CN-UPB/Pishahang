@@ -1,3 +1,8 @@
+import requests
+
+from ..config import config
+catalogueRootUrl = config['urls']['catalogues'] + "network-services"
 
 def getServices():
-    return ["1234"]
+    headers = {'content-type': 'application/json'}
+    return requests.get(catalogueRootUrl, headers=headers).json()
