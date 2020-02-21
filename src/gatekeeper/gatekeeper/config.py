@@ -1,5 +1,5 @@
-import yaml
+import configparser
 
-with open("../config.yml") as configFile:
-    config = yaml.load(configFile)
+config = configparser.ConfigParser()
+config.read('config.ini')
 
