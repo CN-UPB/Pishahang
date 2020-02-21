@@ -6,6 +6,8 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 pytest = "*"
+requests-mock = "*"
+pytest-watch = "*"
 
 [packages]
 flask = "*"
