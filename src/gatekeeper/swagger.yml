@@ -11,23 +11,23 @@
   produces: 
     - "application/json"
   paths: 
-    /: 
-      get: 
-        summary: "Gatekeeper's URL root"
-        description: "Everything starts here"
-        operationId: "api.test.getTestData"
-        tags:
-          - "Root"
-        responses: 
-          200: 
-            description: "This list of paths"
-          500: 
-            $ref: "#/responses/Standard500ErrorResponse"
+    # /: 
+    #   get: 
+    #     summary: "Gatekeeper's URL root"
+    #     description: "Everything starts here"
+    #     operationId: "api.test.getTestData"
+    #     tags:
+    #       - "Root"
+    #     responses: 
+    #       200: 
+    #         description: "This list of paths"
+    #       500: 
+    #         $ref: "#/responses/Standard500ErrorResponse"
     /services: 
       get: 
         summary: "Get a list of services"
         description: "Obtain the list of services that can be instantiated"
-        operationId: "api.services.getServices"
+        operationId: "gatekeeper.api.services.getServices"
         produces: 
           - "application/json"
         parameters: 
