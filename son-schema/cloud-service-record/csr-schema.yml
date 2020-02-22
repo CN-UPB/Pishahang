@@ -135,6 +135,11 @@ properties:
         service_type:
           description: "The service type. See Kubernetes documentation for further information."
           $ref: "#/definitions/service_types"
+        monitoring_parameters:
+          description: "Array of Monitoring Parameters."
+          type: "array"
+          items:
+            type: "string"
         service_ports:
           description: "Array of service ports."
           type: "array"
@@ -158,6 +163,7 @@ properties:
               - port
           minItems: 1
           uniqueItems: true
+
         resource_requirements:
           description: "The requirments of a node that hosts this cloud service."
           type: "object"
@@ -173,6 +179,18 @@ properties:
                   exclusiveMinimum: true
               required:
                 - vcpus
+              additionalProperties: false
+            gpu:
+              description: "All the requirements and parameters related to the (virtual) CPU."
+              type: "object"
+              properties:
+                gpus:
+                  description: "The number of (virtualized) CPU cores."
+                  type: "integer"
+                  minimum: 0
+                  exclusiveMinimum: true
+              required:
+                - gpus
               additionalProperties: false
             memory:
               type: "object"
