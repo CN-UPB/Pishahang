@@ -85,3 +85,31 @@ sudo docker stop cloudservicelifecyclemanagement
 sudo docker rm cloudservicelifecyclemanagement
 sudo docker build -t cloudservicelifecyclemanagement -f plugins/son-mano-cloud-service-lifecycle-management/Dockerfile-dev .
 sudo docker run -d --name cloudservicelifecyclemanagement --net=son-sp --network-alias=cloudservicelifecyclemanagement -v $(pwd)/plugins/son-mano-cloud-service-lifecycle-management:/plugins/son-mano-cloud-service-lifecycle-management cloudservicelifecyclemanagement
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-sp-infrabstract/vim-adaptor"
+echo "$(pwd)"
+
+echo "Starting son-sp-infrabstract vim-adaptor.."
+
+# Stop Original and start pishahang changes 
+sudo docker stop son-sp-infrabstract
+sudo docker rm son-sp-infrabstract
+sudo docker build -t son-sp-infrabstract -f Dockerfile-dev .
+sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-sp-infrabstract -v $(pwd)/adaptor:/adaptor son-sp-infrabstract
+
+# echo "##############################################"
+# echo "##############################################"
+
+# cd "$dir/son-catalogue-repos"
+# echo "$(pwd)"
+
+# echo "Starting son-catalog.."
+
+# # Stop Original FLM and start pishahang changes 
+# sudo docker stop son-catalogue-repos
+# sudo docker rm son-catalogue-repos
+# sudo docker build -t son-catalogue-repos -f Dockerfile-dev .
+# sudo docker run -d --name son-catalogue-repos --net=son-sp --network-alias=son-catalogue-repos -p 4002:4011 -v $(pwd):/app son-catalogue-repos
