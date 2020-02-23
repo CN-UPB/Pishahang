@@ -33,8 +33,8 @@ RUN mkdir /root/.terraform.d/plugins
 ADD ./terraform-provider-kubernetes /root/.terraform.d/plugins/terraform-provider-kubernetes
 RUN chmod +x /root/.terraform.d/plugins/terraform-provider-kubernetes
 
-RUN mkdir /root/.kube
-ADD ./kube_config /root/.kube/config
+# RUN mkdir /root/.kube
+# ADD ./kube_config /root/.kube/config
 
 WORKDIR /adaptor
 
