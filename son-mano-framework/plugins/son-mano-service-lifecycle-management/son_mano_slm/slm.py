@@ -34,6 +34,10 @@ import sys
 import concurrent.futures as pool
 # import psutil
 
+noalias_dumper = yaml.dumper.SafeDumper
+noalias_dumper.ignore_aliases = lambda self, data: True
+# print yaml.dump(data, default_flow_style=False, Dumper=noalias_dumper)
+
 from sonmanobase.plugin import ManoBasePlugin
 import sonmanobase.messaging as messaging
 
@@ -291,7 +295,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         corr_id = self.services[serv_id]['original_corr_id']
         self.manoconn.notify(topic,
-                             yaml.dump(message),
+                             yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                              correlation_id=corr_id)
 
         return
@@ -645,7 +649,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
             content['ssm_type'] = 'monitor'
             uuid = content['serviceID']
-            new_payload = yaml.dump(content)
+            new_payload = yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper)
 
             # Forward the received monitoring message to the SSM
             topic = 'generic.ssm.' + uuid
@@ -985,7 +989,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         if 'add_content' in self.services[serv_id].keys():
             message.update(self.services[serv_id]['add_content'])
 
-        payload = yaml.dump(message)
+        payload = yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper)
         self.manoconn.notify(self.services[serv_id]['topic'],
                              payload,
                              correlation_id=corr_id)
@@ -1080,7 +1084,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Send this mapping to the IA
         self.manoconn.call_async(self.resp_prepare,
                                  t.IA_PREPARE,
-                                 yaml.dump(IA_mapping),
+                                 yaml.dump(IA_mapping, default_flow_style=False, Dumper=noalias_dumper),
                                  correlation_id=corr_id)
 
         # Pause the chain of tasks to wait for response
@@ -1120,7 +1124,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             LOG.debug("Payload of request: " + str(message))
             self.manoconn.call_async(self.resp_vnf_depl,
                                      t.MANO_DEPLOY,
-                                     yaml.dump(message),
+                                     yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                                      correlation_id=corr_id)
 
         self.services[serv_id]['pause_chain'] = True
@@ -1144,6 +1148,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['act_corr_id'] = []
 
         for cloud_service in cloud_services:
+            # LOG.info(cloud_service['csd'])
+
             corr_id = str(uuid.uuid4())
             self.services[serv_id]['act_corr_id'].append(corr_id)
 
@@ -1155,10 +1161,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
             msg = ": Requesting the deployment of cs " + cloud_service['id']
             LOG.info("Service " + serv_id + msg)
-            LOG.debug("Payload of request: " + str(message))
+            # LOG.debug("Payload of request: " + str(message))
             self.manoconn.call_async(self.resp_cs_depl,
                                      t.MANO_CS_DEPLOY,
-                                     yaml.dump(message),
+                                     yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                                      correlation_id=corr_id)
 
         self.services[serv_id]['pause_chain'] = True
@@ -1295,7 +1301,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
                 self.manoconn.call_async(self.resp_vnfs_csss,
                                          topic,
-                                         yaml.dump(payload),
+                                         yaml.dump(payload, default_flow_style=False, Dumper=noalias_dumper),
                                          correlation_id=corr_id)
 
                 self.services[serv_id]['pause_chain'] = True
@@ -1319,7 +1325,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         for function in self.services[serv_id]['function']:
             msg['VNFD'].append(function['vnfd'])
 
-        pyld = yaml.dump(msg)
+        pyld = yaml.dump(msg, default_flow_style=False, Dumper=noalias_dumper)
         self.manoconn.call_async(self.resp_onboard,
                                  t.SRM_ONBOARD,
                                  pyld,
@@ -1354,7 +1360,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         msg = ": Keys in message for SSM instant: " + str(msg_for_smr.keys())
         LOG.info("Service " + serv_id + msg)
-        pyld = yaml.dump(msg_for_smr)
+        pyld = yaml.dump(msg_for_smr, default_flow_style=False, Dumper=noalias_dumper)
 
         self.manoconn.call_async(self.resp_instant,
                                  t.SRM_INSTANT,
@@ -1389,7 +1395,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                    'ssm_type': 'task'}
 
         # Contact SSM
-        payload = yaml.dump(message)
+        payload = yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper)
 
         ssm_conn = self.ssm_connections[serv_id]
 
@@ -1444,7 +1450,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             message['nap']['egresses'] = self.services[serv_id]['egress']
 
         # Contact SSM
-        payload = yaml.dump(message)
+        payload = yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper)
 
         msg = ": Placement requested from SSM: " + str(message.keys())
         LOG.info("Service " + serv_id + msg)
@@ -1494,7 +1500,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         ssm_conn.call_async(self.resp_ssm_configure,
                             topic,
-                            yaml.dump(content),
+                            yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
                             correlation_id=corr_id)
 
         # Pause the chain of tasks to wait for response
@@ -1520,7 +1526,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         ssm_conn = self.ssm_connections[serv_id]
 
         ssm_conn.notify(topic,
-                        yaml.dump(content),
+                        yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
                         correlation_id=corr_id)
 
     def slm_share(self, status, content):
@@ -1530,7 +1536,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                    'corr_id': content['original_corr_id'],
                    'slm_id': self.uuid}
 
-        payload = yaml.dump(message)
+        payload = yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper)
         self.manoconn.notify('mano.inter.slm', payload)
 
     def flm_deploy(self, ch, method, prop, payload):
@@ -1549,7 +1555,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             outg_message['vim_uuid'] = message['vim_uuid']
             outg_message['service_instance_id'] = message['serv_id']
 
-            payload = yaml.dump(outg_message)
+            payload = yaml.dump(outg_message, default_flow_style=False, Dumper=noalias_dumper)
 
             corr_id = str(uuid.uuid4())
             # adding the vnfd to the flm ledger
@@ -1623,7 +1629,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         corr_id = self.flm_ledger[prop.correlation_id]['orig_corr_id']
         self.manoconn.notify(t.MANO_DEPLOY,
-                             yaml.dump(outg_message),
+                             yaml.dump(outg_message, default_flow_style=False, Dumper=noalias_dumper),
                              correlation_id=corr_id)
 
     def store_nsr(self, serv_id):
@@ -1714,7 +1720,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         else:
             record = tools.build_cosr(request_status, descriptor, vnfr_ids, csr_ids, serv_id)
 
-        LOG.debug("Record to be stored: " + yaml.dump(record))
+        LOG.debug("Record to be stored: " + yaml.dump(record, default_flow_style=False, Dumper=noalias_dumper))
 
         error = None
 
@@ -1794,10 +1800,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         if nap_empty:
             chain.pop('nap')
 
-        LOG.info(str(yaml.dump(chain)))
+        LOG.info(str(yaml.dump(chain, default_flow_style=False, Dumper=noalias_dumper)))
         self.manoconn.call_async(self.IA_chain_response,
                                  t.IA_CONF_CHAIN,
-                                 yaml.dump(chain),
+                                 yaml.dump(chain, default_flow_style=False, Dumper=noalias_dumper),
                                  correlation_id=corr_id)
 
         LOG.info("Service " + serv_id + ": Requested to chain the VNFs.")
@@ -1927,7 +1933,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             msg = ": SSM part of NSD: " + str(nsd['service_specific_managers'])
             LOG.info("Service " + serv_id + msg)
 
-            payload = yaml.dump({'NSD': nsd, 'UUID': serv_id})
+            payload = yaml.dump({'NSD': nsd, 'UUID': serv_id}, default_flow_style=False, Dumper=noalias_dumper)
 
             if require_resp:
                 self.manoconn.call_async(self.ssm_termination_response,
@@ -1984,7 +1990,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                 msg = ": FSM in VNFD: " + fsm_segment
                 LOG.info("Service " + serv_id + msg)
 
-                payload = yaml.dump({'VNFD': vnf['vnfd'], 'UUID': vnf['id']})
+                payload = yaml.dump({'VNFD': vnf['vnfd'], 'UUID': vnf['id']}, default_flow_style=False, Dumper=noalias_dumper)
 
                 self.manoconn.call_async(self.no_resp_needed,
                                          t.FSM_TERM,
@@ -2184,7 +2190,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         self.manoconn.call_async(self.wan_configure_response,
                                  t.IA_CONF_WAN,
-                                 yaml.dump(message),
+                                 yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                                  correlation_id=corr_id)
 
         # # Pause the chain of tasks to wait for response
@@ -2224,7 +2230,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         self.manoconn.call_async(self.wan_deconfigure_response,
                                  t.IA_DECONF_WAN,
-                                 yaml.dump(message),
+                                 yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                                  correlation_id=corr_id)
 
         self.services[serv_id]['pause_chain'] = True
@@ -2322,6 +2328,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['as_vm'] = content['as_vm']
         self.services[serv_id]['as_container'] = content['as_container']
         self.services[serv_id]['as_accelerated'] = content['as_accelerated']
+
+        self.services[serv_id]['version_image'] = content['version_image']
 
         self.services[serv_id]['service']['nsd'] = content['nsd']
         self.services[serv_id]['service']['id'] = serv_id
@@ -2433,6 +2441,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         function_versions = self.services[serv_id]['function_versions']
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
+        version_image = self.services[serv_id]['version_image']
 
         deployed_version = "VM"
 
@@ -2454,7 +2463,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'function_versions': function_versions,
                     'topology': topology,
                     'serv_id': serv_id,
-                    'deployed_version': deployed_version}
+                    'deployed_version': deployed_version,
+                    'version_image': version_image}
 
         error = None
         try:
@@ -2462,7 +2472,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
             self.manoconn.call_async(self.resp_mv_mon,
                                     t.MANO_MV_MON,
-                                    yaml.dump(content),
+                                    yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
                                     correlation_id=corr_id)
 
             LOG.info("Service " + serv_id + ": MV Monitoring Info sent")
@@ -2495,7 +2505,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         try:
             self.manoconn.call_async(self.resp_mv_mon,
                                     t.MANO_MV_MON,
-                                    yaml.dump(content),
+                                    yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
                                     correlation_id=corr_id)
 
             LOG.info("Service " + serv_id + ": MV Monitoring Info sent")
@@ -2555,7 +2565,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
             ssm_conn = self.ssm_connections[serv_id]
 
-            ssm_conn.notify(topic, yaml.dump(message))
+            ssm_conn.notify(topic, yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper))
 
             # subscribe to messages from the monitoring SSM
             topic = t.FROM_MON_SSM + serv_id
@@ -2569,7 +2579,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         mon_mess = tools.build_monitoring_message(service, functions, cloud_services, userdata)
 
-        LOG.debug("Monitoring message created: " + yaml.dump(mon_mess))
+        LOG.debug("Monitoring message created: " + yaml.dump(mon_mess, default_flow_style=False, Dumper=noalias_dumper))
 
         error = None
         try:
@@ -2633,7 +2643,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         orig_corr_id = self.services[serv_id]['original_corr_id']
         self.manoconn.notify(t.GK_CREATE,
-                             yaml.dump(message),
+                             yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                              correlation_id=orig_corr_id)
 
         # LOG.info("EXP: inform_gk_instantiation - {}".format(time.time() - self.TIME_inform_gk_instantiation))
@@ -2656,7 +2666,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         orig_corr_id = self.services[serv_id]['original_corr_id']
         self.manoconn.notify(topic,
-                             yaml.dump(message),
+                             yaml.dump(message, default_flow_style=False, Dumper=noalias_dumper),
                              correlation_id=orig_corr_id)
 
 
@@ -2695,9 +2705,26 @@ class ServiceLifecycleManager(ManoBasePlugin):
         self.services[serv_id]['cloud_service'] = []
         # self.services[serv_id]['time_vm'] = 1
         # self.services[serv_id]['time_acc'] = 0.50
-        self.services[serv_id]['as_vm'] = False
-        self.services[serv_id]['as_container'] = False
-        self.services[serv_id]['as_accelerated'] = True
+
+        # FIXME: Should be VNF based to support multi VNF NSDs
+        _default_version = self.services[serv_id]['service']['nsd']['default_deployment_version']
+        self.services[serv_id]['version_image'] = self.services[serv_id]['service']['nsd']['default_deployment_version_image']
+
+        if _default_version == "VM":
+            LOG.info("Default to VM")
+            self.services[serv_id]['as_vm'] = True
+            self.services[serv_id]['as_container'] = False
+            self.services[serv_id]['as_accelerated'] = False
+        elif _default_version == "ACC":
+            LOG.info("Default to ACC")
+            self.services[serv_id]['as_vm'] = False
+            self.services[serv_id]['as_container'] = False
+            self.services[serv_id]['as_accelerated'] = True
+        elif _default_version == "CON":
+            LOG.info("Default to CON")
+            self.services[serv_id]['as_vm'] = False
+            self.services[serv_id]['as_container'] = True
+            self.services[serv_id]['as_accelerated'] = False
 
         for key in payload.keys():
             if key[:4] == 'VNFD':
@@ -3069,6 +3096,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'functions': functions,
                     'topology': topology,
                     'serv_id': serv_id,
+                    'version_image': self.services[serv_id]['version_image'],
                     'as_vm': self.services[serv_id]['as_vm'],
                     'as_container': self.services[serv_id]['as_container'],
                     'as_accelerated': self.services[serv_id]['as_accelerated']
@@ -3083,7 +3111,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         self.manoconn.call_async(self.resp_mapping,
                                  t.MANO_PLACE,
-                                 yaml.dump(content),
+                                 yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
                                  correlation_id=corr_id)
 
         self.services[serv_id]['pause_chain'] = True
@@ -3101,7 +3129,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         LOG.info("resp Mapping")
         # LOG.info(content["mapping"]["functions"])
-        # LOG.info(content["mapping"]["cloud_services"])
+        LOG.info(content["mapping"]["cloud_services"][0]["csd"])
 
 
         if mapping is None:

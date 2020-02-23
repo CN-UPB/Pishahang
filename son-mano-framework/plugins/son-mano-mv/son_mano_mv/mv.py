@@ -44,6 +44,9 @@ from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
 SWITCH_DEBUG = True
+SWITCH_DEBUG_IMAGE_VM = "cirros-image-1-vm"
+SWITCH_DEBUG_IMAGE_ACC = "cirros-image-1-acc"
+SWITCH_DEBUG_IMAGE_CON = "cirros-image-1-con"
 
 with open("MV-Logs.log", "w") as f:  
     f.truncate()
@@ -182,11 +185,14 @@ class MVPlugin(ManoBasePlugin):
             # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
 
             is_nsd = content['is_nsd']
+            version_image = content['version_image']
             self.active_services[serv_id] = {}
             self.active_services[serv_id]['charts'] = []
             self.active_services[serv_id]['vim_endpoint'] = ""
             self.active_services[serv_id]['function_versions'] = content['function_versions']
             self.active_services[serv_id]['version_changed'] = False
+            self.active_services[serv_id]['version_image'] = version_image
+
             topology = content['topology']
             functions = content['functions'] if 'functions' in content else []
             cloud_services = content['cloud_services'] if 'cloud_services' in content else []
@@ -209,9 +215,9 @@ class MVPlugin(ManoBasePlugin):
                                     #         ))
 
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                    _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd']['monitoring_parameters'])
-                                    # LOG.info(_instance_id)
-                                    # LOG.info(_charts)
+                                    _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd'][version_image][0]['monitoring_parameters'])
+                                    # LOG.info("Mon?")
+                                    # LOG.info(_vdu['monitoring_parameters'])
                                     self.active_services[serv_id]['charts'] = _charts
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
@@ -220,8 +226,8 @@ class MVPlugin(ManoBasePlugin):
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
                                     }
-                                    self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd']['monitoring_parameters']
-                                    self.active_services[serv_id]['monitoring_rules'] = _function['vnfd']['monitoring_rules']
+                                    self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd'][version_image][0]['monitoring_parameters']
+                                    self.active_services[serv_id]['monitoring_rules'] = _function['vnfd'][version_image][0]['monitoring_rules']
                                     self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
                                     self.active_services[serv_id]['deployed_version'] = content['deployed_version']
                                     # Start monitoring thread
@@ -247,8 +253,11 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info("EXP: K8 VIM Time - {}\n".format(
                                 #         _instance_timings["vim_time"]
                                 #         ))
+                                # LOG.info("CSD scene")
+                                # LOG.info(_function['csd'])
+                                # FIXME: _function['csd'][version_image][0]['monitoring_parameters'] need to change this bs!                                
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd']['monitoring_parameters'])
+                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd'][version_image][0]['monitoring_parameters'])
                                 # LOG.info("K8 UUID")
                                 # LOG.info(_instance_meta)
                                 # LOG.info(_charts)
@@ -257,8 +266,8 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['metadata'] = content
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
                                 self.active_services[serv_id]['ports'] = _instance_meta
-                                self.active_services[serv_id]['monitoring_parameters'] = _function['csd']['monitoring_parameters']
-                                self.active_services[serv_id]['monitoring_rules'] = _function['csd']['monitoring_rules']
+                                self.active_services[serv_id]['monitoring_parameters'] = _function['csd'][version_image][0]['monitoring_parameters']
+                                self.active_services[serv_id]['monitoring_rules'] = _function['csd'][version_image][0]['monitoring_rules']
                                 self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
                                 self.active_services[serv_id]['deployed_version'] = content['deployed_version']
                                 
@@ -306,10 +315,10 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info("SWITCH_DEBUG:VM: " + data)
                                 if data == "ACC":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, switch_type="ACC")
+                                    self.request_version_change(serv_id, switch_type="ACC", version_image=SWITCH_DEBUG_IMAGE_ACC)
                                 if data == "CON":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, switch_type="CON")
+                                    self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
 
                         else:
 
@@ -330,12 +339,12 @@ class MVPlugin(ManoBasePlugin):
                                                 if abs(_metrics["net"]['data'][0][2]) > _magnitude:
                                                     LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             elif _rule['condition_extra'] == 'download':
                                                 if abs(_metrics["net"]['data'][0][1]) > _magnitude:
                                                     LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                                         elif _parameter == "cpu":
                                             LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
@@ -347,17 +356,17 @@ class MVPlugin(ManoBasePlugin):
                                                 if _metrics["cpu"]['data'][0][1] > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             if _rule['condition_extra'] == 'system':
                                                 if _metrics["cpu"]['data'][0][2] > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             if _rule['condition_extra'] == 'all':
                                                 if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                                     elif '<' in _rule['condition']:
                                         _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
@@ -367,12 +376,12 @@ class MVPlugin(ManoBasePlugin):
                                                 if abs(_metrics["net"]['data'][0][2]) < _magnitude:
                                                     LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             elif _rule['condition_extra'] == 'download':
                                                 if abs(_metrics["net"]['data'][0][1]) < _magnitude:
                                                     LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                     else:
                         # ACC Monitoring
@@ -383,17 +392,17 @@ class MVPlugin(ManoBasePlugin):
                                 if self.active_services[serv_id]['deployed_version'] == "CON":
                                     if data == "ACC":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="ACC")
+                                        self.request_version_change(serv_id, switch_type="ACC", version_image=SWITCH_DEBUG_IMAGE_ACC)
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="VM")
+                                        self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
                                 if self.active_services[serv_id]['deployed_version'] == "ACC":
                                     if data == "CON":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="CON")
+                                        self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="VM")
+                                        self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
 
 
                         else:
@@ -414,12 +423,12 @@ class MVPlugin(ManoBasePlugin):
                                                 if abs(_metrics["net"]['data'][0][2]) > _magnitude:
                                                     LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             elif _rule['condition_extra'] == 'download':
                                                 if abs(_metrics["net"]['data'][0][1]) > _magnitude:
                                                     LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                                         elif _parameter == "cpu":
                                             LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
@@ -431,17 +440,17 @@ class MVPlugin(ManoBasePlugin):
                                                 if _metrics["cpu"]['data'][0][1] > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             if _rule['condition_extra'] == 'system':
                                                 if _metrics["cpu"]['data'][0][2] > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             if _rule['condition_extra'] == 'all':
                                                 if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
                                                     LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                                     elif '<' in _rule['condition']:
                                         _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
@@ -451,12 +460,12 @@ class MVPlugin(ManoBasePlugin):
                                                 if abs(_metrics["net"]['data'][0][2]) < _magnitude:
                                                     LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
                                             elif _rule['condition_extra'] == 'download':
                                                 if abs(_metrics["net"]['data'][0][1]) < _magnitude:
                                                     LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
                                                     self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'])
+                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
             except Exception as e:
                 LOG.error("Error")
@@ -470,7 +479,7 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
 
-    def request_version_change(self, serv_id, switch_type):
+    def request_version_change(self, serv_id, switch_type, version_image):
         MV_CHANGE_VERSION = "mano.instances.change"
         content = self.active_services[serv_id]['metadata']
         content['function_versions'] = self.active_services[serv_id]['function_versions']
@@ -494,6 +503,7 @@ class MVPlugin(ManoBasePlugin):
         content['as_vm'] = as_vm
         content['as_container'] = as_container
         content['as_accelerated'] = as_accelerated
+        content['version_image'] = version_image        
 
         # self.EXP_REQ_TIME = time.time()
         # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
@@ -527,7 +537,8 @@ class MVPlugin(ManoBasePlugin):
         result_data = {
             "as_vm": as_vm,
             "as_container": as_container,
-            "as_accelerated": as_accelerated
+            "as_accelerated": as_accelerated,
+            "version_image": content['version_image']
         }
 
         LOG.info("MV request for service: " + content['serv_id'])
@@ -555,7 +566,7 @@ class MVPlugin(ManoBasePlugin):
         LOG.info("MV Embedding started on following topology: " + str(topology))
 
         as_vm, as_container, as_accelerated = result_data["as_vm"], result_data["as_container"], result_data["as_accelerated"]
-
+        version_image = result_data['version_image']
         # LOG.info("\n\nas_vm: ", str(as_vm), "\n\nas_container: ", str(as_container), "\n\nas_accelerated: ", str(as_accelerated))
 
         # LOG.info("as_vm")
@@ -575,6 +586,8 @@ class MVPlugin(ManoBasePlugin):
             cloud_services = []
             # LOG.info("VM Mapping")
             for function in functions:
+
+                function['vnfd']['virtual_deployment_units'] = function['vnfd'][version_image]
                 vnfd = function['vnfd']
                 vdu = vnfd['virtual_deployment_units']
                 needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
@@ -601,7 +614,7 @@ class MVPlugin(ManoBasePlugin):
 
             for cloud_service in cloud_services:
                 cloud_service['csd'] = cloud_service['vnfd']
-                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd']['virtual_deployment_units_acc']
+                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd'][version_image]
                 csd = cloud_service['csd']
 
                 vdu = csd['virtual_deployment_units']
@@ -625,13 +638,14 @@ class MVPlugin(ManoBasePlugin):
 
         elif as_container:
             # FIXME: should support multiple VDU?
-            # LOG.info("Accelerated Mapping")
             cloud_services = functions
             functions = []
 
             for cloud_service in cloud_services:
+                LOG.info("VM Mapping")
+
                 cloud_service['csd'] = cloud_service['vnfd']
-                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd']['virtual_deployment_units_con']
+                cloud_service['csd']['virtual_deployment_units'] = cloud_service['vnfd'][version_image]
                 csd = cloud_service['csd']
 
                 vdu = csd['virtual_deployment_units']
