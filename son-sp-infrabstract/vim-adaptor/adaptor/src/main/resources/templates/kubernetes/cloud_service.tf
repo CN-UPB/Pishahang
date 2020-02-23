@@ -45,7 +45,7 @@ resource "kubernetes_replication_controller" "{{ vdu.getId() }}-{{ serviceId }}"
               {% if vdu.getResourceRequirements().getGpu() != null %}
                 limits {
                   extended_resources = {
-                    "nvidia.com/gpu" = {{ vdu.getResourceRequirements().getGpu().getGpus() }}
+                    "{{ vdu.getResourceRequirements().getGpu().getGpuType() }}" = {{ vdu.getResourceRequirements().getGpu().getGpus() }}
                   }
                 }
               {% endif %}
