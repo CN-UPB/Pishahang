@@ -1,11 +1,21 @@
-from flask import render_template
 import connexion
+from flask_mongoengine import MongoEngine
+from .config import config
+from .util import MongoEngineJSONEncoder
 
 # Create the application instance
-app = connexion.App(__name__, specification_dir='../')
+app = connexion.App(__name__, specification_dir='../specification/')
 
 # Read the swagger.yml file to configure the endpoints
-app.add_api('swagger.yml', validate_responses=True)
+app.add_api('openapi.yml', validate_responses=False)
+
+# Add mongoengine database connection config
+app.app.config['MONGODB_SETTINGS'] = {
+    'host': config['databases']['descriptors']}
+descriptorsDatabase = MongoEngine(app.app)
+
+# Set a custom JSON encoder
+app.app.json_encoder = MongoEngineJSONEncoder
 
 # Create a URL route in our application for "/"
 @app.route('/')

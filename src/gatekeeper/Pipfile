@@ -8,11 +8,15 @@ pylint = "*"
 pytest = "*"
 requests-mock = "*"
 pytest-watch = "*"
+autopep8 = "*"
 
 [packages]
 flask = "*"
 connexion = {extras = ["swagger-ui"],version = "*"}
 requests = "*"
+mongoengine = "*"
+flask-mongoengine = "*"
+mongoengine-goodjson = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.6"

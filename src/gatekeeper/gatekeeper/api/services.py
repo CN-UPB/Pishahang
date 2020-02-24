@@ -6,7 +6,8 @@ catalogueRootUrl = config['urls']['catalogues'] + "complex-services"
 
 def getServices():
     headers = {'content-type': 'application/json'}
-    return requests.get(catalogueRootUrl, headers=headers).json()
+    response = requests.get(catalogueRootUrl, headers=headers)
+    return response.json(), response.status_code
 
 
 def getServiceById(serviceId):

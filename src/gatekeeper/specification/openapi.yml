@@ -1,0 +1,137 @@
+openapi: 3.0.0
+
+info:
+  version: 1.0.0
+  title: Pishahang Gatekeeper API
+  description: The definition of the Gatekeeper's public API
+
+servers:
+  - url: /api/v3
+
+paths:
+  /descriptors:
+    get:
+      summary: Get a list of uploaded descriptors
+      description: Returns a list of all uploaded descriptors of a specified type.
+      operationId: gatekeeper.api.descriptors.getDescriptors
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Specifies the descriptor type
+          schema:
+            $ref: "#/components/schemas/DescriptorType"
+      responses:
+        "200":
+          description: The list of descriptors was successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Services"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /services:
+    get:
+      summary: Get a list of services
+      description: Obtain the list of services that can be instantiated
+      operationId: gatekeeper.api.services.getServices
+      responses:
+        "200":
+          description: The list of services was successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Services"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /services/{serviceId}:
+    get:
+      summary: "Get data about a single service by its UUID"
+      description: "Returns data about a single service by its UUID"
+      operationId: "gatekeeper.api.services.getServiceById"
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Data about the given service is returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+components:
+  schemas:
+    DescriptorType:
+      type: string
+      enum: [service, vm, cn, fpga]
+    Service:
+      required:
+        - uuid
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date
+        updated_at:
+          type: string
+          format: date
+    Services:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Service"
+    ServiceInstance:
+      required:
+        - instanceId
+        - serviceId
+      properties:
+        instanceId:
+          type: string
+          format: uuid
+        serviceId:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date
+        updated_at:
+          type: string
+          format: date
+    ServiceInstances:
+      type: array
+      items:
+        $ref: "#/components/schemas/ServiceInstance"
+    Error:
+      required:
+        - status
+        - detail
+      properties:
+        status:
+          type: number
+        detail:
+          type: string
+
+  responses:
+    Error404:
+      description: The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error500:
+      description: An unexpected error occured.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
