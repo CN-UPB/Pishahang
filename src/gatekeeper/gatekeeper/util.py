@@ -12,7 +12,6 @@ class MongoEngineJSONEncoder(JSONEncoder):
     """
 
     def default(self, obj):
-        print("Test")
         if isinstance(obj, BaseDocument) or isinstance(obj, QuerySet):
             return json.loads(obj.to_json()) # TODO Replacement for the json.loads cheat?
         return super().default(obj)
