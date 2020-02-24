@@ -104,6 +104,8 @@ components:
         updatedAt:
           type: string
           format: date
+        type:
+          $ref: "#/components/schemas/DescriptorType"
         descriptor:
           type: object
     Descriptors:
