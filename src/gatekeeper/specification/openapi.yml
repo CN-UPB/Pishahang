@@ -9,7 +9,7 @@ servers:
   - url: /api/v3
 
 paths:
-  /descriptors:
+  /uploaded-descriptors:
     get:
       summary: Get a list of uploaded descriptors
       description: Returns a list of all uploaded descriptors of a specified type.
@@ -30,49 +30,86 @@ paths:
                 $ref: "#/components/schemas/Services"
         "500":
           $ref: "#/components/responses/Error500"
-  /services:
-    get:
-      summary: Get a list of services
-      description: Obtain the list of services that can be instantiated
-      operationId: gatekeeper.api.services.getServices
+    post:
+      summary: Add a new descriptor
+      description: Adds a new descriptor to the database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Descriptor"
       responses:
         "200":
-          description: The list of services was successfully returned
+          description: The descriptor was successfully added to the database
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Services"
+                $ref: "#/components/schemas/Descriptor"
         "500":
           $ref: "#/components/responses/Error500"
-  /services/{serviceId}:
-    get:
-      summary: "Get data about a single service by its UUID"
-      description: "Returns data about a single service by its UUID"
-      operationId: "gatekeeper.api.services.getServiceById"
-      parameters:
-        - name: serviceId
-          in: path
-          required: true
-          schema:
-            type: "string"
-            format: "uuid"
-      responses:
-        "200":
-          description: Data about the given service is returned.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Service"
-        "404":
-          $ref: "#/components/responses/Error404"
-        "500":
-          $ref: "#/components/responses/Error500"
+  # /services:
+  #   get:
+  #     summary: Get a list of services
+  #     description: Obtain the list of services that can be instantiated
+  #     operationId: gatekeeper.api.services.getServices
+  #     responses:
+  #       "200":
+  #         description: The list of services was successfully returned
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/Services"
+  #       "500":
+  #         $ref: "#/components/responses/Error500"
+  # /services/{serviceId}:
+  #   get:
+  #     summary: "Get data about a single service by its UUID"
+  #     description: "Returns data about a single service by its UUID"
+  #     operationId: "gatekeeper.api.services.getServiceById"
+  #     parameters:
+  #       - name: serviceId
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: "string"
+  #           format: "uuid"
+  #     responses:
+  #       "200":
+  #         description: Data about the given service is returned.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/Service"
+  #       "404":
+  #         $ref: "#/components/responses/Error404"
+  #       "500":
+  #         $ref: "#/components/responses/Error500"
 
 components:
   schemas:
     DescriptorType:
       type: string
       enum: [service, vm, cn, fpga]
+    Descriptor:
+      required:
+        - descriptor
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date
+        updatedAt:
+          type: string
+          format: date
+        descriptor:
+          type: object
+    Descriptors:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Descriptor"
     Service:
       required:
         - uuid
@@ -134,4 +171,3 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-    
