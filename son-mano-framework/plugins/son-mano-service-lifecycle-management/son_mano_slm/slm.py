@@ -52,10 +52,18 @@ try:
 except:
     import slm_topics as t
 
+with open("SLM-Logs.log", "w") as f:  
+    f.truncate()
+
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:slm")
 LOG.setLevel(logging.DEBUG)
 
+fh = logging.FileHandler('SLM-Logs.log')
+fh.setLevel(logging.INFO)
+LOG.addHandler(fh)
+
+DUMMY_DEPLOY = True
 
 class ServiceLifecycleManager(ManoBasePlugin):
     """
@@ -865,7 +873,13 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         This method handles a response from the FLM to a vnf deploy request.
         """
+
+
         message = yaml.load(payload)
+
+        LOG.info("dummy_resp_vnf_depl_vnf_deploy\n\n")        
+        LOG.info(message)
+        LOG.info("\n\n END dummy_resp_vnf_depl_vnf_deploy")
 
         # Retrieve the service uuid
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
@@ -898,7 +912,12 @@ class ServiceLifecycleManager(ManoBasePlugin):
         """
         This method handles a response from the FLM to a vnf csss request.
         """
+
         message = yaml.load(payload)
+
+        LOG.info("dummy_resp_vnfs_csss_vnfs_csss\n\n")        
+        LOG.info(message)
+        LOG.info("\n\n END dummy_resp_vnfs_csss_vnfs_csss")
 
         # Retrieve the service uuid
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
@@ -936,6 +955,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
 
         response = yaml.load(payload)
+        LOG.info("resp_prepare_IA_mapping\n\n")        
+        LOG.info(response)
+        LOG.info("\n\n END resp_prepare_IA_mapping")
+
         LOG.debug("Response from IA on .prepare call: " + str(response))
 
         if response['request_status'] == "COMPLETED":
@@ -1056,11 +1079,22 @@ class ServiceLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.services[serv_id]['act_corr_id'] = corr_id
 
-        # Send this mapping to the IA
-        self.manoconn.call_async(self.resp_prepare,
-                                 t.IA_PREPARE,
-                                 yaml.dump(IA_mapping),
-                                 correlation_id=corr_id)
+        LOG.info("IA_mapping\n\n")        
+        LOG.info(IA_mapping)
+        LOG.info("\n\n END IA_mapping")
+
+        if DUMMY_DEPLOY:
+            # Send this mapping to the IA
+            self.manoconn.call_async(self.resp_prepare,
+                                    t.DUMMY_IA_PREPARE,
+                                    yaml.dump(IA_mapping),
+                                    correlation_id=corr_id)
+        else:
+            # Send this mapping to the IA
+            self.manoconn.call_async(self.resp_prepare,
+                                    t.IA_PREPARE,
+                                    yaml.dump(IA_mapping),
+                                    correlation_id=corr_id)
 
         # Pause the chain of tasks to wait for response
         self.services[serv_id]['pause_chain'] = True
@@ -1096,10 +1130,21 @@ class ServiceLifecycleManager(ManoBasePlugin):
             msg = ": Requesting the deployment of vnf " + function['id']
             LOG.info("Service " + serv_id + msg)
             LOG.debug("Payload of request: " + str(message))
+
+            LOG.info("vnf_deploy\n\n")        
+            LOG.info(message)
+            LOG.info("\n\n END vnf_deploy")
+
+            # if DUMMY_DEPLOY:
+            #     self.manoconn.call_async(self.resp_vnf_depl,
+            #                             t.DUMMY_MANO_DEPLOY,
+            #                             yaml.dump(message),
+            #                             correlation_id=corr_id)            
+            # else:
             self.manoconn.call_async(self.resp_vnf_depl,
-                                     t.MANO_DEPLOY,
-                                     yaml.dump(message),
-                                     correlation_id=corr_id)
+                                    t.MANO_DEPLOY,
+                                    yaml.dump(message),
+                                    correlation_id=corr_id)
 
         self.services[serv_id]['pause_chain'] = True
 
@@ -1267,10 +1312,20 @@ class ServiceLifecycleManager(ManoBasePlugin):
                 msg = " " + csss_type + " event requested for vnf " + vnf['id']
                 LOG.info("Service " + serv_id + msg)
 
-                self.manoconn.call_async(self.resp_vnfs_csss,
-                                         topic,
-                                         yaml.dump(payload),
-                                         correlation_id=corr_id)
+                LOG.info("vnfs_csss\n\n")        
+                LOG.info(payload)
+                LOG.info("\n\n END vnfs_csss")
+
+                if DUMMY_DEPLOY:
+                    self.manoconn.call_async(self.resp_vnfs_csss,
+                                            t.DUMMY_MANO_START,
+                                            yaml.dump(payload),
+                                            correlation_id=corr_id)
+                else:
+                    self.manoconn.call_async(self.resp_vnfs_csss,
+                                            topic,
+                                            yaml.dump(payload),
+                                            correlation_id=corr_id)                    
 
                 self.services[serv_id]['pause_chain'] = True
 
@@ -1632,6 +1687,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                         error = {'http_code': vnfr_resp.status_code,
                                  'message': vnfr_resp_json}
                 except:
+                    LOG.info(vnfr_resp)
                     error = {'http_code': '0',
                              'message': 'Timeout when contacting VNFR repo'}
 

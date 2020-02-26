@@ -71,3 +71,6 @@ VNFR_REPOSITORY_URL = CAT_BASE_URL + "/records/vnfr/"
 # With Monitoring Manager
 # TODO: Secure this get against failure
 MONITORING_URL = os.environ.get("url_monitoring_server")
+
+# Dummy
+DUMMY_MANO_DEPLOY = 'dummy.mano.function.deploy'

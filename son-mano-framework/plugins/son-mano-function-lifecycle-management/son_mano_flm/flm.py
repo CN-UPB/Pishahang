@@ -51,6 +51,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:flm")
 LOG.setLevel(logging.INFO)
 
+DUMMY_DEPLOY = True
 
 class FunctionLifecycleManager(ManoBasePlugin):
     """
@@ -259,6 +260,10 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
         LOG.info("Function instance create request received.")
         message = yaml.load(payload)
+
+        LOG.info("function_instance_create\n\n")        
+        LOG.info(message)
+        LOG.info("\n\n END function_instance_create")
 
         # Extract the correlation id
         corr_id = properties.correlation_id
@@ -668,11 +673,22 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
         LOG.info("IA contacted for function deployment.")
         LOG.debug("Payload of request: " + payload)
-        # Contact the IA
-        self.manoconn.call_async(self.IA_deploy_response,
-                                 t.IA_DEPLOY,
-                                 payload,
-                                 correlation_id=corr_id)
+
+        LOG.info("deploy_vnf\n\n")        
+        LOG.info(outg_message)
+        LOG.info("\n\n END deploy_vnf")
+
+        if DUMMY_DEPLOY:
+            self.manoconn.call_async(self.IA_deploy_response,
+                                    t.DUMMY_MANO_DEPLOY,
+                                    payload,
+                                    correlation_id=corr_id)
+        else:
+            # Contact the IA
+            self.manoconn.call_async(self.IA_deploy_response,
+                                    t.IA_DEPLOY,
+                                    payload,
+                                    correlation_id=corr_id)
 
         # Pause the chain of tasks to wait for response
         self.functions[func_id]['pause_chain'] = True
@@ -687,6 +703,10 @@ class FunctionLifecycleManager(ManoBasePlugin):
         LOG.debug("Payload of request: " + str(payload))
 
         inc_message = yaml.load(payload)
+
+        LOG.info("IA_deploy_response\n\n")        
+        LOG.info(inc_message)
+        LOG.info("\n\n END IA_deploy_response")
 
         func_id = tools.funcid_from_corrid(self.functions, prop.correlation_id)
 

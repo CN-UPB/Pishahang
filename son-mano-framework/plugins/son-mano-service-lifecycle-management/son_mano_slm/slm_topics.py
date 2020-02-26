@@ -68,6 +68,12 @@ IA_DECONF_CHAIN = 'infrastructure.service.chain.deconfigure'
 IA_CONF_WAN = 'infrastructure.service.wan.configure'
 IA_DECONF_WAN = 'infrastructure.service.wan.deconfigure'
 
+# DUMMY
+DUMMY_IA_PREPARE = 'dummy.infrastructure.service.prepare'
+DUMMY_MANO_DEPLOY = 'dummy.mano.function.deploy'
+DUMMY_MANO_START = 'dummy.mano.function.start'
+
+
 # With specific manager registry
 SRM_ONBOARD = 'specific.manager.registry.ssm.on-board'
 SRM_INSTANT = 'specific.manager.registry.ssm.instantiate'
