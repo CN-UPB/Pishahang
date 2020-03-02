@@ -23,4 +23,4 @@ def deleteServiceById(serviceId):
     headers = {'content-type': 'application/json'}
     response = requests.delete(serviceIdUrl, headers=headers)
     # Checking response
-    return "Deleted", response.status_code
+    return {"status": 200, "detail": "service deleted"}, response.status_code
