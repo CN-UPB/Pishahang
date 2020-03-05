@@ -58,7 +58,7 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
                 {row.descriptor.name}
               </TableCell>
               <TableCell align="left">{row.descriptor.vendor}</TableCell>
-              <TableCell align="center">{row.status}</TableCell>
+              <TableCell align="center">{"UPLOADED"}</TableCell>
               <TableCell align="center">
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
@@ -68,7 +68,7 @@ export const VnfdTable: React.FunctionComponent<Props> = props => {
                 </IconButton>
                 <IconButton
                   color="primary"
-                  onClick={() => showDescriptorDeleteDialog(row.uuid, row.descriptor.name)}
+                  onClick={() => showDescriptorDeleteDialog(row.id, row.descriptor.name)}
                 >
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
