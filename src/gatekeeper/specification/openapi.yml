@@ -8,17 +8,24 @@ info:
 servers:
   - url: /api/v3
 
+tags:
+  - name: Uploaded Descriptors
+    description: Descriptors that have been uploaded and can be edited or onboarded, yet cannot
+      directly be instantiated
+  - name: Onboarded Descriptors
+    description: Descriptors that have been onboarded and can be instantiated
+
 paths:
-  /uploaded-descriptors/{type}:
+  /uploaded-descriptors:
     get:
       tags:
-        - "Uploaded Descriptors"
+        - Uploaded Descriptors
       summary: Get a list of uploaded descriptors
       description: Returns a list of all uploaded descriptors of a specified type.
-      operationId: gatekeeper.api.descriptors.getDescriptorsWithType
+      operationId: gatekeeper.api.descriptors.getUploadedDescriptorsByType
       parameters:
         - name: type
-          in: path
+          in: query
           required: true
           description: Specifies the descriptor type
           schema:
@@ -29,28 +36,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Services"
+                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
         "500":
           $ref: "#/components/responses/Error500"
     post:
       tags:
-        - "Uploaded Descriptors"
-      summary: Add a new descriptor
+        - Uploaded Descriptors
+      summary: Upload a new descriptor
       description: Adds a new descriptor to the database
-      operationId: gatekeeper.api.descriptors.addDescriptor
-      parameters:
-        - name: type
-          in: path #{'test': True}
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
+      operationId: gatekeeper.api.descriptors.addUploadedDescriptor
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Descriptor"
+              required:
+                - type
+                - descriptor
+              properties:
+                type:
+                  $ref: "#/components/schemas/DescriptorType"
+                descriptor:
+                  type: object
+
       responses:
         "200":
           description: The descriptor was successfully added to the database
@@ -58,101 +68,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Descriptor"
-        "500":
-          $ref: "#/components/responses/Error500"
-    # delete:
-    #   tags:
-    #     - "Uploaded Descriptors"
-    #   summary: delete a descriptor
-    #   description: deletes a descriptor from the database given the UUID
-    #   operationId: gatekeeper.api.descriptors.deleteDescriptor
-    #   parameters:
-    #     - name: type
-    #       in: path
-    #       required: true
-    #       description: Specifies the descriptor type
-    #       schema:
-    #         $ref: "#/components/schemas/DescriptorType"
-    #   responses:
-    #     "200":
-    #       description: The descriptor was successfully deleted from the database
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/DeleteDescriptor"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
-
-  /uploaded-descriptors: #https://swagger.io/docs/specification/serialization/
-    get:
-      tags:
-        - "Uploaded Descriptors"
-      summary: Get a list of uploaded descriptors
-      description: Returns a list of all uploaded descriptors.
-      operationId: gatekeeper.api.descriptors.getDescriptors
-      responses:
-        "200":
-          description: The list of descriptors was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    post:
-      tags:
-        - "Uploaded Descriptors"
-      summary: Add a new descriptor
-      description: Adds a new descriptor to the database
-      operationId: gatekeeper.api.descriptors.addDescriptorInQuery
-      parameters:
-        - name: type
-          in: query
-          required: true
-          description: Insert the descriptor type #{'test': True}
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
-            properties:
-              type:
-                type: string
-        - name: descriptor
-          in: query
-          required: true
-          description: Insert the descriptor #{'test': True}
-          content:
-            application/json: # <---- media type indicates how to serialize / deserialize the parameter content
-              schema:
-                type: object
-                properties:
-                  type:
-                    type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Descriptor"
-      responses:
-        "200":
-          description: The descriptor was successfully added to the database
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
         "500":
           $ref: "#/components/responses/Error500"
 
-  /uploaded-descriptors/{uuid}:
+  /uploaded-descriptors/{id}:
     get:
       tags:
-        - "Uploaded Descriptors"
-      summary: Get a single descriptor matching the UUID
-      operationId: gatekeeper.api.descriptors.getDescriptorWithUUID
+        - Uploaded Descriptors
+      summary: Get a single descriptor by its id
+      operationId: gatekeeper.api.descriptors.getDescriptorById
       parameters:
-        - name: uuid
+        - name: id
           in: path
           required: true
-          description: Specifies the descriptor type
+          description: The id of the descriptor to be retrieved
           schema:
             type: string
       responses:
@@ -164,140 +95,19 @@ paths:
           #       $ref: "#/components/schemas/Services"
         "500":
           $ref: "#/components/responses/Error500"
-    delete:
-      tags:
-        - "Uploaded Descriptors"
-      summary: delete a single descriptor
-      description: Deletes a descriptor matching the provided UUID
-      operationId: gatekeeper.api.descriptors.deleteDescriptorWithUUID
-      parameters:
-        - in: path
-          name: uuid
-          schema:
-            type: string
-          required: true
-          description: ID of the descriptor to delete
-      responses:
-        200:
-          description: Deletion of a descriptor executed successfully
-        404:
-          description: A descriptor with this UUID does not exist, or has already been deleted.
-
-  ##Onboarded ##################################
-  /Onboarded-descriptors/{type}:
-    get:
-      tags:
-        - "Onboarded Descriptors"
-      summary: Get a list of Onboarded descriptors
-      description: Returns a list of all Onboarded descriptors of a specified type.
-      operationId: gatekeeper.api.descriptors.getOnboardedTypeDescriptors
-      parameters:
-        - name: type
-          in: path
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
-      responses:
-        "200":
-          description: The list of descriptors was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    post:
-      tags:
-        - "Onboarded Descriptors"
-      summary: Add a new descriptor
-      description: Adds a new descriptor to the database
-      operationId: gatekeeper.api.descriptors.addOnboardedDescriptor
-      parameters:
-        - name: type
-          in: path #{'test': True}
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Descriptor"
-      responses:
-        "200":
-          description: The descriptor was successfully added to the database
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Descriptor"
-        "500":
-          $ref: "#/components/responses/Error500"
     # delete:
     #   tags:
     #     - "Uploaded Descriptors"
-    #   summary: delete a descriptor
-    #   description: deletes a descriptor from the database given the UUID
-    #   operationId: gatekeeper.api.descriptors.deleteDescriptor
+    #   summary: delete a single descriptor
+    #   description: Deletes a descriptor matching the provided UUID
+    #   operationId: gatekeeper.api.descriptors.deleteDescriptorById
     #   parameters:
-    #     - name: type
-    #       in: path
-    #       required: true
-    #       description: Specifies the descriptor type
+    #     - in: path
+    #       name: id
     #       schema:
-    #         $ref: "#/components/schemas/DescriptorType"
-    #   responses:
-    #     "200":
-    #       description: The descriptor was successfully deleted from the database
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/DeleteDescriptor"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
-
-  /onboarded-descriptors: #https://swagger.io/docs/specification/serialization/
-    get:
-      tags:
-        - "Onboarded Descriptors"
-      summary: Get a list of onboarded descriptors
-      description: Returns a list of all onboarded descriptors.
-      operationId: gatekeeper.api.descriptors.getOnboardedDescriptors
-      responses:
-        "200":
-          description: The list of descriptors was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    # post:
-    #   tags:
-    #     - "Onboarded Descriptors"
-    #   summary: Add a new descriptor
-    #   description: Adds a new descriptor to the database
-    #   operationId: gatekeeper.api.descriptors.addOnboardedDescriptor
-    #   parameters:
-    #     - name: descriptor
-    #       in: query
+    #         type: string
     #       required: true
-    #       description: Insert the descriptor #{'test': True}
-    #       content:
-    #         application/json: # <---- media type indicates how to serialize / deserialize the parameter content
-    #           schema:
-    #             type: object
-    #             properties:
-    #               type:
-    #                 type: string
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: "#/components/schemas/Descriptor"
+    #       description: ID of the descriptor to be deleted
     #   responses:
     #     "200":
     #       description: The descriptor was successfully added to the database
@@ -308,249 +118,6 @@ paths:
     #     "500":
     #       $ref: "#/components/responses/Error500"
 
-  /onboarded-descriptors/{uuid}:
-    get:
-      tags:
-        - "Onboarded Descriptors"
-      summary: Get a single descriptor matching the UUID
-      operationId: gatekeeper.api.descriptors.getOnboardedDescriptorWithUUID
-      parameters:
-        - name: uuid
-          in: path
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The a descriptor was successfully returned
-          # content:
-          #   application/json:
-          #     schema:
-          #       $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    delete:
-      tags:
-        - "Onboarded Descriptors"
-      summary: delete a single descriptor
-      description: Deletes a descriptor matching the provided UUID
-      operationId: gatekeeper.api.descriptors.deleteOnboardedDescriptor
-      parameters:
-        - in: path
-          name: uuid
-          schema:
-            type: string
-          required: true
-          description: ID of the descriptor to delete
-      responses:
-        200:
-          description: Deletion of a descriptor executed successfully
-        404:
-          description: A descriptor with this UUID does not exist, or has already been deleted.
-
-  ##Instantiate Descriptors
-  /instantiated-descriptors/{type}:
-    get:
-      tags:
-        - "Instantiated Descriptors"
-      summary: Get a list of uploaded descriptors
-      description: Returns a list of all uploaded descriptors of a specified type.
-      operationId: gatekeeper.api.descriptors.getInstantiatedDescriptorsWithType
-      parameters:
-        - name: type
-          in: path
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
-      responses:
-        "200":
-          description: The list of descriptors was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    post:
-      tags:
-        - "Instantiated Descriptors"
-      summary: Add a new descriptor
-      description: Adds a new descriptor to the database
-      operationId: gatekeeper.api.descriptors.addInstantiatedDescriptor
-      parameters:
-        - name: type
-          in: path #{'test': True}
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            $ref: "#/components/schemas/DescriptorType"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Descriptor"
-      responses:
-        "200":
-          description: The descriptor was successfully added to the database
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Descriptor"
-        "500":
-          $ref: "#/components/responses/Error500"
-    # delete:
-    #   tags:
-    #     - "Uploaded Descriptors"
-    #   summary: delete a descriptor
-    #   description: deletes a descriptor from the database given the UUID
-    #   operationId: gatekeeper.api.descriptors.deleteDescriptor
-    #   parameters:
-    #     - name: type
-    #       in: path
-    #       required: true
-    #       description: Specifies the descriptor type
-    #       schema:
-    #         $ref: "#/components/schemas/DescriptorType"
-    #   responses:
-    #     "200":
-    #       description: The descriptor was successfully deleted from the database
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/DeleteDescriptor"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
-
-  /instantiated-descriptors: #https://swagger.io/docs/specification/serialization/
-    get:
-      tags:
-        - "Instantiated Descriptors"
-      summary: Get a list of onboarded descriptors
-      description: Returns a list of all onboarded descriptors.
-      operationId: gatekeeper.api.descriptors.getInstantiatedDescriptors
-      responses:
-        "200":
-          description: The list of descriptors was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    # post:
-    #   tags:
-    #     - "Onboarded Descriptors"
-    #   summary: Add a new descriptor
-    #   description: Adds a new descriptor to the database
-    #   operationId: gatekeeper.api.descriptors.addInstantiatedDescriptor
-    #   parameters:
-    #     - name: descriptor
-    #       in: query
-    #       required: true
-    #       description: Insert the descriptor #{'test': True}
-    #       content:
-    #         application/json: # <---- media type indicates how to serialize / deserialize the parameter content
-    #           schema:
-    #             type: object
-    #             properties:
-    #               type:
-    #                 type: string
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: "#/components/schemas/Descriptor"
-    #   responses:
-    #     "200":
-    #       description: The descriptor was successfully added to the database
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/Descriptor"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
-
-  /instantiated-descriptors/{uuid}:
-    get:
-      tags:
-        - "Instantiated Descriptors"
-      summary: Get a single descriptor matching the UUID
-      operationId: gatekeeper.api.descriptors.getInstantiatedDescriptorsWithUUID
-      parameters:
-        - name: uuid
-          in: path
-          required: true
-          description: Specifies the descriptor type
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The a descriptor was successfully returned
-          # content:
-          #   application/json:
-          #     schema:
-          #       $ref: "#/components/schemas/Services"
-        "500":
-          $ref: "#/components/responses/Error500"
-    delete:
-      tags:
-        - "Instantiated Descriptors"
-      summary: delete a single descriptor
-      description: Deletes a descriptor matching the provided UUID
-      operationId: gatekeeper.api.descriptors.deleteInstantiatedDescriptor
-      parameters:
-        - in: path
-          name: uuid
-          schema:
-            type: string
-          required: true
-          description: ID of the descriptor to delete
-      responses:
-        200:
-          description: Deletion of a descriptor executed successfully
-        404:
-          description: A descriptor with this UUID does not exist, or has already been deleted.
-  # /services:
-  #   get:
-  #     summary: Get a list of services
-  #     description: Obtain the list of services that can be instantiated
-  #     operationId: gatekeeper.api.services.getServices
-  #     responses:
-  #       "200":
-  #         description: The list of services was successfully returned
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Services"
-  #       "500":
-  #         $ref: "#/components/responses/Error500"
-  # /services/{serviceId}:
-  #   get:
-  #     summary: "Get data about a single service by its UUID"
-  #     description: "Returns data about a single service by its UUID"
-  #     operationId: "gatekeeper.api.services.getServiceById"
-  #     parameters:
-  #       - name: serviceId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: "string"
-  #           format: "uuid"
-  #     responses:
-  #       "200":
-  #         description: Data about the given service is returned.
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Service"
-  #       "404":
-  #         $ref: "#/components/responses/Error404"
-  #       "500":
-  #         $ref: "#/components/responses/Error500"
   /vims/openStack:
     get:
       summary: Get a list of VIMs
@@ -642,6 +209,10 @@ paths:
           $ref: "#/components/responses/Error404"
         500:
           $ref: "#/components/responses/Error500"
+    #     200:
+    #       description: Deletion of a descriptor executed successfully
+    #     404:
+    #       description: A descriptor with this UUID does not exist, or has already been deleted.
 
 components:
   schemas:
@@ -672,61 +243,6 @@ components:
       type: "array"
       items:
         $ref: "#/components/schemas/Descriptor"
-    DeleteDescriptor:
-      properties:
-        id:
-          type: string
-          format: uuid
-    DescriptorDeffinition:
-      required:
-        - descriptor
-      properties:
-        descriptor:
-          type: object
-    TypeDeffinition:
-      required:
-        - type
-      properties:
-        type:
-          type: string
-    Service:
-      required:
-        - uuid
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        created_at:
-          type: string
-          format: date
-        updated_at:
-          type: string
-          format: date
-    Services:
-      type: "array"
-      items:
-        $ref: "#/components/schemas/Service"
-    ServiceInstance:
-      required:
-        - instanceId
-        - serviceId
-      properties:
-        instanceId:
-          type: string
-          format: uuid
-        serviceId:
-          type: string
-          format: uuid
-        created_at:
-          type: string
-          format: date
-        updated_at:
-          type: string
-          format: date
-    ServiceInstances:
-      type: array
-      items:
-        $ref: "#/components/schemas/ServiceInstance"
     Error:
       required:
         - status
@@ -749,12 +265,17 @@ components:
         updated_at:
           type: string
           format: date
-
     openStacks:
       type: array
       $ref: "#/components/schemas/openStack"
 
   responses:
+    Error400:
+      description: The request is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
     Error404:
       description: The requested resource could not be found.
       content:
