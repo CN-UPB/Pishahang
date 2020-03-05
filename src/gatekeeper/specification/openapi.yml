@@ -552,26 +552,26 @@ paths:
   #       "500":
   #         $ref: "#/components/responses/Error500"
   /vims/openStack:
-    get:
-      summary: Get a list of VIMs
-      description: Returns a list of VIMs of a specified type.
-      operationId: gatekeeper.api.vims.getopenStack
-      parameters:
-        - name: type
-          in: query
-          required: true
-          description: Specifies the VIM type
-          schema:
-            $ref: "#/components/schemas/VimType"
-      responses:
-        "200":
-          description: The list of VIMs was successfully returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/openStacks"
-        "500":
-          $ref: "#/components/responses/Error500"
+    # get:
+    #   summary: Get a list of VIMs
+    #   description: Returns a list of VIMs of a specified type.
+    #   operationId: gatekeeper.api.vims.getopenStack
+    #   parameters:
+    #     - name: type
+    #       in: query
+    #       required: true
+    #       description: Specifies the VIM t  q123ype
+    #       schema:
+    #         $ref: "#/components/schemas/VimType"
+    #   responses:
+    #     "200":
+    #       description: The list of VIMs was successfully returned
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/openStacks"
+    #     "500":
+    #       $ref: "#/components/responses/Error500"
     post:
       summary: "Add a Openstack VIM"
       operationId: "gatekeeper.api.vims.openStack"
