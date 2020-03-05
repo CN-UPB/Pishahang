@@ -17,3 +17,12 @@ class Descriptor(Document):
     descriptor = DictField(required=True)
     # setting file location Uploaded/Onboarded/Instantiated
     location = StringField(required=True)
+
+
+class OpenStack(Document):
+    """
+    A mongoengine document base class for arbitrary descriptors
+    """
+    uuid = UUIDField(default=uuid4, primary_key=True)
+    type = StringField(required=True)
+    vims = DictField(required=True)

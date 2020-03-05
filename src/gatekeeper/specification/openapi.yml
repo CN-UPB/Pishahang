@@ -551,9 +551,103 @@ paths:
   #         $ref: "#/components/responses/Error404"
   #       "500":
   #         $ref: "#/components/responses/Error500"
+  /vims/openStack:
+    get:
+      summary: Get a list of VIMs
+      description: Returns a list of VIMs of a specified type.
+      operationId: gatekeeper.api.vims.getopenStack
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Specifies the VIM type
+          schema:
+            $ref: "#/components/schemas/VimType"
+      responses:
+        "200":
+          description: The list of VIMs was successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/openStacks"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      summary: "Add a Openstack VIM"
+      operationId: "gatekeeper.api.vims.openStack"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                vimAddress:
+                  type: string
+                tenantId:
+                  type: string
+                tenantExternalNetwrokId:
+                  type: string
+                tenantExternalRouterId:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: "Add vim request's uuid returned"
+        404:
+          $ref: "#/components/responses/Error404"
+        500:
+          $ref: "#/components/responses/Error500"
+  /vims/kubernetes:
+    post:
+      summary: "Add a Kubernetes VIM"
+      operationId: "gatekeeper.api.vims.kubernetes"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                vimAddress:
+                  type: string
+                serviceToken:
+                  type: string
+                ccc:
+                  type: string
+      responses:
+        200:
+          description: "Add vim request's uuid returned"
+        404:
+          $ref: "#/components/responses/Error404"
+        500:
+          $ref: "#/components/responses/Error500"
+  /vims/aws:
+    post:
+      summary: "Add a AWS VIM"
+      operationId: "gatekeeper.api.vims.aws"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                secretKey:
+                  type: string
+      responses:
+        200:
+          description: "Add vim request's uuid returned"
+        404:
+          $ref: "#/components/responses/Error404"
+        500:
+          $ref: "#/components/responses/Error500"
 
 components:
   schemas:
+    VimType:
+      type: string
+      enum: [openStack, AWS, kubernetes]
     DescriptorType:
       type: string
       enum: [service, vm, cn, fpga]
@@ -642,6 +736,23 @@ components:
           type: number
         detail:
           type: string
+    openStack:
+      required:
+        - uuid
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date
+        updated_at:
+          type: string
+          format: date
+
+    openStacks:
+      type: array
+      $ref: "#/components/schemas/openStack"
 
   responses:
     Error404:
