@@ -7,5 +7,5 @@
  */
 export function getApiUrl(endpoint: string = "") {
   const prefix = process.browser ? "" : `http://localhost:3000`;
-  return `${prefix}/api/v2/${endpoint}`;
+  return `${prefix}/api/v3/${endpoint}`;
 }
