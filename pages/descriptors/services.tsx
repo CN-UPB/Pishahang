@@ -5,10 +5,11 @@ import { NextPage } from "next";
 import { Page } from "../../lib/components/layout/Page";
 import { ServicesTable } from "../../lib/components/layout/tables/ServicesTable";
 import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
+import { DescriptorType } from "../../lib/models/descriptorType";
 import { Service } from "../../lib/models/Service";
 
 const ServicesPage: NextPage = () => {
-  const showDescriptorUploadDialog = useDescriptorUploadDialog();
+  const showDescriptorUploadDialog = useDescriptorUploadDialog(DescriptorType.Service);
 
   const data: Service[] = [
     {
