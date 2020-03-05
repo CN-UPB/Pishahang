@@ -76,7 +76,7 @@ export function useVnfdInfoDialog() {
                   Created At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.created_at.toString()}</TableCell>
+              <TableCell align="left">{"created at"}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -85,7 +85,7 @@ export function useVnfdInfoDialog() {
                   Updated At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.updated_at.toString()}</TableCell>
+              <TableCell align="left">{"updated at"}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -94,7 +94,7 @@ export function useVnfdInfoDialog() {
                   UUID:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.uuid}</TableCell>
+              <TableCell align="left">{data.id}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -104,7 +104,6 @@ export function useVnfdInfoDialog() {
 
   return function showVnfdInfoDialog(vnfdMeta: VnfdMeta) {
     data = vnfdMeta;
-
     showDialog();
   };
 }
