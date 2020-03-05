@@ -6,19 +6,15 @@ import { NextPage } from "next";
 import { Page } from "../../lib/components/layout/Page";
 import { VnfdTable } from "../../lib/components/layout/tables/VnfdTable";
 import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
+import { DescriptorType } from "../../lib/models/descriptorType";
 import { VnfdMeta } from "../../lib/models/VnfdMeta";
 
 const ContainersPage: NextPage = () => {
-  const showDescriptorUploadDialog = useDescriptorUploadDialog();
+  const showDescriptorUploadDialog = useDescriptorUploadDialog(DescriptorType.CN);
 
   const data: VnfdMeta[] = [
     {
-      status: "active",
-      signature: "null",
-      md5: "43c1b014db0ce887288ea95391b0cd10",
-      updated_at: new Date(),
-      created_at: new Date(),
-      username: "null",
+      type: DescriptorType.CN,
       descriptor: {
         name: "forwarder-vm-vnf",
         vendor: "eu.sonata-nfv.cloud-service-descriptor",
@@ -28,7 +24,7 @@ const ContainersPage: NextPage = () => {
         descriptor_version: "2.0",
         virtual_deployment_units: "",
       },
-      uuid: "66695e0f-5472-4f85-a310-fe0676bf28e6",
+      id: "66695e0f-5472-4f85-a310-fe0676bf28e6",
     },
   ];
 
