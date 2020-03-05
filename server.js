@@ -3,7 +3,7 @@ const next = require('next')
 
 const devProxy = {
   '/api': {
-    target: 'http://entangle06.cs.upb.de/api/',
+    target: 'http://entangle09.cs.upb.de:5555/api/',
     pathRewrite: { '^/api': '/' },
     changeOrigin: true,
   },
