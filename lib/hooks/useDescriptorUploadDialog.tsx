@@ -2,14 +2,38 @@ import { Button } from "@material-ui/core";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 
+import { uploadDescriptor } from "../api/descriptors";
 import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
+import { DescriptorType } from "../models/descriptorType";
 
-export function useDescriptorUploadDialog() {
+export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   const acceptedFiles = []; //Cannot get this to only allow for .yaml files upload
   /**
    * Display a dialog for uploading Descriptors...
    */
+  let readFile;
+  let type = descriptorType;
+  function onDrop(files) {
+    const blb = new Blob([files], { type: "text/json" });
+    var file = new File([blb], "descriptor", { type: "text/json;charset=utf-8" });
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      var text = reader.result.toString();
+      readFile = JSON.parse(text);
+    };
+
+    // Start reading the blob as text.
+    reader.readAsText(file);
+  }
+
+  function upload() {
+    hideFileSelector();
+    uploadDescriptor(type, readFile);
+    console.log(readFile);
+  }
+
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (
     <GenericDialog
       dialogId="uploader"
@@ -19,7 +43,7 @@ export function useDescriptorUploadDialog() {
       onClose={hideFileSelector}
       buttons={
         <>
-          <Button variant="contained" onClick={hideFileSelector} color="primary" autoFocus>
+          <Button variant="contained" onClick={upload} color="primary" autoFocus>
             Upload
           </Button>
         </>
@@ -32,6 +56,8 @@ export function useDescriptorUploadDialog() {
         showAlerts={true}
         filesLimit={1}
         dropzoneText={"Drag or Click"}
+        onDrop={onDrop}
+        showFileNames={true}
       ></FileSelector>
     </GenericDialog>
   ));
