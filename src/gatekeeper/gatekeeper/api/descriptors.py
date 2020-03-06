@@ -6,6 +6,8 @@ from ..models import (Descriptor, DescriptorType, OnboardedDescriptor,
                       UploadedDescriptor)
 from ..util import makeErrorResponse
 
+NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
+
 
 # Getting descriptors
 
@@ -39,7 +41,7 @@ def getDescriptorById(descriptorClass: Type[Descriptor], id):
         descriptor = descriptorClass.objects(id=id).get()
         return descriptor
     except DoesNotExist:
-        return makeErrorResponse(404, "No descriptor matching the given id was found.")
+        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
 
 
 def getUploadedDescriptorById(id):
@@ -58,6 +60,22 @@ def addUploadedDescriptor(body):
     return descriptor
 
 
+# Updating descriptors
+
+def updateUploadedDescriptor(id, body):
+    """
+    Updates a given descriptor by its ID, or returns a 404 error if no descriptor matching the given
+    id exists.
+    """
+    try:
+        descriptor: UploadedDescriptor = UploadedDescriptor.objects(id=id).get()
+        descriptor.descriptor = body["descriptor"]
+        descriptor.save()
+        return descriptor
+    except DoesNotExist:
+        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+
+
 # Deleting descriptors
 
 def deleteUploadedDescriptorById(id):
@@ -70,4 +88,4 @@ def deleteUploadedDescriptorById(id):
         descriptor.delete()
         return descriptor
     except DoesNotExist:
-        return makeErrorResponse(404, "No descriptor matching the given id was found.")
+        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)

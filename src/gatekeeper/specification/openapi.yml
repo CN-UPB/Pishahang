@@ -63,13 +63,15 @@ paths:
 
       responses:
         "200":
-          description: The descriptor was successfully added to the database.
+          description: The descriptor was successfully updated.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Descriptor"
         "400":
           $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -96,6 +98,42 @@ paths:
                 $ref: "#/components/schemas/Descriptor"
         "404":
           $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    put:
+      tags:
+        - Uploaded Descriptors
+      summary: Update a descriptor by its ID
+      description: Updates the content of the descriptor specified by the given ID
+      operationId: gatekeeper.api.descriptors.updateUploadedDescriptor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the descriptor to be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - descriptor
+              properties:
+                descriptor:
+                  type: object
+
+      responses:
+        "200":
+          description: The descriptor was successfully added to the database.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
         "500":
           $ref: "#/components/responses/Error500"
     delete:
