@@ -1,10 +1,13 @@
+from os import environ
+
 import connexion
 from flask_mongoengine import MongoEngine
+
 from .config import config
 from .util import MongoEngineJSONEncoder
 
 # Create the application instance
-app = connexion.App(__name__, specification_dir='../specification/')
+app = connexion.FlaskApp(__name__, specification_dir='../specification/')
 
 # Read the swagger.yml file to configure the endpoints
 app.add_api('openapi.yml', validate_responses=False)
@@ -22,6 +25,8 @@ app.app.json_encoder = MongoEngineJSONEncoder
 def home():
     return "It works!"
 
+
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5555, debug=True)
+    debug = (environ.get("DEBUG", "true") == "true")
+    app.run(host='0.0.0.0', port=5555, debug=debug)
