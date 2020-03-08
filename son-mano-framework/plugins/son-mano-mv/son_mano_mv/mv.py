@@ -313,9 +313,9 @@ class MVPlugin(ManoBasePlugin):
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
                                 # LOG.info("SWITCH_DEBUG:VM: " + data)
-                                if data == "ACC":
+                                if data == "GPU":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, switch_type="ACC", version_image=SWITCH_DEBUG_IMAGE_ACC)
+                                    self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_ACC)
                                 if data == "CON":
                                     self.active_services[serv_id]['version_changed'] = True
                                     self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
@@ -384,19 +384,19 @@ class MVPlugin(ManoBasePlugin):
                                                     self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
 
                     else:
-                        # ACC Monitoring
+                        # GPU Monitoring
                         if SWITCH_DEBUG:
                             with open("/plugins/son-mano-mv/SWITCH_VNF") as f:  
                                 data = f.read().rstrip()
-                                # LOG.info("SWITCH_DEBUG:ACC: " + data)
+                                # LOG.info("SWITCH_DEBUG:GPU: " + data)
                                 if self.active_services[serv_id]['deployed_version'] == "CON":
-                                    if data == "ACC":
+                                    if data == "GPU":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="ACC", version_image=SWITCH_DEBUG_IMAGE_ACC)
+                                        self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_ACC)
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
                                         self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
-                                if self.active_services[serv_id]['deployed_version'] == "ACC":
+                                if self.active_services[serv_id]['deployed_version'] == "GPU":
                                     if data == "CON":
                                         self.active_services[serv_id]['version_changed'] = True
                                         self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
@@ -408,7 +408,7 @@ class MVPlugin(ManoBasePlugin):
                         else:
 
                             for _rule in _rules:
-                                if _rule['version'] == "ACC":
+                                if _rule['version'] == "GPU":
                                     if '>' in _rule['condition']:
                                         _magnitude = int(_rule['condition'].split('>', 1)[-1].strip())
                                         _parameter = _rule['condition'].split('>', 1)[0].strip()
@@ -489,8 +489,8 @@ class MVPlugin(ManoBasePlugin):
             as_vm = True
             as_container = False
             as_accelerated = False
-        elif switch_type == "ACC":
-            LOG.info("Switch to ACC")
+        elif switch_type == "GPU":
+            LOG.info("Switch to GPU")
             as_vm = False
             as_container = False
             as_accelerated = True

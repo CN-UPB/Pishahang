@@ -2450,7 +2450,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         elif self.services[serv_id]['as_container']:
             deployed_version = "CON"
         elif self.services[serv_id]['as_accelerated']:
-            deployed_version = "ACC"
+            deployed_version = "GPU"
         
         NSD = self.services[serv_id]['service']['nsd']
 
@@ -2715,8 +2715,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             self.services[serv_id]['as_vm'] = True
             self.services[serv_id]['as_container'] = False
             self.services[serv_id]['as_accelerated'] = False
-        elif _default_version == "ACC":
-            LOG.info("Default to ACC")
+        elif _default_version == "GPU":
+            LOG.info("Default to GPU")
             self.services[serv_id]['as_vm'] = False
             self.services[serv_id]['as_container'] = False
             self.services[serv_id]['as_accelerated'] = True
