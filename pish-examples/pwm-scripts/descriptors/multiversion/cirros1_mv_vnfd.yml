@@ -2,10 +2,31 @@
 descriptor_version: vnfd-schema-01
 description: A basic VNF descriptor with load generator and one VDU
 name: cirros-image-1-mv
-vendor: pg-scramble
+vendor: ashwin
 version: '1.0'
-author: pg-scramble
-virtual_deployment_units:
+author: ashwin
+
+virtual_deployment_units_vm:
+  - cirros-image-1-vm
+  - cirros-image-2-vm
+
+virtual_deployment_units_gpu:
+  - cirros-image-1-gpu
+  - cirros-image-2-gpu
+
+virtual_deployment_units_con:
+  - cirros-image-1-con
+  - cirros-image-2-con
+
+monitoring_config:
+  fetch_frequency: 5
+  average_range: 30 
+
+# VERSION DESCRIPTORS
+
+## VM
+
+cirros-image-1-vm:
 - id: cirros-image-1
   description: cirros-image-1
   vm_image: "cirros-image-1"
@@ -23,8 +44,56 @@ virtual_deployment_units:
   - id: eth0
     interface: ipv4
     type: external
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "vm:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "VM"
+      switch: "GPU"
+      switch_image: "cirros-image-1-gpu"
+      condition: "cpu > 90"
+      condition_extra: "all"
 
-virtual_deployment_units_acc:
+cirros-image-2-vm:
+- id: cirros-image-2
+  description: cirros-image-2
+  vm_image: "cirros-image-2"
+  vm_image_format: qcow2
+  resource_requirements:
+    cpu:
+      vcpus: 2
+    memory:
+      size: 512
+      size_unit: MB
+    storage:
+      size: 2
+      size_unit: GB
+  connection_points:
+  - id: eth0
+    interface: ipv4
+    type: external
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "vm:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "VM"
+      switch: "GPU"
+      switch_image: "cirros-image-2-gpu"
+      condition: "cpu > 90"
+      condition_extra: "all"
+
+# Image name on openstack should be "ashwin_cirros-image-1-mv_1.0_cirros-image-1"
+# Image name on openstack should be "ashwin_cirros-image-1-mv_1.0_cirros-image-2"
+
+## GPU
+
+cirros-image-1-gpu:
 - id: "cirros-image-1"
   name: "cirros-image-1"
   service_image: "cirros"
@@ -39,9 +108,69 @@ virtual_deployment_units_acc:
       size: 32
       size_unit: "Mi"
     gpu:
-      gpus: 1
+      gpus: 2
+      type: "nvidia.com/gpu"
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "gpu:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "GPU"
+      switch: "VM"
+      switch_image: "cirros-image-1-vm"
+      condition: "cpu > 90"
+      condition_extra: "user"
+    - name: "gpu:rule:net"
+      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
+      duration: 30
+      version: "GPU"
+      switch: "VM"
+      switch_image: "cirros-image-1-vm"
+      condition: "net > 1500"
+      condition_extra: "upload"
 
-virtual_deployment_units_con:
+cirros-image-2-gpu:
+- id: "cirros-image-2"
+  name: "cirros-image-2"
+  service_image: "cirros"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "ssh"
+    protocol: "TCP"
+    port: 22
+    target_port: 22
+  resource_requirements:
+    memory:
+      size: 64
+      size_unit: "Mi"
+    gpu:
+      gpus: 1
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "gpu:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "GPU"
+      switch: "VM"
+      switch_image: "cirros-image-1-vm"
+      condition: "cpu > 90"
+      condition_extra: "user"
+    - name: "gpu:rule:net"
+      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
+      duration: 30
+      version: "GPU"
+      switch: "VM"
+      switch_image: "cirros-image-1-vm"
+      condition: "net > 1500"
+      condition_extra: "upload"
+
+# CON
+
+cirros-image-1-con:
 - id: "cirros-image-1"
   name: "cirros-image-1"
   service_image: "cirros"
@@ -55,14 +184,67 @@ virtual_deployment_units_con:
     memory:
       size: 32
       size_unit: "Mi"      
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "con:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "CON"
+      switch: "GPU"
+      switch_image: "cirros-image-1-gpu"
+      condition: "cpu > 90"
+      condition_extra: "user"
+    - name: "gpu:rule:net"
+      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
+      duration: 30
+      version: "CON"
+      switch: "GPU"
+      switch_image: "cirros-image-1-gpu"
+      condition: "net > 1500"
+      condition_extra: "upload"
 
-monitoring_config:
-  fetch_frequency: 5
-  average_range: 30 
+cirros-image-2-con:
+- id: "cirros-image-2"
+  name: "cirros-image-2"
+  service_image: "cirros"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "ssh"
+    protocol: "TCP"
+    port: 22
+    target_port: 22
+  resource_requirements:
+    memory:
+      size: 64
+      size_unit: "Mi"      
+  monitoring_parameters:
+    - cpu
+    - net
+  monitoring_rules:
+    - name: "con:rule:cpu"
+      description: "Trigger if CPU usage is above 90 percent in last 30s"
+      duration: 30
+      version: "CON"
+      switch: "GPU"
+      switch_image: "cirros-image-1-gpu"
+      condition: "cpu > 90"
+      condition_extra: "user"
+    - name: "gpu:rule:net"
+      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
+      duration: 30
+      version: "CON"
+      switch: "GPU"
+      switch_image: "cirros-image-1-gpu"
+      condition: "net > 1500"
+      condition_extra: "upload"
 
-monitoring_parameters:
-  - cpu
-  - net
+# VERSION DESCRIPTORS - END
+
+# monitoring_parameters:
+#   - cpu
+#   - net
 
 # - cpu
 # - net
@@ -76,35 +258,3 @@ monitoring_parameters:
 # - pgfaults
 # - writeback
 
-monitoring_rules:
-  - name: "vm:rule:cpu"
-    description: "Trigger if CPU usage is above 90 percent in last 30s"
-    duration: 30
-    version: "VM"
-    switch: "ACC"
-    condition: "cpu > 90"
-    condition_extra: "all"
-  - name: "acc:rule:net"
-    description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-    duration: 30
-    version: "VM"
-    switch: "ACC"
-    condition: "net > 1500"
-    condition_extra: "upload"
-
-  - name: "acc:rule:cpu"
-    description: "Trigger if CPU usage is above 90 percent in last 30s"
-    duration: 30
-    version: "ACC"
-    switch: "VM"
-    condition: "cpu > 90"
-    condition_extra: "user"
-  - name: "acc:rule:net"
-    description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-    duration: 30
-    version: "ACC"
-    switch: "VM"
-    condition: "net > 1500"
-    condition_extra: "upload"
-
-# Image name on openstack should be "pg-scramble_cirros-image-1-mv_1.0_cirros-image-1"

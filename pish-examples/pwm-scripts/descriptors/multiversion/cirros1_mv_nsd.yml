@@ -1,13 +1,13 @@
 ---
 descriptor_version: '1.0'
-vendor: "pg-scramble"
+vendor: "ashwin"
 name: "cirros1_mv"
 version: '1.0'
-author: "pg-scramble"
+author: "ashwin"
 description: "Cirros NS MV"  
 network_functions:
   - vnf_id: "cirros-image1"
-    vnf_vendor: "pg-scramble"
+    vnf_vendor: "ashwin"
     vnf_name: "cirros-image-1-mv"
     vnf_version: '1.0'
     multi_version: true
@@ -22,6 +22,9 @@ connection_points:
   - id: "output"
     interface: "ipv4"
     type: "external"
+
+default_deployment_version: "GPU"
+default_deployment_version_image: cirros-image-1-con
 
 ##
 ## The virtual links that interconnect
