@@ -12,14 +12,14 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { Service } from "../models/Service";
+import { DescriptorMeta } from "../models/DescriptorMeta";
 
 export function useServiceInfoDialog() {
-  let data: Service = null;
+  let data: DescriptorMeta = null;
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
-      dialogId="vnfdInfo"
-      dialogTitle={data.cosd.name}
+      dialogId="descriptorInfo"
+      dialogTitle={data.descriptor.name}
       open={open}
       onExited={onExited}
       onClose={hideDialog}
@@ -34,40 +34,40 @@ export function useServiceInfoDialog() {
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>
-            <TableRow key={data.cosd.description}>
+            <TableRow key={data.descriptor.description}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Description:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.cosd.description}</TableCell>
+              <TableCell align="left">{data.descriptor.description}</TableCell>
             </TableRow>
 
-            <TableRow key={data.cosd.descriptor_version}>
+            <TableRow key={data.descriptor.descriptor_version}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Descriptor Version:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.cosd.descriptor_version}</TableCell>
+              <TableCell align="left">{data.descriptor.descriptor_version}</TableCell>
             </TableRow>
 
-            <TableRow key={data.cosd.version}>
+            <TableRow key={data.descriptor.version}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Version:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.cosd.version}</TableCell>
+              <TableCell align="left">{data.descriptor.version}</TableCell>
             </TableRow>
 
-            <TableRow key={data.cosd.vendor}>
+            <TableRow key={data.descriptor.vendor}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Vendor:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.cosd.vendor}</TableCell>
+              <TableCell align="left">{data.descriptor.vendor}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -76,7 +76,7 @@ export function useServiceInfoDialog() {
                   Created At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.created_at.toString()}</TableCell>
+              <TableCell align="left">{data.createdAt.toString()}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -85,7 +85,7 @@ export function useServiceInfoDialog() {
                   Updated At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.updated_at.toString()}</TableCell>
+              <TableCell align="left">{data.updatedAt.toString()}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -94,7 +94,7 @@ export function useServiceInfoDialog() {
                   UUID:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.uuid}</TableCell>
+              <TableCell align="left">{data.id}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -102,8 +102,8 @@ export function useServiceInfoDialog() {
     </GenericDialog>
   ));
 
-  return function showServiceInfoDialog(service: Service) {
-    data = service;
+  return function showServiceInfoDialog(serviceDescriptorMeta: DescriptorMeta) {
+    data = serviceDescriptorMeta;
 
     showDialog();
   };
