@@ -12,14 +12,16 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { VnfdMeta } from "../models/VnfdMeta";
+import { DescriptorMeta } from "../models/DescriptorMeta";
+import { useStateRef } from "./useStateRef";
 
 export function useVnfdInfoDialog() {
-  let data: VnfdMeta = null;
+  const [data, setData, dataRef] = useStateRef<DescriptorMeta>(null);
+
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
-      dialogId="vnfdInfo"
-      dialogTitle={data.descriptor.name}
+      dialogId="descriptorInfo"
+      dialogTitle={dataRef.current.descriptor.name}
       open={open}
       onExited={onExited}
       onClose={hideDialog}
@@ -34,40 +36,40 @@ export function useVnfdInfoDialog() {
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>
-            <TableRow key={data.descriptor.description}>
+            <TableRow key={dataRef.current.descriptor.description}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Description:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.descriptor.description}</TableCell>
+              <TableCell align="left">{dataRef.current.descriptor.description}</TableCell>
             </TableRow>
 
-            <TableRow key={data.descriptor.descriptor_version}>
+            <TableRow key={dataRef.current.descriptor.descriptor_version}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Descriptor Version:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.descriptor.descriptor_version}</TableCell>
+              <TableCell align="left">{dataRef.current.descriptor.descriptor_version}</TableCell>
             </TableRow>
 
-            <TableRow key={data.descriptor.version}>
+            <TableRow key={dataRef.current.descriptor.version}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Version:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.descriptor.version}</TableCell>
+              <TableCell align="left">{dataRef.current.descriptor.version}</TableCell>
             </TableRow>
 
-            <TableRow key={data.descriptor.vendor}>
+            <TableRow key={dataRef.current.descriptor.vendor}>
               <TableCell component="th" scope="row">
                 <Typography variant="body2" gutterBottom>
                   Vendor:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.descriptor.vendor}</TableCell>
+              <TableCell align="left">{dataRef.current.descriptor.vendor}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -76,7 +78,7 @@ export function useVnfdInfoDialog() {
                   Created At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{"created at"}</TableCell>
+              <TableCell align="left">{dataRef.current.createdAt}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -85,7 +87,7 @@ export function useVnfdInfoDialog() {
                   Updated At:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{"updated at"}</TableCell>
+              <TableCell align="left">{dataRef.current.updatedAt}</TableCell>
             </TableRow>
 
             <TableRow>
@@ -94,7 +96,7 @@ export function useVnfdInfoDialog() {
                   UUID:
                 </Typography>
               </TableCell>
-              <TableCell align="left">{data.id}</TableCell>
+              <TableCell align="left">{dataRef.current.id}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -102,8 +104,8 @@ export function useVnfdInfoDialog() {
     </GenericDialog>
   ));
 
-  return function showVnfdInfoDialog(vnfdMeta: VnfdMeta) {
-    data = vnfdMeta;
+  return function showVnfdInfoDialog(descriptorMeta: DescriptorMeta) {
+    setData(descriptorMeta);
     showDialog();
   };
 }
