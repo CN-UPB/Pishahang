@@ -1,4 +1,4 @@
-watchdog
+watchdog==0.10.2
 
 ##### Core scientific packages
 jupyter==1.0.0
