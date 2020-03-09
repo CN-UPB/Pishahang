@@ -12,7 +12,7 @@ import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
-import { Service } from "../../../models/Service";
+import { DescriptorMeta } from "../../../models/DescriptorMeta";
 
 const useStyles = makeStyles({
   table: {
@@ -25,7 +25,7 @@ type Props = {
    * Property to check page name
    */
   pageName?: any;
-  data: Service[];
+  data: DescriptorMeta[];
 };
 
 export const ServicesTable: React.FunctionComponent<Props> = props => {
@@ -51,12 +51,12 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
         </TableHead>
         <TableBody>
           {props.data.map(row => (
-            <TableRow key={row.cosd.name}>
+            <TableRow key={row.descriptor.name}>
               <TableCell component="th" scope="row">
-                {row.cosd.name}
+                {row.descriptor.name}
               </TableCell>
-              <TableCell align="left">{row.cosd.version}</TableCell>
-              <TableCell align="center">{row.cosd.description}</TableCell>
+              <TableCell align="left">{row.descriptor.version}</TableCell>
+              <TableCell align="center">{row.descriptor.description}</TableCell>
               <TableCell align="center">
                 <IconButton color="primary" onClick={() => showServiceInfoDialog(row)}>
                   <InfoIcon />
@@ -66,7 +66,7 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
                 </IconButton>
                 <IconButton
                   color="primary"
-                  onClick={() => showDescriptorDeleteDialog(row.uuid, row.cosd.name)}
+                  onClick={() => showDescriptorDeleteDialog(row.id, row.descriptor.name)}
                 >
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
