@@ -3,28 +3,17 @@ import dynamic from "next/dynamic";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 
-import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
+import { useStateRef } from "./useStateRef";
 
 const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"), {
   ssr: false,
 });
 
-function useStateRef(initialValue) {
-  const [value, setValue] = React.useState(initialValue);
-  const ref = React.useRef(value);
-
-  React.useEffect(() => {
-    ref.current = value;
-  }, [value]);
-
-  return [value, setValue, ref];
-}
-
 export function useDescriptorEditorDialog(): () => void {
   //contains the data of the description form, if any changes were made
-  const [formData, setFormData, formDataRef] = useStateRef("");
+  const [formData, setFormData, formDataRef] = useStateRef<string>("");
   /**
    * Called during any change in the editor
    * @param newValue
