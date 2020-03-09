@@ -17,6 +17,8 @@ requests = "*"
 mongoengine = "*"
 flask-mongoengine = "*"
 mongoengine-goodjson = "*"
+python-keycloak = "*"
+config2 = "*"
 
 [requires]
 python_version = "3.6"

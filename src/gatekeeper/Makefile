@@ -1,7 +1,7 @@
 init:
 	pipenv install --dev
 run:
-	pipenv run python -m gatekeeper
+	ENV=development pipenv run python -m gatekeeper
 test:
 	pipenv run py.test
 test-watch:

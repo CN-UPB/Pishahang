@@ -1,0 +1,8 @@
+databases:
+  mongo: mongodb://son-mongo/gatekeeper
+
+keycloak:
+  address: son-keycloak
+  port: 5601
+  realmName: sonata
+  clientId: adapter

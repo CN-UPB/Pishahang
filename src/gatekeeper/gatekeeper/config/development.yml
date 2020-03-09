@@ -1,0 +1,6 @@
+databases:
+  mongo: mongodb://localhost:27017/gatekeeper
+
+keycloak:
+  address: localhost
+  port: 5601
