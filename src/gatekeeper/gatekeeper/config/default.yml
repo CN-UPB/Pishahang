@@ -1,8 +1,12 @@
 databases:
   mongo: mongodb://son-mongo/gatekeeper
+  redis: redis://redis:6379/gatekeeper
 
 keycloak:
-  address: son-keycloak
-  port: 5601
+  url: http://son-keycloak:5601/auth/
   realmName: sonata
   clientId: adapter
+
+connexion:
+  swagger_ui_config:
+    showExtensions: true
