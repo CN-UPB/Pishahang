@@ -4,7 +4,7 @@ from mongoengine.errors import DoesNotExist
 
 from ..models import (Descriptor, DescriptorType, OnboardedDescriptor,
                       UploadedDescriptor)
-from ..util import makeErrorResponse
+from ..util import makeMessageResponse
 
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
@@ -38,10 +38,9 @@ def getDescriptorById(descriptorClass: Type[Descriptor], id):
     exists.
     """
     try:
-        descriptor = descriptorClass.objects(id=id).get()
-        return descriptor
+        return descriptorClass.objects(id=id).get()
     except DoesNotExist:
-        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
 
 
 def getUploadedDescriptorById(id):
@@ -55,9 +54,7 @@ def getOnboardedDescriptorById(id):
 # Adding descriptors
 
 def addUploadedDescriptor(body):
-    descriptor = UploadedDescriptor(**body)
-    descriptor.save()
-    return descriptor
+    return UploadedDescriptor(**body).save()
 
 
 # Updating descriptors
@@ -73,7 +70,7 @@ def updateUploadedDescriptor(id, body):
         descriptor.save()
         return descriptor
     except DoesNotExist:
-        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
 
 
 # Deleting descriptors
@@ -88,4 +85,4 @@ def deleteUploadedDescriptorById(id):
         descriptor.delete()
         return descriptor
     except DoesNotExist:
-        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)

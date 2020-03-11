@@ -38,7 +38,7 @@ class MongoEngineJSONEncoder(JSONEncoder):
         return super().default(obj)
 
 
-def makeErrorDict(status: int, detail: str):
+def makeMessageDict(status: int, detail: str):
     """
     Given a `detail` string with a message and a `status` integer, returns a dictionary containing
     those two items.
@@ -46,9 +46,9 @@ def makeErrorDict(status: int, detail: str):
     return {"detail": detail, "status": status}
 
 
-def makeErrorResponse(status: int, detail: str):
+def makeMessageResponse(status: int, detail: str):
     """
     Given a `detail` string and a `status` integer, returns a tuple containing the result of
     `makeErrorDict()` and the `status` code. This can be returned from flask route handlers.
     """
-    return makeErrorDict(status, detail), status
+    return makeMessageDict(status, detail), status
