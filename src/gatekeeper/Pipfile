@@ -9,6 +9,7 @@ pytest = "*"
 requests-mock = "*"
 pytest-watch = "*"
 autopep8 = "*"
+flake8 = "*"
 
 [packages]
 flask = "*"
@@ -16,9 +17,9 @@ connexion = {extras = ["swagger-ui"],version = "*"}
 requests = "*"
 mongoengine = "*"
 flask-mongoengine = "*"
-python-keycloak = "*"
 config2 = "*"
 flask-redis = "*"
+flask-jwt-extended = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,2 +1,7 @@
+from .auth import adminOnly
+from ..models.users import User
+
+
+@adminOnly
 def getUsers():
-    return []
+    return User.objects

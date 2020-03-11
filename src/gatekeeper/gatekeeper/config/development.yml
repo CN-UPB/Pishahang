@@ -1,6 +1,3 @@
 databases:
   mongo: mongodb://localhost:27017/gatekeeper
   redis: redis://localhost:6379/gatekeeper
-
-keycloak:
-  url: http://entangle12.cs.upb.de:5601/auth/

@@ -2,10 +2,10 @@ databases:
   mongo: mongodb://son-mongo/gatekeeper
   redis: redis://redis:6379/gatekeeper
 
-keycloak:
-  url: http://son-keycloak:5601/auth/
-  realmName: sonata
-  clientId: adapter
+initialUserData:
+  username: pishahang
+  password: "1234"
+  isAdmin: true
 
 connexion:
   swagger_ui_config:

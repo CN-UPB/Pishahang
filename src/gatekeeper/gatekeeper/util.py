@@ -1,3 +1,5 @@
+import hashlib
+import os
 from datetime import datetime, timezone
 
 from bson import json_util
@@ -50,3 +52,23 @@ def makeMessageResponse(status: int, detail: str):
     `makeErrorDict()` and the `status` code. This can be returned from flask route handlers.
     """
     return makeMessageDict(status, detail), status
+
+
+def generateSalt() -> bytes:
+    """
+    Returns a random 32-byte salt that can be used with `hashPassword()`.
+    """
+    return os.urandom(32)
+
+
+def hashPassword(password: str, salt: bytes) -> bytes:
+    """
+    Given a password, returns a hash using the given salt (use `generateSalt()`) to generate it.
+    """
+    return hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),  # Convert the password to bytes
+        salt,
+        100000,  # It is recommended to use at least 100,000 iterations of SHA-256
+        dklen=128  # Get a 128 byte key
+    )
