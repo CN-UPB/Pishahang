@@ -1,16 +1,15 @@
 import logging
 import sys
 from functools import wraps
+from inspect import Parameter, signature
 
 import connexion
-from flask import request
 from flask_jwt_extended import create_access_token, decode_token
 from mongoengine import DoesNotExist
 
 from ..app import jwt
 from ..models.users import User
 from ..util import hashPassword
-from inspect import Parameter, signature
 
 logger = logging.getLogger("gatekeeper.api.auth")
 
