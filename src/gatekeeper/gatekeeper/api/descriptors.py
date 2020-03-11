@@ -2,8 +2,8 @@ from typing import Type
 
 from mongoengine.errors import DoesNotExist
 
-from ..models import (Descriptor, DescriptorType, OnboardedDescriptor,
-                      UploadedDescriptor)
+from ..models.descriptors import (Descriptor, DescriptorType,
+                                  OnboardedDescriptor, UploadedDescriptor)
 from ..util import makeMessageResponse
 
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."

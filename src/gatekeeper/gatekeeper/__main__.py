@@ -1,6 +1,5 @@
-from os import environ
-
 from config2.config import config
+
 from .app import app
 
 # If we're running in stand alone mode, run the application

@@ -1,6 +1,3 @@
-from ..models import OpenStack
-
-
 def openStack(body):
 
     vimAddress = body.get("vimAddress")

@@ -1,6 +1,4 @@
-import json
 from datetime import datetime, timezone
-from email.utils import formatdate
 
 from bson import json_util
 from flask.json import JSONEncoder

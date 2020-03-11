@@ -1,9 +1,6 @@
-from os import environ
-
 import connexion
 import redis
 from config2.config import config
-from flask import request, g
 from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
 
