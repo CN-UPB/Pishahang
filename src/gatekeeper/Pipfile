@@ -16,9 +16,9 @@ connexion = {extras = ["swagger-ui"],version = "*"}
 requests = "*"
 mongoengine = "*"
 flask-mongoengine = "*"
-mongoengine-goodjson = "*"
 python-keycloak = "*"
 config2 = "*"
+flask-redis = "*"
 
 [requires]
 python_version = "3.6"
