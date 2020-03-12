@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { getApiUrl } from "../../lib/api";
 import { DescriptorTable } from "../../lib/components/layout/tables/DescriptorTable";
 import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
-import { DescriptorType } from "../../lib/models/descriptorType";
+import { DescriptorType } from "../../lib/models/DescriptorType";
 
 type Props = {
   /**
@@ -35,7 +35,12 @@ export const DescriptorPageContent: React.FunctionComponent<Props> = props => {
         </Fab>
         <CircularProgress
           color="secondary"
-          style={{ display: "inline-block", position: "relative" }}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
         />
       </div>
     );

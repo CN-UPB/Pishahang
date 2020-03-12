@@ -1,5 +1,5 @@
 import { Descriptor } from "./Descriptor";
-import { DescriptorType } from "./descriptorType";
+import { DescriptorType } from "./DescriptorType";
 
 export interface DescriptorMeta {
   id: string;
