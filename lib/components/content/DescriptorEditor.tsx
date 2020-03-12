@@ -10,6 +10,7 @@ const textEditor = props => (
       defaultValue={props.defaultValue}
       value={props.value}
       name="UNIQUE_ID_OF_DIV"
+      wrapEnabled={true}
       editorProps={{
         $blockScrolling: true,
       }}
