@@ -63,13 +63,10 @@ export const DescriptorTable: React.FunctionComponent<Props> = props => {
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
-                <IconButton onClick={() => showDescriptorEditorDialog()}>
+                <IconButton onClick={() => showDescriptorEditorDialog(row)}>
                   <Edit htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton
-                  color="primary"
-                  onClick={() => showDescriptorDeleteDialog(row.id, row.descriptor.name)}
-                >
+                <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>
