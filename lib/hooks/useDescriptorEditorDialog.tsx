@@ -1,25 +1,33 @@
 import { Button } from "@material-ui/core";
+import yaml from "js-yaml";
 import dynamic from "next/dynamic";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
+import { boolean } from "yup";
 
+import { updateDescriptor, uploadDescriptor } from "../api/descriptors";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
+import { Descriptor } from "../models/Descriptor";
+import { DescriptorMeta } from "../models/DescriptorMeta";
 import { useStateRef } from "./useStateRef";
 
 const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"), {
   ssr: false,
 });
 
-export function useDescriptorEditorDialog(): () => void {
+export function useDescriptorEditorDialog(): (string) => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef<string>("");
+  const [descriptoMeta, setDescriptorMeta, getDescriptorMeta] = useStateRef<DescriptorMeta>("");
+  let hasDataChanged: boolean = false;
   /**
    * Called during any change in the editor
    * @param newValue
    */
   function onChange(newValue) {
     setFormData(newValue);
+    hasDataChanged = true;
   }
 
   /**
@@ -32,13 +40,17 @@ export function useDescriptorEditorDialog(): () => void {
    * Function for saving modified file
    */
   function onSave() {
-    if (formDataRef.current !== "") {
+    if (hasDataChanged) {
       //save something only if changes are made
       hideDialog();
-      setFormData("");
+      try {
+        let convertedDescriptorObject = yaml.safeLoad(formDataRef.current);
+        updateDescriptor(convertedDescriptorObject, getDescriptorMeta.current.id);
+      } catch (e) {
+        console.log("E: " + e);
+      }
     } else {
       hideDialog();
-      setFormData("");
     }
   }
 
@@ -46,7 +58,7 @@ export function useDescriptorEditorDialog(): () => void {
    * Function to
    */
   function confirmClose() {
-    if (formDataRef.current !== "") {
+    if (hasDataChanged) {
       //confirm close
       showConfirmDialog();
     } else {
@@ -60,7 +72,6 @@ export function useDescriptorEditorDialog(): () => void {
   function closeConfirmationDialog() {
     hideConfirmDialog();
     hideDialog();
-    setFormData("");
   }
 
   /**
@@ -115,7 +126,22 @@ export function useDescriptorEditorDialog(): () => void {
     </GenericDialog>
   ));
 
-  return function showDescriptorEditorDialog() {
+  return function showDescriptorEditorDialog(descriptorMeta: DescriptorMeta) {
+    convertJsonToYML(descriptorMeta);
+    setDescriptorMeta(descriptorMeta);
     showDialog();
   };
+
+  /**
+   *
+   * @param jsonFile Converting json to yaml
+   */
+  function convertJsonToYML(descriptorMeta: DescriptorMeta) {
+    // Get document, or throw exception on error
+    try {
+      setFormData(yaml.safeDump(descriptorMeta.descriptor));
+    } catch (e) {
+      console.log("E: " + e);
+    }
+  }
 }
