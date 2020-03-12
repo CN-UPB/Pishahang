@@ -1,26 +1,70 @@
-from ..models import OpenStack
+from typing import Type
+from ..models import (Vim, OpenStack, Kubernetes, Aws, VimType)
+from mongoengine.errors import DoesNotExist
+from ..util import makeErrorResponse
+NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
 
-def openStack(body):
-
-    vimAddress = body.get("vimAddress")
-    tenantId = body.get("tenantId")
-    tenantExternalNetworkId = body.get("tenantExternalNetworkId")
-    tenantExternalRouterId = body.get("tenantExternalRouterId")
-    username = body.get("username")
-    password = body.get("password")
-    return {"Vim Address": vimAddress, "Tenant ID": tenantId, "Tenant External Network Id": tenantExternalNetworkId,
-            "Tenant External Router ID": tenantExternalRouterId, "User Name": username, "Password": password}
+# Add Vim
+def addopenStack(body):
+    vim = OpenStack(**body)
+    vim.save()
+    return vim
 
 
-def kubernetes(body):
-    vimAddress = body.get("vimAddress")
-    serviceToken = body.get("serviceToken")
-    ccc = body.get("ccc")
-    return {"Vim Address": vimAddress, "Service Token": serviceToken, "CCC": ccc}
+def addkubernetes(body):
+    vim = Kubernetes(**body)
+    vim.save()
+    return vim
 
 
-def aws(body):
-    secretKey = body.get("secretKey")
+def addaws(body):
+    vim = Aws(**body).save()
+    return vim
 
-    return {"Secret Key": secretKey}
+# Getting the Added Vims
+
+
+def getAllVims():
+    """
+    Returns the list of added Vims.
+    """
+    return getVims(Vim)
+
+
+def getVims(vimClass: Type[Vim]):
+    """
+    Returns all subset of Vims
+    """
+    return vimClass.objects()
+
+# Deleting Vim
+
+
+def deleteVim(id):
+    """
+    Returns the list of added Vims.
+    """
+    return deleteVimById(Vim, id)
+
+
+def deleteVimById(vimClass: Type[Vim], id):
+    """
+    Deletes a Vim by its ID, or returns a 404 error if no Vim matching the
+    given id exists.
+    """
+    try:
+        vim = vimClass.objects(id=id).get()
+        vim.delete()
+        return vim
+    except DoesNotExist:
+        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+
+# Update VIm
+
+
+def updateVim(id):
+    """
+    Update Vim by its id
+    """
+    pass

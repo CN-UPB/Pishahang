@@ -10,10 +10,13 @@ servers:
 
 tags:
   - name: Uploaded Descriptors
-    description: Descriptors that have been uploaded and can be edited or onboarded, yet cannot
+    description:
+      Descriptors that have been uploaded and can be edited or onboarded, yet cannot
       directly be instantiated
   - name: Onboarded Descriptors
     description: Descriptors that have been onboarded and can be instantiated
+  - name: Vim
+    description: Vim that have been added and can be edited or deleted
 
 paths:
   /uploaded-descriptors:
@@ -161,38 +164,64 @@ paths:
           $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
-
+  /vims:
+    get:
+      tags:
+        - Vim
+      summary: Get a list of added Vims
+      operationId: gatekeeper.api.vims.getAllVims
+      responses:
+        "200":
+          description: The list of Vims was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vims"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /vims/{id}:
+    delete:
+      tags:
+        - Vim
+      summary: Delete a Vim by its ID
+      description: Deletes the Vim with the provided ID if it exists.
+      operationId: gatekeeper.api.vims.deleteVim
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the vim to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The vim is successfully deleted.
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
   /vims/openStack:
-    # get:
-    #   summary: Get a list of VIMs
-    #   description: Returns a list of VIMs of a specified type.
-    #   operationId: gatekeeper.api.vims.getopenStack
-    #   parameters:
-    #     - name: type
-    #       in: query
-    #       required: true
-    #       description: Specifies the VIM t  q123ype
-    #       schema:
-    #         $ref: "#/components/schemas/VimType"
-    #   responses:
-    #     "200":
-    #       description: The list of VIMs was successfully returned
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/openStacks"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
     post:
-      summary: "Add a Openstack VIM"
-      operationId: "gatekeeper.api.vims.openStack"
+      tags:
+        - Vim
+      summary: Add a new openStack Vim
+      operationId: "gatekeeper.api.vims.addopenStack"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               properties:
+                vimName:
+                  type: string
                 vimAddress:
+                  type: string
+                country:
+                  type: string
+                city:
                   type: string
                 tenantId:
                   type: string
@@ -213,14 +242,22 @@ paths:
           $ref: "#/components/responses/Error500"
   /vims/kubernetes:
     post:
+      tags:
+        - Vim
       summary: "Add a Kubernetes VIM"
-      operationId: "gatekeeper.api.vims.kubernetes"
+      operationId: "gatekeeper.api.vims.addkubernetes"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               properties:
+                vimName:
+                  type: string
+                country:
+                  type: string
+                city:
+                  type: string
                 vimAddress:
                   type: string
                 serviceToken:
@@ -236,14 +273,24 @@ paths:
           $ref: "#/components/responses/Error500"
   /vims/aws:
     post:
+      tags:
+        - Vim
       summary: "Add a AWS VIM"
-      operationId: "gatekeeper.api.vims.aws"
+      operationId: "gatekeeper.api.vims.addaws"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               properties:
+                vimName:
+                  type: string
+                country:
+                  type: string
+                city:
+                  type: string
+                accessKey:
+                  type: string
                 secretKey:
                   type: string
       responses:
@@ -257,6 +304,43 @@ paths:
     #       description: Deletion of a descriptor executed successfully
     #     404:
     #       description: A descriptor with this UUID does not exist, or has already been deleted.
+  /vims/aws/{id}:
+    put:
+      tags:
+        - Vim
+      summary: Update a Vim by its ID
+      description: Updates the content of the descriptor specified by the given ID
+      operationId: gatekeeper.api.vims.updateVim
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the vim to be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                accessKey:
+                  type: string
+                secretKey:
+                  type: string
+
+      responses:
+        "200":
+          description: The descriptor was successfully updated at the database.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "500":
+          $ref: "#/components/responses/Error500"
 
 components:
   schemas:
@@ -296,11 +380,11 @@ components:
           type: number
         detail:
           type: string
-    openStack:
+    vim:
       required:
-        - uuid
+        - id
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
         created_at:
@@ -309,9 +393,9 @@ components:
         updated_at:
           type: string
           format: date
-    openStacks:
+    Vims:
       type: array
-      $ref: "#/components/schemas/openStack"
+      $ref: "#/components/schemas/vim"
 
   responses:
     Error400:
