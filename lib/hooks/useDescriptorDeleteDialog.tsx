@@ -2,18 +2,20 @@ import { Button } from "@material-ui/core";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 
+import { deleteDescriptor } from "../api/descriptors";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
+import { useStateRef } from "./useStateRef";
 
 export function useDescriptorDeleteDialog() {
-  let descriptorUUID, descriptorName: string;
-
+  let descriptorUUID: string;
+  const [formData, setFormData, formDataRef] = useStateRef<string>("");
   /**
    * On Confirmation delete the descriptor and remove it from the Descriptor list
    */
-  function deleteDescriptor() {
+  function sendDeleteDescriptorRequest() {
     //Delete descriptor and update descriptor list
-    console.log(descriptorUUID);
     hideConfirmDialog();
+    deleteDescriptor(formDataRef.current);
   }
 
   /**
@@ -23,7 +25,7 @@ export function useDescriptorDeleteDialog() {
     <TextDialog
       dialogId="ConfirmClose"
       dialogTitle="Delete Descriptor"
-      dialogText={"Are you sure, you want to delete this descriptor? : " + descriptorName}
+      dialogText={"Are you sure, you want to delete this descriptor?"}
       open={open}
       onExited={onExited}
       onClose={hideConfirmDialog}
@@ -32,7 +34,12 @@ export function useDescriptorDeleteDialog() {
           <Button variant="contained" onClick={hideConfirmDialog} color="secondary" autoFocus>
             no
           </Button>
-          <Button variant="contained" onClick={deleteDescriptor} color="primary" autoFocus>
+          <Button
+            variant="contained"
+            onClick={sendDeleteDescriptorRequest}
+            color="primary"
+            autoFocus
+          >
             yes
           </Button>
         </>
@@ -40,9 +47,8 @@ export function useDescriptorDeleteDialog() {
     ></TextDialog>
   ));
 
-  return function showDescriptorDeleteDialog(uuid: string, name: string) {
-    descriptorUUID = uuid;
-    descriptorName = name;
+  return function showDescriptorDeleteDialog(uuid: string) {
+    setFormData(uuid);
     showConfirmDialog();
   };
 }
