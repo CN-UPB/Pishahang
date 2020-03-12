@@ -15,16 +15,20 @@ logger = logging.getLogger("gatekeeper.api.auth")
 
 
 @jwt.user_claims_loader
-def getClaimsByUsername(username):
-    user: User = User.objects(username=username).get()
+def __getClaimsByUser(user: User):
     return {
         'isAdmin': user.isAdmin,
     }
 
 
+@jwt.user_identity_loader
+def getIdentityByUser(user: User):
+    return user.username
+
+
 def createTokenFromCredentials(body):
     """
-    Given a request body with a username and a password, generates a new JWT token or returns an
+    Given a request body with a username and a password, generates a JWT access token or returns an
     error response.
     """
     username = body["username"]
@@ -40,7 +44,15 @@ def createTokenFromCredentials(body):
     if not valid:
         return connexion.problem(400, "Bad Request", "Invalid username or password")
 
-    return {"accessToken": create_access_token(identity=username)}
+    return {"accessToken": create_access_token(identity=user)}
+
+
+def refreshToken(body):
+    """
+    Given a request body with a refresh token, generates a JWT access token or returns an error
+    response.
+    """
+    pass
 
 
 def getTokenInfo(token) -> dict:
@@ -58,7 +70,7 @@ def getTokenInfo(token) -> dict:
 
 def __makeAuthDecorator(tokenInfoHandler):
     """
-    Decorator factory for decorators that process connexion's `token_info` keyword argument 
+    Decorator factory for decorators that process connexion's `token_info` keyword argument
 
     Accepts an `tokenInfoHandler` function which is executed right before the wrapped function and
     provided with `token_info`. If `tokenInfoHandler` returns a value, the wrapper function will
