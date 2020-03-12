@@ -24,6 +24,7 @@ class Vim(UuidDocument, TimestampedDocument):
     vimName = StringField(required=True)
     country = StringField(required=True)
     city = StringField(required=True)
+    type = StringField(required=True)
 
     # type = StringField(required=True, choices=[
     #     t.value for t in VimType])
@@ -53,8 +54,9 @@ class Kubernetes(Vim):
 
 
 class Aws(Vim):
+
     """
-    A mongoengine document base class for Kubernetes VIM
+    A mongoengine document base class for AWS VIM
     """
 
     accessKey = StringField(required=True)

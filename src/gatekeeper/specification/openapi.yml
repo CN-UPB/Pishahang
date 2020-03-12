@@ -236,6 +236,26 @@ paths:
           $ref: "#/components/responses/Error400"
         "500":
           $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Vim
+      summary: Add a Vim
+      operationId: gatekeeper.api.vims.addVim
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Aws"
+                - $ref: "#/components/schemas/OpenStack"
+                - $ref: "#/components/schemas/Kubernetes"
+      responses:
+        "200":
+          description: The vim is successfully deleted.
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
   /vims/{id}:
     delete:
       tags:
@@ -258,114 +278,13 @@ paths:
           $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
-  /vims/openStack:
-    post:
-      tags:
-        - Vim
-      summary: Add a new openStack Vim
-      operationId: "gatekeeper.api.vims.addopenStack"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                vimName:
-                  type: string
-                vimAddress:
-                  type: string
-                country:
-                  type: string
-                city:
-                  type: string
-                tenantId:
-                  type: string
-                tenantExternalNetwrokId:
-                  type: string
-                tenantExternalRouterId:
-                  type: string
-                username:
-                  type: string
-                password:
-                  type: string
-      responses:
-        200:
-          description: "Add vim request's uuid returned"
-        404:
-          $ref: "#/components/responses/Error404"
-        500:
-          $ref: "#/components/responses/Error500"
-  /vims/kubernetes:
-    post:
-      tags:
-        - Vim
-      summary: "Add a Kubernetes VIM"
-      operationId: "gatekeeper.api.vims.addkubernetes"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                vimName:
-                  type: string
-                country:
-                  type: string
-                city:
-                  type: string
-                vimAddress:
-                  type: string
-                serviceToken:
-                  type: string
-                ccc:
-                  type: string
-      responses:
-        200:
-          description: "Add vim request's uuid returned"
-        404:
-          $ref: "#/components/responses/Error404"
-        500:
-          $ref: "#/components/responses/Error500"
-  /vims/aws:
-    post:
-      tags:
-        - Vim
-      summary: "Add a AWS VIM"
-      operationId: "gatekeeper.api.vims.addaws"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                vimName:
-                  type: string
-                country:
-                  type: string
-                city:
-                  type: string
-                accessKey:
-                  type: string
-                secretKey:
-                  type: string
-      responses:
-        200:
-          description: "Add vim request's uuid returned"
-        404:
-          $ref: "#/components/responses/Error404"
-        500:
-          $ref: "#/components/responses/Error500"
-    #     200:
-    #       description: Deletion of a descriptor executed successfully
-    #     404:
-    #       description: A descriptor with this UUID does not exist, or has already been deleted.
   /vims/aws/{id}:
     put:
       tags:
         - Vim
       summary: Update a Vim by its ID
       description: Updates the content of the descriptor specified by the given ID
-      operationId: gatekeeper.api.vims.updateVim
+      operationId: gatekeeper.api.vims.updateAwsVim
       parameters:
         - name: id
           in: path
@@ -399,6 +318,82 @@ paths:
 
 components:
   schemas:
+    BaseVim:
+      type: object
+      required:
+        - vimName
+        - country
+        - city
+      properties:
+        vimName:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+    OpenStack:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - vimAddress
+            - tenantId
+            - tenantExternalNetwrokId
+            - tenantExternalRouterId
+            - username
+            - password
+            - type
+          properties:
+            type:
+              type: string
+              enum: ["aws"]
+            vimAddress:
+              type: string
+            tenantId:
+              type: string
+            tenantExternalNetwrokId:
+              type: string
+            tenantExternalRouterId:
+              type: string
+            username:
+              type: string
+            password:
+              type: string
+    Kubernetes:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - vimAddress
+            - serviceToken
+            - ccc
+            - type
+          properties:
+            type:
+              type: string
+              enum: ["kubernetes"]
+            vimAddress:
+              type: string
+            serviceToken:
+              type: string
+            ccc:
+              type: string
+    Aws:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - type
+            - accessKey
+            - secretKey
+          properties:
+            type:
+              type: string
+              enum: ["aws"]
+            accessKey:
+              type: string
+            secretKey:
+              type: string
     VimType:
       type: string
       enum: [openStack, AWS, kubernetes]
@@ -448,8 +443,10 @@ components:
         updated_at:
           type: string
           format: date
+        type:
+          $ref: "#/components/schemas/VimType"
     Vims:
-      type: array
+      type: "object"
       $ref: "#/components/schemas/vim"
     KeycloakToken:
       required:
