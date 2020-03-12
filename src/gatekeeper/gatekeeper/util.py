@@ -27,7 +27,7 @@ class MongoEngineJSONEncoder(JSONEncoder):
             # Convert datetime fields to RFC 3339 format (in UTC time zone)
             for key, value in doc.items():
                 if isinstance(value, datetime):
-                    doc[key] = value.replace(tzinfo=timezone.utc).isoformat()
+                    doc[key] = value.replace(tzinfo=timezone.utc, microsecond=0).isoformat()
 
             # Remove Mongoengine class field if it exists
             if "_cls" in doc:
