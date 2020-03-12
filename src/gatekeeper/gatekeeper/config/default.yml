@@ -1,0 +1,12 @@
+databases:
+  mongo: mongodb://son-mongo/gatekeeper
+  redis: redis://redis:6379/gatekeeper
+
+initialUserData:
+  username: pishahang
+  password: "1234"
+  isAdmin: true
+
+connexion:
+  swagger_ui_config:
+    showExtensions: true

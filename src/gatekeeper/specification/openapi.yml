@@ -9,6 +9,8 @@ servers:
   - url: /api/v3
 
 tags:
+  - name: Authentication
+    description: User management and authentication
   - name: Uploaded Descriptors
     description:
       Descriptors that have been uploaded and can be edited or onboarded, yet cannot
@@ -19,6 +21,59 @@ tags:
     description: Vim that have been added and can be edited or deleted
 
 paths:
+  /tokens:
+    post:
+      tags:
+        - Authentication
+      summary: Create a new access token
+      description:
+        Given a username and a password, returns a new token object or fails with an error message.
+        In case of invalid credentials, error 400 will be returned.
+      operationId: gatekeeper.api.auth.createTokenFromCredentials
+      requestBody:
+        description: The username and password to create a new access token with
+        content:
+          application/json:
+            schema:
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "pishahang"
+                password:
+                  type: string
+                  example: "1234"
+      responses:
+        "200":
+          description: The provided credentials are valid and a new access token has been returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeycloakToken"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /users:
+    get:
+      tags:
+        - Authentication
+      summary: Get a list of registered users
+      description: Returns a list of all registered users
+      operationId: gatekeeper.api.users.getUsers
+      responses:
+        "200":
+          description: The list of users was successfully returned.
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
+
   /uploaded-descriptors:
     get:
       tags:
@@ -371,13 +426,13 @@ components:
       type: "array"
       items:
         $ref: "#/components/schemas/Descriptor"
-    Error:
+    Message:
       required:
         - status
         - detail
       properties:
         status:
-          type: number
+          type: integer
         detail:
           type: string
     vim:
@@ -396,6 +451,21 @@ components:
     Vims:
       type: array
       $ref: "#/components/schemas/vim"
+    KeycloakToken:
+      required:
+        - accessToken
+        - expiresIn
+        - refreshExpiresIn
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+        refreshExpiresIn:
+          type: integer
+        refreshToken:
+          type: string
 
   responses:
     Error400:
@@ -403,16 +473,29 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/Message"
+    Error401:
+      description: The access token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
     Error404:
       description: The requested resource could not be found.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/Message"
     Error500:
       description: An unexpected error occurred.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/Message"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: gatekeeper.api.auth.getTokenInfo

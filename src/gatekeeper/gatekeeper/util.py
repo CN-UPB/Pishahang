@@ -1,6 +1,6 @@
-import json
+import hashlib
+import os
 from datetime import datetime, timezone
-from email.utils import formatdate
 
 from bson import json_util
 from flask.json import JSONEncoder
@@ -38,7 +38,7 @@ class MongoEngineJSONEncoder(JSONEncoder):
         return super().default(obj)
 
 
-def makeErrorDict(status: int, detail: str):
+def makeMessageDict(status: int, detail: str):
     """
     Given a `detail` string with a message and a `status` integer, returns a dictionary containing
     those two items.
@@ -46,9 +46,29 @@ def makeErrorDict(status: int, detail: str):
     return {"detail": detail, "status": status}
 
 
-def makeErrorResponse(status: int, detail: str):
+def makeMessageResponse(status: int, detail: str):
     """
     Given a `detail` string and a `status` integer, returns a tuple containing the result of
     `makeErrorDict()` and the `status` code. This can be returned from flask route handlers.
     """
-    return makeErrorDict(status, detail), status
+    return makeMessageDict(status, detail), status
+
+
+def generateSalt() -> bytes:
+    """
+    Returns a random 32-byte salt that can be used with `hashPassword()`.
+    """
+    return os.urandom(32)
+
+
+def hashPassword(password: str, salt: bytes) -> bytes:
+    """
+    Given a password, returns a hash using the given salt (use `generateSalt()`) to generate it.
+    """
+    return hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),  # Convert the password to bytes
+        salt,
+        100000,  # It is recommended to use at least 100,000 iterations of SHA-256
+        dklen=128  # Get a 128 byte key
+    )

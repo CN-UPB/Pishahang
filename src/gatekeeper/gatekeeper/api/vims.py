@@ -1,7 +1,7 @@
 from typing import Type
-from ..models import (Vim, OpenStack, Kubernetes, Aws, VimType)
+from ..models.vims import (Vim, OpenStack, Kubernetes, Aws, VimType)
 from mongoengine.errors import DoesNotExist
-from ..util import makeErrorResponse
+from ..util import makeMessageResponse
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
 
@@ -58,7 +58,7 @@ def deleteVimById(vimClass: Type[Vim], id):
         vim.delete()
         return vim
     except DoesNotExist:
-        return makeErrorResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
 
 # Update VIm
 
