@@ -10,6 +10,8 @@ requests-mock = "*"
 pytest-watch = "*"
 autopep8 = "*"
 flake8 = "*"
+mongomock = "*"
+pytest-env = "*"
 
 [packages]
 flask = "*"
@@ -20,6 +22,7 @@ flask-mongoengine = "*"
 config2 = "*"
 flask-redis = "*"
 flask-jwt-extended = "*"
+fakeredis = "*"
 
 [requires]
 python_version = "3.6"

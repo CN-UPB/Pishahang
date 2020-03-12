@@ -2,6 +2,7 @@ import logging
 import secrets
 
 import connexion
+import fakeredis
 import redis
 from config2.config import config
 from flask_jwt_extended import JWTManager
@@ -20,13 +21,21 @@ app = connexion.FlaskApp(__name__, specification_dir='../specification/', option
 if config.get_env() is not None:
     app.app.config['ENV'] = config.get_env()
 
+    if config.get_env() == "test":
+        app.app.config['TESTING'] = True
+
 # Setup mongoengine
 app.app.config['MONGODB_SETTINGS'] = {'host': config.databases.mongo}
 mongoDb = MongoEngine(app.app)
 
 # Setup redis database
-app.app.config['REDIS_URL'] = config.databases.redis
-redisClient: redis.Redis = FlaskRedis(app.app)
+if config.databases.redis == "fakeredis":
+    # Mock redis for testing
+    redisClient: redis.Redis = FlaskRedis.from_custom_provider(fakeredis.FakeStrictRedis(), app.app)
+else:
+    app.app.config['REDIS_URL'] = config.databases.redis
+    redisClient: redis.Redis = FlaskRedis(app.app)
+
 
 # Setup the Flask-JWT-Extended extension
 __jwtSecretKey = redisClient.get('jwtSecretKey')

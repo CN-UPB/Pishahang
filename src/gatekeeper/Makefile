@@ -3,6 +3,6 @@ init:
 run:
 	ENV=development pipenv run python -m gatekeeper
 test:
-	pipenv run py.test
+	pipenv run py.test -vv
 test-watch:
-	pipenv run pytest-watch
+	pipenv run pytest-watch -- -vv
