@@ -21,14 +21,14 @@ tags:
     description: Vim that have been added and can be edited or deleted
 
 paths:
-  /tokens:
+  /auth:
     post:
       tags:
         - Authentication
       summary: Create a new access token
       description:
-        Given a username and a password, returns a new token object or fails with an error message.
-        In case of invalid credentials, error 400 will be returned.
+        Given a username and a password, returns an access token and a refresh token or fails with
+        error 401 if the credentials are invalid.
       operationId: gatekeeper.api.auth.createTokenFromCredentials
       requestBody:
         description: The username and password to create a new access token with
@@ -45,15 +45,43 @@ paths:
                 password:
                   type: string
                   example: "1234"
+
       responses:
         "200":
           description: The provided credentials are valid and a new access token has been returned.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/KeycloakToken"
-        "400":
-          $ref: "#/components/responses/Error400"
+                allOf:
+                  - $ref: "#/components/schemas/AccessToken"
+                  - $ref: "#/components/schemas/RefreshToken"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    put:
+      tags:
+        - Authentication
+      summary: Refresh an access token
+      description:
+        Given a refresh token, returns a new access token or fails with error 401 if the given
+        refresh token is invalid.
+      operationId: gatekeeper.api.auth.refreshToken
+      requestBody:
+        description: The refresh token which was handed out by the `/auth` endpoint
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshToken"
+      responses:
+        "200":
+          description: The provided refresh token is valid and a new access token has been returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -67,8 +95,14 @@ paths:
       responses:
         "200":
           description: The list of users was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
         "401":
           $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
       security:
@@ -318,19 +352,60 @@ paths:
 
 components:
   schemas:
-    BaseVim:
-      type: object
+    BaseEntity:
       required:
-        - vimName
-        - country
-        - city
+        - id
+        - createdAt
+        - updatedAt
       properties:
-        vimName:
+        id:
+          description: A randomly generated uuid
           type: string
-        country:
+          format: uuid
+          readOnly: true
+        createdAt:
           type: string
-        city:
+          format: date-time
+          readOnly: true
+        updatedAt:
           type: string
+          format: date-time
+          readOnly: true
+
+    DescriptorType:
+      type: string
+      enum: [service, vm, cn, fpga]
+    Descriptor:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - descriptor
+          properties:
+            type:
+              $ref: "#/components/schemas/DescriptorType"
+            descriptor:
+              type: object
+    Descriptors:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Descriptor"
+
+    BaseVim:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - vimName
+            - country
+            - city
+          properties:
+            vimName:
+              type: string
+            country:
+              type: string
+            city:
+              type: string
     OpenStack:
       allOf:
         - $ref: "#/components/schemas/BaseVim"
@@ -394,33 +469,55 @@ components:
               type: string
             secretKey:
               type: string
-    VimType:
-      type: string
-      enum: [openStack, AWS, kubernetes]
-    DescriptorType:
-      type: string
-      enum: [service, vm, cn, fpga]
-    Descriptor:
-      required:
-        - descriptor
-      properties:
-        id:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        type:
-          $ref: "#/components/schemas/DescriptorType"
-        descriptor:
-          type: object
-    Descriptors:
+    Vims:
       type: "array"
       items:
-        $ref: "#/components/schemas/Descriptor"
+        oneOf:
+          - $ref: "#/components/schemas/OpenStack"
+          - $ref: "#/components/schemas/Aws"
+          - $ref: "#/components/schemas/Kubernetes"
+
+    User:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - username
+            - isAdmin
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+              writeOnly: true
+            isAdmin:
+              type: boolean
+    Users:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/User"
+
+    AccessToken:
+      required:
+        - accessToken
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+          readOnly: true
+    RefreshToken:
+      required:
+        - refreshToken
+        - refreshExpiresIn
+      properties:
+        refreshToken:
+          type: string
+        refreshExpiresIn:
+          type: integer
+          readOnly: true
+
     Message:
       required:
         - status
@@ -429,39 +526,6 @@ components:
         status:
           type: integer
         detail:
-          type: string
-    vim:
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
-        created_at:
-          type: string
-          format: date
-        updated_at:
-          type: string
-          format: date
-        type:
-          $ref: "#/components/schemas/VimType"
-    Vims:
-      type: "object"
-      $ref: "#/components/schemas/vim"
-    KeycloakToken:
-      required:
-        - accessToken
-        - expiresIn
-        - refreshExpiresIn
-        - refreshToken
-      properties:
-        accessToken:
-          type: string
-        expiresIn:
-          type: integer
-        refreshExpiresIn:
-          type: integer
-        refreshToken:
           type: string
 
   responses:
@@ -473,6 +537,12 @@ components:
             $ref: "#/components/schemas/Message"
     Error401:
       description: The access token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+    Error403:
+      description: The action requires elevated privileges.
       content:
         application/json:
           schema:
