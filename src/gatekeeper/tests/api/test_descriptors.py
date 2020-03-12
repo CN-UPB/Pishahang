@@ -20,6 +20,9 @@ def testUploadedDescriptors(api, type):
 
     assert [descriptor] == getDescriptors()
 
+    # GET single descriptor
+    assert descriptor == api.get('/api/v3/uploaded-descriptors/' + descriptor['id']).get_json()
+
     # PUT descriptor
     updatedDesriptor = api.put(
         '/api/v3/uploaded-descriptors/' + descriptor["id"],
