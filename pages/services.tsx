@@ -3,7 +3,7 @@ import { NextPage } from "next";
 import { Page } from "../lib/components/layout/Page";
 import { ServiceInstancesTable } from "../lib/components/layout/tables/ServiceInstancesTable";
 import { useDescriptorUploadDialog } from "../lib/hooks/useDescriptorUploadDialog";
-import { DescriptorType } from "../lib/models/descriptorType";
+import { DescriptorType } from "../lib/models/DescriptorType";
 import { Service } from "../lib/models/Service";
 
 const ServicesPage: NextPage = () => {

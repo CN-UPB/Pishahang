@@ -64,10 +64,7 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
                 <IconButton>
                   <PlayCircleOutline htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton
-                  color="primary"
-                  onClick={() => showDescriptorDeleteDialog(row.id, row.descriptor.name)}
-                >
+                <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
                   <Delete htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>

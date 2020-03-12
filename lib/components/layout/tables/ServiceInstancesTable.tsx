@@ -64,10 +64,7 @@ export const ServiceInstancesTable: React.FunctionComponent<Props> = props => {
                 <IconButton>
                   <PlayCircleOutline htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton
-                  color="primary"
-                  onClick={() => showServiceStopDialog(row.uuid, row.cosd.name)}
-                >
+                <IconButton color="primary" onClick={() => showServiceStopDialog(row.id)}>
                   <StopRounded htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>
