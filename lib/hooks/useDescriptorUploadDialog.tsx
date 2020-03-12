@@ -5,7 +5,7 @@ import { useModal } from "react-modal-hook";
 import { uploadDescriptor } from "../api/descriptors";
 import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { DescriptorType } from "../models/descriptorType";
+import { DescriptorType } from "../models/DescriptorType";
 
 export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   const acceptedFiles = []; //Cannot get this to only allow for .yaml files upload
@@ -31,7 +31,6 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   function upload() {
     hideFileSelector();
     uploadDescriptor(type, readFile);
-    console.log(readFile);
   }
 
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (
