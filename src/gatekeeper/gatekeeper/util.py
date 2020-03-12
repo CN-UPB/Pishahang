@@ -7,6 +7,8 @@ from flask.json import JSONEncoder
 from mongoengine.base import BaseDocument
 from mongoengine.queryset import QuerySet
 
+from gatekeeper.models.users import User
+
 
 class MongoEngineJSONEncoder(JSONEncoder):
     """
@@ -30,6 +32,12 @@ class MongoEngineJSONEncoder(JSONEncoder):
             # Remove Mongoengine class field if it exists
             if "_cls" in doc:
                 doc.pop("_cls")
+
+            # Remove passwordSalt and passwordHash for Users
+            if isinstance(obj, User):
+                if "_cls" in doc:
+                    doc.pop("passwordSalt")
+                    doc.pop("passwordHash")
 
             return json_util._json_convert(doc)
         if isinstance(obj, QuerySet):
