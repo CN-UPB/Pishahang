@@ -26,5 +26,8 @@ RUN python setup.py develop
 COPY /plugins/${PLUGIN_BASE}/requirements.txt ./
 RUN pip install --no-cache-dir -r /plugins/${PLUGIN_BASE}/requirements.txt
 
+ADD start.sh start.sh
+RUN chmod +x start.sh
+
 CMD watchmedo auto-restart --recursive --pattern="*.py" --directory="." /bin/bash start.sh
 
