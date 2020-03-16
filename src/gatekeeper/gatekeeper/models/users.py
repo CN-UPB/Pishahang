@@ -20,3 +20,10 @@ class User(UuidDocument, TimestampedDocument):
     passwordHash = BinaryField(max_bytes=128, required=True)
 
     isAdmin = BooleanField(required=True)
+
+    # def to_mongo(self, *args, **kwargs):
+    #     # Exclude passwordSalt and passwordHash from json representation
+    #     data: dict = super().to_mongo(*args, **kwargs)
+    #     # data.pop('passwordSalt')
+    #     # data.pop('passwordHash')
+    #     return data
