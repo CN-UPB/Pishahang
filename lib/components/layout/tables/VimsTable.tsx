@@ -12,6 +12,8 @@ import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
+import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
+import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
 import { Service } from "../../../models/Service";
 import { Vims } from "../../../models/Vims";
 
@@ -32,7 +34,7 @@ type Props = {
 export const VimsTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
-  const showServiceInfoDialog = useServiceInfoDialog();
+  const showVimsInfoDialog = useVimsInfoDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
   return (
@@ -61,7 +63,7 @@ export const VimsTable: React.FunctionComponent<Props> = props => {
               <TableCell align="center">{row.cores}</TableCell>
               <TableCell align="center">{row.memory}</TableCell>
               <TableCell align="center">
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => showVimsInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
                 <IconButton>
