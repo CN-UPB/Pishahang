@@ -63,9 +63,10 @@ type FormValues = {
 
 export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
+  let vimtype: String;
 
-  const onSubmit = async () => {
-    alert("Hei MAN! You Seriously Want to Submit IT!!!!");
+  const onSubmit = async e => {
+    console.log(JSON.stringify(e, null, 2));
   };
 
   const validationSchema = Yup.object().shape({
@@ -133,6 +134,7 @@ export const VimForm: React.FunctionComponent = () => {
       <Formik
         initialValues={initialFormValues}
         onSubmit={onSubmit}
+        on
         validationSchema={validationSchema}
       >
         {(formikProps: FormikProps<FormValues>) => (
