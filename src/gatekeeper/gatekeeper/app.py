@@ -10,7 +10,7 @@ from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
 
 from .models.users import User
-from .util import MongoEngineJSONEncoder, generateSalt, hashPassword
+from .util import MongoEngineJSONEncoder
 
 logger = logging.getLogger("gatekeeper.app")
 
@@ -66,9 +66,5 @@ def home():
 # User.objects.delete()
 if User.objects.count() == 0:
     logger.info("Creating initial user account")
-
-    userData = dict(config.initialUserData)
-    salt = generateSalt()
-    userData['passwordSalt'] = salt
-    userData['passwordHash'] = hashPassword(userData.pop("password"), salt)
+    userData = config.initialUserData
     User(**userData).save()
