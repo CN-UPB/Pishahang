@@ -35,9 +35,8 @@ class MongoEngineJSONEncoder(JSONEncoder):
 
             # Remove passwordSalt and passwordHash for Users
             if isinstance(obj, User):
-                if "_cls" in doc:
-                    doc.pop("passwordSalt")
-                    doc.pop("passwordHash")
+                doc.pop("passwordSalt")
+                doc.pop("passwordHash")
 
             return json_util._json_convert(doc)
         if isinstance(obj, QuerySet):
