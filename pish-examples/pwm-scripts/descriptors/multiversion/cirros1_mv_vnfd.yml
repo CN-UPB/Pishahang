@@ -6,29 +6,30 @@ vendor: ashwin
 version: '1.0'
 author: ashwin
 
-virtual_deployment_units_vm:
-  - cirros-image-1-vm: 
-    - cost_per_min: "1"
-    - max_data_rate: 600
-  - cirros-image-2-vm: 
-    - cost_per_min: "1"
-    - max_data_rate: 600
+versions:
+  virtual_deployment_units_vm:
+    - cirros-image-1-vm: 
+      - cost_per_min: "1"
+      - max_data_rate: 600
+    - cirros-image-2-vm: 
+      - cost_per_min: "1"
+      - max_data_rate: 600
 
-virtual_deployment_units_gpu:
-  - cirros-image-1-gpu: 
-    - cost_per_min: "1"
-    - max_data_rate: 2000
-  - cirros-image-2-gpu: 
-    - cost_per_min: "1"
-    - max_data_rate: 2000
+  virtual_deployment_units_gpu:
+    - cirros-image-1-gpu: 
+      - cost_per_min: "1"
+      - max_data_rate: 2000
+    - cirros-image-2-gpu: 
+      - cost_per_min: "1"
+      - max_data_rate: 2000
 
-virtual_deployment_units_con:
-  - cirros-image-1-con: 
-    - cost_per_min: "1"
-    - max_data_rate: 600
-  - cirros-image-2-con: 
-    - cost_per_min: "1"
-    - max_data_rate: 600
+  virtual_deployment_units_con:
+    - cirros-image-1-con: 
+      - cost_per_min: "1"
+      - max_data_rate: 600
+    - cirros-image-2-con: 
+      - cost_per_min: "1"
+      - max_data_rate: 600
 
 monitoring_config:
   fetch_frequency: 5
