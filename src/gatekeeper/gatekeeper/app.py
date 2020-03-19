@@ -15,7 +15,8 @@ from .util import MongoEngineJSONEncoder
 logger = logging.getLogger("gatekeeper.app")
 
 # Create the application instance
-app = connexion.FlaskApp(__name__, specification_dir='../specification/', options=config.connexion)
+app = connexion.FlaskApp(__name__, specification_dir='../specification/',
+                         options=config.connexion.options)
 
 # Set flask environment, if ENV variable is set
 if config.get_env() is not None:
@@ -52,8 +53,7 @@ app.app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.jwt.refreshTokenLifetime
 jwt = JWTManager(app.app)
 
 # Read the specification files to configure the endpoints
-app.add_api('openapi.yml', validate_responses=False)
-app.add_api('config.yml')
+app.add_api('openapi.yml', validate_responses=config.connexion.validateResponses)
 
 # Set a custom JSON encoder
 app.app.json_encoder = MongoEngineJSONEncoder

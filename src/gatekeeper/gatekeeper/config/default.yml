@@ -12,5 +12,7 @@ jwt:
   refreshTokenLifetime: 604800 # 7 days
 
 connexion:
-  swagger_ui_config:
-    showExtensions: true
+  validateResponses: false
+  options:
+    swagger_ui_config:
+      showExtensions: true
