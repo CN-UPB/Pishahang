@@ -65,7 +65,7 @@ export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
   let vimtype: String;
 
-  const onSubmit = async e => {
+  const onSubmit = e => {
     console.log(JSON.stringify(e, null, 2));
   };
 
@@ -134,7 +134,6 @@ export const VimForm: React.FunctionComponent = () => {
       <Formik
         initialValues={initialFormValues}
         onSubmit={onSubmit}
-        on
         validationSchema={validationSchema}
       >
         {(formikProps: FormikProps<FormValues>) => (

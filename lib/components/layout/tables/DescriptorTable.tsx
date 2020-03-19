@@ -1,4 +1,4 @@
-import { IconButton } from "@material-ui/core";
+import { Button, IconButton } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -29,6 +29,14 @@ type Props = {
   data: DescriptorMeta[];
 };
 
+function onBoard(descriptorMeta: DescriptorMeta) {
+  console.log(descriptorMeta.id);
+}
+
+function instantiateDescriptor(descriptorMeta: DescriptorMeta) {
+  console.log(descriptorMeta.id);
+}
+
 export const DescriptorTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
@@ -42,10 +50,11 @@ export const DescriptorTable: React.FunctionComponent<Props> = props => {
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell align="left">Vendor</TableCell>
+
             <TableCell align="center" style={{ width: "160px" }}>
               Status
             </TableCell>
+            <TableCell align="center">Options</TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
               Actions
             </TableCell>
@@ -57,8 +66,29 @@ export const DescriptorTable: React.FunctionComponent<Props> = props => {
               <TableCell component="th" scope="row">
                 {row.descriptor.name}
               </TableCell>
-              <TableCell align="left">{row.descriptor.vendor}</TableCell>
               <TableCell align="center">{"UPLOADED"}</TableCell>
+              <TableCell align="center">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  style={{ marginRight: "2px" }}
+                  onClick={() => onBoard(row)}
+                >
+                  OnBoard
+                </Button>
+
+                {/* </TableCell>
+              <TableCell> */}
+
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  style={{ marginLeft: "2px" }}
+                  onClick={() => instantiateDescriptor(row)}
+                >
+                  Instantiate
+                </Button>
+              </TableCell>
               <TableCell align="center">
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
