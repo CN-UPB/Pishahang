@@ -11,3 +11,5 @@ def testUser():
     user.setPassword("other")
     assert user.validatePassword("other") is True
     assert user.validatePassword("gates") is False
+
+    user.delete()
