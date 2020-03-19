@@ -37,12 +37,14 @@ def adminPassword():
 
 @pytest.fixture(scope="session")
 def accessToken(adminUser):
-    return create_access_token(adminUser)
+    with app.app.app_context():
+        return create_access_token(adminUser)
 
 
 @pytest.fixture(scope="session")
 def refreshToken(adminUser):
-    return create_refresh_token(adminUser)
+    with app.app.app_context():
+        return create_refresh_token(adminUser)
 
 
 # Api fixtures
