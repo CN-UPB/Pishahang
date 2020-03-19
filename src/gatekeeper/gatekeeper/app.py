@@ -47,6 +47,8 @@ else:
     logger.info("Got JWT secret key from MongoDB")
 
 app.app.config['JWT_SECRET_KEY'] = __jwtSecretKey
+app.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.jwt.accessTokenLifetime
+app.app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.jwt.refreshTokenLifetime
 jwt = JWTManager(app.app)
 
 # Read the specification files to configure the endpoints

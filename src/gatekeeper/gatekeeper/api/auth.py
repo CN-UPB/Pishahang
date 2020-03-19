@@ -4,12 +4,13 @@ from functools import wraps
 from inspect import Parameter, signature
 
 import connexion
-from flask_jwt_extended import create_access_token, decode_token
+from config2.config import config
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                decode_token)
 from mongoengine import DoesNotExist
 
-from ..app import jwt
-from ..models.users import User
-from ..util import hashPassword
+from gatekeeper.app import jwt
+from gatekeeper.models.users import User
 
 logger = logging.getLogger("gatekeeper.api.auth")
 
@@ -31,28 +32,48 @@ def createTokenFromCredentials(body):
     Given a request body with a username and a password, generates a JWT access token or returns an
     error response.
     """
-    username = body["username"]
-    password = body["password"]
-
     valid = False
     try:
-        user: User = User.objects(username=username).get()
-        valid = hashPassword(password, user.passwordSalt) == user.passwordHash
+        user: User = User.objects(username=body["username"]).get()
+        valid = user.validatePassword(body["password"])
     except DoesNotExist:
         pass
 
     if not valid:
-        return connexion.problem(400, "Bad Request", "Invalid username or password")
+        return connexion.problem(401, "Unauthorized", "Invalid username or password")
 
-    return {"accessToken": create_access_token(identity=user)}
+    return {
+        "accessToken": create_access_token(identity=user),
+        "refreshToken": create_refresh_token(identity=user),
+        "tokenExpires": config.jwt.accessTokenLifetime,
+        "refreshTokenExpires": config.jwt.refreshTokenLifetime
+    }
 
 
 def refreshToken(body):
     """
-    Given a request body with a refresh token, generates a JWT access token or returns an error
+    Given a request body with a refresh token, generates a new JWT access token or returns an error
     response.
     """
-    pass
+    try:
+        token = decode_token(body["refreshToken"])
+        if token["type"] != "refresh":
+            return connexion.problem(
+                401,
+                'Unauthorized',
+                'The provided token is not valid as a refresh token.'
+            )
+        user = User.objects(username=token["identity"]).get()
+        return {
+            "accessToken": create_access_token(identity=user),
+            "tokenExpires": config.jwt.accessTokenLifetime,
+        }
+    except Exception:
+        return connexion.problem(
+            401,
+            'Unauthorized',
+            'The provided token is invalid.'
+        )
 
 
 def getTokenInfo(token) -> dict:

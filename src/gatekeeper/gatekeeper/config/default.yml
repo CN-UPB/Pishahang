@@ -7,6 +7,10 @@ initialUserData:
   password: "1234"
   isAdmin: true
 
+jwt:
+  accessTokenLifetime: 900 # 15 min
+  refreshTokenLifetime: 604800 # 7 days
+
 connexion:
   swagger_ui_config:
     showExtensions: true
