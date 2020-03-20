@@ -1,7 +1,8 @@
 import connexion
 from mongoengine.errors import DoesNotExist
 
-from gatekeeper.models.descriptors import DescriptorType, Descriptor
+from gatekeeper.models.descriptors import Descriptor, DescriptorType
+
 
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 

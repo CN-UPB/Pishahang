@@ -23,6 +23,8 @@ config2 = "*"
 flask-redis = "*"
 flask-jwt-extended = "*"
 fakeredis = "*"
+pyyaml = "*"
+jsonschema = "*"
 
 [requires]
 python_version = "3.6"

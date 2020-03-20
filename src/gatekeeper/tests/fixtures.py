@@ -1,5 +1,7 @@
-import pytest
+import os
 
+import pytest
+import yaml
 from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.datastructures import Headers
@@ -62,3 +64,20 @@ def authorizedApi(accessToken):
     app.app.test_client_class = AuthorizedFlaskClient
     with app.app.test_client() as c:
         yield c
+
+
+# Data fixtures
+
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures/')
+
+
+@pytest.fixture(scope="session")
+def exampleCsd():
+    with open(FIXTURE_DIR + "/example-csd.yml") as descriptor:
+        return yaml.safe_load(descriptor)
+
+
+@pytest.fixture(scope="session")
+def exampleVnfd():
+    with open(FIXTURE_DIR + "/example-vnfd.yml") as descriptor:
+        return yaml.safe_load(descriptor)
