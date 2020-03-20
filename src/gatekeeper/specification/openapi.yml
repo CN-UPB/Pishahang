@@ -11,12 +11,10 @@ servers:
 tags:
   - name: Authentication
     description: User management and authentication
-  - name: Uploaded Descriptors
-    description:
-      Descriptors that have been uploaded and can be edited or onboarded, yet cannot
-      directly be instantiated
-  - name: Onboarded Descriptors
-    description: Descriptors that have been onboarded and can be instantiated
+  - name: Descriptors
+    description: Descriptors that have been uploaded and can be edited or onboarded
+  - name: Services
+    description: Onboarded service descriptors
   - name: Vim
     description: Vim that have been added and can be edited or deleted
 
@@ -108,13 +106,13 @@ paths:
       security:
         - bearerAuth: []
 
-  /uploaded-descriptors:
+  /descriptors:
     get:
       tags:
-        - Uploaded Descriptors
-      summary: Get a list of uploaded descriptors
-      description: Returns a list of all uploaded descriptors of a specified type
-      operationId: gatekeeper.api.descriptors.getUploadedDescriptorsByType
+        - Descriptors
+      summary: Get a list of descriptors
+      description: Returns a list of all descriptors of a specified type
+      operationId: gatekeeper.api.descriptors.getDescriptorsByType
       parameters:
         - name: type
           in: query
@@ -135,10 +133,10 @@ paths:
           $ref: "#/components/responses/Error500"
     post:
       tags:
-        - Uploaded Descriptors
+        - Descriptors
       summary: Upload a new descriptor
       description: Adds a new descriptor to the database
-      operationId: gatekeeper.api.descriptors.addUploadedDescriptor
+      operationId: gatekeeper.api.descriptors.addDescriptor
       requestBody:
         required: true
         content:
@@ -155,7 +153,7 @@ paths:
 
       responses:
         "200":
-          description: The descriptor was successfully updated.
+          description: The descriptor was successfully added to the database.
           content:
             application/json:
               schema:
@@ -167,12 +165,12 @@ paths:
         "500":
           $ref: "#/components/responses/Error500"
 
-  /uploaded-descriptors/{id}:
+  /descriptors/{id}:
     get:
       tags:
-        - Uploaded Descriptors
+        - Descriptors
       summary: Get a descriptor by its ID
-      operationId: gatekeeper.api.descriptors.getUploadedDescriptorById
+      operationId: gatekeeper.api.descriptors.getDescriptorById
       parameters:
         - name: id
           in: path
@@ -194,10 +192,10 @@ paths:
           $ref: "#/components/responses/Error500"
     put:
       tags:
-        - Uploaded Descriptors
+        - Descriptors
       summary: Update a descriptor by its ID
       description: Updates the content of the descriptor specified by the given ID
-      operationId: gatekeeper.api.descriptors.updateUploadedDescriptor
+      operationId: gatekeeper.api.descriptors.updateDescriptor
       parameters:
         - name: id
           in: path
@@ -219,7 +217,7 @@ paths:
 
       responses:
         "200":
-          description: The descriptor was successfully added to the database.
+          description: The descriptor was successfully updated.
           content:
             application/json:
               schema:
@@ -230,10 +228,10 @@ paths:
           $ref: "#/components/responses/Error500"
     delete:
       tags:
-        - Uploaded Descriptors
+        - Descriptors
       summary: Delete a descriptor by its ID
       description: Deletes the descriptor with the provided ID if it exists.
-      operationId: gatekeeper.api.descriptors.deleteUploadedDescriptorById
+      operationId: gatekeeper.api.descriptors.deleteDescriptorById
       parameters:
         - name: id
           in: path

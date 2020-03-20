@@ -20,12 +20,10 @@ class DescriptorType(Enum):
     FPGA = "fpga"
 
 
-class UploadedDescriptor(UuidDocument, TimestampedDocument):
+class Descriptor(UuidDocument, TimestampedDocument):
     """
-    A mongoengine document base class for arbitrary descriptors
+    A mongoengine document class for arbitrary descriptors
     """
-
-    meta = {'allow_inheritance': True}
 
     type = StringField(required=True, choices=[t.value for t in DescriptorType])
     descriptor = DictField(required=True)

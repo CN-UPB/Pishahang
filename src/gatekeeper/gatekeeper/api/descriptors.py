@@ -1,42 +1,40 @@
 import connexion
 from mongoengine.errors import DoesNotExist
 
-from gatekeeper.models.descriptors import DescriptorType, UploadedDescriptor
+from gatekeeper.models.descriptors import DescriptorType, Descriptor
 
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
 
-# Uploaded descriptors
-
-def getUploadedDescriptorsByType(type: DescriptorType):
+def getDescriptorsByType(type: DescriptorType):
     """
-    Returns a QuerySet of uploaded descriptors of a given type.
+    Returns all descriptors of a given type.
     """
-    return UploadedDescriptor.objects(type=type)
+    return Descriptor.objects(type=type)
 
 
-def getUploadedDescriptorById(id):
+def getDescriptorById(id):
     """
-    Returns a given uploaded descriptor by its ID, or a 404 error if no descriptor matching the
+    Returns a given descriptor by its ID, or a 404 error if no descriptor matching the
     given id exists.
     """
     try:
-        return UploadedDescriptor.objects(id=id).get()
+        return Descriptor.objects(id=id).get()
     except DoesNotExist:
         return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
 
 
-def addUploadedDescriptor(body):
-    return UploadedDescriptor(**body).save(), 201
+def addDescriptor(body):
+    return Descriptor(**body).save(), 201
 
 
-def updateUploadedDescriptor(id, body):
+def updateDescriptor(id, body):
     """
     Updates a given descriptor by its ID, or returns a 404 error if no descriptor matching the given
     id exists.
     """
     try:
-        descriptor: UploadedDescriptor = UploadedDescriptor.objects(id=id).get()
+        descriptor: Descriptor = Descriptor.objects(id=id).get()
         descriptor.descriptor = body["descriptor"]
         descriptor.save()
         return descriptor
@@ -44,13 +42,13 @@ def updateUploadedDescriptor(id, body):
         return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
 
 
-def deleteUploadedDescriptorById(id):
+def deleteDescriptorById(id):
     """
-    Deletes an uploaded descriptor by its ID, or returns a 404 error if no descriptor matching the
-    given id exists.
+    Deletes a descriptor by its ID, or returns a 404 error if no descriptor matching the given id
+    exists.
     """
     try:
-        descriptor = UploadedDescriptor.objects(id=id).get()
+        descriptor = Descriptor.objects(id=id).get()
         descriptor.delete()
         return descriptor
     except DoesNotExist:

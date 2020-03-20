@@ -1,19 +1,20 @@
+from gatekeeper.models.descriptors import DescriptorType
 import pytest
 
 descriptorKeys = {"id", "createdAt", "updatedAt", "type", "descriptor"}
 
 
-@pytest.mark.parametrize("type", ["vm", "cn", "fpga", "service"])
-def testUploadedDescriptors(api, type):
+@pytest.mark.parametrize("type", [t.value for t in DescriptorType])
+def testDescriptorsCrud(api, type):
     # GET all descriptors
     def getDescriptors():
-        return api.get('/api/v3/uploaded-descriptors?type=' + type).get_json()
+        return api.get('/api/v3/descriptors?type=' + type).get_json()
 
     assert [] == getDescriptors()
 
     # POST new descriptor
     descriptor = api.post(
-        '/api/v3/uploaded-descriptors',
+        '/api/v3/descriptors',
         json={'type': type, 'descriptor': {'some': 'descriptor'}}
     ).get_json()
     assert descriptorKeys <= set(descriptor)
@@ -21,11 +22,11 @@ def testUploadedDescriptors(api, type):
     assert [descriptor] == getDescriptors()
 
     # GET single descriptor
-    assert descriptor == api.get('/api/v3/uploaded-descriptors/' + descriptor['id']).get_json()
+    assert descriptor == api.get('/api/v3/descriptors/' + descriptor['id']).get_json()
 
     # PUT descriptor
     updatedDesriptor = api.put(
-        '/api/v3/uploaded-descriptors/' + descriptor["id"],
+        '/api/v3/descriptors/' + descriptor["id"],
         json={'descriptor': {'some': 'other descriptor'}}
     ).get_json()
     assert updatedDesriptor['id'] == descriptor['id']
@@ -37,7 +38,7 @@ def testUploadedDescriptors(api, type):
 
     # DELETE descriptor
     deletedDescriptor = api.delete(
-        '/api/v3/uploaded-descriptors/' + descriptor["id"]
+        '/api/v3/descriptors/' + descriptor["id"]
     ).get_json()
     assert deletedDescriptor == updatedDesriptor
 
