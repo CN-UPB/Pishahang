@@ -20,7 +20,7 @@ class DescriptorType(Enum):
     FPGA = "fpga"
 
 
-class Descriptor(UuidDocument, TimestampedDocument):
+class UploadedDescriptor(UuidDocument, TimestampedDocument):
     """
     A mongoengine document base class for arbitrary descriptors
     """
@@ -29,11 +29,3 @@ class Descriptor(UuidDocument, TimestampedDocument):
 
     type = StringField(required=True, choices=[t.value for t in DescriptorType])
     descriptor = DictField(required=True)
-
-
-class UploadedDescriptor(Descriptor):
-    pass
-
-
-class OnboardedDescriptor(Descriptor):
-    pass

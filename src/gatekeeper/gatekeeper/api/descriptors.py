@@ -1,63 +1,34 @@
-from typing import Type
-
+import connexion
 from mongoengine.errors import DoesNotExist
 
-from ..models.descriptors import (Descriptor, DescriptorType,
-                                  OnboardedDescriptor, UploadedDescriptor)
-from ..util import makeMessageResponse
+from gatekeeper.models.descriptors import DescriptorType, UploadedDescriptor
 
 NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
 
-# Getting descriptors
-
-def getDescriptorsByType(descriptorClass: Type[Descriptor], type: DescriptorType):
-    """
-    Returns a QuerySet of descriptors of a specified Descriptor subclass and type.
-    """
-    return descriptorClass.objects(type=type)
-
+# Uploaded descriptors
 
 def getUploadedDescriptorsByType(type: DescriptorType):
     """
     Returns a QuerySet of uploaded descriptors of a given type.
     """
-    return getDescriptorsByType(UploadedDescriptor, type)
-
-
-def getOnboardedDescriptorsByType(type: DescriptorType):
-    """
-    Returns a QuerySet of onboarded descriptors of a given type.
-    """
-    return getDescriptorsByType(OnboardedDescriptor, type)
-
-
-def getDescriptorById(descriptorClass: Type[Descriptor], id):
-    """
-    Returns a given descriptor by its ID, or a 404 error if no descriptor matching the given id
-    exists.
-    """
-    try:
-        return descriptorClass.objects(id=id).get()
-    except DoesNotExist:
-        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+    return UploadedDescriptor.objects(type=type)
 
 
 def getUploadedDescriptorById(id):
-    return getDescriptorById(UploadedDescriptor, id)
+    """
+    Returns a given uploaded descriptor by its ID, or a 404 error if no descriptor matching the
+    given id exists.
+    """
+    try:
+        return UploadedDescriptor.objects(id=id).get()
+    except DoesNotExist:
+        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
 
-
-def getOnboardedDescriptorById(id):
-    return getDescriptorById(OnboardedDescriptor, id)
-
-
-# Adding descriptors
 
 def addUploadedDescriptor(body):
-    return UploadedDescriptor(**body).save()
+    return UploadedDescriptor(**body).save(), 201
 
-
-# Updating descriptors
 
 def updateUploadedDescriptor(id, body):
     """
@@ -70,10 +41,8 @@ def updateUploadedDescriptor(id, body):
         descriptor.save()
         return descriptor
     except DoesNotExist:
-        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
 
-
-# Deleting descriptors
 
 def deleteUploadedDescriptorById(id):
     """
@@ -85,4 +54,4 @@ def deleteUploadedDescriptorById(id):
         descriptor.delete()
         return descriptor
     except DoesNotExist:
-        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
