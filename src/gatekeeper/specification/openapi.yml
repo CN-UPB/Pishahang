@@ -142,17 +142,10 @@ paths:
         content:
           application/json:
             schema:
-              required:
-                - type
-                - descriptor
-              properties:
-                type:
-                  $ref: "#/components/schemas/DescriptorType"
-                descriptor:
-                  type: object
+              $ref: "#/components/schemas/Descriptor"
 
       responses:
-        "200":
+        "201":
           description: The descriptor was successfully added to the database.
           content:
             application/json:
@@ -213,7 +206,7 @@ paths:
                 - descriptor
               properties:
                 descriptor:
-                  type: object
+                  $ref: "#/components/schemas/DescriptorContent"
 
       responses:
         "200":
@@ -251,6 +244,7 @@ paths:
           $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
+
   /vims:
     get:
       tags:
@@ -373,17 +367,25 @@ components:
     DescriptorType:
       type: string
       enum: [service, vm, cn, fpga]
+    DescriptorContent:
+      type: object
+      example:
+        descriptor_version: "1.0"
+        vendor: "my.vendor"
+        name: "example-descriptor"
+        version: "1.0.0"
     Descriptor:
       allOf:
         - $ref: "#/components/schemas/BaseEntity"
         - type: object
           required:
+            - type
             - descriptor
           properties:
             type:
               $ref: "#/components/schemas/DescriptorType"
             descriptor:
-              type: object
+              $ref: "#/components/schemas/DescriptorContent"
     Descriptors:
       type: "array"
       items:
