@@ -1,10 +1,8 @@
-import connexion
-from mongoengine.errors import DoesNotExist
+from mongoengine.errors import DoesNotExist, NotUniqueError
 
+from gatekeeper.exceptions import (DescriptorNotFoundError,
+                                   DuplicateDescriptorNameError)
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
-
-
-NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
 
 
 def getDescriptorsByType(type: DescriptorType):
@@ -22,11 +20,14 @@ def getDescriptorById(id):
     try:
         return Descriptor.objects(id=id).get()
     except DoesNotExist:
-        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
+        raise DescriptorNotFoundError()
 
 
 def addDescriptor(body):
-    return Descriptor(**body).save(), 201
+    try:
+        return Descriptor(**body).save(), 201
+    except NotUniqueError:
+        raise DuplicateDescriptorNameError()
 
 
 def updateDescriptor(id, body):
@@ -40,7 +41,9 @@ def updateDescriptor(id, body):
         descriptor.save()
         return descriptor
     except DoesNotExist:
-        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
+        raise DescriptorNotFoundError()
+    except NotUniqueError:
+        raise DuplicateDescriptorNameError()
 
 
 def deleteDescriptorById(id):
@@ -53,4 +56,4 @@ def deleteDescriptorById(id):
         descriptor.delete()
         return descriptor
     except DoesNotExist:
-        return connexion.problem(404, "Not Found", NO_DESCRIPTOR_FOUND_MESSAGE)
+        raise DescriptorNotFoundError()

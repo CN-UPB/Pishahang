@@ -1,5 +1,8 @@
-from gatekeeper.models.descriptors import DescriptorType
+import copy
+
 import pytest
+
+from gatekeeper.models.descriptors import DescriptorType
 
 descriptorKeys = {"id", "createdAt", "updatedAt", "type", "descriptor"}
 
@@ -8,7 +11,8 @@ descriptorTypeValues = [t.value for t in DescriptorType]
 
 @pytest.mark.parametrize("type", descriptorTypeValues)
 def testCrud(api, type, exampleCsd, exampleVnfd):
-    exampleDescriptorData = exampleCsd if type == DescriptorType.SERVICE.value else exampleVnfd
+    descriptorContent = copy.deepcopy(
+        exampleCsd if type == DescriptorType.SERVICE.value else exampleVnfd)
 
     # GET all descriptors
     def getDescriptors():
@@ -19,7 +23,7 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
     # POST new descriptor
     descriptor = api.post(
         '/api/v3/descriptors',
-        json={'type': type, 'descriptor': exampleDescriptorData}
+        json={'type': type, 'descriptor': descriptorContent}
     ).get_json()
     assert descriptorKeys <= set(descriptor)
 
@@ -29,13 +33,13 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
     assert descriptor == api.get('/api/v3/descriptors/' + descriptor['id']).get_json()
 
     # PUT descriptor
-    oldDescriptorName = exampleDescriptorData["name"]
+    oldDescriptorName = descriptorContent["name"]
     newDescriptorName = oldDescriptorName + "-new"
-    exampleDescriptorData["name"] = newDescriptorName
+    descriptorContent["name"] = newDescriptorName
 
     updatedDesriptor = api.put(
         '/api/v3/descriptors/' + descriptor["id"],
-        json={'type': type, 'descriptor': exampleDescriptorData}
+        json={'type': type, 'descriptor': descriptorContent}
     ).get_json()
     assert updatedDesriptor['id'] == descriptor['id']
     assert updatedDesriptor != descriptor
@@ -63,4 +67,25 @@ def testDescriptorValidation(api, type):
     assert 400 == api.post(
         "/api/v3/descriptors",
         json={"type": type, "descriptor": {"name": "my-descriptor"}}
+    ).status_code
+
+
+def testDuplicateNames(api, exampleCsd, exampleVnfd):
+    assert 201 == api.post(
+        "/api/v3/descriptors",
+        json={"type": "service", "descriptor": exampleCsd}
+    ).status_code
+
+    # Adding anther descriptor with the same name should not work
+    assert 400 == api.post(
+        "/api/v3/descriptors",
+        json={"type": "service", "descriptor": exampleCsd}
+    ).status_code
+
+    # ...regardless of the descriptor type
+    exampleVnfd = copy.deepcopy(exampleVnfd)
+    exampleVnfd["name"] = exampleCsd["name"]
+    assert 400 == api.post(
+        "/api/v3/descriptors",
+        json={"type": "vm", "descriptor": exampleVnfd}
     ).status_code

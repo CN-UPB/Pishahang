@@ -6,10 +6,12 @@ from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.datastructures import Headers
 
-from gatekeeper.app import app
+from gatekeeper.app import app, mongoDb
 from gatekeeper.models.users import User
 
 from config2.config import config  # Has to be imported after app to get the right config path
+
+MONGO_DATABASE_NAME = os.path.basename(config.databases.mongo)
 
 
 class AuthorizedFlaskClient(FlaskClient):
@@ -64,6 +66,17 @@ def authorizedApi(accessToken):
     app.app.test_client_class = AuthorizedFlaskClient
     with app.app.test_client() as c:
         yield c
+
+
+# Database-related fixtures
+
+@pytest.fixture(scope="function")
+def dropMongoDb():
+    """
+    Drops the MongoDB database after each test function
+    """
+    yield
+    mongoDb.connection.drop_database(MONGO_DATABASE_NAME)
 
 
 # Data fixtures

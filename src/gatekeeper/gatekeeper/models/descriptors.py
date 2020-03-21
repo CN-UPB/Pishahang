@@ -5,10 +5,11 @@ Descriptor-related Mongoengine document definitions
 from enum import Enum
 
 from jsonschema.exceptions import ValidationError
-from mongoengine import (DynamicEmbeddedDocument, EmbeddedDocumentField,
-                         StringField)
+from mongoengine import (DateTimeField, DynamicEmbeddedDocument,
+                         EmbeddedDocument, EmbeddedDocumentField, StringField,
+                         UUIDField)
 
-from gatekeeper.exceptions import InvalidDescriptorContentsException
+from gatekeeper.exceptions import InvalidDescriptorContentError
 from gatekeeper.models.base import TimestampedDocument, UuidDocument
 from gatekeeper.validation import (validateFunctionDescriptor,
                                    validateServiceDescriptor)
@@ -27,29 +28,34 @@ class DescriptorType(Enum):
 
 class DescriptorContents(DynamicEmbeddedDocument):
     """
-    A mongoengine embedded document class to hold a descriptor's contents
+    Embedded document class to hold a descriptor's content
     """
 
     descriptor_version = StringField(required=True)
     vendor = StringField(required=True)
-    name = StringField(required=True)
+    name = StringField(required=True, unique=True)
     version = StringField(required=True)
 
 
-class Descriptor(UuidDocument, TimestampedDocument):
+class BaseDescriptor:
     """
-    A mongoengine document class for arbitrary descriptors. The `descriptor` embedded document field
-    is validated on `save`.
+    Document mixin for descriptors.
     """
 
     type = StringField(required=True, choices=[t.value for t in DescriptorType])
     descriptor = EmbeddedDocumentField(DescriptorContents, required=True)
 
+
+class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
+    """
+    Document class for descriptors. The `descriptor` embedded document field is validated on `save`.
+    """
+
     def save(self, *args, **kwargs):
         """
         Saves a `Descriptor` document, after validating the `descriptor` field against a descriptor
         schema according to the `type` value. If the validation fails, an
-        `exceptions.InvalidDescriptorContentsException` is raised.
+        `exceptions.InvalidDescriptorContentError` is raised.
         """
 
         descriptorDict = self.descriptor if isinstance(
@@ -60,10 +66,21 @@ class Descriptor(UuidDocument, TimestampedDocument):
             else:
                 validateFunctionDescriptor(descriptorDict)
         except ValidationError as error:
-            raise InvalidDescriptorContentsException(error.message)
+            raise InvalidDescriptorContentError(error.message)
 
         # Convert `descriptor` to `DescriptorContents` if it is a `dict`
         if isinstance(self.descriptor, dict):
             self.descriptor = DescriptorContents(**self.descriptor)
 
         return super(Descriptor, self).save(*args, **kwargs)
+
+
+class StaticEmbeddedDescriptor(EmbeddedDocument, BaseDescriptor):
+    """
+    Embedded descriptor document that is not meant to be updated after its creation. It can be used
+    to embed a copy of a `Descriptor` document in another document.
+    """
+
+    id = UUIDField(required=True)
+    createdAt = DateTimeField(required=True)
+    updatedAt = DateTimeField(required=True)
