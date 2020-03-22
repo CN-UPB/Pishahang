@@ -19,12 +19,11 @@ class InvalidDescriptorContentError(BadRequestProblem):
         )
 
 
-class DuplicateDescriptorNameError(BadRequestProblem):
+class DuplicateDescriptorError(BadRequestProblem):
     def __init__(self, **kwargs):
-        super(DuplicateDescriptorNameError, self).__init__(
-            title="Duplicate Descriptor Name",
-            detail="A descriptor with the given name does already exist in the database. " +
-            "Please change the descriptor name.",
+        super(DuplicateDescriptorError, self).__init__(
+            title="Duplicate Descriptor",
+            detail="A descriptor with the given vendor, name, and version does already exist in the database.",
             **kwargs
         )
 

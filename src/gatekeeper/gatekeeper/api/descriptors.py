@@ -1,7 +1,7 @@
 from mongoengine.errors import DoesNotExist, NotUniqueError
 
 from gatekeeper.exceptions import (DescriptorNotFoundError,
-                                   DuplicateDescriptorNameError)
+                                   DuplicateDescriptorError)
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
 
 
@@ -27,7 +27,7 @@ def addDescriptor(body):
     try:
         return Descriptor(**body).save(), 201
     except NotUniqueError:
-        raise DuplicateDescriptorNameError()
+        raise DuplicateDescriptorError()
 
 
 def updateDescriptor(id, body):
@@ -43,7 +43,7 @@ def updateDescriptor(id, body):
     except DoesNotExist:
         raise DescriptorNotFoundError()
     except NotUniqueError:
-        raise DuplicateDescriptorNameError()
+        raise DuplicateDescriptorError()
 
 
 def deleteDescriptorById(id):

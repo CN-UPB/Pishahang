@@ -33,7 +33,7 @@ class DescriptorContents(DynamicEmbeddedDocument):
 
     descriptor_version = StringField(required=True)
     vendor = StringField(required=True)
-    name = StringField(required=True, unique=True)
+    name = StringField(required=True)
     version = StringField(required=True)
 
 
@@ -50,6 +50,15 @@ class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
     """
     Document class for descriptors. The `descriptor` embedded document field is validated on `save`.
     """
+
+    meta = {
+        "indexes": [
+            {
+                "fields": ("descriptor.vendor", "descriptor.name", "descriptor.version"),
+                "unique": True
+            }
+        ]
+    }
 
     def save(self, *args, **kwargs):
         """
@@ -75,10 +84,10 @@ class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
         return super(Descriptor, self).save(*args, **kwargs)
 
 
-class StaticEmbeddedDescriptor(EmbeddedDocument, BaseDescriptor):
+class DescriptorSnapshot(EmbeddedDocument, BaseDescriptor):
     """
     Embedded descriptor document that is not meant to be updated after its creation. It can be used
-    to embed a copy of a `Descriptor` document in another document.
+    to embed a static copy of a `Descriptor` document in another document.
     """
 
     id = UUIDField(required=True)

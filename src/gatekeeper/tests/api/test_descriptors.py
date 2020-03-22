@@ -71,21 +71,26 @@ def testDescriptorValidation(api, type):
 
 
 def testDuplicateNames(api, exampleCsd, exampleVnfd):
-    assert 201 == api.post(
-        "/api/v3/descriptors",
-        json={"type": "service", "descriptor": exampleCsd}
-    ).status_code
+    exampleCsd, exampleVnfd = copy.deepcopy((exampleCsd, exampleVnfd))
 
-    # Adding anther descriptor with the same name should not work
-    assert 400 == api.post(
-        "/api/v3/descriptors",
-        json={"type": "service", "descriptor": exampleCsd}
-    ).status_code
+    def addDescriptor(type, descriptor: dict):
+        return api.post(
+            "/api/v3/descriptors",
+            json={"type": type, "descriptor": descriptor}
+        ).status_code
 
-    # ...regardless of the descriptor type
-    exampleVnfd = copy.deepcopy(exampleVnfd)
+    assert 201 == addDescriptor("service", exampleCsd)
+
+    # Adding another descriptor with the same vendor, version, and name should not work
+    assert 400 == addDescriptor("service", exampleCsd)
+
+    # Whereas with a different version...
+    exampleCsd["version"] = "0.0.0"
+    assert 201 == addDescriptor("service", exampleCsd)
+
+    # (vendor, version, name) should be unique across descriptor types
+    exampleVnfd["vendor"] = exampleCsd["vendor"]
     exampleVnfd["name"] = exampleCsd["name"]
-    assert 400 == api.post(
-        "/api/v3/descriptors",
-        json={"type": "vm", "descriptor": exampleVnfd}
-    ).status_code
+    exampleVnfd["version"] = exampleCsd["version"]
+    for type in ("vm", "cn", "fpga"):
+        assert 400 == addDescriptor(type, exampleVnfd)
