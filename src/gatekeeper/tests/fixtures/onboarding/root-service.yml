@@ -1,0 +1,38 @@
+descriptor_version: "1.0"
+
+vendor: "example.onboarding"
+name: "root-service"
+version: "1.0.0"
+
+##
+## The various network functions this service
+## is composed of.
+##
+network_functions:
+  - vnf_id: "vnf_id_01"
+    vnf_vendor: "test.fixture.onboarding"
+    vnf_name: "vnf-1"
+    vnf_version: "1.1.1"
+  - vnf_id: "vnf_id_02"
+    vnf_vendor: "test.fixture.onboarding"
+    vnf_name: "vnf-1"
+    vnf_version: "1.1.1"
+  - vnf_id: "vnf_id_03"
+    vnf_vendor: "test.fixture.onboarding"
+    vnf_name: "vnf-2"
+    vnf_version: "2.2.2"
+
+##
+## The NS connection points to the
+## outside world.
+##
+connection_points:
+  - id: "mgmt"
+    interface: "ipv4"
+    type: "management"
+  - id: "input"
+    interface: "ipv4"
+    type: "external"
+  - id: "output"
+    interface: "ipv4"
+    type: "external"

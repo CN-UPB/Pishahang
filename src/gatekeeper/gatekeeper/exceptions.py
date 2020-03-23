@@ -36,3 +36,12 @@ class DescriptorNotFoundError(NotFoundProblem):
             detail=detail,
             **kwargs
         )
+
+
+class ServiceNotFoundError(NotFoundProblem):
+    def __init__(self, detail="No service matching the given id was found.", **kwargs):
+        super(ServiceNotFoundError, self).__init__(
+            title="Service Not Found",
+            detail=detail,
+            **kwargs
+        )

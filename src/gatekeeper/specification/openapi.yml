@@ -14,7 +14,7 @@ tags:
   - name: Descriptors
     description: Descriptors that have been uploaded and can be edited or onboarded
   - name: Services
-    description: Onboarded service descriptors
+    description: Services (onboarded service descriptors), their descriptors, and their instances
   - name: Vim
     description: Vim that have been added and can be edited or deleted
 
@@ -135,7 +135,9 @@ paths:
       tags:
         - Descriptors
       summary: Upload a new descriptor
-      description: Adds a new descriptor to the database
+      description: >
+        Adds a new descriptor to the database. Note: The combination of a descriptor's vendor, name,
+        and version have to be unique.
       operationId: gatekeeper.api.descriptors.addDescriptor
       requestBody:
         required: true
@@ -143,7 +145,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Descriptor"
-
       responses:
         "201":
           description: The descriptor was successfully added to the database.
@@ -153,8 +154,6 @@ paths:
                 $ref: "#/components/schemas/Descriptor"
         "400":
           $ref: "#/components/responses/Error400"
-        "404":
-          $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -207,7 +206,6 @@ paths:
               properties:
                 descriptor:
                   $ref: "#/components/schemas/DescriptorContent"
-
       responses:
         "200":
           description: The descriptor was successfully updated.
@@ -217,6 +215,8 @@ paths:
                 $ref: "#/components/schemas/Descriptor"
         "400":
           $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
     delete:
@@ -240,6 +240,106 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Descriptor"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /services:
+    get:
+      tags:
+        - Services
+      summary: Get a list of available services
+      description: Returns a list of services available for instantiation
+      operationId: gatekeeper.api.services.getServices
+      responses:
+        "200":
+          description: The list of services was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Services"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Services
+      summary: Add a service by onboarding a service descriptor
+      description: >
+        Onboards a service descriptor by its ID, adding a new available service. Snapshots of the
+        service descriptor and all referenced descriptors are stored, which will be used for
+        instantiation. Later edits to the corresponding descriptors will not modify the snapshots.
+      operationId: gatekeeper.api.services.addService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: The service descriptor was successfully onboarded and can now be instantiated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /services/{id}:
+    get:
+      tags:
+        - Services
+      summary: Get a service by its ID
+      operationId: gatekeeper.api.services.getServiceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the service to be retrieved
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Details on the service were successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Services
+      summary: Delete a service by its ID
+      description: Deletes the service with the provided ID if it exists and it has no instances.
+      operationId: gatekeeper.api.services.deleteServiceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the service to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The service was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -390,6 +490,24 @@ components:
       type: "array"
       items:
         $ref: "#/components/schemas/Descriptor"
+
+    Service:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - descriptorSnapshots
+            - rootDescriptorId
+          properties:
+            descriptorSnapshots:
+              $ref: "#/components/schemas/Descriptors"
+            rootDescriptorId:
+              type: string
+              format: uuid
+    Services:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Service"
 
     BaseVim:
       allOf:

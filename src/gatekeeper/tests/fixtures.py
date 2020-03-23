@@ -6,8 +6,11 @@ from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.datastructures import Headers
 
-from gatekeeper.app import app, mongoDb
+from gatekeeper.app import app
+from gatekeeper.models.descriptors import Descriptor
+from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
+from gatekeeper.models.vims import Vim
 
 from config2.config import config  # Has to be imported after app to get the right config path
 
@@ -71,13 +74,16 @@ def authorizedApi(accessToken):
 
 # Database-related fixtures
 
-@pytest.fixture(scope="function")
-def dropMongoDb():
+@pytest.fixture(scope="function", autouse=True)
+def dropMongoDbCollections():
     """
-    Drops the MongoDB database after each test function
+    Empties a number of MongoDB collections after each test function
     """
     yield
-    mongoDb.connection.drop_database(MONGO_DATABASE_NAME)
+    with app.app.app_context():
+        Descriptor.objects.delete()
+        Service.objects.delete()
+        Vim.objects.delete()
 
 
 # Data fixtures
@@ -99,3 +105,25 @@ def exampleCsd(getDescriptorFixture):
 @pytest.fixture(scope="session")
 def exampleVnfd(getDescriptorFixture):
     return getDescriptorFixture("example-vnfd.yml")
+
+
+@pytest.fixture(scope="function")
+def exampleService(api, getDescriptorFixture):
+    def uploadDescriptor(type, descriptor):
+        response = api.post(
+            "/api/v3/descriptors",
+            json={"type": type, "descriptor": descriptor}
+        )
+        print(response.get_json())
+        assert 201 == response.status_code
+        return response.get_json()
+
+    serviceDescriptor = uploadDescriptor(
+        "service", getDescriptorFixture("onboarding/root-service.yml"))
+
+    for i in range(1, 3):
+        uploadDescriptor("vm", getDescriptorFixture("onboarding/vnf-{}.yml".format(i)))
+
+    response = api.post("/api/v3/services", json={"id": serviceDescriptor["id"]})
+    assert 201 == response.status_code
+    return response.get_json()
