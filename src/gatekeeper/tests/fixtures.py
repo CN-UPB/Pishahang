@@ -11,6 +11,7 @@ from gatekeeper.models.users import User
 
 from config2.config import config  # Has to be imported after app to get the right config path
 
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures/')
 MONGO_DATABASE_NAME = os.path.basename(config.databases.mongo)
 
 
@@ -81,16 +82,20 @@ def dropMongoDb():
 
 # Data fixtures
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures/')
+@pytest.fixture(scope="session")
+def getDescriptorFixture():
+    def _getDescriptorFileContents(filename):
+        with open(FIXTURE_DIR + "/" + filename) as descriptor:
+            return yaml.safe_load(descriptor)
+
+    return _getDescriptorFileContents
 
 
 @pytest.fixture(scope="session")
-def exampleCsd():
-    with open(FIXTURE_DIR + "/example-csd.yml") as descriptor:
-        return yaml.safe_load(descriptor)
+def exampleCsd(getDescriptorFixture):
+    return getDescriptorFixture("example-csd.yml")
 
 
 @pytest.fixture(scope="session")
-def exampleVnfd():
-    with open(FIXTURE_DIR + "/example-vnfd.yml") as descriptor:
-        return yaml.safe_load(descriptor)
+def exampleVnfd(getDescriptorFixture):
+    return getDescriptorFixture("example-vnfd.yml")
