@@ -7,6 +7,8 @@ from uuid import uuid4
 
 from mongoengine import DateTimeField, Document, UUIDField
 
+from gatekeeper.mongoengine_custom_json import makeHttpDatetime
+
 
 class TimestampedDocument(Document):
     """
@@ -15,8 +17,8 @@ class TimestampedDocument(Document):
     """
 
     meta = {'abstract': True}
-    createdAt = DateTimeField(default=datetime.utcnow)
-    updatedAt = DateTimeField()
+    createdAt = DateTimeField(default=datetime.utcnow, custom_json=makeHttpDatetime)
+    updatedAt = DateTimeField(custom_json=makeHttpDatetime)
 
     def save(self, *args, **kwargs):
         self.updatedAt = datetime.utcnow()
@@ -30,4 +32,4 @@ class UuidDocument(Document):
     """
 
     meta = {'abstract': True}
-    id = UUIDField(default=uuid4, primary_key=True)
+    id = UUIDField(default=uuid4, primary_key=True, custom_json=("id", str))

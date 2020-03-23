@@ -1,11 +1,8 @@
-from datetime import datetime, timezone
-
-from bson import json_util
 from flask.json import JSONEncoder
 from mongoengine.base import BaseDocument
 from mongoengine.queryset import QuerySet
 
-from gatekeeper.models.users import User
+from gatekeeper.mongoengine_custom_json import to_custom_json
 
 
 class MongoEngineJSONEncoder(JSONEncoder):
@@ -15,31 +12,8 @@ class MongoEngineJSONEncoder(JSONEncoder):
     """
 
     def default(self, obj):
-        if isinstance(obj, BaseDocument):
-            doc: dict = obj.to_mongo()
-
-            # Convert IDs
-            if "_id" in doc and "id" not in doc:
-                doc["id"] = str(doc.pop("_id"))
-
-            # Convert datetime fields to RFC 3339 format (in UTC time zone)
-            for key, value in doc.items():
-                if isinstance(value, datetime):
-                    doc[key] = value.replace(tzinfo=timezone.utc, microsecond=0).isoformat()
-
-            # Remove Mongoengine class field if it exists
-            if "_cls" in doc:
-                doc.pop("_cls")
-
-            # Remove passwordSalt and passwordHash for Users
-            if isinstance(obj, User):
-                doc.pop("passwordSalt")
-                doc.pop("passwordHash")
-
-            return json_util._json_convert(doc)
-        if isinstance(obj, QuerySet):
-            return [self.default(entry) for entry in obj]
-
+        if isinstance(obj, (BaseDocument, QuerySet)):
+            return to_custom_json(obj)
         return super().default(obj)
 
 
