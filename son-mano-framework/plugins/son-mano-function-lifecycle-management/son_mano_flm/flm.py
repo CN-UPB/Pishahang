@@ -51,7 +51,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:flm")
 LOG.setLevel(logging.INFO)
 
-DUMMY_DEPLOY = True
+DUMMY_DEPLOY = False
 
 class FunctionLifecycleManager(ManoBasePlugin):
     """

@@ -32,6 +32,8 @@ import json
 import threading
 import sys
 import concurrent.futures as pool
+import random
+
 # import psutil
 
 from sonmanobase.plugin import ManoBasePlugin
@@ -63,7 +65,8 @@ fh = logging.FileHandler('SLM-Logs.log')
 fh.setLevel(logging.INFO)
 LOG.addHandler(fh)
 
-DUMMY_DEPLOY = True
+DUMMY_DEPLOY = False
+VIM_PROCESSING_DELAY = True
 
 class ServiceLifecycleManager(ManoBasePlugin):
     """
@@ -491,8 +494,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('cs_deploy')
         #add_schedule.append('vnf_chain')
         add_schedule.append('store_nsr')
-        add_schedule.append('wan_configure')
-        add_schedule.append('start_monitoring')
+        # add_schedule.append('wan_configure')
+        # add_schedule.append('start_monitoring')
         add_schedule.append('inform_gk_instantiation')
 
         self.services[serv_id]['schedule'].extend(add_schedule)
@@ -1083,6 +1086,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info(IA_mapping)
         LOG.info("\n\n END IA_mapping")
 
+        if VIM_PROCESSING_DELAY:
+            random.uniform(0, 0.1)
+
         if DUMMY_DEPLOY:
             # Send this mapping to the IA
             self.manoconn.call_async(self.resp_prepare,
@@ -1141,6 +1147,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
             #                             yaml.dump(message),
             #                             correlation_id=corr_id)            
             # else:
+            if VIM_PROCESSING_DELAY:
+                random.uniform(0, 0.1)
             self.manoconn.call_async(self.resp_vnf_depl,
                                     t.MANO_DEPLOY,
                                     yaml.dump(message),
@@ -1315,6 +1323,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
                 LOG.info("vnfs_csss\n\n")        
                 LOG.info(payload)
                 LOG.info("\n\n END vnfs_csss")
+
+                if VIM_PROCESSING_DELAY:
+                    random.uniform(0, 0.1)
 
                 if DUMMY_DEPLOY:
                     self.manoconn.call_async(self.resp_vnfs_csss,

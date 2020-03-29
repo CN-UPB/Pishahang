@@ -97,3 +97,31 @@ sudo docker stop dummyplugin
 sudo docker rm dummyplugin
 sudo docker build -t dummyplugin -f plugins/son-mano-dummy-api/Dockerfile-dev .
 sudo docker run -d --name dummyplugin --net=son-sp --network-alias=dummyplugin -v $(pwd)/plugins/son-mano-dummy-api:/plugins/son-mano-dummy-api dummyplugin
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-sp-infrabstract/vim-adaptor"
+echo "$(pwd)"
+
+echo "Starting son-sp-infrabstract vim-adaptor.."
+
+# Stop Original and start pishahang changes 
+sudo docker stop son-sp-infrabstract
+sudo docker rm son-sp-infrabstract
+sudo docker build -t son-sp-infrabstract -f Dockerfile-dev .
+sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-sp-infrabstract -v $(pwd)/adaptor:/adaptor son-sp-infrabstract
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-gkeeper/son-gtkapi"
+echo "$(pwd)"
+
+echo "Starting son-gtkapi..."
+
+# Stop Original and start pishahang changes 
+sudo docker stop son-gtkapi
+sudo docker rm son-gtkapi
+sudo docker build -t son-gtkapi -f Dockerfile-dev .
+sudo docker run -d --name son-gtkapi --net=son-sp --network-alias=son-gtkapi -p 32001:5000 son-gtkapi

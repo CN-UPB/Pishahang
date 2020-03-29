@@ -79,11 +79,11 @@ development: &common_settings
         anonymous_operations:
           description: Limit imposed to the user creation process (ten times per minute)
           period: 60 #in seconds
-          limit: 10
+          limit: 1000
         other_operations:
           description: Limit imposed to the remaining operations (once per second)
-          period: 10 #in seconds
-          limit: 10
+          period: 60 #in seconds
+          limit: 1000
   level: debug
   defaults:
     page_size: PAGE_SIZE
