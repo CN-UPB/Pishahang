@@ -19,8 +19,10 @@ type Props = {
 
 export const DescriptorPageContent: React.FunctionComponent<Props> = props => {
   const showDescriptorUploadDialog = useDescriptorUploadDialog(props.type);
-  const { data, error } = useSWR(getApiUrl("uploaded-descriptors?type=" + props.type), axios.get);
+  const { data, error } = useSWR(getApiUrl("descriptors?type=" + props.type), axios.get);
   //DescriptorPageContent
+  // console.log(props.type);
+
   if (!data || error) {
     return (
       <div>
