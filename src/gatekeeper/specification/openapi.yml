@@ -272,9 +272,9 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: "#/components/schemas/Aws"
-                - $ref: "#/components/schemas/OpenStack"
-                - $ref: "#/components/schemas/Kubernetes"
+                - $ref: "#/components/schemas/AwsVim"
+                - $ref: "#/components/schemas/OpenStackVim"
+                - $ref: "#/components/schemas/KubernetesVim"
       responses:
         "200":
           description: The vim is successfully deleted.
@@ -406,14 +406,14 @@ components:
               type: string
             city:
               type: string
-    OpenStack:
+    OpenStackVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"
         - type: object
           required:
             - vimAddress
             - tenantId
-            - tenantExternalNetwrokId
+            - tenantExternalNetworkId
             - tenantExternalRouterId
             - username
             - password
@@ -421,12 +421,12 @@ components:
           properties:
             type:
               type: string
-              enum: ["aws"]
+              enum: ["openStack"]
             vimAddress:
               type: string
             tenantId:
               type: string
-            tenantExternalNetwrokId:
+            tenantExternalNetworkId:
               type: string
             tenantExternalRouterId:
               type: string
@@ -434,7 +434,7 @@ components:
               type: string
             password:
               type: string
-    Kubernetes:
+    KubernetesVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"
         - type: object
@@ -453,7 +453,7 @@ components:
               type: string
             ccc:
               type: string
-    Aws:
+    AwsVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"
         - type: object
@@ -473,9 +473,9 @@ components:
       type: "array"
       items:
         oneOf:
-          - $ref: "#/components/schemas/OpenStack"
-          - $ref: "#/components/schemas/Aws"
-          - $ref: "#/components/schemas/Kubernetes"
+          - $ref: "#/components/schemas/OpenStackVim"
+          - $ref: "#/components/schemas/AwsVim"
+          - $ref: "#/components/schemas/KubernetesVim"
 
     User:
       allOf:

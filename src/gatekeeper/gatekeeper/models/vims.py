@@ -11,7 +11,7 @@ class VimType(Enum):
     An enumeration of valid `type` values for VIM
     """
 
-    OPENSTACK = "openstack"
+    OPENSTACK = "openStack"
     KUBERNETES = "kubernetes"
     AWS = "aws"
 
@@ -37,7 +37,7 @@ class OpenStack(Vim):
 
     vimAddress = StringField(required=True)
     tenantId = StringField(required=True)
-    tenantExternalNetwrokId = StringField(required=True)
+    tenantExternalNetworkId = StringField(required=True)
     tenantExternalRouterId = StringField(required=True)
     username = StringField(required=True)
     password = StringField(required=True)

@@ -65,6 +65,6 @@ def addVim(body):
     elif body["type"] == "kubernetes":
         vim = Kubernetes(**body).save()
         return vim
-    elif body["type"] == "OpenStack":
+    elif body["type"] == "openStack":
         vim = OpenStack(**body).save()
         return vim
