@@ -7,7 +7,8 @@ import os
 
 from mongoengine import BinaryField, BooleanField, StringField
 
-from .base import TimestampedDocument, UuidDocument
+from gatekeeper.models.base import TimestampedDocument, UuidDocument
+from gatekeeper.mongoengine_custom_json import CustomJsonRules
 
 
 def generateSalt() -> bytes:
@@ -47,8 +48,8 @@ class User(UuidDocument, TimestampedDocument):
     username = StringField(required=True, unique=True)
     isAdmin = BooleanField(required=True)
 
-    passwordSalt = BinaryField(max_bytes=32, required=True)
-    passwordHash = BinaryField(max_bytes=128, required=True)
+    passwordSalt = BinaryField(max_bytes=32, required=True, custom_json=CustomJsonRules.HIDDEN)
+    passwordHash = BinaryField(max_bytes=128, required=True, custom_json=CustomJsonRules.HIDDEN)
 
     def setPassword(self, password: str):
         self.passwordSalt = generateSalt()

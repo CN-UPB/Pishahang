@@ -8,7 +8,7 @@ class NotFoundProblem(ProblemException):
 
 class InvalidDescriptorContentError(BadRequestProblem):
     """
-    Indicates that invalid contents have been provided to `Descriptor.descriptor`
+    Indicates that invalid content has been assigned to `Descriptor.descriptor`
     """
 
     def __init__(self, detail, **kwargs):
@@ -23,7 +23,8 @@ class DuplicateDescriptorError(BadRequestProblem):
     def __init__(self, **kwargs):
         super(DuplicateDescriptorError, self).__init__(
             title="Duplicate Descriptor",
-            detail="A descriptor with the given vendor, name, and version does already exist in the database.",
+            detail="A descriptor with the given vendor, name, and version " +
+            "does already exist in the database.",
             **kwargs
         )
 
@@ -32,6 +33,15 @@ class DescriptorNotFoundError(NotFoundProblem):
     def __init__(self, detail="No descriptor matching the given id was found.", **kwargs):
         super(DescriptorNotFoundError, self).__init__(
             title="Descriptor Not Found",
+            detail=detail,
+            **kwargs
+        )
+
+
+class ServiceNotFoundError(NotFoundProblem):
+    def __init__(self, detail="No service matching the given id was found.", **kwargs):
+        super(ServiceNotFoundError, self).__init__(
+            title="Service Not Found",
             detail=detail,
             **kwargs
         )
