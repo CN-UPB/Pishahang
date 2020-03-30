@@ -21,7 +21,7 @@ export async function uploadDescriptor(
   descriptorContent: any
 ): Promise<ApiReply> {
   try {
-    const reply = await axios.post(getApiUrl("uploaded-descriptors"), {
+    const reply = await axios.post(getApiUrl("descriptors"), {
       descriptor: descriptorContent,
       type: descriptorType,
     });
@@ -48,8 +48,9 @@ export async function uploadDescriptor(
 export async function getDescriptor(uuid: String): Promise<ApiReply> {
   try {
     if (uuid == null) return;
-    const reply = await axios.get(getApiUrl("uploaded-descriptors/" + uuid));
+    const reply = await axios.get(getApiUrl("descriptors/" + uuid));
     window.location.reload(false);
+
     console.log(reply);
 
     return { success: true };
@@ -74,7 +75,7 @@ export async function getDescriptor(uuid: String): Promise<ApiReply> {
 export async function deleteDescriptor(uuid: String): Promise<ApiReply> {
   try {
     if (uuid == null) return;
-    const reply = await axios.delete(getApiUrl("uploaded-descriptors/" + uuid));
+    const reply = await axios.delete(getApiUrl("descriptors/" + uuid));
     window.location.reload(false);
     console.log(uuid);
 
@@ -102,7 +103,7 @@ export async function updateDescriptor(
   uuid: String
 ): Promise<ApiReply> {
   try {
-    const reply = await axios.put(getApiUrl("uploaded-descriptors/" + uuid), {
+    const reply = await axios.put(getApiUrl("descriptors/" + uuid), {
       descriptor: descriptorContent,
     });
 
