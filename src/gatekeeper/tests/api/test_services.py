@@ -20,18 +20,22 @@ def testOnboarding(api, getDescriptorFixture):
 
     # Onboarding requires the id of a service descriptor
     # assert 400 == onboardServiceDescriptorById("justAnInvalidId")[0]
-    # TODO Report connexion uuid validity issue (above request would crash with an exception)
+    # TODO Contribute string format validation to Connexion?
     assert 400 == onboardServiceDescriptorById(vnfDescriptors[0]["id"])[0]
 
     # Onboard service descriptor
     status, service = onboardServiceDescriptorById(serviceDescriptor["id"])
     assert 201 == status
+
     assert "descriptorSnapshots" in service
     snapshots = service["descriptorSnapshots"]
     assert 3 == len(snapshots)
     assert serviceDescriptor in snapshots
     assert all([d in snapshots for d in vnfDescriptors])
     assert service["rootDescriptorId"] == serviceDescriptor["id"]
+
+    for attribute in ["vendor", "name", "version"]:
+        assert service[attribute] == serviceDescriptor["descriptor"][attribute]
 
     # Onboard service descriptor again – should work
     assert 201 == onboardServiceDescriptorById(serviceDescriptor["id"])[0]

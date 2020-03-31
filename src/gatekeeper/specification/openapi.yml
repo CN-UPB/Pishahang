@@ -504,6 +504,15 @@ components:
             rootDescriptorId:
               type: string
               format: uuid
+            vendor:
+              type: string
+              example: "my.vendor"
+            name:
+              type: string
+              example: "my-service"
+            version:
+              type: string
+              example: "1.0"
     Services:
       type: "array"
       items:
