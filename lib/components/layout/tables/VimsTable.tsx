@@ -11,9 +11,9 @@ import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@ma
 import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
+import { useDescriptorInfoDialog } from "../../../hooks/useDescriptorInfoDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
 import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
-import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
 import { Service } from "../../../models/Service";
 import { Vim } from "../../../models/Vims";
 

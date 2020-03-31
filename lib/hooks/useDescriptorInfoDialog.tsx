@@ -4,17 +4,17 @@ import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { InfoDialogTable } from "../components/layout/tables/InfoDialogTable";
-import { Service } from "../models/Service";
+import { Descriptor } from "../models/Descriptor";
 import { useStateRef } from "./useStateRef";
 
-export function useServiceInfoDialog() {
-  const [service, setService, serviceRef] = useStateRef<Service>(null);
+export function useDescriptorInfoDialog() {
+  const [descriptor, setDescriptor, descriptorRef] = useStateRef<Descriptor>(null);
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => {
-    const currentService = serviceRef.current;
+    const currentDescriptor = descriptorRef.current;
     return (
       <GenericDialog
-        dialogId="serviceInfo"
-        dialogTitle={`Details of service "${service.name}"`}
+        dialogId="descriptorInfo"
+        dialogTitle={descriptorRef.current.descriptor.name}
         open={open}
         onExited={onExited}
         onClose={hideDialog}
@@ -28,21 +28,21 @@ export function useServiceInfoDialog() {
       >
         <InfoDialogTable
           content={[
-            ["Vendor", currentService.vendor],
-            ["Name", currentService.name],
             ["Description", ""],
-            ["Version", currentService.version],
-            ["Created at", currentService.createdAt],
-            ["Version", currentService.version],
-            ["Service Id", currentService.id],
+            ["Vendor", currentDescriptor.descriptor.vendor],
+            ["Name", currentDescriptor.descriptor.name],
+            ["Version", currentDescriptor.descriptor.version],
+            ["Created at", currentDescriptor.createdAt],
+            ["Updated at", currentDescriptor.updatedAt],
+            ["ID", currentDescriptor.id],
           ]}
         />
       </GenericDialog>
     );
   });
 
-  return function showServiceInfoDialog(service: Service) {
-    setService(service);
+  return function showVnfdInfoDialog(descriptorMeta: Descriptor) {
+    setDescriptor(descriptorMeta);
     showDialog();
   };
 }

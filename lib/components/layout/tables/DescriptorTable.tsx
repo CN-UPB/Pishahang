@@ -12,7 +12,7 @@ import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
+import { useDescriptorInfoDialog } from "../../../hooks/useDescriptorInfoDialog";
 import { Descriptor } from "../../../models/Descriptor";
 
 const useStyles = makeStyles({
@@ -40,7 +40,7 @@ function instantiateDescriptor(descriptorMeta: Descriptor) {
 export const DescriptorTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
-  const showVnfdInfoDialog = useVnfdInfoDialog();
+  const showVnfdInfoDialog = useDescriptorInfoDialog();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 

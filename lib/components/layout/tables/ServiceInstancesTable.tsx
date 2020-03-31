@@ -21,10 +21,6 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
   data: Service[];
 };
 
@@ -50,21 +46,24 @@ export const ServiceInstancesTable: React.FunctionComponent<Props> = props => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(row => (
-            <TableRow key={row.cosd.name}>
+          {props.data.map(service => (
+            <TableRow key={service.name}>
               <TableCell component="th" scope="row">
-                {row.cosd.name}
+                {service.name}
               </TableCell>
-              <TableCell align="left">{row.cosd.version}</TableCell>
-              <TableCell align="center">{row.cosd.description}</TableCell>
+              <TableCell align="left">{service.version}</TableCell>
+              <TableCell align="center"></TableCell>
               <TableCell align="center">
-                <IconButton color="primary" onClick={() => showServiceInfoDialog(row)}>
+                <IconButton color="primary" onClick={() => showServiceInfoDialog(service)}>
                   <InfoIcon />
                 </IconButton>
                 <IconButton>
                   <PlayCircleOutline htmlColor={theme.palette.success.main} />
                 </IconButton>
-                <IconButton color="primary" onClick={() => showServiceStopDialog(row.id)}>
+                <IconButton
+                  color="primary"
+                  onClick={() => showServiceStopDialog(service.id, service.name)}
+                >
                   <StopRounded htmlColor={theme.palette.error.main} />
                 </IconButton>
               </TableCell>
