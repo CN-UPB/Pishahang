@@ -15,7 +15,7 @@ import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
 import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
 import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
 import { Service } from "../../../models/Service";
-import { Vims } from "../../../models/Vims";
+import { Vim } from "../../../models/Vims";
 
 const useStyles = makeStyles({
   table: {
@@ -28,7 +28,7 @@ type Props = {
    * Property to check page name
    */
   pageName?: any;
-  data: Vims[];
+  data: Vim[];
 };
 
 export const VimsTable: React.FunctionComponent<Props> = props => {

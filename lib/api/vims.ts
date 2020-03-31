@@ -1,13 +1,8 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "axios";
+import axios, { AxiosError } from "axios";
 
 import { ApiReply } from "../models/ApiReply";
-import { Descriptor } from "../models/Descriptor";
-import { DescriptorType } from "../models/DescriptorType";
-import { RegisterUser } from "../models/RegisterUser";
-import { Session } from "../models/Session";
 import { VimType } from "../models/Vims";
-import { ApiDataEndpoint, ApiDataEndpointReturnType } from "./endpoints";
-import { getApiUrl } from "./index";
+import { getApiUrl } from ".";
 
 /**
  * Uploads Vims data through the API
@@ -19,12 +14,13 @@ import { getApiUrl } from "./index";
  */
 export async function uploadVim(vimType: VimType, vimContent: any): Promise<ApiReply> {
   try {
-    const reply = await axios.post(getApiUrl("vims"), {
-      vim: vimContent,
-      type: vimType,
-    });
-    window.location.reload(false);
-    return { success: true };
+    return {
+      success: true,
+      payload: await axios.post(getApiUrl("vims"), {
+        vim: vimContent,
+        type: vimType,
+      }),
+    };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
       case 401:

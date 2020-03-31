@@ -1,5 +1,11 @@
+export enum VimType {
+  OpenStack = "openStack",
+  Kubernetes = "kubernetes",
+  Aws = "aws",
+}
+
 /** Vim Model */
-export interface Vims {
+export interface Vim {
   vimName: string;
   country: string;
   city: string;
@@ -8,10 +14,4 @@ export interface Vims {
   vendor: string;
   cores: string;
   memory: string;
-}
-
-export enum VimType {
-  OpenStack,
-  Kubernetes,
-  Aws,
 }

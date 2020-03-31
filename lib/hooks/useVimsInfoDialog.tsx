@@ -13,11 +13,11 @@ import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { Descriptor } from "../models/Descriptor";
-import { Vims } from "../models/Vims";
+import { Vim } from "../models/Vims";
 import { useStateRef } from "./useStateRef";
 
 export function useVimsInfoDialog() {
-  const [data, setData, dataRef] = useStateRef<Vims>(null);
+  const [data, setData, dataRef] = useStateRef<Vim>(null);
 
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
@@ -69,7 +69,7 @@ export function useVimsInfoDialog() {
     </GenericDialog>
   ));
 
-  return function showVimsInfoDialog(VimsData: Vims) {
+  return function showVimsInfoDialog(VimsData: Vim) {
     setData(VimsData);
     showDialog();
   };

@@ -6,12 +6,12 @@ import { VimForm } from "../lib/components/forms/vims/VimForm";
 import { Page } from "../lib/components/layout/Page";
 import { VimsTable } from "../lib/components/layout/tables/VimsTable";
 import { useVimsCreaterDialog } from "../lib/hooks/useVimsCreaterDiallog";
-import { VimType, Vims } from "../lib/models/Vims";
+import { Vim, VimType } from "../lib/models/Vims";
 
 const VimPage: NextPage = () => {
   const showVimDialog = useVimsCreaterDialog();
 
-  const data: Vims[] = [
+  const data: Vim[] = [
     {
       vimName: "OpenStack",
       vimType: VimType.OpenStack,
