@@ -72,9 +72,6 @@ export const LoginForm: React.FunctionComponent = () => {
                   </Button>
                 </Box>
               </Grid>
-              <Grid container alignItems="center" justify="center">
-                or&nbsp;<Link href="/register">register</Link>
-              </Grid>
             </Grid>
           </Box>
         </Form>
