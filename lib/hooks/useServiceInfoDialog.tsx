@@ -12,10 +12,10 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { DescriptorMeta } from "../models/DescriptorMeta";
+import { Descriptor } from "../models/Descriptor";
 
 export function useServiceInfoDialog() {
-  let data: DescriptorMeta = null;
+  let data: Descriptor = null;
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
       dialogId="descriptorInfo"
@@ -102,7 +102,7 @@ export function useServiceInfoDialog() {
     </GenericDialog>
   ));
 
-  return function showServiceInfoDialog(serviceDescriptorMeta: DescriptorMeta) {
+  return function showServiceInfoDialog(serviceDescriptorMeta: Descriptor) {
     data = serviceDescriptorMeta;
 
     showDialog();

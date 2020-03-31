@@ -12,7 +12,7 @@ import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
-import { DescriptorMeta } from "../../../models/DescriptorMeta";
+import { Descriptor } from "../../../models/Descriptor";
 
 const useStyles = makeStyles({
   table: {
@@ -25,7 +25,7 @@ type Props = {
    * Property to check page name
    */
   pageName?: any;
-  data: DescriptorMeta[];
+  data: Descriptor[];
 };
 
 export const ServicesTable: React.FunctionComponent<Props> = props => {

@@ -3,13 +3,9 @@ import { Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import { useRouter } from "next/router";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
-import { login } from "./../../store/actions/auth";
-import { registration } from "../../api/registration";
-import { selectLoginErrorMessage } from "../../store/selectors/auth";
-import { Link } from "../links/Link";
+import { registerUser } from "../../api/users";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -39,16 +35,8 @@ export const RegistrationForm: React.FunctionComponent = () => {
   const [errorMessage, setErrorMessage] = React.useState<string>("foo");
   const router = useRouter();
 
-  const onSubmit = async (values: FormValues) => {
-    const response = await registration({
-      username: values.username,
-      first_name: values.firstName,
-      last_name: values.lastName,
-      email: values.email,
-      password: values.password,
-      user_type: "developer",
-      phone_number: 0,
-    });
+  const onSubmit = async ({ confirmPassword, ...userData }: FormValues) => {
+    const response = await registerUser(userData);
     console.log(response);
 
     //router.push("/login")
@@ -61,13 +49,11 @@ export const RegistrationForm: React.FunctionComponent = () => {
     email: Yup.string()
       .email("Invalid email")
       .required("Required"),
-    //companyName: Yup.string().required("Required"),
-    //country: Yup.string().required("Required"),
     username: Yup.string().required("Required"),
     password: Yup.string().required("Required"),
     confirmPassword: Yup.string()
       .required("Required")
-      .oneOf([Yup.ref("password")], "Password does not match"),
+      .oneOf([Yup.ref("password")], "Passwords do not match"),
   });
 
   const initialFormValues: FormValues = {

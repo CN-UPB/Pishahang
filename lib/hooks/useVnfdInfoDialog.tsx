@@ -12,11 +12,11 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { DescriptorMeta } from "../models/DescriptorMeta";
+import { Descriptor } from "../models/Descriptor";
 import { useStateRef } from "./useStateRef";
 
 export function useVnfdInfoDialog() {
-  const [data, setData, dataRef] = useStateRef<DescriptorMeta>(null);
+  const [data, setData, dataRef] = useStateRef<Descriptor>(null);
 
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
@@ -104,7 +104,7 @@ export function useVnfdInfoDialog() {
     </GenericDialog>
   ));
 
-  return function showVnfdInfoDialog(descriptorMeta: DescriptorMeta) {
+  return function showVnfdInfoDialog(descriptorMeta: Descriptor) {
     setData(descriptorMeta);
     showDialog();
   };

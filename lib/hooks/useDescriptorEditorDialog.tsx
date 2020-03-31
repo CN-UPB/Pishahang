@@ -3,13 +3,12 @@ import yaml from "js-yaml";
 import dynamic from "next/dynamic";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
-import { boolean } from "yup";
 
-import { updateDescriptor, uploadDescriptor } from "../api/descriptors";
+import { updateDescriptor } from "../api/descriptors";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
 import { Descriptor } from "../models/Descriptor";
-import { DescriptorMeta } from "../models/DescriptorMeta";
+import { convertJsonToYaml } from "../util/yaml";
 import { useStateRef } from "./useStateRef";
 
 const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"), {
@@ -19,13 +18,14 @@ const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"
 export function useDescriptorEditorDialog(): (string) => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef<string>("");
-  const [descriptoMeta, setDescriptorMeta, getDescriptorMeta] = useStateRef<DescriptorMeta>("");
+  const [descriptor, setDescriptor, descriptorRef] = useStateRef<Descriptor>("");
   let hasDataChanged: boolean = false;
+
   /**
    * Called during any change in the editor
    * @param newValue
    */
-  function onChange(newValue) {
+  function onChange(newValue: string) {
     setFormData(newValue);
     hasDataChanged = true;
   }
@@ -45,7 +45,7 @@ export function useDescriptorEditorDialog(): (string) => void {
       hideDialog();
       try {
         let convertedDescriptorObject = yaml.safeLoad(formDataRef.current);
-        updateDescriptor(convertedDescriptorObject, getDescriptorMeta.current.id);
+        updateDescriptor(convertedDescriptorObject, descriptorRef.current.id);
       } catch (e) {
         console.log("E: " + e);
       }
@@ -79,9 +79,9 @@ export function useDescriptorEditorDialog(): (string) => void {
    */
   const [showConfirmDialog, hideConfirmDialog] = useModal(({ in: open, onExited }) => (
     <TextDialog
-      dialogId="ConfirmClose"
-      dialogTitle="Un-Saved Changes!"
-      dialogText="Are you sure you want to exit?"
+      dialogId="confirm-close"
+      dialogTitle="Unsaved Changes!"
+      dialogText="Are you sure you want to exit? Your changes will be lost permanently."
       open={open}
       onExited={onExited}
       onClose={hideConfirmDialog}
@@ -126,22 +126,10 @@ export function useDescriptorEditorDialog(): (string) => void {
     </GenericDialog>
   ));
 
-  return function showDescriptorEditorDialog(descriptorMeta: DescriptorMeta) {
-    convertJsonToYML(descriptorMeta);
-    setDescriptorMeta(descriptorMeta);
+  return function showDescriptorEditorDialog(descriptor: Descriptor) {
+    const yamlString = convertJsonToYaml(descriptor.descriptor);
+    setFormData(yamlString);
+    setDescriptor(descriptor);
     showDialog();
   };
-
-  /**
-   *
-   * @param jsonFile Converting json to yaml
-   */
-  function convertJsonToYML(descriptorMeta: DescriptorMeta) {
-    // Get document, or throw exception on error
-    try {
-      setFormData(yaml.safeDump(descriptorMeta.descriptor));
-    } catch (e) {
-      console.log("E: " + e);
-    }
-  }
 }

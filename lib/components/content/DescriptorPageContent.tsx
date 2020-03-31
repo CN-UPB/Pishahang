@@ -4,10 +4,10 @@ import { CloudUpload } from "@material-ui/icons";
 import axios from "axios";
 import useSWR from "swr";
 
-import { getApiUrl } from "../../lib/api";
-import { DescriptorTable } from "../../lib/components/layout/tables/DescriptorTable";
-import { useDescriptorUploadDialog } from "../../lib/hooks/useDescriptorUploadDialog";
-import { DescriptorType } from "../../lib/models/DescriptorType";
+import { getApiUrl } from "../../api";
+import { useDescriptorUploadDialog } from "../../hooks/useDescriptorUploadDialog";
+import { DescriptorType } from "../../models/Descriptor";
+import { DescriptorTable } from "../layout/tables/DescriptorTable";
 
 type Props = {
   /**

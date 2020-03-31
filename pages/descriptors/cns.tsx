@@ -1,8 +1,8 @@
 import { NextPage } from "next";
 
+import { DescriptorPageContent } from "../../lib/components/content/DescriptorPageContent";
 import { Page } from "../../lib/components/layout/Page";
-import { DescriptorType } from "../../lib/models/DescriptorType";
-import { DescriptorPageContent } from "./DescriptorPageContent";
+import { DescriptorType } from "../../lib/models/Descriptor";
 
 const ContainersPage: NextPage = () => {
   return (

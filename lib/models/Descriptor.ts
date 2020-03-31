@@ -1,12 +1,28 @@
+import { BaseEntity } from "./BaseEntity";
+
+export enum DescriptorType {
+  Service = "service",
+  VM = "vm",
+  CN = "cn",
+  FPGA = "fpga",
+}
+
 /**
- * Virtual network function descriptor – VM, CN, or FPGA-based
+ * Virtual network function descriptor definition – VM, CN, or FPGA-based
  */
-export interface Descriptor {
+export interface DescriptorContent {
   descriptor_version: string;
-  description: string;
   name: string;
   vendor: string;
   version: string;
-  author: string;
-  virtual_deployment_units: any;
+  description?: string;
+  author?: string;
+}
+
+/**
+ * Descriptor type as used by the API
+ */
+export interface Descriptor extends BaseEntity {
+  type: DescriptorType;
+  descriptor: DescriptorContent;
 }

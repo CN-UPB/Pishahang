@@ -1,17 +1,12 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "axios";
 
 import { ApiReply } from "../models/ApiReply";
-import { Descriptor } from "../models/Descriptor";
-import { DescriptorType } from "../models/DescriptorType";
-import { RegisterUser } from "../models/RegisterUser";
-import { Session } from "../models/Session";
-import { ApiDataEndpoint, ApiDataEndpointReturnType } from "./endpoints";
+import { DescriptorContent } from "../models/Descriptor";
+import { DescriptorType } from "../models/Descriptor";
 import { getApiUrl } from "./index";
 
 /**
  * Sends a registration request to the API
- *
- *
  *
  * @returns An `ApiReply` object with a user-friendly error message in case of failure. In case of
  * success, the resulting `Session` object is provided via the `payload` attribute.
@@ -99,7 +94,7 @@ export async function deleteDescriptor(uuid: String): Promise<ApiReply> {
  */
 
 export async function updateDescriptor(
-  descriptorContent: Descriptor,
+  descriptorContent: DescriptorContent,
   uuid: String
 ): Promise<ApiReply> {
   try {

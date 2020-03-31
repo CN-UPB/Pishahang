@@ -13,7 +13,7 @@ import React from "react";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { useVnfdInfoDialog } from "../../../hooks/useVnfdInfoDialog";
-import { DescriptorMeta } from "../../../models/DescriptorMeta";
+import { Descriptor } from "../../../models/Descriptor";
 
 const useStyles = makeStyles({
   table: {
@@ -26,14 +26,14 @@ type Props = {
    * Property to check page name
    */
   pageName?: any;
-  data: DescriptorMeta[];
+  data: Descriptor[];
 };
 
-function onBoard(descriptorMeta: DescriptorMeta) {
+function onBoard(descriptorMeta: Descriptor) {
   console.log(descriptorMeta.id);
 }
 
-function instantiateDescriptor(descriptorMeta: DescriptorMeta) {
+function instantiateDescriptor(descriptorMeta: Descriptor) {
   console.log(descriptorMeta.id);
 }
 
