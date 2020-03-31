@@ -5,7 +5,7 @@ import useSWR, { ConfigInterface } from "swr";
 import { NullTokenError, fetchApiDataAuthorized } from "../api/auth";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../api/endpoints";
 import { authError } from "../store/actions/auth";
-import { selectAuthToken } from "../store/selectors/auth";
+import { selectAccessToken } from "../store/selectors/auth";
 
 /**
  * A wrapper hook around SWR that fetches data from GET API endpoints using
@@ -19,7 +19,7 @@ export function useAuthorizedSWR<E extends ApiDataEndpoint>(
   endpoint: E,
   swrConfig?: ConfigInterface
 ) {
-  const token = useSelector(selectAuthToken);
+  const token = useSelector(selectAccessToken);
   const dispatch = useDispatch();
 
   const fetcher = (endpoint: E, token: string) =>

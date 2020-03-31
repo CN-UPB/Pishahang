@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "axios";
 
 import { ApiReply } from "./../models/ApiReply";
-import { Session } from "./../models/Session";
+import { Tokens } from "../models/Tokens";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "./endpoints";
 import { getApiUrl } from "./index";
 
@@ -20,10 +20,19 @@ export class NullTokenError extends Error {
  * @returns An `ApiReply` object with a user-friendly error message in case of failure. In case of
  * success, the resulting `Session` object is provided via the `payload` attribute.
  */
-export async function login(username: string, password: string): Promise<ApiReply<Session>> {
+export async function login(username: string, password: string): Promise<ApiReply<Tokens>> {
   try {
-    const reply = await axios.post(getApiUrl("sessions"), { username, password });
-    return { success: true, payload: reply.data };
+    const now = Math.round(Date.now() / 1000);
+    const replyData = (await axios.post(getApiUrl("auth"), { username, password })).data;
+    return {
+      success: true,
+      payload: {
+        accessToken: replyData.accessToken,
+        refreshToken: replyData.refreshToken,
+        accessTokenExpiresAt: now + replyData.accessTokenExpiresIn,
+        refreshTokenExpiresAt: now + replyData.refreshTokenExpiresIn,
+      },
+    };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
       case 401:
