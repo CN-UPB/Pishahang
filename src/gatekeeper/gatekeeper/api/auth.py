@@ -45,8 +45,8 @@ def createTokenFromCredentials(body):
     return {
         "accessToken": create_access_token(identity=user),
         "refreshToken": create_refresh_token(identity=user),
-        "tokenExpires": config.jwt.accessTokenLifetime,
-        "refreshTokenExpires": config.jwt.refreshTokenLifetime
+        "accessTokenExpiresIn": config.jwt.accessTokenLifetime,
+        "refreshTokenExpiresIn": config.jwt.refreshTokenLifetime
     }
 
 

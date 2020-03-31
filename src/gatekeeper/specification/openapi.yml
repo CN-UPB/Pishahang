@@ -46,7 +46,9 @@ paths:
 
       responses:
         "200":
-          description: The provided credentials are valid and a new access token has been returned.
+          description:
+            The provided credentials are valid and a new access token and refresh token have been
+            returned.
           content:
             application/json:
               schema:
@@ -627,21 +629,21 @@ components:
     AccessToken:
       required:
         - accessToken
-        - expiresIn
+        - accessTokenExpiresIn
       properties:
         accessToken:
           type: string
-        expiresIn:
+        accessTokenExpiresIn:
           type: integer
           readOnly: true
     RefreshToken:
       required:
         - refreshToken
-        - refreshExpiresIn
+        - refreshTokenExpiresIn
       properties:
         refreshToken:
           type: string
-        refreshExpiresIn:
+        refreshTokenExpiresIn:
           type: integer
           readOnly: true
 
