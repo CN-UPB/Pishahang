@@ -9,33 +9,33 @@ author: ashwin
 versions:
   virtual_deployment_units_vm:
     cirros-image-1-vm: 
-      cost_per_min: "2"
-      max_data_rate: 1200
+      cost_per_min: 2
+      max_data_rate: 600
       management_overhead: 60
     cirros-image-2-vm: 
-      cost_per_min: "2"
-      max_data_rate: 1200
+      cost_per_min: 2
+      max_data_rate: 600
       management_overhead: 60
 
   virtual_deployment_units_gpu:
     cirros-image-1-gpu: 
-      cost_per_min: "5"
+      cost_per_min: 10
       max_data_rate: 3000
       management_overhead: 6
     cirros-image-2-gpu: 
-      cost_per_min: "5"
+      cost_per_min: 10
       max_data_rate: 3000
       management_overhead: 6
 
   virtual_deployment_units_con:
     cirros-image-1-con: 
-      cost_per_min: "1"
-      max_data_rate: 600
-      management_overhead: 4
+      cost_per_min: 2
+      max_data_rate: 1200
+      management_overhead: 6
     cirros-image-2-con: 
-      cost_per_min: "1"
-      max_data_rate: 600
-      management_overhead: 4
+      cost_per_min: 2
+      max_data_rate: 1200
+      management_overhead: 6
 
 monitoring_config:
   fetch_frequency: 5
