@@ -126,8 +126,8 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-          security:
-            - bearerAuth: []
+      security:
+        - bearerAuth: []
   /users/{username}:
     get:
       tags:
