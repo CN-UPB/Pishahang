@@ -17,10 +17,7 @@ export async function uploadDescriptor(
   content: any
 ): Promise<ApiReply<Descriptor>> {
   try {
-    const reply = await axios.post(getApiUrl("descriptors"), {
-      descriptor: content,
-      type: type,
-    });
+    const reply = await axios.post(getApiUrl("descriptors"), { content, type });
     return { success: true, payload: reply.data };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
