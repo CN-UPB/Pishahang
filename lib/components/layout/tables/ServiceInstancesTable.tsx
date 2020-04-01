@@ -37,9 +37,9 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
           <TableRow>
             <TableCell>Name</TableCell>
             <TableCell align="center" style={{ width: "20px" }}>
-              Version
+              Vendor
             </TableCell>
-            <TableCell align="center">Description</TableCell>
+            <TableCell align="center">Version</TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
               Actions
             </TableCell>
@@ -51,8 +51,8 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
               <TableCell component="th" scope="row">
                 {service.name}
               </TableCell>
-              <TableCell align="left">{service.version}</TableCell>
-              <TableCell align="center"></TableCell>
+              <TableCell align="center">{service.vendor}</TableCell>
+              <TableCell align="center">{service.version}</TableCell>
               <TableCell align="center">
                 <IconButton color="primary" onClick={() => showServiceInfoDialog(service)}>
                   <InfoIcon />

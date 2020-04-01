@@ -28,7 +28,7 @@ export function useDescriptorInfoDialog() {
       >
         <InfoDialogTable
           content={[
-            ["Description", ""],
+            ["Description", currentDescriptor.content.description],
             ["Vendor", currentDescriptor.content.vendor],
             ["Name", currentDescriptor.content.name],
             ["Version", currentDescriptor.content.version],

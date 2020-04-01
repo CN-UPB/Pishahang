@@ -14,7 +14,7 @@ export function useServiceInfoDialog() {
     return (
       <GenericDialog
         dialogId="serviceInfo"
-        dialogTitle={`Details of service "${service.name}"`}
+        dialogTitle={serviceRef.current.name}
         open={open}
         onExited={onExited}
         onClose={hideDialog}
