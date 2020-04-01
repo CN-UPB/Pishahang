@@ -86,3 +86,17 @@ sudo docker stop cloudservicelifecyclemanagement
 sudo docker rm cloudservicelifecyclemanagement
 # sudo docker build -t cloudservicelifecyclemanagement -f plugins/son-mano-cloud-service-lifecycle-management/Dockerfile-dev .
 sudo docker run -d --name cloudservicelifecyclemanagement --net=son-sp --network-alias=cloudservicelifecyclemanagement -v $(pwd)/plugins/son-mano-cloud-service-lifecycle-management:/plugins/son-mano-cloud-service-lifecycle-management cloudservicelifecyclemanagement
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-mano-framework"
+echo "$(pwd)"
+
+echo "Starting Policy Plugin.."
+
+sudo docker stop mv-policy-plugin
+sudo docker rm mv-policy-plugin
+
+# sudo docker build -t mv-policy-plugin -f plugins/son-mano-mv/Dockerfile-dev .
+sudo docker run -d --name mv-policy-plugin --net=son-sp --network-alias=mv-policy-plugin -p 8899:8899 -v $(pwd)/plugins/son-mano-mv-policy:/plugins/son-mano-mv-policy mv-policy-plugin

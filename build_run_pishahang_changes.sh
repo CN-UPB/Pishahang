@@ -113,3 +113,17 @@ sudo docker run -d --name son-sp-infrabstract --net=son-sp --network-alias=son-s
 # sudo docker rm son-catalogue-repos
 # sudo docker build -t son-catalogue-repos -f Dockerfile-dev .
 # sudo docker run -d --name son-catalogue-repos --net=son-sp --network-alias=son-catalogue-repos -p 4002:4011 -v $(pwd):/app son-catalogue-repos
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-mano-framework"
+echo "$(pwd)"
+
+echo "Starting Policy Plugin.."
+
+sudo docker stop mv-policy-plugin
+sudo docker rm mv-policy-plugin
+
+sudo docker build -t mv-policy-plugin -f plugins/son-mano-mv/Dockerfile-dev .
+sudo docker run -d --name mv-policy-plugin --net=son-sp --network-alias=mv-policy-plugin -p 8899:8899 -v $(pwd)/plugins/son-mano-mv-policy:/plugins/son-mano-mv-policy mv-policy-plugin
