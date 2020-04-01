@@ -1,3 +1,5 @@
+import { Service } from "./../models/Service";
+import { Descriptor } from "../models/Descriptor";
 import { User } from "../models/User";
 
 /**
@@ -8,6 +10,7 @@ export enum ApiDataEndpoint {
    * Users route – returns a list of all users
    */
   Users = "users",
+  Services = "services",
 }
 
 /**
@@ -16,6 +19,7 @@ export enum ApiDataEndpoint {
  */
 type ApiDataEndpointReturnTypes = {
   [ApiDataEndpoint.Users]: User[];
+  [ApiDataEndpoint.Services]: Service[];
 };
 
 /**
