@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.datastructures import Headers
 
 from gatekeeper.app import app
-from gatekeeper.models.descriptors import Descriptor
+from gatekeeper.models.descriptors import Descriptor, DescriptorType
 from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
 from gatekeeper.models.vims import Vim
@@ -109,20 +109,21 @@ def exampleVnfd(getDescriptorFixture):
 
 @pytest.fixture(scope="function")
 def exampleService(api, getDescriptorFixture):
-    def uploadDescriptor(type, descriptor):
+    def uploadDescriptor(type: DescriptorType, content):
         response = api.post(
             "/api/v3/descriptors",
-            json={"type": type, "descriptor": descriptor}
+            json={"type": type.value, "content": content}
         )
         print(response.get_json())
         assert 201 == response.status_code
         return response.get_json()
 
     serviceDescriptor = uploadDescriptor(
-        "service", getDescriptorFixture("onboarding/root-service.yml"))
+        DescriptorType.SERVICE, getDescriptorFixture("onboarding/root-service.yml"))
 
     for i in range(1, 3):
-        uploadDescriptor("vm", getDescriptorFixture("onboarding/vnf-{}.yml".format(i)))
+        uploadDescriptor(DescriptorType.OPENSTACK,
+                         getDescriptorFixture("onboarding/vnf-{}.yml".format(i)))
 
     response = api.post("/api/v3/services", json={"id": serviceDescriptor["id"]})
     assert 201 == response.status_code

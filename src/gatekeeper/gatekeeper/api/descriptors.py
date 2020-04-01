@@ -32,12 +32,12 @@ def addDescriptor(body):
 
 def updateDescriptor(id, body):
     """
-    Updates a given descriptor by its ID, or returns a 404 error if no descriptor matching the given
-    id exists.
+    Updates a given descriptor's content by its ID, or returns a 404 error if no descriptor matching
+    the given id exists.
     """
     try:
         descriptor: Descriptor = Descriptor.objects(id=id).get()
-        descriptor.descriptor = body["descriptor"]
+        descriptor.content = body["content"]
         descriptor.save()
         return descriptor
     except DoesNotExist:

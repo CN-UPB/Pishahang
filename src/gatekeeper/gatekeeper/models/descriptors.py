@@ -22,12 +22,12 @@ class DescriptorType(Enum):
     """
 
     SERVICE = "service"
-    VM = "vm"
-    CN = "cn"
-    FPGA = "fpga"
+    OPENSTACK = "openStack"
+    KUBERNETES = "kubernetes"
+    AWS = "aws"
 
 
-class DescriptorContents(DynamicEmbeddedDocument):
+class DescriptorContent(DynamicEmbeddedDocument):
     """
     Embedded document class to hold a descriptor's content
     """
@@ -48,7 +48,7 @@ class BaseDescriptor:
     """
 
     type = StringField(required=True, choices=[t.value for t in DescriptorType])
-    descriptor = EmbeddedDocumentField(DescriptorContents, required=True)
+    content = EmbeddedDocumentField(DescriptorContent, required=True)
 
 
 class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
@@ -59,7 +59,7 @@ class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
     meta = {
         "indexes": [
             {
-                "fields": ("descriptor.vendor", "descriptor.name", "descriptor.version"),
+                "fields": ("content.vendor", "content.name", "content.version"),
                 "unique": True
             }
         ]
@@ -67,13 +67,12 @@ class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
 
     def save(self, *args, **kwargs):
         """
-        Saves a `Descriptor` document, after validating the `descriptor` field against a descriptor
+        Saves a `Descriptor` document, after validating the `content` field against a descriptor
         schema according to the `type` value. If the validation fails, an
         `exceptions.InvalidDescriptorContentError` is raised.
         """
 
-        descriptorDict = self.descriptor if isinstance(
-            self.descriptor, dict) else self.descriptor.to_mongo()
+        descriptorDict = self.content if isinstance(self.content, dict) else self.content.to_mongo()
         try:
             if self.type == DescriptorType.SERVICE.value:
                 validateServiceDescriptor(descriptorDict)
@@ -82,9 +81,9 @@ class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
         except ValidationError as error:
             raise InvalidDescriptorContentError(error.message)
 
-        # Convert `descriptor` to `DescriptorContents` if it is a `dict`
-        if isinstance(self.descriptor, dict):
-            self.descriptor = DescriptorContents(**self.descriptor)
+        # Convert `content` to `DescriptorContents` if it is a `dict`
+        if isinstance(self.content, dict):
+            self.content = DescriptorContent(**self.content)
 
         return super(Descriptor, self).save(*args, **kwargs)
 

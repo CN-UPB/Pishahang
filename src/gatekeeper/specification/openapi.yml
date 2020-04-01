@@ -283,9 +283,9 @@ paths:
           application/json:
             schema:
               required:
-                - descriptor
+                - content
               properties:
-                descriptor:
+                content:
                   $ref: "#/components/schemas/DescriptorContent"
       responses:
         "200":
@@ -551,7 +551,7 @@ components:
 
     DescriptorType:
       type: string
-      enum: [service, vm, cn, fpga]
+      enum: [service, openStack, kubernetes, aws]
     DescriptorContent:
       type: object
       example:
@@ -565,11 +565,11 @@ components:
         - type: object
           required:
             - type
-            - descriptor
+            - content
           properties:
             type:
               $ref: "#/components/schemas/DescriptorType"
-            descriptor:
+            content:
               $ref: "#/components/schemas/DescriptorContent"
     Descriptors:
       type: "array"

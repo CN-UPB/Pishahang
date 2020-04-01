@@ -4,7 +4,7 @@ import pytest
 
 from gatekeeper.models.descriptors import DescriptorType
 
-descriptorKeys = {"id", "createdAt", "updatedAt", "type", "descriptor"}
+descriptorKeys = {"id", "createdAt", "updatedAt", "type", "content"}
 
 descriptorTypeValues = [t.value for t in DescriptorType]
 
@@ -23,7 +23,7 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
     # POST new descriptor
     descriptor = api.post(
         '/api/v3/descriptors',
-        json={'type': type, 'descriptor': descriptorContent}
+        json={'type': type, 'content': descriptorContent}
     ).get_json()
     assert descriptorKeys <= set(descriptor)
 
@@ -39,11 +39,11 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
 
     updatedDesriptor = api.put(
         '/api/v3/descriptors/' + descriptor["id"],
-        json={'type': type, 'descriptor': descriptorContent}
+        json={'type': type, 'content': descriptorContent}
     ).get_json()
     assert updatedDesriptor['id'] == descriptor['id']
     assert updatedDesriptor != descriptor
-    assert updatedDesriptor['descriptor']['name'] == newDescriptorName
+    assert updatedDesriptor['content']['name'] == newDescriptorName
     assert descriptorKeys <= set(updatedDesriptor)
 
     assert [updatedDesriptor] == getDescriptors()
@@ -61,12 +61,12 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
 def testDescriptorValidation(api, type):
     assert 400 == api.post(
         "/api/v3/descriptors",
-        json={"type": type, "descriptor": {}}
+        json={"type": type, "content": {}}
     ).status_code
 
     assert 400 == api.post(
         "/api/v3/descriptors",
-        json={"type": type, "descriptor": {"name": "my-descriptor"}}
+        json={"type": type, "content": {"name": "my-descriptor"}}
     ).status_code
 
 
@@ -76,7 +76,7 @@ def testDuplicateNames(api, exampleCsd, exampleVnfd):
     def addDescriptor(type, descriptor: dict):
         return api.post(
             "/api/v3/descriptors",
-            json={"type": type, "descriptor": descriptor}
+            json={"type": type, "content": descriptor}
         ).status_code
 
     assert 201 == addDescriptor("service", exampleCsd)
@@ -92,5 +92,7 @@ def testDuplicateNames(api, exampleCsd, exampleVnfd):
     exampleVnfd["vendor"] = exampleCsd["vendor"]
     exampleVnfd["name"] = exampleCsd["name"]
     exampleVnfd["version"] = exampleCsd["version"]
-    for type in ("vm", "cn", "fpga"):
+    for type in (DescriptorType.OPENSTACK.value,
+                 DescriptorType.KUBERNETES.value,
+                 DescriptorType.AWS.value):
         assert 400 == addDescriptor(type, exampleVnfd)

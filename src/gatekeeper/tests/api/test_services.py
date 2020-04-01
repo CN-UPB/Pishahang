@@ -1,9 +1,11 @@
+from gatekeeper.models.descriptors import DescriptorType
+
 
 def testOnboarding(api, getDescriptorFixture):
-    def uploadDescriptor(type, descriptor):
+    def uploadDescriptor(type, content):
         response = api.post(
             "/api/v3/descriptors",
-            json={"type": type, "descriptor": descriptor}
+            json={"type": type, "content": content}
         )
         assert 201 == response.status_code
         return response.get_json()
@@ -12,7 +14,9 @@ def testOnboarding(api, getDescriptorFixture):
         "service", getDescriptorFixture("onboarding/root-service.yml"))
 
     vnfDescriptors = [uploadDescriptor(
-        "vm", getDescriptorFixture("onboarding/vnf-{}.yml".format(i))) for i in range(1, 3)]
+        DescriptorType.OPENSTACK.value,
+        getDescriptorFixture("onboarding/vnf-{}.yml".format(i))
+    ) for i in range(1, 3)]
 
     def onboardServiceDescriptorById(id: str):
         response = api.post("/api/v3/services", json={"id": id})
@@ -35,7 +39,7 @@ def testOnboarding(api, getDescriptorFixture):
     assert service["rootDescriptorId"] == serviceDescriptor["id"]
 
     for attribute in ["vendor", "name", "version"]:
-        assert service[attribute] == serviceDescriptor["descriptor"][attribute]
+        assert service[attribute] == serviceDescriptor["content"][attribute]
 
     # Onboard service descriptor again – should work
     assert 201 == onboardServiceDescriptorById(serviceDescriptor["id"])[0]

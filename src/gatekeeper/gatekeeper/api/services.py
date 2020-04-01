@@ -29,25 +29,25 @@ def getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
     referencedDescriptors = []
     referencedDescriptorIds = set()
 
-    if "network_functions" not in descriptor.descriptor:
+    if "network_functions" not in descriptor.content:
         raise ProblemException(
             status=400,
             title="Faulty Descriptor",
             detail='{} does not specify any network functions.'.format(
-                descriptor.descriptor)
+                descriptor.content)
         )
 
         # TODO This would be ok if there were references to other services instead
 
-    for function in descriptor.descriptor.network_functions:
+    for function in descriptor.content.network_functions:
         try:
             vendor = function["vnf_vendor"]
             name = function["vnf_name"]
             version = function["vnf_version"]
             referencedDescriptor = Descriptor.objects(
-                descriptor__vendor=vendor,
-                descriptor__name=name,
-                descriptor__version=version,
+                content__vendor=vendor,
+                content__name=name,
+                content__version=version,
             ).get()
 
             if referencedDescriptor.id not in referencedDescriptorIds:
@@ -63,7 +63,7 @@ def getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
                 detail='{} contains reference to missing ' +
                 'Descriptor(vendor="{}",name="{}",version="{}"). ' +
                 'Please upload that descriptor and try again.'.format(
-                    descriptor.descriptor, vendor, name, version
+                    descriptor.content, vendor, name, version
                 )
             )
 
@@ -95,9 +95,9 @@ def addService(body):
         # Create and save service document
         service = Service(
             rootDescriptorId=rootDescriptor.id,
-            vendor=rootDescriptor.descriptor.vendor,
-            name=rootDescriptor.descriptor.name,
-            version=rootDescriptor.descriptor.version,
+            vendor=rootDescriptor.content.vendor,
+            name=rootDescriptor.content.name,
+            version=rootDescriptor.content.version,
             descriptorSnapshots=[createDescriptorSnapshot(d) for d in allDescriptors]
         )
         service.save()
