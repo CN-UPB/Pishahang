@@ -1,0 +1,531 @@
+---
+"$schema": http://json-schema.org/draft-07/schema
+
+type: object
+title: Policy Root
+description: Describes the policy schema
+required:
+- descriptor_version
+- description
+- name
+- version
+- author
+- look_ahead_time_block
+- monitoring_config
+- static_switching
+- default_deployment_version
+- default_deployment_version_image
+- score_range
+- weights
+- versions
+
+properties:
+  descriptor_version:
+    "$id": "#/properties/descriptor_version"
+    type: string
+    title: The Descriptor_version Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - policy-schema-01
+  description:
+    "$id": "#/properties/description"
+    type: string
+    title: The Description Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - A policy descriptor for multi-version switching
+  name:
+    "$id": "#/properties/name"
+    type: string
+    title: The Name Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - cirros-image-1-mv
+  version:
+    "$id": "#/properties/version"
+    type: string
+    title: The Version Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - '1.0'
+  author:
+    "$id": "#/properties/author"
+    type: string
+    title: The Author Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - ashwin
+  look_ahead_time_block:
+    "$id": "#/properties/look_ahead_time_block"
+    type: integer
+    title: The Look_ahead_time_block Schema
+    description: An explanation about the purpose of this instance.
+    default: 0
+    examples:
+    - 15
+  monitoring_config:
+    "$id": "#/properties/monitoring_config"
+    type: object
+    title: The Monitoring_config Schema
+    description: An explanation about the purpose of this instance.
+    default: {}
+    examples:
+    - fetch_frequency: 10
+      average_range: 60
+    required:
+    - fetch_frequency
+    - average_range
+    properties:
+      fetch_frequency:
+        "$id": "#/properties/monitoring_config/properties/fetch_frequency"
+        type: integer
+        title: The Fetch_frequency Schema
+        description: An explanation about the purpose of this instance.
+        default: 0
+        examples:
+        - 10
+      average_range:
+        "$id": "#/properties/monitoring_config/properties/average_range"
+        type: integer
+        title: The Average_range Schema
+        description: An explanation about the purpose of this instance.
+        default: 0
+        examples:
+        - 60
+  static_switching:
+    "$id": "#/properties/static_switching"
+    type: boolean
+    title: The Static_switching Schema
+    description: An explanation about the purpose of this instance.
+    default: false
+    examples:
+    - false
+  default_deployment_version:
+    "$id": "#/properties/default_deployment_version"
+    type: string
+    title: The Default_deployment_version Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - GPU
+  default_deployment_version_image:
+    "$id": "#/properties/default_deployment_version_image"
+    type: string
+    title: The Default_deployment_version_image Schema
+    description: An explanation about the purpose of this instance.
+    default: ''
+    examples:
+    - cirros-image-1-con
+  score_range:
+    "$id": "#/properties/score_range"
+    type: object
+    title: The Score_range Schema
+    description: An explanation about the purpose of this instance.
+    default: {}
+    examples:
+    - min: 1
+      max: 5
+    required:
+    - max
+    - min
+    properties:
+      max:
+        "$id": "#/properties/score_range/properties/max"
+        type: integer
+        title: The Max Schema
+        description: An explanation about the purpose of this instance.
+        default: 0
+        examples:
+        - 5
+      min:
+        "$id": "#/properties/score_range/properties/min"
+        type: integer
+        title: The Min Schema
+        description: An explanation about the purpose of this instance.
+        default: 0
+        examples:
+        - 1
+  weights:
+    "$id": "#/properties/weights"
+    type: object
+    title: The Weights Schema
+    description: An explanation about the purpose of this instance.
+    default: {}
+    examples:
+    - negative:
+        overhead: 4
+        over_provision: 3
+        cost: 4
+      positive:
+        support_deviation: 2
+        same_version: 3
+    required:
+    - negative
+    - positive
+    properties:
+      negative:
+        "$id": "#/properties/weights/properties/negative"
+        type: object
+        title: The Negative Schema
+        description: An explanation about the purpose of this instance.
+        default: {}
+        examples:
+        - over_provision: 3
+          cost: 4
+          overhead: 4
+        required:
+        - cost
+        - over_provision
+        - overhead
+        properties:
+          cost:
+            "$id": "#/properties/weights/properties/negative/properties/cost"
+            type: integer
+            title: The Cost Schema
+            description: An explanation about the purpose of this instance.
+            default: 0
+            examples:
+            - 4
+          over_provision:
+            "$id": "#/properties/weights/properties/negative/properties/over_provision"
+            type: integer
+            title: The Over_provision Schema
+            description: An explanation about the purpose of this instance.
+            default: 0
+            examples:
+            - 3
+          overhead:
+            "$id": "#/properties/weights/properties/negative/properties/overhead"
+            type: integer
+            title: The Overhead Schema
+            description: An explanation about the purpose of this instance.
+            default: 0
+            examples:
+            - 4
+      positive:
+        "$id": "#/properties/weights/properties/positive"
+        type: object
+        title: The Positive Schema
+        description: An explanation about the purpose of this instance.
+        default: {}
+        examples:
+        - support_deviation: 2
+          same_version: 3
+        required:
+        - support_deviation
+        - same_version
+        properties:
+          support_deviation:
+            "$id": "#/properties/weights/properties/positive/properties/support_deviation"
+            type: integer
+            title: The Support_deviation Schema
+            description: An explanation about the purpose of this instance.
+            default: 0
+            examples:
+            - 2
+          same_version:
+            "$id": "#/properties/weights/properties/positive/properties/same_version"
+            type: integer
+            title: The Same_version Schema
+            description: An explanation about the purpose of this instance.
+            default: 0
+            examples:
+            - 3
+  versions:
+    "$id": "#/properties/versions"
+    type: object
+    title: The Versions Schema
+    description: An explanation about the purpose of this instance.
+    default: {}
+    examples:
+    - virtual_deployment_units_vm:
+        cirros-image-1-vm:
+          management_overhead: 60
+          cost_per_min: 2
+          max_data_rate: 600
+        cirros-image-2-vm:
+          management_overhead: 60
+          cost_per_min: 2
+          max_data_rate: 600
+      virtual_deployment_units_gpu:
+        cirros-image-1-gpu:
+          management_overhead: 6
+          cost_per_min: 10
+          max_data_rate: 3000
+        cirros-image-2-gpu:
+          cost_per_min: 10
+          max_data_rate: 3000
+          management_overhead: 6
+      virtual_deployment_units_con:
+        cirros-image-2-con:
+          cost_per_min: 2
+          max_data_rate: 1200
+          management_overhead: 6
+        cirros-image-1-con:
+          management_overhead: 6
+          cost_per_min: 2
+          max_data_rate: 1200
+    properties:
+      virtual_deployment_units_vm:
+        "$id": "#/properties/versions/properties/virtual_deployment_units_vm"
+        type: object
+        title: The Virtual_deployment_units_vm Schema
+        description: An explanation about the purpose of this instance.
+        default: {}
+        examples:
+        - cirros-image-2-vm:
+            management_overhead: 60
+            cost_per_min: 2
+            max_data_rate: 600
+          cirros-image-1-vm:
+            cost_per_min: 2
+            max_data_rate: 600
+            management_overhead: 60
+        properties:
+          cirros-image-1-vm:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-1-vm"
+            type: object
+            title: The Cirros-image-1-vm Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - management_overhead: 60
+              cost_per_min: 2
+              max_data_rate: 600
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-1-vm/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 2
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-1-vm/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 600
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-1-vm/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 60
+          cirros-image-2-vm:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-2-vm"
+            type: object
+            title: The Cirros-image-2-vm Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - cost_per_min: 2
+              max_data_rate: 600
+              management_overhead: 60
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-2-vm/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 2
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-2-vm/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 600
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_vm/properties/cirros-image-2-vm/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 60
+      virtual_deployment_units_gpu:
+        "$id": "#/properties/versions/properties/virtual_deployment_units_gpu"
+        type: object
+        title: The Virtual_deployment_units_gpu Schema
+        description: An explanation about the purpose of this instance.
+        default: {}
+        examples:
+        - cirros-image-1-gpu:
+            cost_per_min: 10
+            max_data_rate: 3000
+            management_overhead: 6
+          cirros-image-2-gpu:
+            management_overhead: 6
+            cost_per_min: 10
+            max_data_rate: 3000
+        properties:
+          cirros-image-1-gpu:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-1-gpu"
+            type: object
+            title: The Cirros-image-1-gpu Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - cost_per_min: 10
+              max_data_rate: 3000
+              management_overhead: 6
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-1-gpu/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 10
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-1-gpu/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 3000
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-1-gpu/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 6
+          cirros-image-2-gpu:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-2-gpu"
+            type: object
+            title: The Cirros-image-2-gpu Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - management_overhead: 6
+              cost_per_min: 10
+              max_data_rate: 3000
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-2-gpu/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 10
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-2-gpu/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 3000
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_gpu/properties/cirros-image-2-gpu/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 6
+      virtual_deployment_units_con:
+        "$id": "#/properties/versions/properties/virtual_deployment_units_con"
+        type: object
+        title: The Virtual_deployment_units_con Schema
+        description: An explanation about the purpose of this instance.
+        default: {}
+        examples:
+        - cirros-image-2-con:
+            management_overhead: 6
+            cost_per_min: 2
+            max_data_rate: 1200
+          cirros-image-1-con:
+            cost_per_min: 2
+            max_data_rate: 1200
+            management_overhead: 6
+        properties:
+          cirros-image-1-con:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-1-con"
+            type: object
+            title: The Cirros-image-1-con Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - management_overhead: 6
+              cost_per_min: 2
+              max_data_rate: 1200
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-1-con/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 2
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-1-con/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 1200
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-1-con/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 6
+          cirros-image-2-con:
+            "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-2-con"
+            type: object
+            title: The Cirros-image-2-con Schema
+            description: An explanation about the purpose of this instance.
+            default: {}
+            examples:
+            - cost_per_min: 2
+              max_data_rate: 1200
+              management_overhead: 6
+            properties:
+              cost_per_min:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-2-con/properties/cost_per_min"
+                type: integer
+                title: The Cost_per_min Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 2
+              max_data_rate:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-2-con/properties/max_data_rate"
+                type: integer
+                title: The Max_data_rate Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 1200
+              management_overhead:
+                "$id": "#/properties/versions/properties/virtual_deployment_units_con/properties/cirros-image-2-con/properties/management_overhead"
+                type: integer
+                title: The Management_overhead Schema
+                description: An explanation about the purpose of this instance.
+                default: 0
+                examples:
+                - 6

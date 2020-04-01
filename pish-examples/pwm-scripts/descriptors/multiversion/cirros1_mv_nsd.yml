@@ -4,7 +4,7 @@ vendor: "ashwin"
 name: "cirros1_mv"
 version: '1.0'
 author: "ashwin"
-description: "Cirros NS MV"  
+description: "Cirros NS MV"
 network_functions:
   - vnf_id: "cirros-image1"
     vnf_vendor: "ashwin"
@@ -23,6 +23,7 @@ connection_points:
     interface: "ipv4"
     type: "external"
 
+policy_name: "cirros1-mv-policy"
 default_deployment_version: "GPU"
 default_deployment_version_image: cirros-image-1-con
 
