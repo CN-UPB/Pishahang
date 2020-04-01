@@ -105,6 +105,85 @@ paths:
           $ref: "#/components/responses/Error500"
       security:
         - bearerAuth: []
+    post:
+      tags:
+        - Authentication
+      summary: Add a user
+      operationId: gatekeeper.api.users.addUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddUser"
+      responses:
+        "200":
+          description: The user is successfully added
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+          security:
+            - bearerAuth: []
+  /users/{username}:
+    get:
+      tags:
+        - Authentication
+      summary: Retrive a single user
+      description: Returns a user by given username
+      operationId: gatekeeper.api.users.retrieveUsers
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: user to be deleted by the username
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The list of users was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags:
+        - Authentication
+      summary: delete a user
+      operationId: gatekeeper.api.users.deleteUser
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: user to be deleted by the username
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: The user is successfully added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
 
   /descriptors:
     get:
@@ -377,7 +456,7 @@ paths:
                 - $ref: "#/components/schemas/KubernetesVim"
       responses:
         "200":
-          description: The vim is successfully deleted.
+          description: The vim is successfully added.
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -399,7 +478,11 @@ paths:
             format: uuid
       responses:
         "200":
-          description: The vim is successfully deleted.
+          description: The list of Vims was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vims"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -610,6 +693,26 @@ components:
               writeOnly: true
             isAdmin:
               type: boolean
+    AddUser:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - username
+            - isAdmin
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+            isAdmin:
+              type: boolean
+            city:
+              type: string
+            country:
+              type: string
+            companyName:
+              type: string
     Users:
       type: "array"
       items:

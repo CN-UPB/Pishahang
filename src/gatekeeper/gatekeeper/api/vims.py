@@ -2,7 +2,7 @@ from typing import Type
 from ..models.vims import (Vim, OpenStack, Kubernetes, Aws)
 from mongoengine.errors import DoesNotExist
 from ..util import makeMessageResponse
-NO_DESCRIPTOR_FOUND_MESSAGE = "No descriptor matching the given id was found."
+NO_Vim_FOUND_MESSAGE = "No Vim matching the given id was found."
 
 
 # Getting the Added Vims
@@ -24,22 +24,15 @@ def getVims(vimClass: Type[Vim]):
 
 def deleteVim(id):
     """
-    Returns the list of added Vims.
-    """
-    return deleteVimById(Vim, id)
-
-
-def deleteVimById(vimClass: Type[Vim], id):
-    """
-    Deletes a Vim by its ID, or returns a 404 error if no Vim matching the
-    given id exists.
+    Delete A VIM by giving its uuid.
     """
     try:
-        vim = vimClass.objects(id=id).get()
+        vim = Vim.objects(id=id).get()
         vim.delete()
         return vim
     except DoesNotExist:
-        return makeMessageResponse(404, NO_DESCRIPTOR_FOUND_MESSAGE)
+        return makeMessageResponse(404, NO_Vim_FOUND_MESSAGE)
+
 
 # Update VIm
 
@@ -48,16 +41,18 @@ def updateAwsVim(id, body):
     """
     Update Vim by its id
     """
-    return updateAwsVimByID(Aws, id, body)
-
-
-def updateAwsVimByID(awsClass: Type[Aws], id, body):
-    vim: Aws = awsClass.objects(id=id).get()
-    vim = Aws(**body).save()
-    return vim
+    try:
+        vim = Aws.objects(id=id).get()
+        secretKey = body.get("secretKey")
+        accessKey = body.get("accessKey")
+        vim = vim.update({"accessKey": accessKey, "secretKey": secretKey})
+        return vim
+    except DoesNotExist:
+        return makeMessageResponse(404, NO_Vim_FOUND_MESSAGE)
 
 
 # ADD vim
+
 def addVim(body):
     if body["type"] == "aws":
         vim = Aws(**body).save()
