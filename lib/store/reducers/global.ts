@@ -1,20 +1,32 @@
-import { resetSnackbar, showSnackbar } from "../actions/global";
 import { createReducer } from "typesafe-actions";
 
+import { resetInfoDialog, showErrorInfoDialog } from "./../actions/global";
+import { resetSnackbar, showSnackbar } from "../actions/global";
+
 export type GlobalState = Readonly<{
-  /**
-   * Information related to the global snackbar
-   */
+  /** Global snackbar */
   snackbar: {
     message: string;
-    visible: boolean;
+    isVisible: boolean;
+  };
+
+  /** Global info dialog  */
+  infoDialog: {
+    message: string;
+    isVisible: boolean;
+    type: "" | "error";
   };
 }>;
 
 const initialState: GlobalState = {
   snackbar: {
     message: "",
-    visible: false,
+    isVisible: false,
+  },
+  infoDialog: {
+    message: "",
+    isVisible: false,
+    type: "",
   },
 };
 
@@ -23,14 +35,31 @@ const globalReducer = createReducer(initialState)
     ...state,
     snackbar: {
       message: action.payload,
-      visible: true,
+      isVisible: true,
     },
   }))
   .handleAction(resetSnackbar, (state, action) => ({
     ...state,
     snackbar: {
       message: "",
-      visible: false,
+      isVisible: false,
+    },
+  }))
+
+  .handleAction(showErrorInfoDialog, (state, action) => ({
+    ...state,
+    infoDialog: {
+      message: action.payload,
+      isVisible: false,
+      type: "error",
+    },
+  }))
+  .handleAction(resetInfoDialog, (state, action) => ({
+    ...state,
+    infoDialog: {
+      message: "",
+      isVisible: false,
+      type: "",
     },
   }));
 

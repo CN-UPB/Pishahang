@@ -4,7 +4,7 @@ import { ConnectedProps, connect } from "react-redux";
 import { RootState } from "StoreTypes";
 
 import { resetSnackbar } from "../../store/actions/global";
-import { selectSnackbarMessage, selectSnackbarVisible } from "../../store/selectors/global";
+import { selectSnackbarIsVisible, selectSnackbarMessage } from "../../store/selectors/global";
 
 type Props = ConnectedProps<typeof connectToRedux>;
 
@@ -25,7 +25,7 @@ const InternalGlobalSnackbar: React.FunctionComponent<Props> = ({ message, visib
 
 const mapStateToProps = (state: RootState) => ({
   message: selectSnackbarMessage(state),
-  visible: selectSnackbarVisible(state),
+  visible: selectSnackbarIsVisible(state),
 });
 
 const mapDispatchToProps = {
