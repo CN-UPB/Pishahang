@@ -60,9 +60,9 @@ def getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             raise ProblemException(
                 status=400,
                 title="Missing Dependency",
-                detail='{} contains reference to missing ' +
-                'Descriptor(vendor="{}",name="{}",version="{}"). ' +
-                'Please upload that descriptor and try again.'.format(
+                detail=('{} contains reference to missing '
+                        'Descriptor(vendor="{}",name="{}",version="{}"). '
+                        'Please upload that descriptor and try again.').format(
                     descriptor.content, vendor, name, version
                 )
             )
