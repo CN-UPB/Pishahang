@@ -45,7 +45,7 @@ if __jwtSecretKey is None:
     __jwtSecretKey = secrets.token_urlsafe()
     redisClient.set('jwtSecretKey', __jwtSecretKey)
 else:
-    logger.info("Got JWT secret key from MongoDB")
+    logger.info("Got JWT secret key from redis database")
 
 app.app.config['JWT_SECRET_KEY'] = __jwtSecretKey
 app.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.jwt.accessTokenLifetime

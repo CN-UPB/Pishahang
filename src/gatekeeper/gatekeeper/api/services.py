@@ -95,6 +95,9 @@ def addService(body):
         # Create and save service document
         service = Service(
             rootDescriptorId=rootDescriptor.id,
+            vendor=rootDescriptor.descriptor.vendor,
+            name=rootDescriptor.descriptor.name,
+            version=rootDescriptor.descriptor.version,
             descriptorSnapshots=[createDescriptorSnapshot(d) for d in allDescriptors]
         )
         service.save()

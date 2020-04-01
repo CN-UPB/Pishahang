@@ -19,7 +19,12 @@ def testTokenRetrieval(api, adminUser, adminPassword):
     )
     assert reply.status_code == 200
     token = reply.get_json()
-    assert {"accessToken", "tokenExpires", "refreshToken", "refreshTokenExpires"} <= set(token)
+    assert {
+        "accessToken",
+        "accessTokenExpiresIn",
+        "refreshToken",
+        "refreshTokenExpiresIn"
+    } <= set(token)
 
     # Decode the retrieved tokens and check their types
     assert decode_token(token["accessToken"])["type"] == "access"
