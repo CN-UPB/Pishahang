@@ -1,13 +1,17 @@
 import { Button } from "@material-ui/core";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
+import { useDispatch } from "react-redux";
 
 import { uploadDescriptor } from "../api/descriptors";
 import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { DescriptorType } from "../models/Descriptor";
+import { showSnackbar } from "../store/actions/global";
 
 export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
+  const dispatch = useDispatch();
+
   const acceptedFiles = []; //Cannot get this to only allow for .yaml files upload
   /**
    * Display a dialog for uploading Descriptors...
@@ -31,6 +35,7 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   function upload() {
     hideFileSelector();
     uploadDescriptor(type, readFile);
+    dispatch(showSnackbar("Uploaded"));
   }
 
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (
