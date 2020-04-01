@@ -2,9 +2,9 @@ import { BaseEntity } from "./BaseEntity";
 
 export enum DescriptorType {
   Service = "service",
-  VM = "vm",
-  CN = "cn",
-  FPGA = "fpga",
+  OPENSTACK = "openStack",
+  KUBERNETES = "kubernetes",
+  AWS = "aws",
 }
 
 /**
@@ -24,5 +24,5 @@ export interface DescriptorContent {
  */
 export interface Descriptor extends BaseEntity {
   type: DescriptorType;
-  descriptor: DescriptorContent;
+  content: DescriptorContent;
 }

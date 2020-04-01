@@ -14,7 +14,7 @@ export function useDescriptorInfoDialog() {
     return (
       <GenericDialog
         dialogId="descriptorInfo"
-        dialogTitle={descriptorRef.current.descriptor.name}
+        dialogTitle={descriptorRef.current.content.name}
         open={open}
         onExited={onExited}
         onClose={hideDialog}
@@ -29,9 +29,9 @@ export function useDescriptorInfoDialog() {
         <InfoDialogTable
           content={[
             ["Description", ""],
-            ["Vendor", currentDescriptor.descriptor.vendor],
-            ["Name", currentDescriptor.descriptor.name],
-            ["Version", currentDescriptor.descriptor.version],
+            ["Vendor", currentDescriptor.content.vendor],
+            ["Name", currentDescriptor.content.name],
+            ["Version", currentDescriptor.content.version],
             ["Created at", currentDescriptor.createdAt],
             ["Updated at", currentDescriptor.updatedAt],
             ["ID", currentDescriptor.id],

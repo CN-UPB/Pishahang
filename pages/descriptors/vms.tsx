@@ -7,7 +7,7 @@ import { DescriptorType } from "../../lib/models/Descriptor";
 const VirtualMachinesPage: NextPage = () => {
   return (
     <Page title="VM Based VNF Descriptors">
-      <DescriptorPageContent type={DescriptorType.VM}></DescriptorPageContent>
+      <DescriptorPageContent type={DescriptorType.OPENSTACK}></DescriptorPageContent>
     </Page>
   );
 };

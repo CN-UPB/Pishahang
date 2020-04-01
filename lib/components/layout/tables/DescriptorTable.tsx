@@ -62,9 +62,9 @@ export const DescriptorTable: React.FunctionComponent<Props> = props => {
         </TableHead>
         <TableBody>
           {props.data.map(row => (
-            <TableRow key={row.descriptor.name}>
+            <TableRow key={row.content.name}>
               <TableCell component="th" scope="row">
-                {row.descriptor.name}
+                {row.content.name}
               </TableCell>
               <TableCell align="center">{"UPLOADED"}</TableCell>
               <TableCell align="center">

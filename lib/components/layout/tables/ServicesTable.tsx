@@ -12,7 +12,7 @@ import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
-import { Descriptor } from "../../../models/Descriptor";
+import { Service } from "../../../models/Service";
 
 const useStyles = makeStyles({
   table: {
@@ -21,11 +21,7 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
-  data: Descriptor[];
+  data: Service[];
 };
 
 export const ServicesTable: React.FunctionComponent<Props> = props => {
@@ -51,12 +47,12 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
         </TableHead>
         <TableBody>
           {props.data.map(row => (
-            <TableRow key={row.descriptor.name}>
+            <TableRow key={row.name}>
               <TableCell component="th" scope="row">
-                {row.descriptor.name}
+                {row.name}
               </TableCell>
-              <TableCell align="left">{row.descriptor.version}</TableCell>
-              <TableCell align="center">{row.descriptor.description}</TableCell>
+              <TableCell align="left">{row.version}</TableCell>
+              <TableCell align="center"></TableCell>
               <TableCell align="center">
                 <IconButton color="primary" onClick={() => showServiceInfoDialog(row)}>
                   <InfoIcon />

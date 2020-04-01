@@ -127,7 +127,7 @@ export function useDescriptorEditorDialog(): (string) => void {
   ));
 
   return function showDescriptorEditorDialog(descriptor: Descriptor) {
-    const yamlString = convertJsonToYaml(descriptor.descriptor);
+    const yamlString = convertJsonToYaml(descriptor.content);
     setFormData(yamlString);
     setDescriptor(descriptor);
     showDialog();
