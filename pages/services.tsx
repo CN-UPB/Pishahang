@@ -1,27 +1,20 @@
 import { NextPage } from "next";
 
+import { ApiDataEndpoint } from "../lib/api/endpoints";
 import { Page } from "../lib/components/layout/Page";
-import { ServiceInstancesTable } from "../lib/components/layout/tables/ServiceInstancesTable";
+import { ServicesTable } from "../lib/components/layout/tables/ServiceInstancesTable";
+import { useAuthorizedSWR } from "../lib/hooks/useAuthorizedSWR";
 import { useDescriptorUploadDialog } from "../lib/hooks/useDescriptorUploadDialog";
 import { DescriptorType } from "../lib/models/Descriptor";
 import { Service } from "../lib/models/Service";
 
 const ServicesPage: NextPage = () => {
   const showDescriptorUploadDialog = useDescriptorUploadDialog(DescriptorType.Service);
+  const { data, error } = useAuthorizedSWR(ApiDataEndpoint.Services);
 
-  const data: Service[] = [
-    {
-      id: "d8b045db-8276-45ad-bd32-bfba08da75a2",
-      createdAt: "2020-03-31T13:17:39.380Z",
-      updatedAt: "2020-03-31T13:17:39.380Z",
-      name: "test-service",
-      vendor: "my-vendor",
-      version: "1.0",
-    },
-  ];
   return (
     <Page title="Instantiated Services">
-      <ServiceInstancesTable data={data}></ServiceInstancesTable>
+      <ServicesTable data={data}></ServicesTable>
     </Page>
   );
 };

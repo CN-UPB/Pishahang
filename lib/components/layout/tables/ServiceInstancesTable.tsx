@@ -24,7 +24,7 @@ type Props = {
   data: Service[];
 };
 
-export const ServiceInstancesTable: React.FunctionComponent<Props> = props => {
+export const ServicesTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
   const showServiceInfoDialog = useServiceInfoDialog();

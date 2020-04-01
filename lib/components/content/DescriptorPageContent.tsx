@@ -7,21 +7,18 @@ import useSWR from "swr";
 import { getApiUrl } from "../../api";
 import { useDescriptorUploadDialog } from "../../hooks/useDescriptorUploadDialog";
 import { DescriptorType } from "../../models/Descriptor";
-import { DescriptorTable } from "../layout/tables/DescriptorTable";
+import { FunctionDescriptorTable } from "../layout/tables/FunctionDescriptorTable";
+import { ServiceDescriptorTable } from "../layout/tables/ServiceDescriptorTable";
 
 type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
   type: DescriptorType;
 };
 
-export const DescriptorPageContent: React.FunctionComponent<Props> = props => {
-  const showDescriptorUploadDialog = useDescriptorUploadDialog(props.type);
-  const { data, error } = useSWR(getApiUrl("descriptors?type=" + props.type), axios.get);
+export const DescriptorPageContent: React.FunctionComponent<Props> = ({ type }) => {
+  const showDescriptorUploadDialog = useDescriptorUploadDialog(type);
+  const { data, error } = useSWR(getApiUrl("descriptors?type=" + type), axios.get);
   //DescriptorPageContent
-  // console.log(props.type);
+  // console.log(type);
 
   if (!data || error) {
     return (
@@ -58,7 +55,12 @@ export const DescriptorPageContent: React.FunctionComponent<Props> = props => {
         >
           <CloudUpload />
         </Fab>
-        <DescriptorTable data={data.data}></DescriptorTable>
+        {type == DescriptorType.Service && (
+          <ServiceDescriptorTable data={data.data}></ServiceDescriptorTable>
+        )}
+        {type != DescriptorType.Service && (
+          <FunctionDescriptorTable data={data.data}></FunctionDescriptorTable>
+        )}
       </div>
     );
   }

@@ -6,7 +6,7 @@ import { DescriptorType } from "../../lib/models/Descriptor";
 
 const ContainersPage: NextPage = () => {
   return (
-    <Page title="FPGA Based VNF Descriptors">
+    <Page title="FPGA-Based VNF Descriptors">
       <DescriptorPageContent type={DescriptorType.AWS}></DescriptorPageContent>
     </Page>
   );

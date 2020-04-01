@@ -96,17 +96,17 @@ export const DrawerContent: React.FunctionComponent = () => {
         </List>
       </Collapse>
       <Divider />
-      <List>
+      {/* <List>
         <LinkedListItem
           text={"Version Descriptors"}
           icon={MoneyRounded}
           href={"/versiondescriptor"}
         ></LinkedListItem>
       </List>
-      <Divider />
+      <Divider /> */}
       <List>
         <LinkedListItem
-          text={"Service Instances"}
+          text={"Services"}
           icon={ScatterPlotRounded}
           href={"/services"}
         ></LinkedListItem>
