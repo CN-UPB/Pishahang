@@ -50,10 +50,13 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell align="center" style={{ width: "160px" }}>
-              Status
+            <TableCell align="center" style={{ width: "200px" }}>
+              Vendor
             </TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
+              Version
+            </TableCell>
+            <TableCell align="center" style={{ width: "400px" }}>
               Actions
             </TableCell>
           </TableRow>
@@ -64,8 +67,13 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
               <TableCell component="th" scope="row">
                 {row.content.name}
               </TableCell>
-              <TableCell align="center">{"UPLOADED"}</TableCell>
-              <TableCell align="center">
+              <TableCell align="center" style={{ width: "200px" }}>
+                {row.content.vendor}
+              </TableCell>
+              <TableCell align="center" style={{ width: "200px" }}>
+                {row.content.version}
+              </TableCell>
+              <TableCell align="center" style={{ width: "400px" }}>
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>

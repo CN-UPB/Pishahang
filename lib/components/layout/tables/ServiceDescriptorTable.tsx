@@ -54,11 +54,9 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
           <TableRow>
             <TableCell>Name</TableCell>
 
-            <TableCell align="center" style={{ width: "160px" }}>
-              Status
-            </TableCell>
-            <TableCell align="center">Options</TableCell>
-            <TableCell align="center" style={{ width: "200px" }}>
+            <TableCell>Vendor</TableCell>
+            <TableCell>Version</TableCell>
+            <TableCell align="center" style={{ width: "300px" }}>
               Actions
             </TableCell>
           </TableRow>
@@ -69,18 +67,12 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
               <TableCell component="th" scope="row">
                 {row.content.name}
               </TableCell>
-              <TableCell align="center">{"UPLOADED"}</TableCell>
-              <TableCell align="center">
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  style={{ marginRight: "2px" }}
-                  onClick={() => onBoard(row)}
-                >
-                  OnBoard
-                </Button>
-              </TableCell>
-              <TableCell align="center">
+              <TableCell>{row.content.vendor}</TableCell>
+              <TableCell>{row.content.version}</TableCell>
+              <TableCell align="center" style={{ width: "300px" }}>
+                <IconButton color="primary" onClick={() => onBoard(row)}>
+                  <InfoIcon />
+                </IconButton>
                 <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
                   <InfoIcon />
                 </IconButton>
