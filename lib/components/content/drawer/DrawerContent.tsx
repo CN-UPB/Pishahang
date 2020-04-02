@@ -79,20 +79,16 @@ export const DrawerContent: React.FunctionComponent = () => {
       <Collapse in={descriptorsExpanded} timeout="auto" unmountOnExit>
         <List component="div" disablePadding className={classes.nestedList}>
           <LinkedListItem
-            text={"VM-Based"}
+            text={"OpenStack"}
             icon={Computer}
             href={"/descriptors/vms"}
           ></LinkedListItem>
           <LinkedListItem
-            text={"CN-Based"}
+            text={"Kubernetes"}
             icon={WebAsset}
             href={"/descriptors/cns"}
           ></LinkedListItem>
-          <LinkedListItem
-            text={"FPGA-Based"}
-            icon={WebAsset}
-            href={"/descriptors/fpga"}
-          ></LinkedListItem>
+          <LinkedListItem text={"AWS"} icon={WebAsset} href={"/descriptors/fpga"}></LinkedListItem>
         </List>
       </Collapse>
       <Divider />

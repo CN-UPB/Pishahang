@@ -35,7 +35,7 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   function upload() {
     hideFileSelector();
     uploadDescriptor(type, readFile);
-    dispatch(showSnackbar("Uploaded"));
+    //dispatch(showSnackbar("Uploaded"));
   }
 
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (

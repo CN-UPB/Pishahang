@@ -17,9 +17,6 @@ type Props = {
 export const DescriptorPageContent: React.FunctionComponent<Props> = ({ type }) => {
   const showDescriptorUploadDialog = useDescriptorUploadDialog(type);
   const { data, error } = useSWR(getApiUrl("descriptors?type=" + type), axios.get);
-  //DescriptorPageContent
-  // console.log(type);
-
   if (!data || error) {
     return (
       <div>
@@ -38,7 +35,6 @@ export const DescriptorPageContent: React.FunctionComponent<Props> = ({ type }) 
             position: "absolute",
             left: "50%",
             top: "50%",
-            transform: "translate(-50%, -50%)",
           }}
         />
       </div>

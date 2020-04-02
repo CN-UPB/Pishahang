@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 
-import { Descriptor } from "./../models/Descriptor";
 import { Service } from "./../models/Service";
 import { ApiReply } from "../models/ApiReply";
 import { getApiUrl } from "./index";

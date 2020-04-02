@@ -6,7 +6,7 @@ import { DescriptorType } from "../../lib/models/Descriptor";
 
 const ServicesPage: NextPage = () => {
   return (
-    <Page title="Services Descriptors">
+    <Page title="Service Descriptors">
       <DescriptorPageContent type={DescriptorType.Service}></DescriptorPageContent>
     </Page>
   );
