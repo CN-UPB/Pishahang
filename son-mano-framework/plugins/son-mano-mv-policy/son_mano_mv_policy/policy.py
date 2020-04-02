@@ -33,6 +33,7 @@ import threading
 import sys
 import concurrent.futures as pool
 # import psutil
+from son_mano_mv_policy import policy_helpers
 
 from sonmanobase.plugin import ManoBasePlugin
 
@@ -106,6 +107,18 @@ class PolicyPlugin(ManoBasePlugin):
         """
         super(self.__class__, self).on_lifecycle_start(ch, mthd, prop, msg)
         LOG.info("Policy plugin started and operational.")
+        # TEST: here
+
+        import requests
+        import yaml
+        r = requests.get('https://raw.githubusercontent.com/CN-UPB/Pishahang/mvp-thesis/pish-examples/pwm-scripts/descriptors/multiversion/cirros1_mv_policy.yml')
+        # print(r.text)
+        PD = yaml.load(r.text, Loader=yaml.FullLoader)
+
+        weights = [-4, -3, -4, 2, 3]
+        prediction = { "mean": 400, "std": 100, "min": 800, "max": 1800 }
+        meta = { "current_version": "cirros-image-1-gpu" }
+        self.policy_decision(descriptor=PD, prediction=prediction, meta=meta)
 
     def deregister(self):
         """
@@ -139,6 +152,14 @@ class PolicyPlugin(ManoBasePlugin):
 
         content = yaml.load(payload)
         LOG.info("Policy request for service: " + content['serv_id'])
+
+        # Test 1
+        # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
+        # WEIGHTS = [-4, -3, -4, 2, 3]
+        # weights = descriptor["weights"]
+        # prediction = { "mean": 800, "std": 100, "min": 800, "max": 1800 }
+        # meta = { "current_version": "cirros-image-1-gpu" }
+
         # topology = content['topology']
         # descriptor = content['nsd'] if 'nsd' in content else content['cosd']
         # functions = content['functions'] if 'functions' in content else []
@@ -156,59 +177,20 @@ class PolicyPlugin(ManoBasePlugin):
         # LOG.info("Policy response sent for service: " + content['serv_id'])
         # LOG.info(response)
 
-    def policy(self, descriptor, functions, cloud_services, topology):
+    def policy_decision(self, descriptor, prediction, meta):
         """
         This is the default policy algorithm that is used if the SLM
         is responsible to perform the policy
         """
-        LOG.info("Embedding started on following topology: " + str(topology))
+        supported_versions = policy_helpers.get_supported_versions(prediction=prediction, versions=descriptor["versions"])
+        decision_matrix_df = policy_helpers.build_decision_matrix(prediction=prediction, meta=meta, versions=supported_versions)
 
-        mapping = {}
+        selected_type, selected_version = policy_helpers.get_policy_decision(decision_matrix_df, descriptor["weights"])
 
-        for function in functions:
-            vnfd = function['vnfd']
-            vdu = vnfd['virtual_deployment_units']
-            needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
-            needed_mem = vdu[0]['resource_requirements']['memory']['size']
-            needed_sto = vdu[0]['resource_requirements']['storage']['size']
-
-            for vim in topology:
-                if vim['vim_type'] == 'Kubernetes':
-                    continue
-                cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
-
-                if cpu_req and mem_req:
-                    mapping[function['id']] = {}
-                    mapping[function['id']]['vim'] = vim['vim_uuid']
-                    vim['core_used'] = vim['core_used'] + needed_cpu
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
-                    break
-
-        for cloud_service in cloud_services:
-            csd = cloud_service['csd']
-            vdu = csd['virtual_deployment_units']
-            needed_mem = 0
-            if 'resource_requirements' in vdu[0] and 'memory' in vdu[0]['resource_requirements']:
-                needed_mem = vdu[0]['resource_requirements']['memory']['size']
-
-            for vim in topology:
-                if vim['vim_type'] != 'Kubernetes':
-                    continue
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
-
-                if mem_req:
-                    mapping[cloud_service['id']] = {}
-                    mapping[cloud_service['id']]['vim'] = vim['vim_uuid']
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
-                    break
-
-        # Check if all VNFs and CSs have been mapped
-        if len(mapping.keys()) == len(functions) + len(cloud_services):
-            return mapping
-        else:
-            LOG.info("Policy was not possible")
-            return None
+        LOG.info(decision_matrix_df)
+        LOG.info("\nSelected version to deploy - {} - {}".format(selected_type, selected_version))
+    
+        # print("\nSelected version to deploy - ", selected_type, " : ", selected_version, "\n")
 
 
 def main():

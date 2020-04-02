@@ -19,16 +19,17 @@
 # acknowledge the contributions of their colleagues of the SONATA
 # partner consortium (www.sonata-nfv.eu).
 
-FROM python:3.7-slim
+FROM python:3.7
 MAINTAINER SONATA
 
-RUN apt-get update && apt-get install -y gcc
+RUN apt-get update && apt-get install -y gcc libev-dev
 
 # define plugin name once
-ENV PLUGIN_BASE son-mano-mv
+ENV PLUGIN_BASE son-mano-mv-policy
 # Configuration
 ENV broker_host amqp://guest:guest@son-broker:5672/%2F
 ENV broker_exchange son-kernel
+ENV MONGO_URI mongodb://son-mongo:27017
 
 # add generic project files
 ADD son-mano-base /son-mano-base
