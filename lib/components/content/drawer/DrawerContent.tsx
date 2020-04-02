@@ -51,10 +51,7 @@ export const DrawerContent: React.FunctionComponent = () => {
         ></LinkedListItem>
       </List>
       <Divider />
-      <List>
-        <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
-      </List>
-      <Divider />
+
       <List>
         <LinkedListItem text={"VIM Settings"} icon={Settings} href={"/vims"}></LinkedListItem>
       </List>
@@ -106,6 +103,10 @@ export const DrawerContent: React.FunctionComponent = () => {
           icon={ScatterPlotRounded}
           href={"/services"}
         ></LinkedListItem>
+      </List>
+      <Divider />
+      <List>
+        <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
       <Divider />
     </>
