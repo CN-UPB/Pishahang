@@ -3,11 +3,11 @@ version: "3.3"
 
 services:
   # Influxdb for monitoring
-  son-monitor-influxdb:
+  monitor-influxdb:
     build: ./son-monitor/influxDB
 
   # Repositories
-  son-catalogue-repos:
+  catalogue-repos:
     build: ./son-catalogue-repos
 
   # MANO framework -------------------------------------------------------------
@@ -66,17 +66,17 @@ services:
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
-  son-monitor-pushgateway:
+  monitor-pushgateway:
     build: ./son-monitor/pushgateway
 
   # Monitoring – Prometheus
-  son-monitor-prometheus:
+  monitor-prometheus:
     build: ./son-monitor/prometheus
 
   # Monitoring Manager
-  son-monitor-manager:
+  monitor-manager:
     build: ./son-monitor/manager
 
   # Monitoring – Probe
-  son-monitor-probe:
+  monitor-probe:
     # build: ./son-monitor/ ?

@@ -1,4 +1,4 @@
-# Main Pishahang docker-compose file
+# Pishahang docker-compose file
 version: "3.3"
 
 networks:
@@ -6,9 +6,8 @@ networks:
     external: false
 
 services:
-  # postgreSQL database engine
-  # pgsql.yml
-  son-postgres:
+  # PostgreSQL database engine
+  postgres:
     image: ntboes/postgres-uuid #sonatanfv/son-postgres
     restart: always
     environment:
@@ -16,37 +15,36 @@ services:
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
     networks:
-      - pishanet
+      pishanet:
+        aliases:
+          - son-postgres
     ports:
       - 5432:5432
 
   # MongoDB (used by Monitory)
-  # mongo.yml
-  son-mongo:
+  mongo:
     image: mongo
     restart: always
     networks:
       pishanet:
         aliases:
-          - mongo
+          - son-mongo
     ports:
       - 27017:27017
 
   # RedisDB (used by Validator and Gkapi)
-  # redis.yml
-  son-redis:
+  redis:
     image: redis
     restart: always
     networks:
       pishanet:
         aliases:
-          - redis
+          - son-redis
     ports:
       - 6379:6379
 
   # PostgreSQL database engine for monitoring
-  # pgsql-monitoring.yml
-  son-monitor-postgres:
+  monitor-postgres:
     image: ntboes/postgres-uuid
     restart: always
     environment:
@@ -58,12 +56,12 @@ services:
       pishanet:
         aliases:
           - postgsql
+          - son-monitor-postgres
     ports:
       - 5433:5432
 
-  # RabbitMQ message bus
-  # broker.yml
-  son-broker:
+  # RabbitMQ
+  broker:
     image: rabbitmq:3.6.15-management
     restart: always
     environment:
@@ -71,13 +69,13 @@ services:
     networks:
       pishanet:
         aliases:
-          - broker
+          - son-broker
     ports:
       - 5672:5672
+      - 15672:15672
 
   # Influxdb for monitoring
-  # influxdb.yml
-  son-monitor-influxdb:
+  monitor-influxdb:
     image: pishahang/monitor-influxdb
     restart: always
     networks:
@@ -85,11 +83,11 @@ services:
         aliases:
           - influxdb
           - influx
+          - son-monitor-influxdb
     ports:
       - 8086:8086
 
-  # Keycloak
-  # keycloak.yml
+  # Keycloak (to be removed)
   son-keycloak:
     image: pishahang/gtk-keycloak
     restart: always
@@ -104,8 +102,7 @@ services:
     ports:
       - "5601:5601"
 
-  # Gatekeeper GUI
-  # gui.yml
+  # GUI (to be removed)
   son-gui:
     image: pishahang/gui
     restart: always
@@ -117,8 +114,7 @@ services:
     networks:
       - pishanet
 
-  # Gatekeeper BSS
-  # bss.yml
+  # Gatekeeper BSS (to be removed)
   son-bss:
     image: pishahang/bss
     restart: always
@@ -129,17 +125,16 @@ services:
       - "25001:1337"
       - "25002:1338"
 
-  # Gatekeeper -----------------------------------------------------------------
+  # Gatekeeper (to be removed)--------------------------------------------------
   # SONATA Validator
-  # gtk/val.yml
   son-validate:
     image: sonatanfv/son-validate:dev
     restart: always
     depends_on:
-      - son-redis
+      - redis
     environment:
       VAPI_DEBUG: "True"
-      VAPI_REDIS_HOST: son-redis
+      VAPI_REDIS_HOST: redis
       VAPI_PORT: 5050
       SON_CLI_IN_DOCKER: 1
     networks:
@@ -150,14 +145,13 @@ services:
       - "5050:5050"
 
   # Gatekeeper Packages
-  # gtk/pkg.yml
   son-gtkpkg:
     image: sonatanfv/son-gtkpkg:${SONATA_VERSION}
     restart: always
     depends_on:
-      - son-catalogue-repos
+      - catalogue-repos
     environment:
-      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
       RACK_ENV: integration
     networks:
       - pishanet
@@ -165,24 +159,22 @@ services:
       - "5100:5100"
 
   # Gatekeeper Services
-  # gtk/srv.yml
   son-gtksrv:
     image: pishahang/gtk-services:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-catalogue-repos
-      - son-broker
-      - son-postgres
+      - catalogue-repos
+      - broker
+      - postgres
     environment:
-      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
       RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@son-broker:5672
-      DATABASE_HOST: son-postgres
+      MQSERVER: amqp://guest:guest@broker:5672
+      DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
       POSTGRES_DB: ${GTK_DB_NAME}
-    # TODO Add migration command directly to the container?
     command: 'bash -c "bundle exec rake db:migrate && bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:5300"' # The first command used to be a separate ansible task, executed in an intermediate container before the final container was started
     networks:
       - pishanet
@@ -190,19 +182,18 @@ services:
       - "5300:5300"
 
   # Gatekeeper Cloud Services
-  # gtk/csrv.yml
   son-gtkcsrv:
     image: pishahang/gtk-cloud-services:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-catalogue-repos
-      - son-broker
-      - son-postgres
+      - catalogue-repos
+      - broker
+      - postgres
     environment:
-      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
       RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@son-broker:5672
-      DATABASE_HOST: son-postgres
+      MQSERVER: amqp://guest:guest@broker:5672
+      DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
@@ -213,14 +204,13 @@ services:
       - "5250:5250"
 
   # Gatekeeper Functions
-  # gtk/fnct.yml
   son-gtkfnct:
     image: pishahang/gtk-functions:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-catalogue-repos
+      - catalogue-repos
     environment:
-      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
       RACK_ENV: integration
     networks:
       - pishanet
@@ -228,14 +218,13 @@ services:
       - "5500:5500"
 
   # Gatekeeper Records
-  # gtk/rec.yml
   son-gtkrec:
     image: pishahang/gtk-records:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-catalogue-repos
+      - catalogue-repos
     environment:
-      REPOSITORIES_URL: http://son-catalogue-repos:4011/records
+      REPOSITORIES_URL: http://catalogue-repos:4011/records
       RACK_ENV: integration
     networks:
       - pishanet
@@ -243,18 +232,17 @@ services:
       - "5800:5800"
 
   # Gatekeeper VIM
-  # gtk/vim.yml
   son-gtkvim:
     image: pishahang/gtk-vims:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
-      - son-postgres
+      - broker
+      - postgres
     environment:
       # TODO: Is a catalogues URL missing here?
       RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@son-broker:5672
-      DATABASE_HOST: son-postgres
+      MQSERVER: amqp://guest:guest@broker:5672
+      DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
@@ -266,14 +254,13 @@ services:
       - "5700:5700"
 
   # Gatekeeper License Manager
-  # gtk/lic.yml
   son-gtklic:
     image: sonatanfv/son-gtklic:${SONATA_VERSION}
     restart: always
     depends_on:
-      - son-postgres
+      - postgres
     environment:
-      DATABASE_HOST: son-postgres
+      DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       POSTGRES_PASSWORD: ${GTK_DB_PASS}
       POSTGRES_USER: ${GTK_DB_USER}
@@ -287,13 +274,12 @@ services:
       - "5900:5900"
 
   # Gatekeeper Key Performance Indicators
-  # gtk/kpi.yml
   son-gtkkpi:
     image: sonatanfv/son-gtkkpi:${SONATA_VERSION}
     restart: always
     depends_on:
-      - son-monitor-pushgateway
-      - son-monitor-prometheus
+      - monitor-pushgateway
+      - monitor-prometheus
     environment:
       PUSHGATEWAY_HOST: pushgateway
       PUSHGATEWAY_PORT: 9091
@@ -305,7 +291,6 @@ services:
       - "5400:5400"
 
   # Gatekeeper User Management
-  # gtk/usr.yml
   son-gtkusr:
     image: pishahang/gtk-user-management:${PISHAHANG_VERSION}
     restart: always
@@ -323,14 +308,13 @@ services:
       - "5600:5600"
 
   # Gatekeeper Rate Limiter
-  # gtk/rlt.yml
   son-gtkrlt:
     image: pishahang/gtk-rate-limiter:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-redis
+      - redis
     environment:
-      REDIS_URL: redis://son-redis:6379
+      REDIS_URL: redis://redis:6379
     networks:
       - pishanet
     expose:
@@ -339,15 +323,14 @@ services:
       - "5150:5150"
 
   # Gatekeeper API
-  # gtk/api.yml
   son-gtkapi:
     image: pishahang/gtk-api:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkusr
       - son-gtklic
-      - son-monitor-manager
-      - son-catalogue-repos
+      - monitor-manager
+      - catalogue-repos
       - son-gtkpkg
       - son-gtksrv
       - son-gtkfnct
@@ -360,8 +343,8 @@ services:
       RACK_ENV: integration
       USER_MANAGEMENT_URL: http://son-gtkusr:5600
       LICENSE_MANAGEMENT_URL: http://son-gtklic:5900
-      METRICS_URL: http://son-monitor-manager:8000/api/v1
-      CATALOGUES_URL: http://son-catalogue-repos:4011/catalogues/api/v2
+      METRICS_URL: http://monitor-manager:8000/api/v1
+      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
       PACKAGE_MANAGEMENT_URL: http://son-gtkpkg:5100
       SERVICE_MANAGEMENT_URL: http://son-gtksrv:5300
       CLOUD_SERVICE_MANAGEMENT_URL: http://son-gtkcsrv:5250
@@ -377,12 +360,13 @@ services:
       - "32001:5000"
 
   # Repositories ---------------------------------------------------------------
-  # repos.yml
-  son-catalogue-repos:
+  catalogue-repos:
     image: pishahang/catalogue-repos:${PISHAHANG_VERSION}
     restart: always
     networks:
-      - pishanet
+      pishanet:
+        aliases:
+          - son-catalogue-repos
     # dns_servers: "8.8.8.8"
     ports:
       - "4002:4011"
@@ -394,11 +378,11 @@ services:
     image: pishahang/mano-pluginmanager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-mongo
-      - son-broker
+      - mongo
+      - broker
     environment:
       mongo_host: son-mongo
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
     ports:
@@ -411,15 +395,15 @@ services:
     restart: always
     depends_on:
       - son-gtkapi
-      - son-catalogue-repos
-      - son-monitor-manager
-      - son-broker
+      - catalogue-repos
+      - monitor-manager
+      - broker
     environment:
       url_gk_api: http://son-gtkapi:5000/api/v2/
-      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
-      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
 
@@ -430,15 +414,15 @@ services:
     restart: always
     depends_on:
       - son-gtkapi
-      - son-catalogue-repos
-      - son-monitor-manager
-      - son-broker
+      - catalogue-repos
+      - monitor-manager
+      - broker
     environment:
       url_gk_api: http://son-gtkapi:5000/api/v2/
-      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
-      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
 
@@ -448,10 +432,10 @@ services:
     image: pishahang/mano-specificmanagerregistry:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
+      - broker
     environment:
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
-      broker_name: son-broker,broker
+      broker_host: amqp://guest:guest@broker:5672/%2F
+      broker_name: broker
     networks:
       - pishanet
     volumes:
@@ -463,9 +447,9 @@ services:
     image: pishahang/mano-plugin-placement-executive:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
+      - broker
     environment:
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
 
@@ -475,9 +459,9 @@ services:
     image: pishahang/mano-plugin-placement:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
+      - broker
     environment:
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
 
@@ -488,15 +472,15 @@ services:
     restart: always
     depends_on:
       - son-gtkapi
-      - son-catalogue-repos
-      - son-monitor-manager
-      - son-broker
+      - catalogue-repos
+      - monitor-manager
+      - broker
     environment:
       url_gk_api: http://son-gtkapi:5000/api/v2/
-      url_cosr_repository: http://son-catalogue-repos:4011/records/cosr/
-      url_vnfr_repository: http://son-catalogue-repos:4011/records/csr/
-      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
+      url_cosr_repository: http://catalogue-repos:4011/records/cosr/
+      url_vnfr_repository: http://catalogue-repos:4011/records/csr/
+      url_monitoring_server: http://monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
       - pishanet
 
@@ -507,17 +491,17 @@ services:
     restart: always
     depends_on:
       - son-gtkapi
-      - son-catalogue-repos
-      - son-monitor-manager
-      - son-broker
-      - son-postgres
+      - catalogue-repos
+      - monitor-manager
+      - broker
+      - postgres
     environment:
       url_gk_api: http://son-gtkapi:5000/api/v2/
-      url_nsr_repository: http://son-catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://son-catalogue-repos:4011/records/vnfr/
-      url_monitoring_server: http://son-monitor-manager:8000/api/v1/
-      broker_host: amqp://guest:guest@son-broker:5672/%2F
-      repo_host: son-postgres
+      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
+      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
+      url_monitoring_server: http://monitor-manager:8000/api/v1/
+      broker_host: amqp://guest:guest@broker:5672/%2F
+      repo_host: postgres
       repo_port: 5432
       repo_user: ${IA_REPO_USER}
       repo_pass: ${IA_REPO_PASS}
@@ -531,12 +515,12 @@ services:
     image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
-      - son-postgres
+      - broker
+      - postgres
     environment:
-      broker_host: son-broker
-      broker_uri: amqp://guest:guest@son-broker:5672/%2F
-      repo_host: son-postgres
+      broker_host: broker
+      broker_uri: amqp://guest:guest@broker:5672/%2F
+      repo_host: postgres
       repo_port: 5432
       repo_user: ${IA_REPO_USER}
       repo_pass: ${IA_REPO_PASS}
@@ -551,30 +535,32 @@ services:
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   # monit/pushgw.yml
-  son-monitor-pushgateway:
+  monitor-pushgateway:
     image: pishahang/monitor-pushgateway:${PISHAHANG_VERSION}
     restart: always
     networks:
       pishanet:
         aliases:
           - pushgateway
+          - son-monitor-pushgateway
     ports:
       - "9091:9091"
 
   # Monitoring – Prometheus
   # monit/prometheus.yml
-  son-monitor-prometheus:
+  monitor-prometheus:
     image: pishahang/monitor-prometheus:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-broker
+      - broker
     environment:
-      RABBIT_URL: son-broker:5672
+      RABBIT_URL: broker:5672
       EMAIL_PASS: czBuQHRAX21vbl9zeXNfMTY=
     networks:
       pishanet:
         aliases:
           - prometheus
+          - son-monitor-prometheus
     ports:
       - "9090:9090"
       - "9089:9089"
@@ -582,35 +568,38 @@ services:
 
   # Monitoring Manager
   # monit/monitmgr.yml
-  son-monitor-manager:
+  monitor-manager:
     image: pishahang/monitor-manager:${PISHAHANG_VERSION}
     restart: always
     networks:
-      - pishanet
+      pishanet:
+        aliases:
+          - son-monitor-manager
     ports:
       - "8000:8000"
       - "8888:8888"
 
   # Monitoring – Probe
   # monit/probe.yml
-  son-monitor-probe:
+  monitor-probe:
     image: sonatanfv/son-monitor-probe:${SONATA_VERSION}
     restart: always
     privileged: true
     depends_on:
-      - son-monitor-pushgateway
+      - monitor-pushgateway
     environment:
       NODE_NAME: ${HOSTNAME}
-      PROM_SRV: http://son-monitor-pushgateway:9091/metrics
+      PROM_SRV: http://monitor-pushgateway:9091/metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/rootfs:ro
       - /proc:/myhost/proc
     networks:
-      - pishanet
+      pishanet:
+        aliases:
+          - son-monitor-probe
 
-  # Security Gateway -----------------------------------------------------------
-  # sec-gw.yml
+  # Security Gateway (to be replaced)-------------------------------------------
   son-sec-gw:
     image: pishahang/gtk-sec-gateway:${PISHAHANG_VERSION}
     restart: always
@@ -622,5 +611,3 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - /etc/ssl/private/sonata/:/etc/nginx/cert/
