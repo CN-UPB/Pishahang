@@ -1,9 +1,0 @@
----
-
-- name: starting MongoDB database services
-  hosts: "{{ target }}"
-  become: true
-  tasks:
-
-  - name: start MongoDB services
-    service: name=mongod state=started 

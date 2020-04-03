@@ -1,4 +1,0 @@
-module "qual" {
-  source = "./qual"
-}
-

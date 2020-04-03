@@ -1,4 +1,0 @@
----
-# vars file for docker-squid
-
-#docker_network_name: "{{ 'sonata.dem-net' if pop == 'ncsrd' else 'bridge' }}"

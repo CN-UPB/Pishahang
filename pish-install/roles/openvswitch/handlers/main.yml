@@ -1,4 +1,0 @@
----
-# handlers file for ovs
-
-- include: "{{ ansible_distribution_release }}.yml"

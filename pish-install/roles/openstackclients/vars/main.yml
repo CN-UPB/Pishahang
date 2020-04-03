@@ -1,4 +1,0 @@
----
-# vars file for openstackclients
-#deploy_user: "{{ ansible_user_id }}"
-shade_tarball: 1.14.1

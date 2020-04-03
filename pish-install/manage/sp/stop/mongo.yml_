@@ -1,9 +1,0 @@
----
-
-- name: stopping MongDB database services
-  hosts: "{{ target }}"
-  become: true
-  tasks:
-
-  - name: stop MongoDB services
-    service: name=mongod state=stopped 

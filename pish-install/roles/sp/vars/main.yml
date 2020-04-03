@@ -1,4 +1,0 @@
----
-# vars file for sp
-public_ip: '172.31.6.127'
-plat_hostname: sp-alabs-demo-xenial-01-1500286632

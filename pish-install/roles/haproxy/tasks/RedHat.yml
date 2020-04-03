@@ -1,9 +1,0 @@
-#- yum: name=* state=latest
-
-- name: install HA Proxy requirements
-  yum: name={{ item }}
-  become: true
-  with_items:
-    - pcre-static
-    - pcre-devel
-

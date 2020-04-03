@@ -1,9 +1,0 @@
----
-# vars file for mistral
-
-mysqlservice: mysql
-mysql_port: 3306
-dbuser: root
-dbname: mistral
-upassword: strangehat
-

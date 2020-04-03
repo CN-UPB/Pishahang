@@ -1,2 +1,0 @@
-[sp]
-sp-alabs-demo-xenial-01-1499269562 ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=/home/ubuntu/.ssh/son-install.pem ansible_host=172.31.6.117 

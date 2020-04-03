@@ -1,7 +1,0 @@
----
-# defaults file for common
-
-pop: alabs
-proj: demo
-distro: xenial
-plat: vm

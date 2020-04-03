@@ -1,4 +1,0 @@
----
-
-- include: "utils/deploy/{{ plat }}.yml"
-
