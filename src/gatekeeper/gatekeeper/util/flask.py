@@ -2,7 +2,7 @@ from flask.json import JSONEncoder
 from mongoengine.base import BaseDocument
 from mongoengine.queryset import QuerySet
 
-from gatekeeper.mongoengine_custom_json import to_custom_json
+from gatekeeper.util.mongoengine_custom_json import to_custom_json
 
 
 class MongoEngineJSONEncoder(JSONEncoder):
