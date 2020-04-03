@@ -1,6 +1,10 @@
 databases:
-  mongo: mongodb://son-mongo/gatekeeper
+  mongo: mongodb://mongo/gatekeeper
   redis: redis://redis:6379/gatekeeper
+
+broker:
+  host: amqp://guest:guest@broker:5672/%2F
+  exchange: son-kernel
 
 initialUserData:
   username: pishahang
