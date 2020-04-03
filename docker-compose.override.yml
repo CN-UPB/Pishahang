@@ -4,7 +4,7 @@ version: "3.3"
 services:
   # Influxdb for monitoring
   monitor-influxdb:
-    build: ./son-monitor/influxDB
+    build: ./monitor/influxDB
 
   # Repositories
   catalogue-repos:
@@ -67,16 +67,16 @@ services:
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
-    build: ./son-monitor/pushgateway
+    build: ./monitor/pushgateway
 
   # Monitoring – Prometheus
   monitor-prometheus:
-    build: ./son-monitor/prometheus
+    build: ./monitor/prometheus
 
   # Monitoring Manager
   monitor-manager:
-    build: ./son-monitor/manager
+    build: ./monitor/manager
 
   # Monitoring – Probe
   monitor-probe:
-    # build: ./son-monitor/ ?
+    # build: ./monitor/ ?
