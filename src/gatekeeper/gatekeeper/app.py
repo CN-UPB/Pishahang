@@ -1,7 +1,6 @@
 import logging
 import secrets
 
-import connexion
 import fakeredis
 import redis
 from config2.config import config
@@ -9,8 +8,9 @@ from flask_jwt_extended import JWTManager
 from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
 
-from .models.users import User
-from .util import MongoEngineJSONEncoder
+import connexion
+from gatekeeper.models.users import User
+from gatekeeper.util.flask import MongoEngineJSONEncoder
 
 logger = logging.getLogger("gatekeeper.app")
 
