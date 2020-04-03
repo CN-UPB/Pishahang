@@ -10,14 +10,6 @@ services:
   son-keycloak:
     build: ./son-gkeeper/son-keycloak
 
-  # Gatekeeper GUI
-  son-gui:
-    build: ./son-gui
-
-  # Gatekeeper BSS
-  son-bss:
-    build: ./son-bss
-
   # Gatekeeper -----------------------------------------------------------------
   # SONATA Validator
   son-validate:
