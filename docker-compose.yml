@@ -160,7 +160,7 @@ services:
 
   # Gatekeeper Services
   son-gtksrv:
-    image: pishahang/gtk-services:${PISHAHANG_VERSION}
+    image: tdierich/son-gtksrv
     restart: always
     depends_on:
       - catalogue-repos
@@ -183,7 +183,7 @@ services:
 
   # Gatekeeper Cloud Services
   son-gtkcsrv:
-    image: pishahang/gtk-cloud-services:${PISHAHANG_VERSION}
+    image: tdierich/son-gtkcsrv
     restart: always
     depends_on:
       - catalogue-repos
@@ -205,7 +205,7 @@ services:
 
   # Gatekeeper Functions
   son-gtkfnct:
-    image: pishahang/gtk-functions:${PISHAHANG_VERSION}
+    image: sonatanfv/son-gtkfnct
     restart: always
     depends_on:
       - catalogue-repos
@@ -219,7 +219,7 @@ services:
 
   # Gatekeeper Records
   son-gtkrec:
-    image: pishahang/gtk-records:${PISHAHANG_VERSION}
+    image: tdierich/son-gtkrec
     restart: always
     depends_on:
       - catalogue-repos
@@ -233,7 +233,7 @@ services:
 
   # Gatekeeper VIM
   son-gtkvim:
-    image: pishahang/gtk-vims:${PISHAHANG_VERSION}
+    image: sonatanfv/son-gtkvim
     restart: always
     depends_on:
       - broker
@@ -292,7 +292,7 @@ services:
 
   # Gatekeeper User Management
   son-gtkusr:
-    image: pishahang/gtk-user-management:${PISHAHANG_VERSION}
+    image: tdierich/son-gtkusr
     restart: always
     depends_on:
       - son-keycloak
@@ -309,7 +309,7 @@ services:
 
   # Gatekeeper Rate Limiter
   son-gtkrlt:
-    image: pishahang/gtk-rate-limiter:${PISHAHANG_VERSION}
+    image: tdierich/son-gtkrlt
     restart: always
     depends_on:
       - redis
@@ -324,7 +324,7 @@ services:
 
   # Gatekeeper API
   son-gtkapi:
-    image: pishahang/gtk-api:${PISHAHANG_VERSION}
+    image: tdierich/son-gtkapi
     restart: always
     depends_on:
       - son-gtkusr
