@@ -1,8 +1,0 @@
-{
-  "name": "guests",
-  "path": "/guests",
-  "attributes": {"string":["string"]},
-  "realmRoles": [],
-  "clientRoles": {},
-  "subGroups": null
-}

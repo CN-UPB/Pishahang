@@ -1,8 +1,0 @@
-#Folders
-.idea/*
-test-reports/*
-
-#Files
-*.pyc
-.DS_Store
-test.db
