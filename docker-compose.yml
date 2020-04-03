@@ -527,7 +527,7 @@ services:
   # Infastructure Adaptor ------------------------------------------------------
   # Infrastructure Abstractor VIM Adaptor
   # ifta/vim-adaptor.yml
-  son-sp-infrabstract:
+  vim-adaptor:
     image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
     restart: always
     depends_on:
@@ -542,27 +542,11 @@ services:
       repo_pass: ${IA_REPO_PASS}
       SONATA_SP_ADDRESS: ${PUBLIC_DOMAIN_NAME}
     networks:
-      - pishanet
+      pishanet:
+        aliases:
+          - son-sp-infrabstract
     volumes:
       - /root/terraform_data
-
-  # Infrastructure Abstractor WIM Adaptor
-  # ifta/wim-adaptor.yml
-  wim-adaptor:
-    image: sonatanfv/wim-adaptor:${SONATA_VERSION}
-    restart: always
-    depends_on:
-      - son-broker
-      - son-postgres
-    environment:
-      broker_host: son-broker
-      broker_uri: amqp://guest:guest@son-broker:5672/%2F
-      repo_host: son-postgres
-      repo_port: 5432
-      repo_user: ${IA_REPO_USER}
-      repo_pass: ${IA_REPO_PASS}
-    networks:
-      - pishanet
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway

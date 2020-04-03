@@ -124,14 +124,10 @@ services:
       context: ./son-mano-framework
       dockerfile: ./plugins/pish-mano-sdn/Dockerfile
 
-  # Infastructure Adaptor ------------------------------------------------------
-  # Infrastructure Abstractor VIM Adaptor
-  son-sp-infrabstract:
-    build: ./son-sp-infrabstract/vim-adaptor
+  # VIM Adaptor
+  vim-adaptor:
+    build: ./vim-adaptor
 
-  # Infrastructure Abstractor WIM Adaptor
-  wim-adaptor:
-    # build: ./son-sp-infrabstract/wim-adaptor # Build fails, but will be removed anyway
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
