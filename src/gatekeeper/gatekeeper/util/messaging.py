@@ -15,6 +15,7 @@ from connexion.exceptions import ProblemException
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pika').setLevel(logging.ERROR)
+logging.getLogger('amqpstorm.channel').setLevel(logging.ERROR)
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
