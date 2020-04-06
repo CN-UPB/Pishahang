@@ -532,6 +532,24 @@ services:
     volumes:
       - /root/terraform_data
 
+  # Infrastructure Abstractor WIM Adaptor
+  # ifta/wim-adaptor.yml
+  wim-adaptor:
+    image: sonatanfv/wim-adaptor:${SONATA_VERSION}
+    restart: always
+    depends_on:
+      - broker
+      - postgres
+    environment:
+      broker_host: broker
+      broker_uri: amqp://guest:guest@broker:5672/%2F
+      repo_host: postgres
+      repo_port: 5432
+      repo_user: ${IA_REPO_USER}
+      repo_pass: ${IA_REPO_PASS}
+    networks:
+      - pishanet
+
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   # monit/pushgw.yml
