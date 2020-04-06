@@ -1,5 +1,5 @@
 from .auth import adminOnly
-from ..models.users import (User, AddUser)
+from ..models.users import User
 from mongoengine.errors import DoesNotExist
 from ..util import makeMessageResponse
 NO_User_FOUND_MESSAGE = "No User matching the given username was found."
@@ -10,8 +10,9 @@ def getUsers():
     return User.objects
 
 
+@adminOnly
 def addUser(body):
-    user = AddUser(**body)
+    user = User(**body)
     user.save()
     return user
 
@@ -30,8 +31,50 @@ def deleteUser(username):
 
 
 @adminOnly
+def updateUser(username, body):
+    """
+    Delete A VIM by giving its uuid.
+    """
+    try:
+        user: User = User.objects(username=username).get()
+        user.username = body["username"]
+        user.isAdmin = body["isAdmin"]
+
+        user.city = body["city"]
+
+        # ...
+
+        if "password" in body and body["password"] != "":
+            user.setPassword(body["password"])
+        user.save()
+        return user
+    except DoesNotExist:
+        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+
+
+@adminOnly
 def retrieveUsers(username):
     try:
-        return User.objects(username=username)
+        user = User.objects(username=username).get()
+        return user
+    except DoesNotExist:
+        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+
+
+def getCurrentUser(user):
+
+    user = User.objects(username=user).get()
+    return user
+
+
+@adminOnly
+def updateUsers(username, body):
+    try:
+        user: User = User.objects(username=username).get()
+        user.username = body["username"]
+        user.isAdmin = body["isAdmin"]
+
+        user.save()
+        return user
     except DoesNotExist:
         return makeMessageResponse(404, NO_User_FOUND_MESSAGE)

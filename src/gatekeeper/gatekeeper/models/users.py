@@ -59,14 +59,3 @@ class User(UuidDocument, TimestampedDocument):
         return bytes(self.passwordHash) == hashPassword(password, self.passwordSalt)
 
     meta = {'allow_inheritance': True}
-
-
-class AddUser(User):
-
-    """
-    A mongoengine document base class for User Registration
-    """
-
-    city = StringField(required=True)
-    country = StringField(required=True)
-    companyName = StringField(required=True)

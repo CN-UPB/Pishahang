@@ -116,7 +116,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AddUser"
+              $ref: "#/components/schemas/User"
       responses:
         "200":
           description: The user is successfully added
@@ -128,6 +128,7 @@ paths:
           $ref: "#/components/responses/Error500"
       security:
         - bearerAuth: []
+
   /users/{username}:
     get:
       tags:
@@ -142,6 +143,11 @@ paths:
           description: user to be deleted by the username
           schema:
             type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
       responses:
         "200":
           description: The list of users was successfully returned.
@@ -173,7 +179,7 @@ paths:
 
       responses:
         "200":
-          description: The user is successfully added
+          description: The user is successfully deleted
           content:
             application/json:
               schema:
@@ -186,6 +192,34 @@ paths:
           $ref: "#/components/responses/Error500"
       security:
         - bearerAuth: []
+    # put:
+    #   tags:
+    #     - Authentication
+    #   summary: Update the user by admin
+    #   description: Updates the user information by admin
+    #   operationId: gatekeeper.api.users.updateUsers
+    #   parameters:
+    #     - name: username
+    #       in: path
+    #       required: true
+    #       description: user to be deleted by the username
+    #       schema:
+    #         type: string
+    #   responses:
+    #     "200":
+    #       description: The user was successfully returned.
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/Users"
+    #     "401":
+    #       $ref: "#/components/responses/Error401"
+    #     "403":
+    #       $ref: "#/components/responses/Error403"
+    #     "500":
+    #       $ref: "#/components/responses/Error500"
+    #   security:
+    #     - bearerAuth: []
 
   /descriptors:
     get:
@@ -704,26 +738,7 @@ components:
               writeOnly: true
             isAdmin:
               type: boolean
-    AddUser:
-      allOf:
-        - $ref: "#/components/schemas/BaseEntity"
-        - type: object
-          required:
-            - username
-            - isAdmin
-          properties:
-            username:
-              type: string
-            password:
-              type: string
-            isAdmin:
-              type: boolean
-            city:
-              type: string
-            country:
-              type: string
-            companyName:
-              type: string
+
     Users:
       type: "array"
       items:
