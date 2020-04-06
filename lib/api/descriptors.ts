@@ -14,15 +14,15 @@ import { getApiUrl } from "./index";
  */
 export async function uploadDescriptor(
   type: DescriptorType,
-  content: any
+  content: DescriptorContent
 ): Promise<ApiReply<Descriptor>> {
   try {
-    const reply = await axios.post(getApiUrl("descriptors"), { content, type });
+    let reply = await axios.post(getApiUrl("descriptors"), { content, type });
     return { success: true, payload: reply.data };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
-      case 401:
-        return { success: false, message: "Invalid data" };
+      case 400:
+        return { success: false, message: (error as AxiosError).response.data.detail };
       default:
         return { success: false, message: "An unexpected error occurred. Please try again." };
     }
@@ -40,7 +40,7 @@ export async function uploadDescriptor(
 export async function getDescriptor(uuid: String): Promise<ApiReply> {
   try {
     if (uuid == null) return;
-    const reply = await axios.get(getApiUrl("descriptors/" + uuid));
+    let reply = await axios.get(getApiUrl("descriptors/" + uuid));
     console.log(reply);
     return { success: true, payload: reply.data };
   } catch (error) {
@@ -64,8 +64,8 @@ export async function getDescriptor(uuid: String): Promise<ApiReply> {
 export async function deleteDescriptor(uuid: String): Promise<ApiReply> {
   try {
     if (uuid == null) return;
-    await axios.delete(getApiUrl("descriptors/" + uuid));
-    console.log(uuid);
+    let reply = await axios.delete(getApiUrl("descriptors/" + uuid));
+    console.log(reply);
 
     return { success: true };
   } catch (error) {
