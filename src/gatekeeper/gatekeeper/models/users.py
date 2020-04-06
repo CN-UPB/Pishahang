@@ -8,7 +8,7 @@ import os
 from mongoengine import BinaryField, BooleanField, StringField
 
 from gatekeeper.models.base import TimestampedDocument, UuidDocument
-from gatekeeper.mongoengine_custom_json import CustomJsonRules
+from gatekeeper.util.mongoengine_custom_json import CustomJsonRules
 
 
 def generateSalt() -> bytes:

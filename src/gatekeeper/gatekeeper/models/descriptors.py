@@ -11,9 +11,9 @@ from mongoengine import (DateTimeField, DynamicEmbeddedDocument,
 
 from gatekeeper.exceptions import InvalidDescriptorContentError
 from gatekeeper.models.base import TimestampedDocument, UuidDocument
-from gatekeeper.mongoengine_custom_json import makeHttpDatetime
-from gatekeeper.validation import (validateFunctionDescriptor,
-                                   validateServiceDescriptor)
+from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
+from gatekeeper.util.validation import (validateFunctionDescriptor,
+                                        validateServiceDescriptor)
 
 
 class DescriptorType(Enum):

@@ -1,7 +1,6 @@
 import logging
 import secrets
 
-import connexion
 import fakeredis
 import redis
 from config2.config import config
@@ -9,8 +8,11 @@ from flask_jwt_extended import JWTManager
 from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
 
-from .models.users import User
-from .util import MongoEngineJSONEncoder
+import connexion
+from gatekeeper.models.users import User
+from gatekeeper.util.flask import MongoEngineJSONEncoder
+from gatekeeper.util.messaging import ConnexionBrokerConnection
+import time
 
 logger = logging.getLogger("gatekeeper.app")
 
@@ -24,6 +26,19 @@ if config.get_env() is not None:
 
     if config.get_env() == "test":
         app.app.config['TESTING'] = True
+
+# Set up RabbitMQ connection (except for tests, `broker` needs to be mocked there)
+if config.get_env() == "test":
+    broker = None
+else:
+    while True:
+        try:
+            broker = ConnexionBrokerConnection("gatekeeper")
+            logger.info("Connection to RabbitMQ successfully established")
+            break
+        except:
+            logger.warning("Failed to connect to RabbitMQ. Retrying in 5 seconds.")
+            time.sleep(5)
 
 # Setup mongoengine
 app.app.config['MONGODB_SETTINGS'] = {'host': config.databases.mongo}

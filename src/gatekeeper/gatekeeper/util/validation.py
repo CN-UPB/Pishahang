@@ -7,7 +7,7 @@ import os
 import jsonschema
 import yaml
 
-SPEC_DIR = os.path.join(os.path.dirname(__file__), '../specification/')
+SPEC_DIR = os.path.join(os.path.dirname(__file__), '../../specification/')
 
 with open(SPEC_DIR + "/schemas/csd.yml") as schema:
     csdSchema = yaml.safe_load(schema)

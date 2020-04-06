@@ -1,7 +1,9 @@
-from .auth import adminOnly
-from ..models.users import User
 from mongoengine.errors import DoesNotExist
-from ..util import makeMessageResponse
+
+from connexion.exceptions import ProblemException
+from gatekeeper.api.auth import adminOnly
+from gatekeeper.models.users import User
+
 NO_User_FOUND_MESSAGE = "No User matching the given username was found."
 
 
@@ -27,7 +29,7 @@ def deleteUser(username):
         user.delete()
         return user
     except DoesNotExist:
-        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+        raise ProblemException(404, "Not Found", NO_User_FOUND_MESSAGE)
 
 
 @adminOnly
@@ -49,7 +51,7 @@ def updateUser(username, body):
         user.save()
         return user
     except DoesNotExist:
-        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+        raise ProblemException(404, NO_User_FOUND_MESSAGE)
 
 
 @adminOnly
@@ -58,7 +60,7 @@ def retrieveUsers(username):
         user = User.objects(username=username).get()
         return user
     except DoesNotExist:
-        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+        raise ProblemException(404, NO_User_FOUND_MESSAGE)
 
 
 def getCurrentUser(user):
@@ -77,4 +79,4 @@ def updateUsers(username, body):
         user.save()
         return user
     except DoesNotExist:
-        return makeMessageResponse(404, NO_User_FOUND_MESSAGE)
+        raise ProblemException(404, "Not Found", NO_User_FOUND_MESSAGE)

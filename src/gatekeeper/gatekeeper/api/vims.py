@@ -1,26 +1,23 @@
-from typing import Type
-from ..models.vims import (Vim, OpenStack, Kubernetes, Aws)
 from mongoengine.errors import DoesNotExist
-from ..util import makeMessageResponse
+
+from connexion.exceptions import ProblemException
+from gatekeeper.app import broker
+from gatekeeper.models.vims import Aws, Kubernetes, OpenStack, Vim
+
 NO_Vim_FOUND_MESSAGE = "No Vim matching the given id was found."
 
 
-# Getting the Added Vims
+# Getting the VIMs
+
 def getAllVims():
     """
     Returns the list of added Vims.
     """
-    return getVims(Vim)
+    return Vim.objects()
+    # return broker.call_sync_safe_yaml("infrastructure.management.compute.list")
 
-
-def getVims(vimClass: Type[Vim]):
-    """
-    Returns all subset of Vims
-    """
-    return vimClass.objects()
 
 # Deleting Vim
-
 
 def deleteVim(id):
     """
@@ -31,11 +28,10 @@ def deleteVim(id):
         vim.delete()
         return vim
     except DoesNotExist:
-        return makeMessageResponse(404, NO_Vim_FOUND_MESSAGE)
+        raise ProblemException(404, "Not Found", NO_Vim_FOUND_MESSAGE)
 
 
 # Update VIm
-
 
 def updateAwsVim(id, body):
     """
@@ -45,10 +41,10 @@ def updateAwsVim(id, body):
         vim = Aws.objects(id=id).get()
         secretKey = body.get("secretKey")
         accessKey = body.get("accessKey")
-        vim = vim.update({"accessKey": accessKey, "secretKey": secretKey})
+        vim.update({"accessKey": accessKey, "secretKey": secretKey})
         return vim
     except DoesNotExist:
-        return makeMessageResponse(404, NO_Vim_FOUND_MESSAGE)
+        raise ProblemException(404, "Not Found", NO_Vim_FOUND_MESSAGE)
 
 
 # ADD vim
@@ -56,10 +52,8 @@ def updateAwsVim(id, body):
 def addVim(body):
     if body["type"] == "aws":
         vim = Aws(**body).save()
-        return vim
     elif body["type"] == "kubernetes":
         vim = Kubernetes(**body).save()
-        return vim
     elif body["type"] == "openStack":
         vim = OpenStack(**body).save()
-        return vim
+    return vim

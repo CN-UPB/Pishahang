@@ -1,9 +1,8 @@
-from datetime import datetime
 from enum import Enum
-from uuid import uuid4
 
-from mongoengine import DateTimeField, DictField, Document, StringField, UUIDField
-from .base import UuidDocument, TimestampedDocument
+from mongoengine import StringField
+
+from gatekeeper.models.base import TimestampedDocument, UuidDocument
 
 
 class VimType(Enum):

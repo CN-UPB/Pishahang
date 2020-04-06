@@ -12,6 +12,7 @@ autopep8 = "*"
 flake8 = "*"
 mongomock = "*"
 pytest-env = "*"
+pytest-mock = "*"
 
 [packages]
 flask = "*"
@@ -25,6 +26,7 @@ flask-jwt-extended = "*"
 fakeredis = "*"
 pyyaml = "*"
 jsonschema = "*"
+amqpstorm = "*"
 
 [requires]
 python_version = "3.6"

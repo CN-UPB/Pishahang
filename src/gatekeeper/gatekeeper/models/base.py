@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from mongoengine import DateTimeField, Document, UUIDField
 
-from gatekeeper.mongoengine_custom_json import makeHttpDatetime
+from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
 
 
 class TimestampedDocument(Document):
