@@ -1,10 +1,10 @@
 import { combineReducers } from "redux";
 
 import auth from "./auth";
-import global from "./global";
+import dialogs from "./dialogs";
 
 // Export a root reducer that combines all the others
 export default combineReducers({
-  global,
+  dialogs,
   auth,
 });
