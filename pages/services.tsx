@@ -12,11 +12,15 @@ const ServicesPage: NextPage = () => {
   const showDescriptorUploadDialog = useDescriptorUploadDialog(DescriptorType.Service);
   const { data, error } = useAuthorizedSWR(ApiDataEndpoint.Services);
 
-  return (
-    <Page title="Instantiated Services">
-      <ServicesTable data={data}></ServicesTable>
-    </Page>
-  );
+  if (!data || error) {
+    return <Page title="Instantiated Services">Error...</Page>;
+  } else {
+    return (
+      <Page title="Instantiated Services">
+        <ServicesTable data={data}></ServicesTable>
+      </Page>
+    );
+  }
 };
 
 export default ServicesPage;

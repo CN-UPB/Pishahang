@@ -7,14 +7,11 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@material-ui/icons";
+import { InfoRounded, RadioButtonCheckedRounded } from "@material-ui/icons";
 import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
-import { useDescriptorInfoDialog } from "../../../hooks/useDescriptorInfoDialog";
-import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
 import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
-import { Service } from "../../../models/Service";
 import { Vim } from "../../../models/Vims";
 
 const useStyles = makeStyles({
@@ -63,21 +60,15 @@ export const VimsTable: React.FunctionComponent<Props> = props => {
               <TableCell align="center">{row.cores}</TableCell>
               <TableCell align="center">{row.memory}</TableCell>
               <TableCell align="center">
-                <Tooltip title="Show Vims">
+                <Tooltip title="Info" arrow>
                   <IconButton color="primary" onClick={() => showVimsInfoDialog(row)}>
-                    <InfoIcon />
+                    <InfoRounded />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Run">
-                  <IconButton>
-                    <PlayCircleOutline htmlColor={theme.palette.success.main} />
-                  </IconButton>
-                </Tooltip>
-
-                <Tooltip title="Delete">
+                <Tooltip title={"Stop " + row.vimName} arrow>
                   <IconButton color="primary">
-                    <Delete htmlColor={theme.palette.error.main} />
+                    <RadioButtonCheckedRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
                 </Tooltip>
               </TableCell>

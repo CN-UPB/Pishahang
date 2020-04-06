@@ -1,4 +1,4 @@
-import { Fab } from "@material-ui/core";
+import { Fab, Tooltip } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 import { NextPage } from "next";
 
@@ -25,15 +25,17 @@ const VimPage: NextPage = () => {
   ];
   return (
     <Page title="VIM Settings">
-      <Fab
-        color="primary"
-        size="small"
-        style={{ float: "right" }}
-        aria-label="Upload"
-        onClick={showVimDialog}
-      >
-        <Add />
-      </Fab>
+      <Tooltip title="Add VIM">
+        <Fab
+          color="primary"
+          size="small"
+          style={{ float: "right" }}
+          aria-label="Upload"
+          onClick={showVimDialog}
+        >
+          <Add />
+        </Fab>
+      </Tooltip>
       <VimsTable data={data}></VimsTable>
     </Page>
   );

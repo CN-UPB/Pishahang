@@ -82,13 +82,13 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Edit" arrow>
+                <Tooltip title={"Edit " + row.content.name} arrow>
                   <IconButton onClick={() => showDescriptorEditorDialog(row)}>
                     <Edit htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Delete" arrow>
+                <Tooltip title={"Delete " + row.content.name} arrow>
                   <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
                     <Delete htmlColor={theme.palette.error.main} />
                   </IconButton>
