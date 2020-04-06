@@ -7,7 +7,7 @@ import { uploadDescriptor } from "../api/descriptors";
 import { FileSelector } from "../components/content/FileSelector";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { DescriptorType } from "../models/Descriptor";
-import { showSnackbar } from "../store/actions/global";
+import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
 
 export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   const dispatch = useDispatch();
@@ -32,10 +32,14 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
     reader.readAsText(file);
   }
 
-  function upload() {
+  async function upload() {
     hideFileSelector();
-    uploadDescriptor(type, readFile);
-    //dispatch(showSnackbar("Uploaded"));
+    const reply = await uploadDescriptor(type, readFile);
+    if (reply.success) {
+      dispatch(showSnackbar("Descriptor successfully uploaded"));
+    } else {
+      dispatch(showInfoDialog({ title: "Error Infomation", message: reply.message }));
+    }
   }
 
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (
