@@ -1,4 +1,4 @@
-import { Button, IconButton } from "@material-ui/core";
+import { Button, IconButton, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -74,15 +74,21 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
                 {row.content.version}
               </TableCell>
               <TableCell align="center" style={{ width: "400px" }}>
-                <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
-                  <InfoIcon />
-                </IconButton>
-                <IconButton onClick={() => showDescriptorEditorDialog(row)}>
-                  <Edit htmlColor={theme.palette.success.main} />
-                </IconButton>
-                <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
-                  <Delete htmlColor={theme.palette.error.main} />
-                </IconButton>
+                <Tooltip title="Info" arrow>
+                  <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
+                    <InfoIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Edit" arrow>
+                  <IconButton onClick={() => showDescriptorEditorDialog(row)}>
+                    <Edit htmlColor={theme.palette.success.main} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete" arrow>
+                  <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
+                    <Delete htmlColor={theme.palette.error.main} />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

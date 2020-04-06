@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Fab from "@material-ui/core/Fab";
 import { CloudUpload } from "@material-ui/icons";
@@ -20,15 +21,17 @@ export const DescriptorPageContent: React.FunctionComponent<Props> = ({ type }) 
   if (!data || error) {
     return (
       <div>
-        <Fab
-          color="primary"
-          size="small"
-          style={{ float: "right" }}
-          aria-label="Upload"
-          onClick={showDescriptorUploadDialog}
-        >
-          <CloudUpload />
-        </Fab>
+        <Tooltip title="Upload" arrow>
+          <Fab
+            color="primary"
+            size="small"
+            style={{ float: "right" }}
+            aria-label="Upload"
+            onClick={showDescriptorUploadDialog}
+          >
+            <CloudUpload />
+          </Fab>
+        </Tooltip>
         <CircularProgress
           color="secondary"
           style={{
@@ -42,15 +45,17 @@ export const DescriptorPageContent: React.FunctionComponent<Props> = ({ type }) 
   } else {
     return (
       <div>
-        <Fab
-          color="primary"
-          size="small"
-          style={{ float: "right" }}
-          aria-label="Upload"
-          onClick={showDescriptorUploadDialog}
-        >
-          <CloudUpload />
-        </Fab>
+        <Tooltip title="Upload" arrow>
+          <Fab
+            color="primary"
+            size="small"
+            style={{ float: "right" }}
+            aria-label="Upload"
+            onClick={showDescriptorUploadDialog}
+          >
+            <CloudUpload />
+          </Fab>
+        </Tooltip>
         {type == DescriptorType.Service && (
           <ServiceDescriptorTable data={data.data}></ServiceDescriptorTable>
         )}

@@ -1,4 +1,4 @@
-import { IconButton } from "@material-ui/core";
+import { IconButton, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -63,15 +63,23 @@ export const VimsTable: React.FunctionComponent<Props> = props => {
               <TableCell align="center">{row.cores}</TableCell>
               <TableCell align="center">{row.memory}</TableCell>
               <TableCell align="center">
-                <IconButton color="primary" onClick={() => showVimsInfoDialog(row)}>
-                  <InfoIcon />
-                </IconButton>
-                <IconButton>
-                  <PlayCircleOutline htmlColor={theme.palette.success.main} />
-                </IconButton>
-                <IconButton color="primary">
-                  <Delete htmlColor={theme.palette.error.main} />
-                </IconButton>
+                <Tooltip title="Show Vims">
+                  <IconButton color="primary" onClick={() => showVimsInfoDialog(row)}>
+                    <InfoIcon />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Run">
+                  <IconButton>
+                    <PlayCircleOutline htmlColor={theme.palette.success.main} />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Delete">
+                  <IconButton color="primary">
+                    <Delete htmlColor={theme.palette.error.main} />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}
