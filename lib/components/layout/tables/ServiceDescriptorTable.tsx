@@ -7,7 +7,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { HighlightOff as Delete, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
+import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
 
 import { onboardServiceDescriptor } from "../../../api/services";
@@ -90,7 +90,7 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
 
                 <Tooltip title={"Delete " + row.content.name} arrow>
                   <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
-                    <Delete htmlColor={theme.palette.error.main} />
+                    <DeleteForeverRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
                 </Tooltip>
               </TableCell>

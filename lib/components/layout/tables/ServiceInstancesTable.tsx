@@ -59,19 +59,19 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
                     <InfoRounded />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={"Start " + service.name} arrow>
+                <Tooltip title={"Instantiate " + service.name} arrow>
                   <IconButton>
                     <PlayCircleOutline htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={"Stop " + service.name} arrow>
+                {/* <Tooltip title={"Stop " + service.name} arrow>
                   <IconButton
                     color="primary"
                     onClick={() => showServiceStopDialog(service.id, service.name)}
                   >
                     <RadioButtonCheckedRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
-                </Tooltip>
+                </Tooltip> */}
               </TableCell>
             </TableRow>
           ))}
