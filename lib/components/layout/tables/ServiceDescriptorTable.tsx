@@ -70,7 +70,7 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
               <TableCell>{row.content.vendor}</TableCell>
               <TableCell>{row.content.version}</TableCell>
               <TableCell align="center" style={{ width: "300px" }}>
-                <Tooltip title="OnBoard" arrow>
+                <Tooltip title={"OnBoard " + row.content.name} arrow>
                   <IconButton color="secondary" onClick={() => onBoard(row)}>
                     <QueueRounded />
                   </IconButton>
