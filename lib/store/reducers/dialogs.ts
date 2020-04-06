@@ -1,19 +1,32 @@
 import { createReducer } from "typesafe-actions";
 
-import { resetInfoDialog, showInfoDialog } from "../actions/dialogs";
+import {
+  resetInfoDialog,
+  resetTableDialog,
+  showDescriptorInfoDialog,
+  showInfoDialog,
+  showServiceInfoDialog,
+} from "../actions/dialogs";
 import { resetSnackbar, showSnackbar } from "../actions/dialogs";
 
 export type GlobalState = Readonly<{
-  /** Global snackbar */
+  /** Snackbar */
   snackbar: {
     message: string;
     isVisible: boolean;
   };
 
-  /** Global info dialog  */
+  /** Info dialog  */
   infoDialog: {
     title: string;
     message: string;
+    isVisible: boolean;
+  };
+
+  /** Table dialog  */
+  tableDialog: {
+    title: string;
+    content: [string, string][];
     isVisible: boolean;
   };
 }>;
@@ -29,9 +42,16 @@ const initialState: GlobalState = {
     message: "",
     isVisible: false,
   },
+
+  tableDialog: {
+    title: "",
+    content: [],
+    isVisible: false,
+  },
 };
 
 const globalReducer = createReducer(initialState)
+  // Snackbar
   .handleAction(showSnackbar, (state, action) => ({
     ...state,
     snackbar: {
@@ -47,6 +67,7 @@ const globalReducer = createReducer(initialState)
     },
   }))
 
+  // Info dialog
   .handleAction(showInfoDialog, (state, action) => ({
     ...state,
     infoDialog: {
@@ -60,6 +81,32 @@ const globalReducer = createReducer(initialState)
     infoDialog: {
       title: "",
       message: "",
+      isVisible: false,
+    },
+  }))
+
+  // Table info dialog
+  .handleAction(showDescriptorInfoDialog, (state, action) => ({
+    ...state,
+    tableDialog: {
+      title: "Test",
+      content: [["Test", "foo"]],
+      isVisible: true,
+    },
+  }))
+  .handleAction(showServiceInfoDialog, (state, action) => ({
+    ...state,
+    tableDialog: {
+      title: "Bar",
+      content: [["Bar", "foo"]],
+      isVisible: true,
+    },
+  }))
+  .handleAction(resetTableDialog, (state, action) => ({
+    ...state,
+    tableDialog: {
+      title: "",
+      content: [],
       isVisible: false,
     },
   }));
