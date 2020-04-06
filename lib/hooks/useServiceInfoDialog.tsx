@@ -3,7 +3,7 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { InfoDialogTable } from "../components/layout/tables/InfoDialogTable";
+import { KeyValueTable } from "../components/layout/tables/KeyValueTable";
 import { Service } from "../models/Service";
 import { useStateRef } from "./useStateRef";
 
@@ -26,7 +26,7 @@ export function useServiceInfoDialog() {
           </>
         }
       >
-        <InfoDialogTable
+        <KeyValueTable
           content={[
             ["Vendor", currentService.vendor],
             ["Name", currentService.name],

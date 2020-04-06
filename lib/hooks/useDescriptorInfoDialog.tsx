@@ -3,7 +3,7 @@ import * as React from "react";
 import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { InfoDialogTable } from "../components/layout/tables/InfoDialogTable";
+import { KeyValueTable } from "../components/layout/tables/KeyValueTable";
 import { Descriptor } from "../models/Descriptor";
 import { useStateRef } from "./useStateRef";
 
@@ -26,7 +26,7 @@ export function useDescriptorInfoDialog() {
           </>
         }
       >
-        <InfoDialogTable
+        <KeyValueTable
           content={[
             ["Description", currentDescriptor.content.description],
             ["Vendor", currentDescriptor.content.vendor],

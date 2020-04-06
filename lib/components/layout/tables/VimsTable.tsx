@@ -7,7 +7,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { InfoRounded, RadioButtonCheckedRounded } from "@material-ui/icons";
+import { DeleteForeverRounded, InfoRounded } from "@material-ui/icons";
 import React from "react";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
@@ -66,9 +66,9 @@ export const VimsTable: React.FunctionComponent<Props> = props => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title={"Stop " + row.vimName} arrow>
+                <Tooltip title={"Delete " + row.vimName} arrow>
                   <IconButton color="primary">
-                    <RadioButtonCheckedRounded htmlColor={theme.palette.error.main} />
+                    <DeleteForeverRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
                 </Tooltip>
               </TableCell>
