@@ -4,14 +4,14 @@ Service-related Mongoengine document definitions
 
 from mongoengine import EmbeddedDocumentListField, StringField, UUIDField
 
-from gatekeeper.models.base import TimestampedDocument, UuidDocument
+from gatekeeper.models.base import TimestampsDocument, UuidDocument
 from gatekeeper.models.descriptors import DescriptorSnapshot
 
 
-class Service(UuidDocument, TimestampedDocument):
+class Service(UuidDocument, TimestampsDocument):
     """
     Document class for services. A `Service` contains snapshots of all descriptors required to
-    instantiate it, as well as references to its service instances.
+    instantiate it, as well as information on its service instances.
     """
 
     descriptorSnapshots = EmbeddedDocumentListField(DescriptorSnapshot, required=True)

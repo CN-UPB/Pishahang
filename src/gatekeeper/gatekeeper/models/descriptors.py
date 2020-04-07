@@ -10,7 +10,7 @@ from mongoengine import (DateTimeField, DynamicEmbeddedDocument,
                          UUIDField)
 
 from gatekeeper.exceptions import InvalidDescriptorContentError
-from gatekeeper.models.base import TimestampedDocument, UuidDocument
+from gatekeeper.models.base import TimestampsDocument, UuidDocument
 from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
 from gatekeeper.util.validation import (validateFunctionDescriptor,
                                         validateServiceDescriptor)
@@ -51,7 +51,7 @@ class BaseDescriptor:
     content = EmbeddedDocumentField(DescriptorContent, required=True)
 
 
-class Descriptor(UuidDocument, TimestampedDocument, BaseDescriptor):
+class Descriptor(UuidDocument, TimestampsDocument, BaseDescriptor):
     """
     Document class for descriptors. The `descriptor` embedded document field is validated on `save`.
     """

@@ -2,7 +2,7 @@ from enum import Enum
 
 from mongoengine import StringField
 
-from gatekeeper.models.base import TimestampedDocument, UuidDocument
+from gatekeeper.models.base import TimestampsDocument, UuidDocument
 
 
 class VimType(Enum):
@@ -15,7 +15,7 @@ class VimType(Enum):
     AWS = "aws"
 
 
-class Vim(UuidDocument, TimestampedDocument):
+class Vim(UuidDocument, TimestampsDocument):
     """
     A mongoengine document base class for General VIM
     """

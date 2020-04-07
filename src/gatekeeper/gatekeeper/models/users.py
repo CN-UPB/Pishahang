@@ -7,7 +7,7 @@ import os
 
 from mongoengine import BinaryField, BooleanField, StringField
 
-from gatekeeper.models.base import TimestampedDocument, UuidDocument
+from gatekeeper.models.base import TimestampsDocument, UuidDocument
 from gatekeeper.util.mongoengine_custom_json import CustomJsonRules
 
 
@@ -31,7 +31,7 @@ def hashPassword(password: str, salt: bytes) -> bytes:
     )
 
 
-class User(UuidDocument, TimestampedDocument):
+class User(UuidDocument, TimestampsDocument):
     """
     Represents a user.
 
