@@ -1,4 +1,4 @@
-import { IconButton } from "@material-ui/core";
+import { IconButton, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -7,12 +7,18 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { HighlightOff as Delete, Info as InfoIcon, PlayCircleOutline } from "@material-ui/icons";
+import {
+  HighlightOff as Delete,
+  Info as InfoIcon,
+  InfoRounded,
+  PlayCircleOutline,
+} from "@material-ui/icons";
 import React from "react";
+import { useDispatch } from "react-redux";
 
-import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
-import { useServiceInfoDialog } from "../../../hooks/useServiceInfoDialog";
 import { Service } from "../../../models/Service";
+import { showServiceInfoDialog } from "../../../store/actions/dialogs";
+import { formatDate } from "../../../util/time";
 
 const useStyles = makeStyles({
   table: {
@@ -24,11 +30,10 @@ type Props = {
   data: Service[];
 };
 
-export const ServicesTable: React.FunctionComponent<Props> = props => {
+export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
   const classes = useStyles({});
   const theme = useTheme();
-  const showServiceInfoDialog = useServiceInfoDialog();
-  const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
+  const dispatch = useDispatch();
 
   return (
     <TableContainer component={Paper}>
@@ -36,33 +41,45 @@ export const ServicesTable: React.FunctionComponent<Props> = props => {
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell align="center" style={{ width: "20px" }}>
-              Version
-            </TableCell>
-            <TableCell align="center">Description</TableCell>
+            <TableCell align="center">Vendor</TableCell>
+            <TableCell align="center">Version</TableCell>
+            <TableCell align="center">Onboarded at</TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
               Actions
             </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(row => (
-            <TableRow key={row.name}>
+          {data.map(service => (
+            <TableRow key={service.name}>
               <TableCell component="th" scope="row">
-                {row.name}
+                {service.name}
               </TableCell>
-              <TableCell align="left">{row.version}</TableCell>
-              <TableCell align="center"></TableCell>
+              <TableCell align="center">{service.vendor}</TableCell>
+              <TableCell align="center">{service.version}</TableCell>
+              <TableCell align="center">{formatDate(service.createdAt)}</TableCell>
               <TableCell align="center">
-                <IconButton color="primary" onClick={() => showServiceInfoDialog(row)}>
-                  <InfoIcon />
-                </IconButton>
-                <IconButton>
-                  <PlayCircleOutline htmlColor={theme.palette.success.main} />
-                </IconButton>
-                <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
-                  <Delete htmlColor={theme.palette.error.main} />
-                </IconButton>
+                <Tooltip title="Info" arrow>
+                  <IconButton
+                    color="primary"
+                    onClick={() => dispatch(showServiceInfoDialog(service))}
+                  >
+                    <InfoRounded />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={"Instantiate " + service.name} arrow>
+                  <IconButton>
+                    <PlayCircleOutline htmlColor={theme.palette.success.main} />
+                  </IconButton>
+                </Tooltip>
+                {/* <Tooltip title={"Stop " + service.name} arrow>
+                  <IconButton
+                    color="primary"
+                    onClick={() => showServiceStopDialog(service.id, service.name)}
+                  >
+                    <RadioButtonCheckedRounded htmlColor={theme.palette.error.main} />
+                  </IconButton>
+                </Tooltip> */}
               </TableCell>
             </TableRow>
           ))}

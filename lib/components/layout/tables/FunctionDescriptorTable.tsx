@@ -1,4 +1,4 @@
-import { Button, IconButton, Tooltip } from "@material-ui/core";
+import { IconButton, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -9,11 +9,12 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { DeleteForeverRounded, Edit, Info as InfoIcon } from "@material-ui/icons";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { useDescriptorInfoDialog } from "../../../hooks/useDescriptorInfoDialog";
 import { Descriptor } from "../../../models/Descriptor";
+import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
 
 const useStyles = makeStyles({
   table: {
@@ -29,18 +30,10 @@ type Props = {
   data: Descriptor[];
 };
 
-function onBoard(descriptorMeta: Descriptor) {
-  console.log(descriptorMeta.id);
-}
-
-function instantiateDescriptor(descriptorMeta: Descriptor) {
-  console.log(descriptorMeta.id);
-}
-
 export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const theme = useTheme();
-  const showVnfdInfoDialog = useDescriptorInfoDialog();
+  const dispatch = useDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
@@ -62,30 +55,36 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(row => (
-            <TableRow key={row.content.name}>
+          {props.data.map(descriptor => (
+            <TableRow key={descriptor.content.name}>
               <TableCell component="th" scope="row">
-                {row.content.name}
+                {descriptor.content.name}
               </TableCell>
               <TableCell align="center" style={{ width: "200px" }}>
-                {row.content.vendor}
+                {descriptor.content.vendor}
               </TableCell>
               <TableCell align="center" style={{ width: "200px" }}>
-                {row.content.version}
+                {descriptor.content.version}
               </TableCell>
               <TableCell align="center" style={{ width: "400px" }}>
                 <Tooltip title="Info" arrow>
-                  <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => dispatch(showDescriptorInfoDialog(descriptor))}
+                  >
                     <InfoIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={"Edit " + row.content.name} arrow>
-                  <IconButton onClick={() => showDescriptorEditorDialog(row)}>
+                <Tooltip title={"Edit " + descriptor.content.name} arrow>
+                  <IconButton onClick={() => showDescriptorEditorDialog(descriptor)}>
                     <Edit htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={"Delete " + row.content.name} arrow>
-                  <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
+                <Tooltip title={"Delete " + descriptor.content.name} arrow>
+                  <IconButton
+                    color="primary"
+                    onClick={() => showDescriptorDeleteDialog(descriptor.id)}
+                  >
                     <DeleteForeverRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
                 </Tooltip>

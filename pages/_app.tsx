@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import { TransitionGroup } from "react-transition-group";
 
 import { GlobalInfoDialog } from "../lib/components/layout/dialogs/GlobalInfoDialog";
+import { GlobalTableDialog } from "../lib/components/layout/dialogs/GlobalTableDialog";
 import { GlobalSnackbar } from "../lib/components/layout/GlobalSnackbar";
 import { makeStore } from "../lib/store";
 import theme from "../lib/theme";
@@ -32,6 +33,7 @@ class App extends NextApp {
           </ModalProvider>
           <GlobalSnackbar />
           <GlobalInfoDialog />
+          <GlobalTableDialog />
         </MuiThemeProvider>
       </Provider>
     );

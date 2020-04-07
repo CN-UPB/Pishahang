@@ -2,7 +2,7 @@ import { NextPage } from "next";
 
 import { ApiDataEndpoint } from "../lib/api/endpoints";
 import { Page } from "../lib/components/layout/Page";
-import { ServicesTable } from "../lib/components/layout/tables/ServiceInstancesTable";
+import { ServicesTable } from "../lib/components/layout/tables/ServicesTable";
 import { useAuthorizedSWR } from "../lib/hooks/useAuthorizedSWR";
 import { useDescriptorUploadDialog } from "../lib/hooks/useDescriptorUploadDialog";
 import { DescriptorType } from "../lib/models/Descriptor";
@@ -13,10 +13,10 @@ const ServicesPage: NextPage = () => {
   const { data, error } = useAuthorizedSWR(ApiDataEndpoint.Services);
 
   if (!data || error) {
-    return <Page title="Instantiated Services">Error...</Page>;
+    return <Page title="Services">Error...</Page>;
   } else {
     return (
-      <Page title="Instantiated Services">
+      <Page title="Services">
         <ServicesTable data={data}></ServicesTable>
       </Page>
     );

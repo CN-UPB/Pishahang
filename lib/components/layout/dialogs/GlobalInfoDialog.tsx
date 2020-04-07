@@ -1,8 +1,6 @@
-import { Button, Dialog } from "@material-ui/core";
+import { Button } from "@material-ui/core";
 import * as React from "react";
-import { useModal } from "react-modal-hook";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "StoreTypes";
 
 import { resetInfoDialog } from "../../../store/actions/dialogs";
 import {
@@ -14,24 +12,22 @@ import { TextDialog } from "./TextDialog";
 
 export const GlobalInfoDialog: React.FunctionComponent = props => {
   const dispatch = useDispatch();
-  const isVisible = useSelector(selectInfoDialogIsVisible);
-  const message = useSelector(selectInfoDialogMessage);
   const title = useSelector(selectInfoDialogTitle);
+  const message = useSelector(selectInfoDialogMessage);
+  const isVisible = useSelector(selectInfoDialogIsVisible);
+
+  const hideDialog = () => dispatch(resetInfoDialog());
 
   return (
     <TextDialog
-      dialogId="infoDialog"
+      dialogId="info-dialog"
       dialogTitle={title}
       dialogText={message}
       open={isVisible}
+      onClose={hideDialog}
       buttons={
         <>
-          <Button
-            variant="contained"
-            onClick={() => dispatch(resetInfoDialog())}
-            color="secondary"
-            autoFocus
-          >
+          <Button variant="contained" onClick={hideDialog} color="secondary" autoFocus>
             Ok
           </Button>
         </>

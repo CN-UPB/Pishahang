@@ -1,41 +1,39 @@
-import { Button, Dialog } from "@material-ui/core";
+import { Button } from "@material-ui/core";
 import * as React from "react";
-import { useModal } from "react-modal-hook";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "StoreTypes";
 
-import { resetInfoDialog } from "../../../store/actions/dialogs";
+import { resetTableDialog } from "../../../store/actions/dialogs";
 import {
-  selectInfoDialogIsVisible,
-  selectInfoDialogMessage,
-  selectInfoDialogTitle,
   selectTableDialogContent,
+  selectTableDialogIsVisible,
+  selectTableDialogTitle,
 } from "../../../store/selectors/dialogs";
 import { KeyValueTable } from "../tables/KeyValueTable";
 import { GenericDialog } from "./GenericDialog";
-import { TextDialog } from "./TextDialog";
 
-// export const GlobalInfoDialog: React.FunctionComponent = props => {
-//   const dispatch = useDispatch();
-//   const isVisible = useSelector(selectTableDialogContent);
-//   const content = useSelector(selectTableDialogContent);
-//   const title = useSelector(selectTableDialogContent);
+export const GlobalTableDialog: React.FunctionComponent = () => {
+  const dispatch = useDispatch();
+  const title = useSelector(selectTableDialogTitle);
+  const content = useSelector(selectTableDialogContent);
+  const isVisible = useSelector(selectTableDialogIsVisible);
 
-//   return (
-//     <GenericDialog
-//       dialogId="table-dialog"
-//       dialogTitle={}
-//       open={open}
-//       onClose={hideDialog}
-//       buttons={
-//         <>
-//           <Button variant="contained" onClick={hideDialog} color="secondary" autoFocus>
-//             Close
-//           </Button>
-//         </>
-//       }
-//     >
-//       <KeyValueTable content={[]} />
-//     </GenericDialog>
-//   );
-// };
+  const hideDialog = () => dispatch(resetTableDialog());
+
+  return (
+    <GenericDialog
+      dialogId="table-dialog"
+      dialogTitle={title}
+      open={isVisible}
+      onClose={hideDialog}
+      buttons={
+        <>
+          <Button variant="contained" onClick={hideDialog} color="secondary" autoFocus>
+            Close
+          </Button>
+        </>
+      }
+    >
+      <KeyValueTable content={content} />
+    </GenericDialog>
+  );
+};

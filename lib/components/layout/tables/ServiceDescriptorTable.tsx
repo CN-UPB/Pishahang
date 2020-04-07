@@ -9,12 +9,13 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import { onboardServiceDescriptor } from "../../../api/services";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { useDescriptorInfoDialog } from "../../../hooks/useDescriptorInfoDialog";
 import { Descriptor } from "../../../models/Descriptor";
+import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
 
 const useStyles = makeStyles({
   table: {
@@ -23,27 +24,19 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
   data: Descriptor[];
 };
 
-async function onBoard(descriptor: Descriptor) {
+async function onboard(descriptor: Descriptor) {
   console.log(descriptor.id);
   const reply = await onboardServiceDescriptor(descriptor.id);
   alert(JSON.stringify(reply));
 }
 
-function instantiateDescriptor(descriptorMeta: Descriptor) {
-  console.log(descriptorMeta.id);
-}
-
-export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
+export const ServiceDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
   const classes = useStyles({});
   const theme = useTheme();
-  const showVnfdInfoDialog = useDescriptorInfoDialog();
+  const dispatch = useDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
@@ -53,7 +46,6 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-
             <TableCell>Vendor</TableCell>
             <TableCell>Version</TableCell>
             <TableCell align="center" style={{ width: "300px" }}>
@@ -62,34 +54,40 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = props => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(row => (
-            <TableRow key={row.content.name}>
+          {data.map(descriptor => (
+            <TableRow key={descriptor.content.name}>
               <TableCell component="th" scope="row">
-                {row.content.name}
+                {descriptor.content.name}
               </TableCell>
-              <TableCell>{row.content.vendor}</TableCell>
-              <TableCell>{row.content.version}</TableCell>
+              <TableCell>{descriptor.content.vendor}</TableCell>
+              <TableCell>{descriptor.content.version}</TableCell>
               <TableCell align="center" style={{ width: "300px" }}>
-                <Tooltip title={"OnBoard " + row.content.name} arrow>
-                  <IconButton color="secondary" onClick={() => onBoard(row)}>
+                <Tooltip title={"Onboard " + descriptor.content.name} arrow>
+                  <IconButton color="secondary" onClick={() => onboard(descriptor)}>
                     <QueueRounded />
                   </IconButton>
                 </Tooltip>
 
                 <Tooltip title="Info" arrow>
-                  <IconButton color="primary" onClick={() => showVnfdInfoDialog(row)}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => dispatch(showDescriptorInfoDialog(descriptor))}
+                  >
                     <InfoIcon />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title={"Edit " + row.content.name} arrow>
-                  <IconButton onClick={() => showDescriptorEditorDialog(row)}>
+                <Tooltip title={"Edit " + descriptor.content.name} arrow>
+                  <IconButton onClick={() => showDescriptorEditorDialog(descriptor)}>
                     <Edit htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title={"Delete " + row.content.name} arrow>
-                  <IconButton color="primary" onClick={() => showDescriptorDeleteDialog(row.id)}>
+                <Tooltip title={"Delete " + descriptor.content.name} arrow>
+                  <IconButton
+                    color="primary"
+                    onClick={() => showDescriptorDeleteDialog(descriptor.id)}
+                  >
                     <DeleteForeverRounded htmlColor={theme.palette.error.main} />
                   </IconButton>
                 </Tooltip>

@@ -1,5 +1,6 @@
 import { createReducer } from "typesafe-actions";
 
+import { formatDate } from "../../util/time";
 import {
   resetInfoDialog,
   resetTableDialog,
@@ -86,27 +87,41 @@ const globalReducer = createReducer(initialState)
   }))
 
   // Table info dialog
-  .handleAction(showDescriptorInfoDialog, (state, action) => ({
+  .handleAction(showDescriptorInfoDialog, (state, { payload: descriptor }) => ({
     ...state,
     tableDialog: {
-      title: "Test",
-      content: [["Test", "foo"]],
+      title: descriptor.content.name,
+      content: [
+        ["Name", descriptor.content.name],
+        ["Vendor", descriptor.content.vendor],
+        ["Version", descriptor.content.version],
+        ["Description", descriptor.content.description],
+        ["Created at", formatDate(descriptor.createdAt)],
+        ["Updated at", formatDate(descriptor.updatedAt)],
+        ["ID", descriptor.id],
+      ],
       isVisible: true,
     },
   }))
-  .handleAction(showServiceInfoDialog, (state, action) => ({
+  .handleAction(showServiceInfoDialog, (state, { payload: service }) => ({
     ...state,
     tableDialog: {
-      title: "Bar",
-      content: [["Bar", "foo"]],
+      title: service.name,
+      content: [
+        ["Name", service.name],
+        ["Vendor", service.vendor],
+        ["Version", service.version],
+        ["Onboarded at", formatDate(service.createdAt)],
+        ["ID", service.id],
+      ],
       isVisible: true,
     },
   }))
   .handleAction(resetTableDialog, (state, action) => ({
     ...state,
     tableDialog: {
-      title: "",
-      content: [],
+      // Leaving the title and content in place so they do not disappear prior to dialog fadeout
+      ...state.tableDialog,
       isVisible: false,
     },
   }));
