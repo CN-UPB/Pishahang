@@ -19,7 +19,7 @@
 # acknowledge the contributions of their colleagues of the SONATA
 # partner consortium (www.sonata-nfv.eu).
 
-FROM python:3.4-slim
+FROM python:3.8-slim
 
 # define plugin name once
 ENV PLUGIN_BASE son-mano-service-lifecycle-management

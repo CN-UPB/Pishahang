@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.4-slim
+FROM python:3.8-slim
 
 # define plugin name once
 ENV PLUGIN_BASE pish-mano-sdn
