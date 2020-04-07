@@ -6,11 +6,10 @@ from enum import Enum
 
 from jsonschema.exceptions import ValidationError
 from mongoengine import (DateTimeField, DynamicEmbeddedDocument,
-                         EmbeddedDocument, EmbeddedDocumentField, StringField,
-                         UUIDField)
+                         EmbeddedDocument, EmbeddedDocumentField, StringField)
 
 from gatekeeper.exceptions import InvalidDescriptorContentError
-from gatekeeper.models.base import TimestampsDocument, UuidDocument
+from gatekeeper.models.base import TimestampsDocument, UuidDocument, UuidMixin
 from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
 from gatekeeper.util.validation import (validateFunctionDescriptor,
                                         validateServiceDescriptor)
@@ -42,7 +41,7 @@ class DescriptorContent(DynamicEmbeddedDocument):
             self.vendor, self.name, self.version)
 
 
-class BaseDescriptor:
+class BaseDescriptorMixin:
     """
     Document mixin for descriptors.
     """
@@ -51,7 +50,7 @@ class BaseDescriptor:
     content = EmbeddedDocumentField(DescriptorContent, required=True)
 
 
-class Descriptor(UuidDocument, TimestampsDocument, BaseDescriptor):
+class Descriptor(BaseDescriptorMixin, UuidDocument, TimestampsDocument):
     """
     Document class for descriptors. The `descriptor` embedded document field is validated on `save`.
     """
@@ -88,12 +87,12 @@ class Descriptor(UuidDocument, TimestampsDocument, BaseDescriptor):
         return super(Descriptor, self).save(*args, **kwargs)
 
 
-class DescriptorSnapshot(EmbeddedDocument, BaseDescriptor):
+class DescriptorSnapshot(UuidMixin, BaseDescriptorMixin, EmbeddedDocument):
     """
     Embedded descriptor document that is not meant to be updated after its creation. It can be used
     to embed a static copy of a `Descriptor` document in another document.
     """
 
-    id = UUIDField(required=True, primary_key=True, custom_json=("id", str))
+    # Not inheriting from TimestampsDocument, as we want the timestamps to be static
     createdAt = DateTimeField(required=True, custom_json=makeHttpDatetime)
     updatedAt = DateTimeField(required=True, custom_json=makeHttpDatetime)
