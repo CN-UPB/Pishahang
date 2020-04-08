@@ -13,8 +13,8 @@ def getAllVims():
     """
     Returns the list of added Vims.
     """
-    return Vim.objects()
-    # return broker.call_sync_safe_yaml("infrastructure.management.compute.list")
+    # return Vim.objects()
+    return broker.call_sync_safe_yaml("infrastructure.management.compute.list")
 
 
 # Deleting Vim
@@ -26,22 +26,6 @@ def deleteVim(id):
     try:
         vim = Vim.objects(id=id).get()
         vim.delete()
-        return vim
-    except DoesNotExist:
-        raise ProblemException(404, "Not Found", NO_Vim_FOUND_MESSAGE)
-
-
-# Update VIm
-
-def updateAwsVim(id, body):
-    """
-    Update Vim by its id
-    """
-    try:
-        vim = Aws.objects(id=id).get()
-        secretKey = body.get("secretKey")
-        accessKey = body.get("accessKey")
-        vim.update({"accessKey": accessKey, "secretKey": secretKey})
         return vim
     except DoesNotExist:
         raise ProblemException(404, "Not Found", NO_Vim_FOUND_MESSAGE)

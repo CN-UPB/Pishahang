@@ -143,11 +143,6 @@ paths:
           description: user to be deleted by the username
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
       responses:
         "200":
           description: The list of users was successfully returned.
@@ -192,34 +187,91 @@ paths:
           $ref: "#/components/responses/Error500"
       security:
         - bearerAuth: []
-    # put:
-    #   tags:
-    #     - Authentication
-    #   summary: Update the user by admin
-    #   description: Updates the user information by admin
-    #   operationId: gatekeeper.api.users.updateUsers
-    #   parameters:
-    #     - name: username
-    #       in: path
-    #       required: true
-    #       description: user to be deleted by the username
-    #       schema:
-    #         type: string
-    #   responses:
-    #     "200":
-    #       description: The user was successfully returned.
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/Users"
-    #     "401":
-    #       $ref: "#/components/responses/Error401"
-    #     "403":
-    #       $ref: "#/components/responses/Error403"
-    #     "500":
-    #       $ref: "#/components/responses/Error500"
-    #   security:
-    #     - bearerAuth: []
+    put:
+      tags:
+        - Authentication
+      summary: Update the user by admin
+      description:
+        Updates the user information by admin. If the `password` field is empty, the user's password
+        won't be changed.
+      operationId: gatekeeper.api.users.updateUsers
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: user to be updated by the username
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: The user was successfully returned and updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
+  /currentUser:
+    get:
+      tags:
+        - Authentication
+      summary: Retrive the current user
+      description: Returns the current user by the username
+      operationId: gatekeeper.api.users.getCurrentUser
+      responses:
+        "200":
+          description: The current users was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Authentication
+      summary: Update the current user information.
+      description:
+        Updates the current user information. If the `password` field is empty, the user's password
+        won't be changed.
+      operationId: gatekeeper.api.users.updateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: The user was successfully returned and updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+      security:
+        - bearerAuth: []
 
   /descriptors:
     get:
@@ -523,43 +575,6 @@ paths:
           $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
-  /vims/aws/{id}:
-    put:
-      tags:
-        - Vim
-      summary: Update a Vim by its ID
-      description: Updates the content of the descriptor specified by the given ID
-      operationId: gatekeeper.api.vims.updateAwsVim
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the vim to be updated
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                accessKey:
-                  type: string
-                secretKey:
-                  type: string
-
-      responses:
-        "200":
-          description: The descriptor was successfully updated at the database.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Descriptor"
-        "400":
-          $ref: "#/components/responses/Error400"
-        "500":
-          $ref: "#/components/responses/Error500"
 
 components:
   schemas:
@@ -730,6 +745,7 @@ components:
           required:
             - username
             - isAdmin
+            - password
           properties:
             username:
               type: string

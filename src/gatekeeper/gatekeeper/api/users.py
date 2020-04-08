@@ -33,28 +33,6 @@ def deleteUser(username):
 
 
 @adminOnly
-def updateUser(username, body):
-    """
-    Delete A VIM by giving its uuid.
-    """
-    try:
-        user: User = User.objects(username=username).get()
-        user.username = body["username"]
-        user.isAdmin = body["isAdmin"]
-
-        user.city = body["city"]
-
-        # ...
-
-        if "password" in body and body["password"] != "":
-            user.setPassword(body["password"])
-        user.save()
-        return user
-    except DoesNotExist:
-        raise ProblemException(404, NO_User_FOUND_MESSAGE)
-
-
-@adminOnly
 def retrieveUsers(username):
     try:
         user = User.objects(username=username).get()
@@ -64,9 +42,10 @@ def retrieveUsers(username):
 
 
 def getCurrentUser(user):
-
-    user = User.objects(username=user).get()
-    return user
+    try:
+        return User.objects(username=user).get()
+    except DoesNotExist:
+        raise ProblemException(404, "Not Found", NO_User_FOUND_MESSAGE)
 
 
 @adminOnly
@@ -75,6 +54,24 @@ def updateUsers(username, body):
         user: User = User.objects(username=username).get()
         user.username = body["username"]
         user.isAdmin = body["isAdmin"]
+
+        if body["password"] != "":
+            user.setPassword(body["password"])
+
+        user.save()
+        return user
+    except DoesNotExist:
+        raise ProblemException(404, "Not Found", NO_User_FOUND_MESSAGE)
+
+
+def updateCurrentUser(user, body):
+    try:
+        user: User = User.objects(username=user).get()
+        user.username = body["username"]
+        user.isAdmin = body["isAdmin"]
+
+        if body["password"] != "":
+            user.setPassword(body["password"])
 
         user.save()
         return user
