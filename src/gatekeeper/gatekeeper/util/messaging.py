@@ -573,7 +573,8 @@ class ConnexionBrokerConnection(ManoBrokerRequestResponseConnection):
         will be serialized as well.
         """
         if "msg" in kwargs:
-            kwargs["msg"] = json.dumps(kwargs["msg"])
+            kwargs["msg"] = yaml.dump(kwargs["msg"])
+            kwargs["content_type"] = "application/x-yaml"
 
         result = self.call_sync(*args, **kwargs)
         if "yaml" in result[2].content_type:
