@@ -12,6 +12,7 @@ import uuid
 from amqpstorm import UriConnection
 from config2.config import config
 from connexion.exceptions import ProblemException
+import json
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pika').setLevel(logging.ERROR)
@@ -551,19 +552,32 @@ class ConnexionBrokerConnection(ManoBrokerRequestResponseConnection):
     def __init__(self, app_id, **kwargs):
         super().__init__(app_id, **kwargs)
 
-    def call_sync_safe(self, *args, **kwargs):
+    def call_sync(self, *args, **kwargs):
         """
-        Wrapper around `call_sync()` that raises a Connexion `ProblemException` in case of a
-        timeout.
+        Wrapper around `ManoBrokerRequestResponseConnection.call_sync()` that raises a Connexion
+        `ProblemException` in case of a timeout.
         """
-        result = self.call_sync(*args, **kwargs)
+        result = super().call_sync(*args, **kwargs)
         if result is None:
-            raise ProblemException(status=500, detail="A microservice did not respond in time.")
+            raise ProblemException(
+                status=500,
+                title="Internal Server Error",
+                detail="A microservice did not respond in time."
+            )
         return result
 
-    def call_sync_safe_yaml(self, *args, **kwargs):
+    def call_sync_simple(self, *args, **kwargs):
         """
-        Like `call_sync_safe()`, but parses the response payload as yaml and returns the resulting
-        object.
+        Like `call_sync()`, but parses the response payload according to its content type and
+        returns the resulting object. If a `msg` keyword argument is provided, the request message
+        will be serialized as well.
         """
-        return yaml.safe_load(self.call_sync_safe(*args, **kwargs)[3])
+        if "msg" in kwargs:
+            kwargs["msg"] = json.dumps(kwargs["msg"])
+
+        result = self.call_sync(*args, **kwargs)
+        if "yaml" in result[2].content_type:
+            return yaml.safe_load(result[3])
+        elif "json" in result[2].content_type:
+            return json.loads(result[3])
+        return result[3]
