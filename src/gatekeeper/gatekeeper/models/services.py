@@ -2,10 +2,17 @@
 Service-related Mongoengine document definitions
 """
 
-from mongoengine import EmbeddedDocumentListField, StringField, UUIDField
+from mongoengine import (EmbeddedDocument, EmbeddedDocumentListField,
+                         StringField, UUIDField)
 
-from gatekeeper.models.base import TimestampsDocument, UuidDocument
+from gatekeeper.models.base import (TimestampsDocument, TimestampsMixin,
+                                    UuidDocument, UuidMixin)
 from gatekeeper.models.descriptors import DescriptorSnapshot
+from gatekeeper.util.mongoengine_custom_json import CustomJsonRules
+
+
+class ServiceInstance(UuidMixin, TimestampsMixin, EmbeddedDocument):
+    status = StringField(required=True)
 
 
 class Service(UuidDocument, TimestampsDocument):
@@ -20,3 +27,5 @@ class Service(UuidDocument, TimestampsDocument):
     vendor = StringField(required=True)
     name = StringField(required=True)
     version = StringField(required=True)
+
+    instances = EmbeddedDocumentListField(ServiceInstance, custom_json=CustomJsonRules.HIDDEN)

@@ -11,14 +11,16 @@ servers:
 tags:
   - name: Authentication
     description: User management and authentication
+  - name: VIMs
+    description: VIM settings
   - name: Descriptors
     description: Descriptors that have been uploaded and can be edited or onboarded
   - name: Services
-    description: Services (onboarded service descriptors), their descriptors, and their instances
-  - name: Vim
-    description: Vim that have been added and can be edited or deleted
+    description: Services (onboarded service descriptors), their function descriptors, and their instances
 
 paths:
+  # Authentication =================================================================================
+
   /auth:
     post:
       tags:
@@ -84,6 +86,8 @@ paths:
           $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
+
+  # Users ==========================================================================================
 
   /users:
     get:
@@ -273,6 +277,8 @@ paths:
       security:
         - bearerAuth: []
 
+  # Descriptors ====================================================================================
+
   /descriptors:
     get:
       tags:
@@ -412,6 +418,8 @@ paths:
         "500":
           $ref: "#/components/responses/Error500"
 
+  # Services =======================================================================================
+
   /services:
     get:
       tags:
@@ -512,15 +520,81 @@ paths:
         "500":
           $ref: "#/components/responses/Error500"
 
+  # Service instances ==============================================================================
+
+  /services/{serviceId}/instances:
+    get:
+      tags:
+        - Services
+      summary: List the instances of a service
+      operationId: gatekeeper.api.services.getServiceInstances
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The service ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A list of service instances was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInstances"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Services
+      summary: Instantiate a service
+      operationId: gatekeeper.api.services.instantiateService
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The service ID
+          schema:
+            type: string
+            format: uuid
+      # requestBody:
+      #   required: true
+      #   content:
+      #     application/json:
+      #       schema:
+      #         type: object
+      #         required:
+      #           - id
+      #         properties:
+      #           id:
+      #             type: string
+      #             format: uuid
+      responses:
+        "201":
+          description: The service instance was added and returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInstance"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # VIMs ===========================================================================================
+
   /vims:
     get:
       tags:
-        - Vim
-      summary: Get a list of added Vims
+        - VIMs
+      summary: Get a list of VIMs
       operationId: gatekeeper.api.vims.getAllVims
       responses:
         "200":
-          description: The list of Vims was successfully returned.
+          description: The list of VIMs was successfully returned.
           content:
             application/json:
               schema:
@@ -531,8 +605,8 @@ paths:
           $ref: "#/components/responses/Error500"
     post:
       tags:
-        - Vim
-      summary: Add a Vim
+        - VIMs
+      summary: Add a VIM
       operationId: gatekeeper.api.vims.addVim
       requestBody:
         content:
@@ -552,21 +626,21 @@ paths:
   /vims/{id}:
     delete:
       tags:
-        - Vim
-      summary: Delete a Vim by its ID
-      description: Deletes the Vim with the provided ID if it exists.
+        - VIMs
+      summary: Delete a VIM by its ID
+      description: Deletes the VIM with the provided ID if it exists.
       operationId: gatekeeper.api.vims.deleteVim
       parameters:
         - name: id
           in: path
           required: true
-          description: ID of the vim to be deleted
+          description: ID of the VIM to be deleted
           schema:
             type: string
             format: uuid
       responses:
         "200":
-          description: The list of Vims was successfully deleted.
+          description: The VIM was successfully deleted.
           content:
             application/json:
               schema:
@@ -585,7 +659,7 @@ components:
         - updatedAt
       properties:
         id:
-          description: A randomly generated uuid
+          description: A randomly generated UUID
           type: string
           format: uuid
           readOnly: true
@@ -651,6 +725,20 @@ components:
       type: "array"
       items:
         $ref: "#/components/schemas/Service"
+
+    ServiceInstance:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+    ServiceInstances:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/ServiceInstance"
 
     BaseVim:
       allOf:
@@ -754,7 +842,6 @@ components:
               writeOnly: true
             isAdmin:
               type: boolean
-
     Users:
       type: "array"
       items:
