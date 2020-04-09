@@ -6,6 +6,7 @@ from bson import json_util
 from mongoengine.base import BaseDocument
 from mongoengine.queryset import QuerySet
 from mongoengine.fields import ListField, EmbeddedDocumentField, ReferenceField
+import json
 
 
 class CustomJsonRules(IntEnum):
@@ -74,7 +75,7 @@ def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
 
 
 def to_custom_json(obj: Union[BaseDocument, QuerySet]):
-    return json_util._json_convert(to_custom_dict(obj))
+    return json.dumps(json_util._json_convert(to_custom_dict(obj)))
 
 
 # Common handler functions
