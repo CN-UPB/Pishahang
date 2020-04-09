@@ -13,6 +13,7 @@ flake8 = "*"
 mongomock = "*"
 pytest-env = "*"
 pytest-mock = "*"
+snapshottest = "*"
 
 [packages]
 flask = "*"
