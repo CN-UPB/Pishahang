@@ -1,9 +1,14 @@
 from connexion.exceptions import BadRequestProblem, ProblemException
 
 
-class NotFoundProblem(ProblemException):
+class NotFoundError(ProblemException):
     def __init__(self, title='Not Found', detail=None):
-        super(NotFoundProblem, self).__init__(status=404, title=title, detail=detail)
+        super(NotFoundError, self).__init__(status=404, title=title, detail=detail)
+
+
+class InternalServerError(ProblemException):
+    def __init__(self, title='Internal Server Error', detail=None):
+        super(InternalServerError, self).__init__(status=500, title=title, detail=detail)
 
 
 class InvalidDescriptorContentError(BadRequestProblem):
@@ -29,7 +34,7 @@ class DuplicateDescriptorError(BadRequestProblem):
         )
 
 
-class DescriptorNotFoundError(NotFoundProblem):
+class DescriptorNotFoundError(NotFoundError):
     def __init__(self, detail="No descriptor matching the given id was found.", **kwargs):
         super(DescriptorNotFoundError, self).__init__(
             title="Descriptor Not Found",
@@ -38,10 +43,19 @@ class DescriptorNotFoundError(NotFoundProblem):
         )
 
 
-class ServiceNotFoundError(NotFoundProblem):
+class ServiceNotFoundError(NotFoundError):
     def __init__(self, detail="No service matching the given id was found.", **kwargs):
         super(ServiceNotFoundError, self).__init__(
             title="Service Not Found",
             detail=detail,
+            **kwargs
+        )
+
+
+class PluginNotFoundError(NotFoundError):
+    def __init__(self, id, **kwargs):
+        super(PluginNotFoundError, self).__init__(
+            title="Plugin Not Found",
+            detail="No plugin with id '{}' was found.".format(id),
             **kwargs
         )

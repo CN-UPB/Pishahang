@@ -6,6 +6,9 @@ broker:
   host: amqp://guest:guest@broker:5672/%2F
   exchange: son-kernel
 
+internalApis:
+  pluginmanager: http://mano-pluginmanager:8001/api/plugins
+
 initialUserData:
   username: pishahang
   password: "1234"

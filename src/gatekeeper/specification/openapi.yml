@@ -17,6 +17,8 @@ tags:
     description: Descriptors that have been uploaded and can be edited or onboarded
   - name: Services
     description: Services (onboarded service descriptors), their function descriptors, and their instances
+  - name: Plugins
+    description: List MANO plugins and control their lifecycle states
 
 paths:
   # Authentication =================================================================================
@@ -650,6 +652,104 @@ paths:
         "500":
           $ref: "#/components/responses/Error500"
 
+  # Plugins ========================================================================================
+
+  /plugins:
+    get:
+      tags:
+        - Plugins
+      summary: Get the list of registered plugins
+      operationId: gatekeeper.api.plugins.getPlugins
+      responses:
+        "200":
+          description: The list of plugins was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plugins"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /plugins/{id}:
+    get:
+      tags:
+        - Plugins
+      summary: Get information about a single plugin
+      operationId: gatekeeper.api.plugins.getPluginById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin to return information about
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Information about the plugin was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plugin"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Plugins
+      summary: Shut down a plugin by its ID
+      operationId: gatekeeper.api.plugins.shutdownPluginById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin to be shut down
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: The shutdown request was successfully made.
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /plugins/{id}/lifecycle:
+    put:
+      tags:
+        - Plugins
+      summary: Manipulate the lifecycle state of a plugin
+      operationId: gatekeeper.api.plugins.changePluginStateById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin whose state should be changed
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - targetState
+              properties:
+                targetState:
+                  type: string
+                  enum:
+                    - pause
+                    - start
+      responses:
+        "204":
+          description: The lifecycle manipulation request was successfully made.
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
 components:
   schemas:
     BaseEntity:
@@ -867,6 +967,41 @@ components:
         refreshTokenExpiresIn:
           type: integer
           readOnly: true
+
+    Plugin:
+      required:
+        - id
+        - name
+        - version
+        - description
+        - state
+        - registeredAt
+        - lastHeartbeatAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+          enum:
+            - RUNNING
+            - PAUSED
+        registeredAt:
+          type: string
+          format: date-time
+        lastHeartbeatAt:
+          type: string
+          format: date-time
+    Plugins:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Plugin"
 
     Message:
       required:
