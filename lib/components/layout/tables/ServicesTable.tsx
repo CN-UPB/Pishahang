@@ -1,4 +1,4 @@
-import { IconButton, Tooltip } from "@material-ui/core";
+import { IconButton, Snackbar, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -17,7 +17,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import { Service } from "../../../models/Service";
-import { showServiceInfoDialog } from "../../../store/actions/dialogs";
+import { showServiceInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
 import { formatDate } from "../../../util/time";
 
 const useStyles = makeStyles({
@@ -34,6 +34,10 @@ export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
   const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
+
+  function instantiateService() {
+    dispatch(showSnackbar("Service instantiation not Implemented"));
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -68,7 +72,7 @@ export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={"Instantiate " + service.name} arrow>
-                  <IconButton>
+                  <IconButton onClick={() => instantiateService()}>
                     <PlayCircleOutline htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>

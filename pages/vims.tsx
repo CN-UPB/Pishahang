@@ -2,7 +2,6 @@ import { Fab, Tooltip } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 import { NextPage } from "next";
 
-import { VimForm } from "../lib/components/forms/vims/VimForm";
 import { Page } from "../lib/components/layout/Page";
 import { VimsTable } from "../lib/components/layout/tables/VimsTable";
 import { useVimsCreaterDialog } from "../lib/hooks/useVimsCreaterDiallog";
@@ -17,7 +16,7 @@ const VimPage: NextPage = () => {
       vimType: VimType.OpenStack,
       country: "DE",
       city: "PB",
-      uuid: "adahdkad654351531515dsa51351",
+      uuid: "f57d7590-3652-43e0-b231-6ad49e602e50",
       vendor: "Pishahang",
       cores: "2",
       memory: "1.2 gb",
@@ -25,7 +24,7 @@ const VimPage: NextPage = () => {
   ];
   return (
     <Page title="VIM Settings">
-      <Tooltip title="Add VIM">
+      <Tooltip title="Add VIM" arrow>
         <Fab
           color="primary"
           size="small"

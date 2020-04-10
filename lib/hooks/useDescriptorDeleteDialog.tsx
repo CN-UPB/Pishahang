@@ -1,21 +1,34 @@
 import { Button } from "@material-ui/core";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
+import { useDispatch } from "react-redux";
 
 import { deleteDescriptor } from "../api/descriptors";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
+import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
 import { useStateRef } from "./useStateRef";
 
 export function useDescriptorDeleteDialog() {
   let descriptorUUID: string;
+  const dispatch = useDispatch();
   const [formData, setFormData, formDataRef] = useStateRef<string>("");
   /**
    * On Confirmation delete the descriptor and remove it from the Descriptor list
    */
-  function sendDeleteDescriptorRequest() {
+  async function sendDeleteDescriptorRequest() {
     //Delete descriptor and update descriptor list
     hideConfirmDialog();
-    deleteDescriptor(formDataRef.current);
+    let reply = await deleteDescriptor(formDataRef.current);
+    if (reply.success) {
+      dispatch(showSnackbar("Descriptor successfully deleted"));
+      refreshWindow();
+    } else {
+      dispatch(showInfoDialog({ title: "Error Infomation", message: reply.message }));
+    }
+  }
+
+  function refreshWindow() {
+    window.location.reload(false);
   }
 
   /**

@@ -37,9 +37,14 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
     const reply = await uploadDescriptor(type, readFile);
     if (reply.success) {
       dispatch(showSnackbar("Descriptor successfully uploaded"));
+      refreshWindow();
     } else {
       dispatch(showInfoDialog({ title: "Error Infomation", message: reply.message }));
     }
+  }
+
+  function refreshWindow() {
+    window.location.reload(false);
   }
 
   const [showFileSelector, hideFileSelector] = useModal(({ in: open, onExited }) => (
