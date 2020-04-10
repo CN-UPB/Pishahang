@@ -57,7 +57,7 @@ class PluginEndpoint(fr.Resource):
         try:
             p = model.Plugin.objects.get(uuid=plugin_uuid)
             return p.to_dict(), 200
-        except DoesNotExist as e:
+        except DoesNotExist:
             LOG.error("Lookup error: %r" % plugin_uuid)
             return {}, 404
 
@@ -69,7 +69,7 @@ class PluginEndpoint(fr.Resource):
             PM.send_stop_notification(p)
             # TODO ensure that record is deleted even if plugin does not deregister itself (use a timeout?)
             return {}, 200
-        except DoesNotExist as e:
+        except DoesNotExist:
             LOG.error("Lookup error: %r" % plugin_uuid)
             return {}, 404
 
@@ -81,12 +81,12 @@ class PluginLifecycleEndpoint(fr.Resource):
         try:
             p = model.Plugin.objects.get(uuid=plugin_uuid)
             # get target state from request body
-            ts = json.loads(request.json).get("target_state")
+            ts = request.get_json().get("target_state", None)
             if ts is None:
                 LOG.error("Malformed request: %r" % request.json)
                 return {"message": "malformed request"}, 500
             if ts == "start":
-                 PM.send_start_notification(p)
+                PM.send_start_notification(p)
             elif ts == "pause":
                 PM.send_pause_notification(p)
             elif ts == "stop":
@@ -94,9 +94,10 @@ class PluginLifecycleEndpoint(fr.Resource):
             else:
                 return {"message": "Malformed request"}, 500
             return {}, 200
-        except DoesNotExist as e:
+        except DoesNotExist:
             LOG.error("Lookup error: %r" % plugin_uuid)
             return {}, 404
+
 
 # reference to plugin manager
 PM = None
