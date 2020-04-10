@@ -1,3 +1,7 @@
+import pytest
+
+
+@pytest.mark.skip
 def testAddingVim(api):
     assert 400 == api.post('/api/v3/vims').status_code
     vimData = {"type": "aws", "city": "pb", "country": "de",
@@ -31,10 +35,11 @@ def testAddingVim(api):
         vim.pop(t)
     assert vim == vimData
 
+
 # DELETE Vims by ID
 
-
-def testdeleteVim(api):
+@pytest.mark.skip
+def testDeleteVim(api):
     vimData = {"type": "openStack", "city": "pb", "country": "de", "vimName": "1111",
                "vimAddress": "2222", "tenantId": "3333", "tenantExternalNetworkId": "4444",
                "tenantExternalRouterId": "55", "username": "66", "password": "77"}
@@ -44,8 +49,9 @@ def testdeleteVim(api):
 
     assert 200 == api.delete('/api/v3/vims/' + getId).status_code
 
+
 # GET all Vims
 
-
+@pytest.mark.skip
 def testGetVims(api):
     assert 200 == api.get('/api/v3/vims').status_code
