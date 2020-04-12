@@ -9,7 +9,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Form, Formik, FormikProps } from "formik";
+import { Field, Form, Formik, FormikProps } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
@@ -41,22 +41,22 @@ export const UserProfile: React.FunctionComponent = () => {
         <Form>
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <TextField name="name" label="Name" />
+              <Field component={TextField} name="name" label="Name" />
             </Grid>
             <Grid item xs={6}>
-              <TextField name="email" label="Email" />
+              <Field component={TextField} name="email" label="Email" />
             </Grid>
             <Grid item xs={6}>
-              <TextField name="companyName" label="Company Name" />
+              <Field component={TextField} name="companyName" label="Company Name" />
             </Grid>
             <Grid item xs={6}>
-              <TextField name="country" label="Country" />
+              <Field component={TextField} name="country" label="Country" />
             </Grid>
             <Grid item xs={6}>
-              <TextField name="username" label="User Name" />
+              <Field component={TextField} name="username" label="User Name" />
             </Grid>
             <Grid item xs={6}>
-              <TextField name="password" label="Password" />
+              <Field component={TextField} name="password" label="Password" />
             </Grid>
             <Grid item xs={12} container alignItems="center" justify="center">
               <Box paddingTop={3}>

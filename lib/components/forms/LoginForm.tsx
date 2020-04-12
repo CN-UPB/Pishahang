@@ -1,5 +1,5 @@
 import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@material-ui/core";
-import { Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,7 +7,6 @@ import * as Yup from "yup";
 
 import { login } from "./../../store/actions/auth";
 import { selectLoginErrorMessage } from "../../store/selectors/auth";
-import { Link } from "../links/Link";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -60,10 +59,10 @@ export const LoginForm: React.FunctionComponent = () => {
             <Grid container spacing={2}>
               {loginErrorMessage}
               <Grid item xs={12}>
-                <TextField name="username" label="User Name" />
+                <Field component={TextField} name="username" label="User Name" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="password" label="Password" type="password" />
+                <Field component={TextField} name="password" label="Password" type="password" />
               </Grid>
               <Grid item xs={12} container alignItems="center" justify="center">
                 <Box paddingTop={3}>

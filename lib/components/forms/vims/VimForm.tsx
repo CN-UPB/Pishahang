@@ -9,7 +9,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Form, Formik, FormikProps } from "formik";
+import { Field, Form, Formik, FormikProps } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
@@ -25,7 +25,7 @@ enum VimType {
 }
 
 // Style design for VIM-Vendor drop down menu using formcontrol and makeStyles
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1),
     width: "100%",
@@ -65,7 +65,7 @@ export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
   let vimtype: String;
 
-  const onSubmit = e => {
+  const onSubmit = (e) => {
     console.log(JSON.stringify(e, null, 2));
   };
 
@@ -143,22 +143,22 @@ export const VimForm: React.FunctionComponent = () => {
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <TextField name="country" label="Country" />
+                <Field component={TextField} name="country" label="Country" />
               </Grid>
               <Grid item xs={6}>
-                <TextField name="city" label="City" />
+                <Field component={TextField} name="city" label="City" />
               </Grid>
               <Grid item xs={6}>
-                <TextField name="vimName" label="VIM Name" />
+                <Field component={TextField} name="vimName" label="VIM Name" />
               </Grid>
               <Grid item xs={6} container justify="center">
                 <FormControl className={classes.formControl}>
                   <InputLabel id="vimVendor">VIM Vendor</InputLabel>
-                  <Select name="vimType" inputProps={{ id: "some-id" }}>
+                  <Field component={Select} name="vimType" inputProps={{ id: "some-id" }}>
                     <MenuItem value={VimType.Kubernetes}>Kubernetes</MenuItem>
                     <MenuItem value={VimType.OpenStack}>Openstack</MenuItem>
                     <MenuItem value={VimType.Aws}>AWS VIM</MenuItem>
-                  </Select>
+                  </Field>
                 </FormControl>
               </Grid>
               {formikProps.values.vimType == VimType.Kubernetes && <KubernetesFields />}

@@ -14,7 +14,7 @@ const theme = createMuiTheme({
   },
   props: {
     MuiTextField: {
-      variant: "outlined",
+      variant: "standard",
       fullWidth: true,
     },
   },

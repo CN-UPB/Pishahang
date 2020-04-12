@@ -1,5 +1,5 @@
 import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@material-ui/core";
-import { Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import { useRouter } from "next/router";
 import * as React from "react";
@@ -46,9 +46,7 @@ export const RegistrationForm: React.FunctionComponent = () => {
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("Required"),
     lastName: Yup.string().required("Required"),
-    email: Yup.string()
-      .email("Invalid email")
-      .required("Required"),
+    email: Yup.string().email("Invalid email").required("Required"),
     username: Yup.string().required("Required"),
     password: Yup.string().required("Required"),
     confirmPassword: Yup.string()
@@ -80,23 +78,28 @@ export const RegistrationForm: React.FunctionComponent = () => {
             {errorMessage}
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <TextField name="firstName" label="Name" />
+                <Field component={TextField} name="firstName" label="Name" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="lastName" label="Name" />
+                <Field component={TextField} name="lastName" label="Name" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="email" label="Email" />
+                <Field component={TextField} name="email" label="Email" />
               </Grid>
 
               <Grid item xs={12}>
-                <TextField name="username" label="User Name" />
+                <Field component={TextField} name="username" label="User Name" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="password" label="Password" type="password" />
+                <Field component={TextField} name="password" label="Password" type="password" />
               </Grid>
               <Grid item xs={12}>
-                <TextField name="confirmPassword" label="Confirm Password" type="password" />
+                <Field
+                  component={TextField}
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type="password"
+                />
               </Grid>
               <Grid item xs={12} container alignItems="center" justify="center">
                 <Box paddingTop={3}>
