@@ -6,6 +6,7 @@ import {
   resetTableDialog,
   showDescriptorInfoDialog,
   showInfoDialog,
+  showPluginInfoDialog,
   showServiceInfoDialog,
 } from "../actions/dialogs";
 import { resetSnackbar, showSnackbar } from "../actions/dialogs";
@@ -113,6 +114,19 @@ const globalReducer = createReducer(initialState)
         ["Version", service.version],
         ["Onboarded at", formatDate(service.createdAt)],
         ["ID", service.id],
+      ],
+      isVisible: true,
+    },
+  }))
+  .handleAction(showPluginInfoDialog, (state, { payload: plugin }) => ({
+    ...state,
+    tableDialog: {
+      title: plugin.name,
+      content: [
+        ["Description", plugin.description],
+        ["LastHeartbeatAt", formatDate(plugin.lastHeartbeatAt)],
+        ["RegisteredAt", formatDate(plugin.registeredAt)],
+        ["UUID", plugin.id],
       ],
       isVisible: true,
     },
