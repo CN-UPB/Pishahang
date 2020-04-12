@@ -1,6 +1,7 @@
 import { createAction } from "typesafe-actions";
 
 import { Descriptor } from "../../models/Descriptor";
+import { Plugin } from "../../models/Plugins";
 import { Service } from "../../models/Service";
 
 export const showSnackbar = createAction("Dialogs:Snackbar:show")<string>();
@@ -17,3 +18,5 @@ export const showDescriptorInfoDialog = createAction("Dialogs:TableDialog:showDe
   Descriptor
 >();
 export const showServiceInfoDialog = createAction("Dialogs:TableDialog:showServiceInfo")<Service>();
+
+export const showPluginInfoDialog = createAction("Dialogs:TableDialog:showPluginInfo")<Plugin>();
