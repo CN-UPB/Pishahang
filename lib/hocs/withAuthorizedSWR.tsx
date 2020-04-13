@@ -42,6 +42,6 @@ export const withAuthorizedSWR = <
       />
     );
   } else {
-    return <Component {...(props as P)} data={data} />;
+    return <Component {...(props as P)} data={data} {...swrProps} />;
   }
 };
