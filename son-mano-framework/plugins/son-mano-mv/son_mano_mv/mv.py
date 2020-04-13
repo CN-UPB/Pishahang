@@ -306,6 +306,8 @@ class MVPlugin(ManoBasePlugin):
                 # LOG.info("### net ###")
                 # LOG.info(_metrics["net"])
 
+                # TODO: Add static switching flags
+
                 if not self.active_services[serv_id]['version_changed']:
                     if self.active_services[serv_id]['is_nsd']:
                         # VM Monitoring
@@ -524,6 +526,8 @@ class MVPlugin(ManoBasePlugin):
             return
 
         content = yaml.load(payload)
+        LOG.info("MV placement request for service: " + content['serv_id'])
+        LOG.info(content)
 
         as_vm, as_container, as_accelerated = False, False, False
         

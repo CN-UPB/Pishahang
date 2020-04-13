@@ -14,7 +14,7 @@ from dateutil import parser
 # logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv")
 
-ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tNXJmbjgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImMyNjY2OThlLTkzMDktNGM1ZS04YjgzLTAyMGFkNWNiZWY2ZiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.q760MUAznU5DUm4cAfYuGd2T5-mOQvCB-bYfZE4FhBf9nSCKntE9_W_sKoBAjhmVp59GKPLb_MXBoUZJKrAXh4KcE4JByX_XvAO656bbDrQ4OyB2_d26yB4dq-JTtfos7BrXOCg3tIRnkCeXjfj7eTul71yCTdqQ9Ac0XSaZFh-rDwlqPVegK9PSIG6WAKNVFKhIih9KXOqsJmiYkw2itstXC3le81lglmrquzcW5Mcp-_vnm4t7pTYz7aVN5XpOkY4xL_Y94Q1aD3BGmZhJlHAxdy_8QTNRxMqXQLYPQ6Zwf-H0wQgy1WARh7-Zkh0SeTYXQEb8QsngQZz4CNzDaQ"
+ATOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tZmo5N2QiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImI3ZmIyNGM4LWY3NDItNDg1NS1hMzQ2LWI2MWU2OTIyOWFkNyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.KWSove4kYGyCgdAVUxH_tUTvk3ZGeEIX_ZnSIfuDXRCLtsTX_P6wrqigXWhOc5EDhVfdyVw6J5l_d5ierjAykif-bahvScs1ioJ2PlrYTetT8e5KrThsz-4ull8201McaDDCQ22jvu6AhtW2HJM3Zi0HUHRreTdc1Rzi8-DbmB6nGx1VzlrjdlbB73JNxYgIq8QvpbYZufJm5DRVg0CsQ8fzkiLoOi_1rhT0-z-C_xHhRqmf5-xx7C58ld2zZGSm7hdHm33rtP-idpCAfeeVcgl1Q8mxlYBpzPpB26aLJ1rACNJX0ZjM2pZ19EPyD4mFpAbCETkNpoFmvqb4cijPPA"
 
 def get_k8_pod_info(serv_id, topology):
     K8_URL = "https://{}".format(topology['vim_endpoint'])
@@ -109,8 +109,6 @@ def switch_classifier(classifier_ip, vnf_ip, vnf_port, classifier_port=8080):
     else:
         return False
 
-
-
 def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=30):
     _chart_avg_url = "http://{host}:19999/api/v1/data?chart={chart_id}&format=json&after=-{last_sec_avg}&points=1"
 
@@ -168,7 +166,6 @@ def get_individual_times(serv_id, topology, ns_init_time):
         "ns_mano_time": ns_mano_time,
         "vim_time": _vim_time
         }
-
 
 def get_k8_pod_times(serv_id, topology):
     K8_URL = "https://{}".format(topology['vim_endpoint'])

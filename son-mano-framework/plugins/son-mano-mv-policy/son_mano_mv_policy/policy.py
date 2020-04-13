@@ -32,6 +32,9 @@ import json
 import threading
 import sys
 import concurrent.futures as pool
+
+from pymongo import MongoClient
+
 # import psutil
 from son_mano_mv_policy import policy_helpers
 
@@ -88,10 +91,10 @@ class PolicyPlugin(ManoBasePlugin):
         super(self.__class__, self).declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        topic = 'mano.service.place'
-        self.manoconn.subscribe(self.policy_request, topic)
+        self.policy_topic = 'mano.service.policy'
+        self.manoconn.subscribe(self.policy_request, self.policy_topic)
 
-        LOG.info("Subscribed to topic: " + str(topic))
+        LOG.info("Subscribed to topic: " + str(self.policy_topic))
 
     def on_lifecycle_start(self, ch, mthd, prop, msg):
         """
@@ -142,6 +145,24 @@ class PolicyPlugin(ManoBasePlugin):
 # Policy
 ##########################
 
+    def get_default_version(self, service_name):
+        client = MongoClient('mongodb://son-mongo:27017')
+        db = client['son-catalogue-repository']
+        pd = db['pd']
+        _query = { "name": service_name }
+
+        policy_desp = pd.find_one(_query)
+        if policy_desp is not None:
+            LOG.info(policy_desp)
+            resp = {}
+            resp['switch_type'] = policy_desp['default_deployment_version']
+            resp['version_image'] = policy_desp['default_deployment_version_image']
+
+            return resp
+        else:
+            LOG.info("Policy not found")
+            return None
+
     def policy_request(self, ch, method, prop, payload):
         """
         This method handles a policy request
@@ -152,6 +173,23 @@ class PolicyPlugin(ManoBasePlugin):
 
         content = yaml.load(payload)
         LOG.info("Policy request for service: " + content['serv_id'])
+
+        if content['req_type'] == 'get_default_version':
+            _default_version = self.get_default_version(content['service_name'])
+            response = {}
+
+            response['switch_type'] = _default_version['switch_type']
+            response['version_image'] = _default_version['version_image']
+
+            self.manoconn.notify(self.policy_topic,
+                                yaml.dump(response),
+                                correlation_id=prop.correlation_id)
+
+            LOG.info("Policy response sent for service: " + content['serv_id'])
+            LOG.info(response)
+
+        elif content['req_type'] == 'get_policy_version':
+            pass
 
         # Test 1
         # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]

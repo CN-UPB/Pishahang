@@ -7,12 +7,19 @@ from flask_pymongo import PyMongo
 import json
 import yaml
 
-mongo = PyMongo(app)
+MONGO_URI = os.environ.get('MONGO_URI')
+# mongo = PyMongo(app)
+
+# from pymongo import MongoClient
+# mongo = MongoClient(MONGO_URI)
+import pymongo
+from pymongo import MongoClient
 
 @app.route('/policy_descriptor', methods=['GET', 'POST', 'DELETE'])
 def post_policy_descriptor():
     if request.method == 'GET':
-        db = mongo.db['son-catalogue-repository']
+        client = MongoClient(MONGO_URI)
+        db = client['son-catalogue-repository']
         pd = db['pd']
 
         query = request.args
@@ -27,8 +34,10 @@ def post_policy_descriptor():
         
         print(data, flush=True)
         if data.get('name', None) is not None and data.get('versions', None) is not None:
-            db = mongo.db['son-catalogue-repository']
+            client = MongoClient(MONGO_URI)
+            db = client['son-catalogue-repository']
             pd = db['pd']
+
 
             pd.insert_one(data)
             return 'Policy descriptor created successfully!', 201
@@ -38,7 +47,8 @@ def post_policy_descriptor():
     data = request.get_json()
     if request.method == 'DELETE':
         if data.get('name', None) is not None:
-            db = mongo.db['son-catalogue-repository']
+            client = MongoClient(MONGO_URI)
+            db = client['son-catalogue-repository']
             pd = db['pd']
 
             db_response = pd.delete_many({'name': data['name']})

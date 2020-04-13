@@ -490,6 +490,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         add_schedule.append('request_topology')
 
+        add_schedule.append('get_default_version')
+                
         # Perform the placement
         if 'placement' in self.services[serv_id]['service']['ssm'].keys():
             add_schedule.append('req_placement_from_ssm')
@@ -2390,6 +2392,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('request_topology')
 
         # Perform the placement
+        # TODO: add get_default_version
         add_schedule.append('SLM_mapping')
         add_schedule.append('ia_prepare')
         add_schedule.append('vnf_deploy')
@@ -3075,6 +3078,85 @@ class ServiceLifecycleManager(ManoBasePlugin):
 #        except Exception as e:
 #            tracebackString = traceback.format_exc(e)
 #            self.services[serv_id]['traceback'] = tracebackString
+    def get_default_version(self, serv_id):
+        """
+        This method is used to get_default_version.
+        """
+        # self.TIME_SLM_mapping = time.time()
+        corr_id = str(uuid.uuid4())
+        self.services[serv_id]['act_corr_id'] = corr_id
+
+        LOG.info("Service " + serv_id + ": Calculating the placement")
+
+        service_name = self.services[serv_id]['service']['nsd']['name']
+
+        content = {
+            'serv_id': serv_id,
+            'req_type': 'get_default_version',
+            'service_name': service_name
+        }
+
+        self.manoconn.call_async(self.resp_get_default_version,
+                                 t.MANO_POLICY,
+                                 yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
+                                 correlation_id=corr_id)
+
+        self.services[serv_id]['pause_chain'] = True
+        LOG.info("Service " + serv_id + ": get_default_version request sent")
+        LOG.info(content)
+
+    def resp_get_default_version(self, ch, method, prop, payload):
+        """
+        This method handles the response on a get_default_version request
+        """
+        content = yaml.load(payload)
+        switch_type = content['switch_type']
+        version_image = content['version_image']
+
+        serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
+        LOG.info("Service " + serv_id + ": get_default_version response received")
+
+        LOG.info("resp get_default_version")
+        LOG.info(switch_type)
+
+        if switch_type is None:
+            # The GK should be informed that the placement failed and the
+            # deployment was aborted.
+            LOG.info("Service " + serv_id + ": Default version not possible")
+            self.error_handling(serv_id,
+                                t.GK_CREATE,
+                                'Unable to perform default version.')
+
+            return
+
+        else:
+            # Add mapping to ledger
+            LOG.info("Service " + serv_id + ": Default version completed")        
+
+            if switch_type == "VM":
+                LOG.info("Switch to VM")
+                as_vm = True
+                as_container = False
+                as_accelerated = False
+            elif switch_type == "GPU":
+                LOG.info("Switch to GPU")
+                as_vm = False
+                as_container = False
+                as_accelerated = True
+            elif switch_type == "CON":
+                LOG.info("Switch to CON")
+                as_vm = False
+                as_container = True
+                as_accelerated = False
+
+            self.services[serv_id]['as_vm'] = as_vm
+            self.services[serv_id]['as_container'] = as_container
+            self.services[serv_id]['as_accelerated'] = as_accelerated
+            
+            self.services[serv_id]['version_image'] = version_image
+
+        self.start_next_task(serv_id)
+
 
     def SLM_mapping(self, serv_id):
         """
