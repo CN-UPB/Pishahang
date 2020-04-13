@@ -11,6 +11,10 @@ export enum ApiDataEndpoint {
    */
   Users = "users",
   Services = "services",
+  ServiceDescriptors = "descriptors?type=service",
+  OpenStackFunctionDescriptors = "descriptors?type=openStack",
+  KubernetesFunctionDescriptors = "descriptors?type=kubernetes",
+  AwsFunctionDescriptors = "descriptors?type=aws",
 }
 
 /**
@@ -20,6 +24,10 @@ export enum ApiDataEndpoint {
 type ApiDataEndpointReturnTypes = {
   [ApiDataEndpoint.Users]: User[];
   [ApiDataEndpoint.Services]: Service[];
+  [ApiDataEndpoint.ServiceDescriptors]: Descriptor[];
+  [ApiDataEndpoint.OpenStackFunctionDescriptors]: Descriptor[];
+  [ApiDataEndpoint.KubernetesFunctionDescriptors]: Descriptor[];
+  [ApiDataEndpoint.AwsFunctionDescriptors]: Descriptor[];
 };
 
 /**

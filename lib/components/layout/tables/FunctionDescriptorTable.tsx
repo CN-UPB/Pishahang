@@ -1,19 +1,23 @@
-import { IconButton, Tooltip } from "@material-ui/core";
-import Paper from "@material-ui/core/Paper";
+import {
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
 import { DeleteForeverRounded, Edit, Info as InfoIcon } from "@material-ui/icons";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
+import { ApiDataEndpoint } from "../../../api/endpoints";
+import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { Descriptor } from "../../../models/Descriptor";
 import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
 
 const useStyles = makeStyles({
@@ -22,15 +26,13 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
-  data: Descriptor[];
-};
+type Props = InjectedAuthorizedSWRProps<
+  | ApiDataEndpoint.OpenStackFunctionDescriptors
+  | ApiDataEndpoint.KubernetesFunctionDescriptors
+  | ApiDataEndpoint.AwsFunctionDescriptors
+>;
 
-export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => {
+const InternalFunctionDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
   const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -39,7 +41,7 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table className={classes.table} aria-label="function-descriptor-table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
@@ -55,7 +57,7 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(descriptor => (
+          {data.map((descriptor) => (
             <TableRow key={descriptor.content.name}>
               <TableCell component="th" scope="row">
                 {descriptor.content.name}
@@ -96,3 +98,15 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = props => 
     </TableContainer>
   );
 };
+
+export const OpenStackFunctionDescriptorTable = withAuthorizedSWR(
+  ApiDataEndpoint.OpenStackFunctionDescriptors
+)(InternalFunctionDescriptorTable);
+
+export const KubernetesFunctionDescriptorTable = withAuthorizedSWR(
+  ApiDataEndpoint.KubernetesFunctionDescriptors
+)(InternalFunctionDescriptorTable);
+
+export const AwsFunctionDescriptorTable = withAuthorizedSWR(ApiDataEndpoint.AwsFunctionDescriptors)(
+  InternalFunctionDescriptorTable
+);

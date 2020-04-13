@@ -46,6 +46,7 @@
     "reselect": "^4.0.0",
     "swr": "0.2.0",
     "typesafe-actions": "5.1.0",
+    "utility-types": "^3.10.0",
     "yup": "^0.28.3"
   },
   "devDependencies": {
