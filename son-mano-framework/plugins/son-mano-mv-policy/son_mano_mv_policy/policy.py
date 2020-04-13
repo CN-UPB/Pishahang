@@ -145,20 +145,17 @@ class PolicyPlugin(ManoBasePlugin):
 # Policy
 ##########################
 
-    def get_default_version(self, service_name):
+    def get_policy(self, service_name):
         client = MongoClient('mongodb://son-mongo:27017')
         db = client['son-catalogue-repository']
         pd = db['pd']
-        _query = { "name": service_name }
+        _query = { "name": service_name  }
 
-        policy_desp = pd.find_one(_query)
+        policy_desp = pd.find_one(_query, {'_id': 0})
         if policy_desp is not None:
             LOG.info(policy_desp)
-            resp = {}
-            resp['switch_type'] = policy_desp['default_deployment_version']
-            resp['version_image'] = policy_desp['default_deployment_version_image']
 
-            return resp
+            return policy_desp
         else:
             LOG.info("Policy not found")
             return None
@@ -174,12 +171,11 @@ class PolicyPlugin(ManoBasePlugin):
         content = yaml.load(payload)
         LOG.info("Policy request for service: " + content['serv_id'])
 
-        if content['req_type'] == 'get_default_version':
-            _default_version = self.get_default_version(content['service_name'])
+        if content['req_type'] == 'get_policy':
+            _policy = self.get_policy(content['service_name'])
             response = {}
 
-            response['switch_type'] = _default_version['switch_type']
-            response['version_image'] = _default_version['version_image']
+            response['policy'] = _policy
 
             self.manoconn.notify(self.policy_topic,
                                 yaml.dump(response),

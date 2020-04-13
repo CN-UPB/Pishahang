@@ -2391,8 +2391,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         add_schedule.append('request_topology')
 
+        add_schedule.append('get_default_version')
         # Perform the placement
-        # TODO: add get_default_version
         add_schedule.append('SLM_mapping')
         add_schedule.append('ia_prepare')
         add_schedule.append('vnf_deploy')
@@ -2445,7 +2445,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
         userdata = self.services[serv_id]['user_data']
         topology = self.services[serv_id]['infrastructure']['topology']
         version_image = self.services[serv_id]['version_image']
-
+        policy = self.services[serv_id]['policy']
+        
         deployed_version = "VM"
 
         if self.services[serv_id]['as_vm']:
@@ -2467,6 +2468,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                     'topology': topology,
                     'serv_id': serv_id,
                     'deployed_version': deployed_version,
+                    'policy': policy,
                     'version_image': version_image}
 
         error = None
@@ -3092,7 +3094,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         content = {
             'serv_id': serv_id,
-            'req_type': 'get_default_version',
+            'req_type': 'get_policy',
             'service_name': service_name
         }
 
@@ -3110,8 +3112,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         This method handles the response on a get_default_version request
         """
         content = yaml.load(payload)
-        switch_type = content['switch_type']
-        version_image = content['version_image']
+
+        switch_type = content['policy']['default_deployment_version']
+        version_image = content['policy']['default_deployment_version_image']
 
         serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
         LOG.info("Service " + serv_id + ": get_default_version response received")
@@ -3148,6 +3151,8 @@ class ServiceLifecycleManager(ManoBasePlugin):
                 as_vm = False
                 as_container = True
                 as_accelerated = False
+
+            self.services[serv_id]['policy'] = content['policy']
 
             self.services[serv_id]['as_vm'] = as_vm
             self.services[serv_id]['as_container'] = as_container

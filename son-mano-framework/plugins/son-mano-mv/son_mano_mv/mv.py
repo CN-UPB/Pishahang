@@ -43,7 +43,7 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
-SWITCH_DEBUG = True
+SWITCH_DEBUG = False
 SWITCH_DEBUG_IMAGE_VM = "cirros-image-1-vm"
 SWITCH_DEBUG_IMAGE_ACC = "cirros-image-1-acc"
 SWITCH_DEBUG_IMAGE_CON = "cirros-image-1-con"
@@ -112,7 +112,7 @@ class MVPlugin(ManoBasePlugin):
         # The topic on which deploy requests are posted.
         topic = 'mano.service.place'
         mv_mon_topic = 'mano.service.mv_mon'
-        self.manoconn.subscribe(self.mon_request, mv_mon_topic)
+        self.manoconn.subscribe(self.mon_policy_request, mv_mon_topic)
         self.manoconn.subscribe(self.placement_request, topic)
 
         LOG.info("Subscribed to topic: " + str(topic))
@@ -167,8 +167,7 @@ class MVPlugin(ManoBasePlugin):
 # Placement
 ##########################
 
-
-    def mon_request(self, ch, method, prop, payload):
+    def mon_policy_request(self, ch, method, prop, payload):
         """
         This method handles a MV Monitoringrequest
         """
@@ -183,7 +182,6 @@ class MVPlugin(ManoBasePlugin):
 
         if content['request_type'] == "START":
             # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
-
             is_nsd = content['is_nsd']
             version_image = content['version_image']
             self.active_services[serv_id] = {}
@@ -192,6 +190,7 @@ class MVPlugin(ManoBasePlugin):
             self.active_services[serv_id]['function_versions'] = content['function_versions']
             self.active_services[serv_id]['version_changed'] = False
             self.active_services[serv_id]['version_image'] = version_image
+            self.active_services[serv_id]['policy'] = content['policy']
 
             topology = content['topology']
             functions = content['functions'] if 'functions' in content else []
@@ -205,15 +204,6 @@ class MVPlugin(ManoBasePlugin):
                             for _t in topology:
                                 # LOG.info(_t)
                                 if _t['vim_uuid'] == _vnfi['vim_id']:
-                                    # LOG.info("VNF is on")
-                                    # LOG.info(_vnfi['vim_id'])
-                                    # _instance_timings = tools.get_individual_times(serv_id, _t, self.EXP_REQ_TIME)
-                                    # LOG.info("EXP: VIM Time - {}\nEXP: MANO Time - {}\nEXP: Total Time - {}\n".format(
-                                    #         _instance_timings["vim_time"],
-                                    #         _instance_timings["ns_mano_time"],
-                                    #         _instance_timings["vim_time"] + _instance_timings["ns_mano_time"]
-                                    #         ))
-
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
                                     _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd'][version_image][0]['monitoring_parameters'])
                                     # LOG.info("Mon?")
@@ -227,11 +217,12 @@ class MVPlugin(ManoBasePlugin):
                                         "port": 80
                                     }
                                     self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd'][version_image][0]['monitoring_parameters']
-                                    self.active_services[serv_id]['monitoring_rules'] = _function['vnfd'][version_image][0]['monitoring_rules']
-                                    self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
+                                    # self.active_services[serv_id]['monitoring_rules'] = _function['vnfd'][version_image][0]['monitoring_rules']
+                                    # self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
                                     self.active_services[serv_id]['deployed_version'] = content['deployed_version']
+
                                     # Start monitoring thread
-                                    self.monitoring_thread(serv_id)
+                                    self.monitoring_policy_thread(serv_id)
                                     # tools.switch_classifier(
                                     #     classifier_ip=CLASSIFIER_IP,
                                     #     vnf_ip=self.active_services[serv_id]['network']['ip'],
@@ -267,12 +258,12 @@ class MVPlugin(ManoBasePlugin):
                                 self.active_services[serv_id]['is_nsd'] = is_nsd
                                 self.active_services[serv_id]['ports'] = _instance_meta
                                 self.active_services[serv_id]['monitoring_parameters'] = _function['csd'][version_image][0]['monitoring_parameters']
-                                self.active_services[serv_id]['monitoring_rules'] = _function['csd'][version_image][0]['monitoring_rules']
-                                self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
+                                # self.active_services[serv_id]['monitoring_rules'] = _function['csd'][version_image][0]['monitoring_rules']
+                                # self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
                                 self.active_services[serv_id]['deployed_version'] = content['deployed_version']
                                 
                                 # Start monitoring thread
-                                self.monitoring_thread(serv_id)
+                                self.monitoring_policy_thread(serv_id)
                                 # tools.switch_classifier(
                                 #     classifier_ip=CLASSIFIER_IP, 
                                 #     vnf_ip=_instance_meta['ip'], 
@@ -285,19 +276,18 @@ class MVPlugin(ManoBasePlugin):
         else:
             LOG.info("Request type not suppoted")
 
+
     @tools.run_async
-    def monitoring_thread(self, serv_id):
+    def monitoring_policy_thread(self, serv_id):
         LOG.info("### Setting up monitoring thread: " + serv_id)
-        _rules = self.active_services[serv_id]['monitoring_rules']
-        mon_config = self.active_services[serv_id]['monitoring_config']
         while(serv_id in self.active_services):
             try:
                 LOG.info("Monitoring Thread " + serv_id)
                 _service_meta = self.active_services[serv_id]
 
-                _metrics = tools.get_netdata_charts_instance(_service_meta['charts'],
-                                                             _service_meta['vim_endpoint'],
-                                                             avg_sec=mon_config['average_range'])
+                # _metrics = tools.get_netdata_charts_instance(_service_meta['charts'],
+                #                                              _service_meta['vim_endpoint'],
+                #                                              avg_sec=mon_config['average_range'])
 
                 # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
 
@@ -321,69 +311,8 @@ class MVPlugin(ManoBasePlugin):
                                 if data == "CON":
                                     self.active_services[serv_id]['version_changed'] = True
                                     self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
-
                         else:
-
-                            for _rule in _rules:
-                                if _rule['version'] == "VM":
-                                    if '>' in _rule['condition']:
-                                        _magnitude = int(_rule['condition'].split('>', 1)[-1].strip())
-                                        _parameter = _rule['condition'].split('>', 1)[0].strip()
-
-                                        if _parameter == "net":
-                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
-                                                            _rule['condition'], 
-                                                            _magnitude, 
-                                                            _parameter,
-                                                            _metrics["net"]['data'][0]))
-
-                                            if _rule['condition_extra'] == 'upload':
-                                                if abs(_metrics["net"]['data'][0][2]) > _magnitude:
-                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            elif _rule['condition_extra'] == 'download':
-                                                if abs(_metrics["net"]['data'][0][1]) > _magnitude:
-                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-
-                                        elif _parameter == "cpu":
-                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
-                                                            _rule['condition'], 
-                                                            _magnitude, 
-                                                            _parameter,
-                                                            _metrics["cpu"]['data'][0]))
-                                            if _rule['condition_extra'] == 'user':
-                                                if _metrics["cpu"]['data'][0][1] > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            if _rule['condition_extra'] == 'system':
-                                                if _metrics["cpu"]['data'][0][2] > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            if _rule['condition_extra'] == 'all':
-                                                if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-
-                                    elif '<' in _rule['condition']:
-                                        _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
-                                        _parameter = _rule['condition'].split('<', 1)[0].strip()
-                                        if _parameter == "net":
-                                            if _rule['condition_extra'] == 'upload':
-                                                if abs(_metrics["net"]['data'][0][2]) < _magnitude:
-                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            elif _rule['condition_extra'] == 'download':
-                                                if abs(_metrics["net"]['data'][0][1]) < _magnitude:
-                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
+                            LOG.info("VM Monitoring")
 
                     else:
                         # GPU Monitoring
@@ -405,69 +334,8 @@ class MVPlugin(ManoBasePlugin):
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
                                         self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
-
-
                         else:
-
-                            for _rule in _rules:
-                                if _rule['version'] == "GPU":
-                                    if '>' in _rule['condition']:
-                                        _magnitude = int(_rule['condition'].split('>', 1)[-1].strip())
-                                        _parameter = _rule['condition'].split('>', 1)[0].strip()
-
-                                        if _parameter == "net":
-                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
-                                                            _rule['condition'], 
-                                                            _magnitude, 
-                                                            _parameter,
-                                                            _metrics["net"]['data'][0]))
-                                            if _rule['condition_extra'] == 'upload':
-                                                if abs(_metrics["net"]['data'][0][2]) > _magnitude:
-                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            elif _rule['condition_extra'] == 'download':
-                                                if abs(_metrics["net"]['data'][0][1]) > _magnitude:
-                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-
-                                        elif _parameter == "cpu":
-                                            LOG.info("Checking rule {} - Magnitude: {} - Parameter: {} - Data: {}".format(
-                                                            _rule['condition'], 
-                                                            _magnitude, 
-                                                            _parameter,
-                                                            _metrics["cpu"]['data'][0]))
-                                            if _rule['condition_extra'] == 'user':
-                                                if _metrics["cpu"]['data'][0][1] > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            if _rule['condition_extra'] == 'system':
-                                                if _metrics["cpu"]['data'][0][2] > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            if _rule['condition_extra'] == 'all':
-                                                if (_metrics["cpu"]['data'][0][2] + _metrics["cpu"]['data'][0][1]) > _magnitude:
-                                                    LOG.info("CPU Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-
-                                    elif '<' in _rule['condition']:
-                                        _magnitude = int(_rule['condition'].split('<', 1)[-1].strip())
-                                        _parameter = _rule['condition'].split('<', 1)[0].strip()
-                                        if _parameter == "net":
-                                            if _rule['condition_extra'] == 'upload':
-                                                if abs(_metrics["net"]['data'][0][2]) < _magnitude:
-                                                    LOG.info("Upload Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
-                                            elif _rule['condition_extra'] == 'download':
-                                                if abs(_metrics["net"]['data'][0][1]) < _magnitude:
-                                                    LOG.info("Download Limit Reached! Switch to version " + _rule['switch'])
-                                                    self.active_services[serv_id]['version_changed'] = True
-                                                    self.request_version_change(serv_id, switch_type=_rule['switch'], version_image=_rule['switch_image'])
+                            LOG.info("GPU/CON Monitoring")
 
             except Exception as e:
                 LOG.error("Error")
@@ -476,7 +344,8 @@ class MVPlugin(ManoBasePlugin):
             if SWITCH_DEBUG:
                 time.sleep(2)
             else:
-                time.sleep(mon_config['fetch_frequency'])
+                # TODO: Policy data
+                time.sleep(self.active_services[serv_id]['policy']['monitoring_config']['fetch_frequency'])
 
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
