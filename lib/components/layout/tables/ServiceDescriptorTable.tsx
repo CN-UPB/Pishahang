@@ -1,17 +1,22 @@
-import { Button, IconButton, Tooltip } from "@material-ui/core";
-import Paper from "@material-ui/core/Paper";
+import {
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
 import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
+import { ApiDataEndpoint } from "../../../api/endpoints";
 import { onboardServiceDescriptor } from "../../../api/services";
+import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { Descriptor } from "../../../models/Descriptor";
@@ -23,9 +28,7 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
-  data: Descriptor[];
-};
+type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.ServiceDescriptors>;
 
 async function onboard(descriptor: Descriptor) {
   console.log(descriptor.id);
@@ -33,7 +36,7 @@ async function onboard(descriptor: Descriptor) {
   alert(JSON.stringify(reply));
 }
 
-export const ServiceDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
+const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
   const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -54,7 +57,7 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = ({ data })
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map(descriptor => (
+          {data.map((descriptor) => (
             <TableRow key={descriptor.content.name}>
               <TableCell component="th" scope="row">
                 {descriptor.content.name}
@@ -99,3 +102,7 @@ export const ServiceDescriptorTable: React.FunctionComponent<Props> = ({ data })
     </TableContainer>
   );
 };
+
+export const ServiceDescriptorTable = withAuthorizedSWR(ApiDataEndpoint.ServiceDescriptors)(
+  InternalServiceDescriptorTable
+);
