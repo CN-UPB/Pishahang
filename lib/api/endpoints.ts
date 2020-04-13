@@ -1,5 +1,6 @@
 import { Service } from "./../models/Service";
 import { Descriptor } from "../models/Descriptor";
+import { Plugin } from "../models/Plugins";
 import { User } from "../models/User";
 
 /**
@@ -15,6 +16,7 @@ export enum ApiDataEndpoint {
   OpenStackFunctionDescriptors = "descriptors?type=openStack",
   KubernetesFunctionDescriptors = "descriptors?type=kubernetes",
   AwsFunctionDescriptors = "descriptors?type=aws",
+  Plugins = "plugins",
 }
 
 /**
@@ -28,6 +30,7 @@ type ApiDataEndpointReturnTypes = {
   [ApiDataEndpoint.OpenStackFunctionDescriptors]: Descriptor[];
   [ApiDataEndpoint.KubernetesFunctionDescriptors]: Descriptor[];
   [ApiDataEndpoint.AwsFunctionDescriptors]: Descriptor[];
+  [ApiDataEndpoint.Plugins]: Plugin[];
 };
 
 /**
