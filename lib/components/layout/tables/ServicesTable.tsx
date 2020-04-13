@@ -54,7 +54,7 @@ export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map(service => (
+          {data.map((service) => (
             <TableRow key={service.name}>
               <TableCell component="th" scope="row">
                 {service.name}
