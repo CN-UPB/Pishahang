@@ -228,7 +228,7 @@ paths:
           $ref: "#/components/responses/Error500"
       security:
         - bearerAuth: []
-  /currentUser:
+  /current-user:
     get:
       tags:
         - Authentication
