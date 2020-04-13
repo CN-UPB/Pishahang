@@ -36,7 +36,7 @@ export async function getPlugin(id: String): Promise<ApiReply> {
  * @returns An `ApiReply` object with a user-friendly error message in case of failure.
  */
 
-export async function deletePlugin(id: String): Promise<ApiReply> {
+export async function stopPlugin(id: String): Promise<ApiReply> {
   try {
     if (id == null) return;
     let reply = await axios.delete(getApiUrl("plugins/" + id));
@@ -60,9 +60,12 @@ export async function deletePlugin(id: String): Promise<ApiReply> {
  * @returns An `ApiReply` object with a user-friendly error message in case of failure.
  */
 
-export async function updatePlugin(content: Plugin, id: String): Promise<ApiReply> {
+export async function changePluginLifecycleState(
+  id: String,
+  state: "pause" | "start"
+): Promise<ApiReply> {
   try {
-    await axios.put(getApiUrl("Plugins/" + id + "/lifecycle"), { content });
+    await axios.put(getApiUrl("plugins/" + id + "/lifecycle"), { targetState: state });
     return { success: true };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
