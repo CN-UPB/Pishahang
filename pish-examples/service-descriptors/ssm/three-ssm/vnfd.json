@@ -1,0 +1,71 @@
+{
+  "descriptor_version": "vnfd-schema-01",
+  "description": "Dummy VNF with 3 FSMs",
+  "name": "dummy-vm-vnf-3",
+  "vendor": "eu.sonata-nfv.vnf-descriptor",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "virtual_deployment_units": [
+    {
+      "id": "dummy-vm-3",
+      "description": "dummy VNF with 3 FSMs",
+      "vm_image": "http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img",
+      "vm_image_format": "qcow2",
+      "resource_requirements": {
+        "cpu": {
+          "vcpus": 1
+        },
+        "memory": {
+          "size": 500,
+          "size_unit": "MB"
+        },
+        "storage": {
+          "size": 1,
+          "size_unit": "GB"
+        }
+      },
+      "connection_points": [
+        {
+          "id": "eth0",
+          "interface": "ipv4",
+          "type": "external"
+        }
+      ]
+    }
+  ],
+  "function_specific_managers": [
+    {
+      "id": "sonfsmservice1function1dumb17",
+      "description": "FSM to do a first FSM test",
+      "image": "hadik3r/sonfsmservice1function1dumb17",
+      "options": [
+        {
+          "key": "type",
+          "value": "value"
+        }
+      ]
+    },
+    {
+      "id": "sonfsmservice1function1dumb18",
+      "description": "FSM to do a first FSM test",
+      "image": "hadik3r/sonfsmservice1function1dumb18",
+      "options": [
+        {
+          "key": "type",
+          "value": "value"
+        }
+      ]
+    },
+    {
+      "id": "sonfsmservice1function1dumb19",
+      "description": "FSM to do a first FSM test",
+      "image": "hadik3r/sonfsmservice1function1dumb19",
+      "options": [
+        {
+          "key": "type",
+          "value": "vlaue"
+        }
+      ]
+    }
+  ]
+}

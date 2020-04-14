@@ -1,0 +1,51 @@
+{
+  "descriptor_version": "1.0",
+  "vendor": "eu.sonata-nfv.service-descriptor",
+  "name": "smr-tester-3",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "description": "SMR tester with 3 SSMs and 3 FSMs",
+  "network_functions": [
+    {
+      "vnf_id": "dummy-vm-3",
+      "vnf_vendor": "eu.sonata-nfv.vnf-descriptor",
+      "vnf_name": "dummy-vm-vnf-3",
+      "vnf_version": "1.0"
+    }
+  ],
+  "service_specific_managers": [
+    {
+      "id": "sonssmservice1dumb10",
+      "description": "PSA placement SSM.",
+      "image": "hadik3r/sonssmservice1dumb10",
+      "options": [
+        {
+          "key": "type",
+          "value": "myValue"
+        }
+      ]
+    },
+    {
+      "id": "sonssmservice1dumb11",
+      "description": "PSA placement SSM.",
+      "image": "hadik3r/sonssmservice1dumb11",
+      "options": [
+        {
+          "key": "type",
+          "value": "myValue"
+        }
+      ]
+    },
+    {
+      "id": "sonssmservice1dumb12",
+      "description": "PSA placement SSM.",
+      "image": "hadik3r/sonssmservice1dumb12",
+      "options": [
+        {
+          "key": "type",
+          "value": "myValue"
+        }
+      ]
+    }
+  ]
+}
