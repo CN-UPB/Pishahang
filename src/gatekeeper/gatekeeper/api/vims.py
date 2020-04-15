@@ -15,6 +15,7 @@ def getAllVims():
     """
     # return Vim.objects()
     vim = broker.call_sync_simple("infrastructure.management.compute.list")
+    # return vim
     renameKey = {
         "core_total": "coreTotal",
         "core_used": "coreUsed",
@@ -27,7 +28,11 @@ def getAllVims():
         "vim_type": "vimType",
         "vim_uuid": "vimUuid"
     }
-    return dict([(renameKey.get(k), v) for k, v in vim[0].items()])
+    getVim = []
+    for x in range(len(vim)):
+        a = dict([(renameKey.get(k), v) for k, v in vim[x].items()])
+        getVim.append(a)
+    return getVim
 
 
 # Deleting Vim
@@ -48,25 +53,30 @@ def deleteVim(id):
 # ADD vim
 
 def addVim(body):
+
     if body["type"] == "aws":
         vim = Aws(**body).save()
         return vim
     elif body["type"] == "kubernetes":
         vim = Kubernetes(**body).save()
         addVim = {"vim_type": "Kubernetes", "configuration":
-                                            {"cluster_ca_cert": body["ccc"]}, "city": body["city"],
+                                            {"cluster_ca_cert": body["ccc"]},
+                                            "city": body["vimCity"],
                                             "name": body["vimName"], "country": body["country"],
                                             "vim_address": body["vimAddress"],
                                             "pass": body["serviceToken"]}
-        return broker.call_sync_simple("infrastructure.management.compute.add", addVim)
+        return broker.call_sync_simple("infrastructure.management.compute.add", msg=addVim)
+
     elif body["type"] == "openStack":
         vim = OpenStack(**body).save()
-        return broker.call_sync_simple("infrastructure.management.compute.add",
-                                       msg={"vim_type": "heat", "configuration":
-                                            {"tenant_ext_router": body["tenantExternalRouterId"],
-                                             "tenant_ext_net": body["tenantExternalNetworkId"],
-                                             "tenant": body["tenantId"]}, "city": body["city"],
-                                            "name": body["vimName"], "country": body["country"],
-                                            "vim_address": body["vimAddress"],
-                                            "username": body["username"], "pass": body["password"],
-                                            "domain": "Default"})
+        addVim = {"vim_type": "heat", "configuration":
+                  {"tenant_ext_router": body["tenantExternalRouterId"],
+                   "tenant_ext_net": body["tenantExternalNetworkId"],
+                   "tenant": body["tenantId"]}, "city": body["city"],
+                  "name": body["vimName"], "country": body["country"],
+                  "vim_address": body["vimAddress"],
+                  "username": body["username"], "pass": body["password"],
+                  "domain": "Default"}
+        returnValue = broker.call_sync_simple("infrastructure.management.compute.add",
+                                              msg=addVim)
+        return dict([(renameKey.get(k), v) for k, v in returnValue[0].items()])
