@@ -14,7 +14,20 @@ def getAllVims():
     Returns the list of added Vims.
     """
     # return Vim.objects()
-    return broker.call_sync_simple("infrastructure.management.compute.list")
+    vim = broker.call_sync_simple("infrastructure.management.compute.list")
+    renameKey = {
+        "core_total": "coreTotal",
+        "core_used": "coreUsed",
+        "memory_total": "memoryTotal",
+        "memory_used": "memoryUsed",
+        "vim_city": "vimCity",
+        "vim_domain": "vimDomain",
+        "vim_endpoint": "vimEndpoint",
+        "vim_name": "vimName",
+        "vim_type": "vimType",
+        "vim_uuid": "vimUuid"
+    }
+    return dict([(renameKey.get(k), v) for k, v in vim[0].items()])
 
 
 # Deleting Vim
@@ -40,12 +53,12 @@ def addVim(body):
         return vim
     elif body["type"] == "kubernetes":
         vim = Kubernetes(**body).save()
-        return broker.call_sync_simple("infrastructure.management.compute.add",
-                                       msg={"vim_type": "Kubernetes", "configuration":
+        addVim = {"vim_type": "Kubernetes", "configuration":
                                             {"cluster_ca_cert": body["ccc"]}, "city": body["city"],
                                             "name": body["vimName"], "country": body["country"],
                                             "vim_address": body["vimAddress"],
-                                            "pass": body["serviceToken"]})
+                                            "pass": body["serviceToken"]}
+        return broker.call_sync_simple("infrastructure.management.compute.add", addVim)
     elif body["type"] == "openStack":
         vim = OpenStack(**body).save()
         return broker.call_sync_simple("infrastructure.management.compute.add",

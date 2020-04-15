@@ -847,14 +847,30 @@ components:
           required:
             - vimName
             - country
-            - city
+            - vimCity
+            - coreTotal
+            - coreUsed
+            - memoryTotal
+            - memoryUsed
           properties:
             vimName:
               type: string
             country:
               type: string
-            city:
+            vimCity:
               type: string
+            coreTotal:
+              type: string
+              readOnly: true
+            coreUsed:
+              type: string
+              readOnly: true
+            memoryUsed:
+              type: string
+              readOnly: true
+            memoryTotal:
+              type: string
+              readOnly: true
     OpenStackVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"

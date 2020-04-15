@@ -22,7 +22,7 @@ class Vim(UuidDocument, TimestampsDocument):
     meta = {'allow_inheritance': True}
     vimName = StringField(required=True)
     country = StringField(required=True)
-    city = StringField(required=True)
+    vimCity = StringField(required=True)
     type = StringField(required=True)
 
     # type = StringField(required=True, choices=[
