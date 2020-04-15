@@ -223,6 +223,9 @@ class MVPlugin(ManoBasePlugin):
 
                                     # Start monitoring thread
                                     self.monitoring_policy_thread(serv_id)
+
+                                    # Start Forecasting thread
+                                    self.request_forecast_thread_start(serv_id)
                                     # tools.switch_classifier(
                                     #     classifier_ip=CLASSIFIER_IP,
                                     #     vnf_ip=self.active_services[serv_id]['network']['ip'],
@@ -264,6 +267,10 @@ class MVPlugin(ManoBasePlugin):
                                 
                                 # Start monitoring thread
                                 self.monitoring_policy_thread(serv_id)
+
+                                # Start Forecasting thread
+                                self.request_forecast_thread_start(serv_id)
+
                                 # tools.switch_classifier(
                                 #     classifier_ip=CLASSIFIER_IP, 
                                 #     vnf_ip=_instance_meta['ip'], 
@@ -349,6 +356,22 @@ class MVPlugin(ManoBasePlugin):
 
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
+    def request_forecast_thread_start(self, serv_id):
+        MANO_FORECAST = "mano.service.forecast"
+
+        content = self.active_services[serv_id]
+        content['serv_id'] = serv_id
+        content['request_type'] = "start_forecast_thread"
+
+        # self.EXP_REQ_TIME = time.time()
+        # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
+        self.manoconn.call_async(self.resp_forecast_thread_start,
+                                MANO_FORECAST,
+                                yaml.dump(content))
+
+    def resp_forecast_thread_start(self):
+        LOG.info("MV Handle Forecast Response ")
+
 
     def request_version_change(self, serv_id, switch_type, version_image):
         MV_CHANGE_VERSION = "mano.instances.change"
@@ -381,7 +404,6 @@ class MVPlugin(ManoBasePlugin):
         self.manoconn.call_async(self.handle_resp_change,
                                 MV_CHANGE_VERSION,
                                 yaml.dump(content))
-
 
     def handle_resp_change(self):
         LOG.info("MV Handle Change Request ")

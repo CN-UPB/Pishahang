@@ -32,6 +32,7 @@ import json
 import threading
 import sys
 import csv
+import traceback
 # import concurrent.futures as pool
 
 # DL
@@ -43,6 +44,8 @@ import pandas as pd
 from pylab import rcParams
 import matplotlib.pyplot as plt
 from matplotlib import rc
+
+from pathlib import Path
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -63,7 +66,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:tfp")
 LOG.setLevel(logging.INFO)
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 class TFPlugin(ManoBasePlugin):
     """
@@ -90,6 +93,8 @@ class TFPlugin(ManoBasePlugin):
         ver = "0.1-dev"
         des = "This is the Traffic Forecasting plugin"
 
+        Path("models").mkdir(parents=True, exist_ok=True)
+
         self.active_services = {}
         self.scaler = MinMaxScaler(feature_range = (0, 1))
 
@@ -114,8 +119,8 @@ class TFPlugin(ManoBasePlugin):
         super(self.__class__, self).declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        topic = 'mano.service.tfp'
-        self.manoconn.subscribe(self.tfp_request, topic)
+        topic = 'mano.service.forecast'
+        self.manoconn.subscribe(self.forecast_request, topic)
 
         LOG.info("Subscribed to topic: " + str(topic))
 
@@ -182,78 +187,26 @@ class TFPlugin(ManoBasePlugin):
         LOG.info("Forecast request for service: " + serv_id)
         LOG.info(content)
 
-        if content['request_type'] == "START":
+        if content['request_type'] == "start_forecast_thread":
+            self.active_services[serv_id] = content
+            self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+
             # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
-
-            is_nsd = content['is_nsd']
-            version_image = content['version_image']
-            self.active_services[serv_id] = {}
-            self.active_services[serv_id]['charts'] = []
-            self.active_services[serv_id]['vim_endpoint'] = ""
-            self.active_services[serv_id]['function_versions'] = content['function_versions']
-            self.active_services[serv_id]['version_image'] = version_image
-
-            topology = content['topology']
-            functions = content['functions'] if 'functions' in content else []
-            cloud_services = content['cloud_services'] if 'cloud_services' in content else []
            
-            if is_nsd:
-                for _function in functions:
-                    for _vdu in _function['vnfr']['virtual_deployment_units']:
-                        for _vnfi in _vdu['vnfc_instance']:
-                            # LOG.info(_vnfi)
-                            for _t in topology:
-                                # LOG.info(_t)
-                                if _t['vim_uuid'] == _vnfi['vim_id']:
-                                    _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                    _charts = tools.get_netdata_charts(_instance_id, _t, 'net')
-                                    # LOG.info("Mon?")
-                                    # LOG.info(_vdu['monitoring_parameters'])
-                                    self.active_services[serv_id]['charts'] = _charts
-                                    self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
-                                    self.active_services[serv_id]['is_nsd'] = is_nsd
-                                    # self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd'][version_image][0]['monitoring_parameters']
-                                    self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
-                                    self.active_services[serv_id]['deployed_version'] = content['deployed_version']
-                                    # self.active_services[serv_id]['metadata'] = content
-                                    # self.active_services[serv_id]['monitoring_rules'] = _function['vnfd'][version_image][0]['monitoring_rules']
+            # Start forecasting thread
+            self.forecasting_thread(serv_id)
 
-                                    # Start forecasting thread
-                                    self.forecasting_thread(serv_id)
-
-            else:
-                # LOG.info("Not OpenStack forecasting")
-                for _function in cloud_services:
-                    for _vdu in _function['csr']['virtual_deployment_units']:
-                        # LOG.info(_vnfi)
-                        for _t in topology:
-                            # LOG.info(_t)
-                            if _t['vim_uuid'] == _vdu['vim_id']:
-                                time.sleep(5)
-                                # FIXME: _function['csd'][version_image][0]['monitoring_parameters'] need to change this bs!                                
-                                _instance_meta = tools.get_k8_pod_info(serv_id, _t)
-                                _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, 'net')
-                                # LOG.info("K8 UUID")
-                                # LOG.info(_instance_meta)
-                                # LOG.info(_charts)
-                                self.active_services[serv_id]['charts'] = _charts
-                                self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
-                                self.active_services[serv_id]['is_nsd'] = is_nsd
-                                # self.active_services[serv_id]['monitoring_parameters'] = _function['csd'][version_image][0]['monitoring_parameters']
-                                self.active_services[serv_id]['monitoring_rules'] = _function['csd'][version_image][0]['monitoring_rules']
-                                self.active_services[serv_id]['monitoring_config'] = _function['csd']['monitoring_config']
-                                self.active_services[serv_id]['deployed_version'] = content['deployed_version']
-                                # self.active_services[serv_id]['ports'] = _instance_meta
-                                # self.active_services[serv_id]['metadata'] = content
-                                
-                                # Start forecasting thread
-                                self.forecasting_thread(serv_id)
-
-
-        elif content['request_type'] == "STOP":
+        elif content['request_type'] == "stop_forecast_thread":
             self.active_services.pop(serv_id, None)
             LOG.info("Forecasting stopped")
 
+        elif content['request_type'] == "get_prediction":
+            LOG.info("Get prediction")
+
+            self.active_services[serv_id] = content
+            self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+
+            self.get_prediction_next_time_block(serv_id)
         # TODO: Add URL Switching for URL version switching 
         # elif content['request_type'] == "STOP":
         #     self.active_services.pop(serv_id, None)
@@ -262,16 +215,39 @@ class TFPlugin(ManoBasePlugin):
         else:
             LOG.info("Request type not suppoted")
 
+    def get_prediction_next_time_block(self, serv_id):
+
+        training_config = {}
+        training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
+        training_config['time_steps'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+        training_config['traffic_direction'] = 'received'
+        # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
+        training_config['group_time'] = self.active_services[serv_id]['policy']['monitoring_config']['average_range']
+
+        # Fetch data from netdata
+        vim_endpoint = self.active_services[serv_id]['vim_endpoint']
+        charts = self.active_services[serv_id]['charts']
+        
+        _look_back_time = (training_config['group_time'] * training_config['time_steps']) + 1
+        _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['group_time'], look_back_time=_look_back_time)
+        _data_frame_test = _data_frame_test.iloc[-3:]
+        test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
+
+        LOG.info("Prediction")
+        self.predict_using_lstm(test_X, serv_id)
 
     @tools.run_async
     def forecasting_thread(self, serv_id):
         LOG.info("### Setting up forecasting thread: " + serv_id)
+        LOG.info("### waiting for initial period")
+        time.sleep(self.active_services[serv_id]['policy']['initial_observation_period'])
         if DEBUG_MODE:
             while(True):
                 try:
                     LOG.info("Monitoring Thread " + serv_id)
 
                     training_config = {}
+                    training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
                     training_config['time_steps'] = 10
                     training_config['traffic_direction'] = 'received'
 
@@ -286,7 +262,7 @@ class TFPlugin(ManoBasePlugin):
                     #                                             vim_endpoint)
 
 
-                    _data_frame = self.fetch_data(charts, vim_endpoint)
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
 
                     X, Y = self.prepare_data(_data_frame, training_config)
                     self.lstm_training(X, Y, training_config)
@@ -303,46 +279,56 @@ class TFPlugin(ManoBasePlugin):
                 except Exception as e:
                     LOG.error("Error")
                     LOG.error(e)
+                    track = traceback.format_exc()
+                    LOG.error(track)
 
                 time.sleep(30)
 
-                _data_frame_test = self.fetch_data(charts, vim_endpoint)
+                _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
                 _data_frame_test = _data_frame_test.iloc[-20:]
                 test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
 
                 self.predict_using_lstm(test_X)
 
-
         else:
-            pass
-            # mon_config = self.active_services[serv_id]['monitoring_config']
+            while(serv_id in self.active_services):
+                try:
+                    LOG.info("Forecast Thread " + serv_id)
 
-            # while(serv_id in self.active_services):
-            #     try:
-            #         LOG.info("Monitoring Thread " + serv_id)
-            #         _service_meta = self.active_services[serv_id]
+                    training_config = {}
+                    training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
+                    training_config['time_steps'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+                    training_config['observation_time_block'] = self.active_services[serv_id]['policy']['observation_time_block']
+                    training_config['traffic_direction'] = 'received'
+                    # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
+                    training_config['group_time'] = self.active_services[serv_id]['policy']['monitoring_config']['average_range']
 
-            #         _data = tools.get_netdata_charts_instance(_service_meta['charts'],
-            #                                                     _service_meta['vim_endpoint'])
+                    # Fetch data from netdata
+                    vim_endpoint = self.active_services[serv_id]['vim_endpoint']
+                    charts = self.active_services[serv_id]['charts']
 
+                    # 7 days = 604800
 
-            #         X, Y = self.prepare_data(_data["net"])
-            #         self.lstm_training(X, Y)
-            #         self.predict_using_lstm(X)
+                    # _data = tools.get_netdata_charts_instance(charts,
+                    #                                             vim_endpoint)
 
-            #         # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+                    start_time = time.time()
 
-            #         # LOG.info("### net ###")
-            #         # LOG.info(_metrics["net"])
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
 
-            #     except Exception as e:
-            #         LOG.error("Error")
-            #         LOG.error(e)
+                    X, Y = self.prepare_data(_data_frame, training_config)
+                    self.lstm_training(X, Y, training_config)
+                    LOG.info(time.time()-start_time)
 
-            #     if DEBUG_MODE:
-            #         time.sleep(2)
-            #     else:
-            #         time.sleep(mon_config['fetch_frequency'])
+                    self.get_prediction_next_time_block(serv_id)
+
+                    time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
+                except Exception as e:
+                    LOG.error("Error")
+                    LOG.error(e)
+                    track = traceback.format_exc()
+                    LOG.error(track)
+                    time.sleep(30)
 
 
         LOG.info("### Stopping forecasting thread for: " + serv_id)
@@ -355,10 +341,10 @@ class TFPlugin(ManoBasePlugin):
             ys.append(y.iloc[i + time_steps])
         return np.array(Xs), np.array(ys)
 
-    def fetch_data(self, charts, vim_endpoint):
+    def fetch_data(self, charts, vim_endpoint, group_time, look_back_time=0):
         # http://vimdemo1.cs.upb.de:19999/api/v1/data?chart=cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e&gtime=60
         _data = tools.get_netdata_charts_instance(charts,
-                                                    vim_endpoint)
+                                                    vim_endpoint, avg_sec=look_back_time, gtime=group_time)
 
         train = pd.DataFrame(_data['net']['data'], columns=_data['net']['labels'])
 
@@ -389,7 +375,7 @@ class TFPlugin(ManoBasePlugin):
     def lstm_training(self, X_train, y_train, training_config):
         EPOCHS = 5
         BATCH_SIZE = 32
-        MODEL_NAME = "model.h5"
+        MODEL_NAME = training_config['MODEL_NAME']
 
         model = keras.Sequential()
         # model.add(keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])))
@@ -422,13 +408,13 @@ class TFPlugin(ManoBasePlugin):
 
         # LOG.info(history.history)
 
-        model.save(MODEL_NAME)
+        model.save("models/{}".format(MODEL_NAME))
 
-    def predict_using_lstm(self, input_data):
+    def predict_using_lstm(self, input_data, serv_id):
         # TODO: Import model here
-        MODEL_NAME = "model.h5"
+        MODEL_NAME = self.active_services[serv_id]["MODEL_NAME"]
 
-        model = load_model(MODEL_NAME)
+        model = load_model("models/{}".format(MODEL_NAME))
 
         y_pred = model.predict(input_data)
         y_pred = self.scaler.inverse_transform(y_pred)

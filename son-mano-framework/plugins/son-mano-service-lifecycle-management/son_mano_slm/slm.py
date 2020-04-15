@@ -3094,7 +3094,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         content = {
             'serv_id': serv_id,
-            'req_type': 'get_policy',
+            'request_type': 'get_policy',
             'service_name': service_name
         }
 

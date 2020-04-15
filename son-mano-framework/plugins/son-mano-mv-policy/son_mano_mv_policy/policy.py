@@ -171,7 +171,7 @@ class PolicyPlugin(ManoBasePlugin):
         content = yaml.load(payload)
         LOG.info("Policy request for service: " + content['serv_id'])
 
-        if content['req_type'] == 'get_policy':
+        if content['request_type'] == 'get_policy':
             _policy = self.get_policy(content['service_name'])
             response = {}
 
@@ -184,7 +184,7 @@ class PolicyPlugin(ManoBasePlugin):
             LOG.info("Policy response sent for service: " + content['serv_id'])
             LOG.info(response)
 
-        elif content['req_type'] == 'get_policy_version':
+        elif content['request_type'] == 'get_policy_version':
             pass
 
         # Test 1
