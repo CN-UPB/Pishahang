@@ -1,42 +1,32 @@
-import { IconButton, Tooltip } from "@material-ui/core";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
+import {
+  IconButton,
+  Paper,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@material-ui/core";
+import { useTheme } from "@material-ui/core/styles";
 import { DeleteForeverRounded, InfoRounded } from "@material-ui/icons";
 import React from "react";
 
-import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
 import { Vim } from "../../../models/Vims";
-
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
-  },
-});
+import { Table } from "../../layout/tables/Table";
 
 type Props = {
-  /**
-   * Property to check page name
-   */
-  pageName?: any;
   data: Vim[];
 };
 
 export const VimsTable: React.FunctionComponent<Props> = (props) => {
-  const classes = useStyles({});
   const theme = useTheme();
   const showVimsInfoDialog = useVimsInfoDialog();
-  const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table aria-label="vims table">
         <TableHead>
           <TableRow>
             <TableCell>Uuid</TableCell>
@@ -66,7 +56,7 @@ export const VimsTable: React.FunctionComponent<Props> = (props) => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title={"Delete " + row.vimName} arrow>
+                <Tooltip title={"Remove " + row.vimName} arrow>
                   <IconButton color="primary">
                     <DeleteForeverRounded htmlColor={theme.palette.error.main} />
                   </IconButton>

@@ -1,7 +1,6 @@
 import {
   IconButton,
   Paper,
-  Table,
   TableBody,
   TableCell,
   TableContainer,
@@ -9,7 +8,7 @@ import {
   TableRow,
   Tooltip,
 } from "@material-ui/core";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { useTheme } from "@material-ui/core/styles";
 import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
 import { useDispatch } from "react-redux";
@@ -21,31 +20,25 @@ import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDia
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { Descriptor } from "../../../models/Descriptor";
 import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
-
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
-  },
-});
+import { Table } from "../../layout/tables/Table";
 
 type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.ServiceDescriptors>;
 
-async function onboard(descriptor: Descriptor) {
-  console.log(descriptor.id);
-  const reply = await onboardServiceDescriptor(descriptor.id);
-  alert(JSON.stringify(reply));
-}
-
 const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
-  const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
 
+  async function onboard(descriptor: Descriptor) {
+    console.log(descriptor.id);
+    const reply = await onboardServiceDescriptor(descriptor.id);
+    alert(JSON.stringify(reply));
+  }
+
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table aria-label="service descriptor table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>

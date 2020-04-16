@@ -1,7 +1,6 @@
 import { IconButton, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
+import { useTheme } from "@material-ui/core/styles";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
@@ -23,26 +22,18 @@ import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmation
 import { PluginState } from "../../../models/Plugins";
 import { showInfoDialog, showPluginInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
 import { updateObjectsListItemById } from "../../../util/swr";
-
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
-  },
-});
+import { Table } from "../../layout/tables/Table";
 
 type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.Plugins>;
 
 const InternalPluginsTable: React.FunctionComponent<Props> = ({ data: plugins, mutate }) => {
-  const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  const title: string = "Confirm Shutdown";
-  const message: string =
-    "Note: You can not restart the service from the GUI, but will need to start the docker container manually. Whether or not the service restarts automatically depends on the configuration of the respective docker container.";
   const showShutDownDialog = useGenericConfirmationDialog(
-    title,
-    message,
+    "Confirm Shutdown",
+    "Note: This will terminate the plugin's docker container. You cannot restart it from the GUI. " +
+      "It may restart automatically though depending on its restart policy.",
     stopPlugin,
     "Shutdown plugin"
   );
@@ -79,7 +70,7 @@ const InternalPluginsTable: React.FunctionComponent<Props> = ({ data: plugins, m
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table aria-label="plugins table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>

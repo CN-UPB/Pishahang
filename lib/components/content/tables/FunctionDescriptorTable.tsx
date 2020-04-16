@@ -1,7 +1,6 @@
 import {
   IconButton,
   Paper,
-  Table,
   TableBody,
   TableCell,
   TableContainer,
@@ -9,7 +8,7 @@ import {
   TableRow,
   Tooltip,
 } from "@material-ui/core";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { useTheme } from "@material-ui/core/styles";
 import { DeleteForeverRounded, Edit, Info as InfoIcon } from "@material-ui/icons";
 import * as React from "react";
 import { useDispatch } from "react-redux";
@@ -19,12 +18,7 @@ import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/wit
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
-
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
-  },
-});
+import { Table } from "../../layout/tables/Table";
 
 type Props = InjectedAuthorizedSWRProps<
   | ApiDataEndpoint.OpenStackFunctionDescriptors
@@ -33,7 +27,6 @@ type Props = InjectedAuthorizedSWRProps<
 >;
 
 const InternalFunctionDescriptorTable: React.FunctionComponent<Props> = ({ data }) => {
-  const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
@@ -41,7 +34,7 @@ const InternalFunctionDescriptorTable: React.FunctionComponent<Props> = ({ data 
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="function-descriptor-table">
+      <Table aria-label="function descriptor table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>

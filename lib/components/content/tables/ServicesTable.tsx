@@ -1,47 +1,38 @@
-import { IconButton, Snackbar, Tooltip } from "@material-ui/core";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
 import {
-  HighlightOff as Delete,
-  Info as InfoIcon,
-  InfoRounded,
-  PlayCircleOutline,
-} from "@material-ui/icons";
+  IconButton,
+  Paper,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@material-ui/core";
+import { useTheme } from "@material-ui/core/styles";
+import { InfoRounded, PlayCircleOutline } from "@material-ui/icons";
 import React from "react";
 import { useDispatch } from "react-redux";
 
 import { Service } from "../../../models/Service";
 import { showServiceInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
 import { formatDate } from "../../../util/time";
-
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
-  },
-});
+import { Table } from "../../layout/tables/Table";
 
 type Props = {
   data: Service[];
 };
 
 export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
-  const classes = useStyles({});
   const theme = useTheme();
   const dispatch = useDispatch();
 
   function instantiateService() {
-    dispatch(showSnackbar("Service instantiation not Implemented"));
+    dispatch(showSnackbar("Service instantiation not implemented"));
   }
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table aria-label="service table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
