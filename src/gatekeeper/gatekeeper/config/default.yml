@@ -13,6 +13,8 @@ initialUserData:
   username: pishahang
   password: "1234"
   isAdmin: true
+  fullName: "Admin"
+  email: "pishahang@example.org"
 
 jwt:
   accessTokenLifetime: 900 # 15 min

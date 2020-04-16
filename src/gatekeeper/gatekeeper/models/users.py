@@ -46,6 +46,9 @@ class User(UuidDocument, TimestampsDocument):
             self.setPassword(password)
 
     username = StringField(required=True, unique=True)
+    email = StringField(required=True, unique=True)
+    fullName = StringField(required=True)
+
     isAdmin = BooleanField(required=True)
 
     passwordSalt = BinaryField(max_bytes=32, required=True, custom_json=CustomJsonRules.HIDDEN)

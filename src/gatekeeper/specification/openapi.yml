@@ -262,7 +262,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              allOf:
+                - $ref: "#/components/schemas/User"
+                - type: object
+                  properties:
+                    isAdmin:
+                      readOnly: true
       responses:
         "200":
           description: The user was successfully returned and updated
@@ -948,8 +953,10 @@ components:
         - type: object
           required:
             - username
-            - isAdmin
             - password
+            - isAdmin
+            - fullName
+            - email
           properties:
             username:
               type: string
@@ -958,6 +965,11 @@ components:
               writeOnly: true
             isAdmin:
               type: boolean
+            fullName:
+              type: string
+            email:
+              type: string
+              format: email
     Users:
       type: "array"
       items:
