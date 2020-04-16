@@ -11,28 +11,55 @@ import {
 import { useTheme } from "@material-ui/core/styles";
 import { DeleteForeverRounded, InfoRounded } from "@material-ui/icons";
 import React from "react";
+import { useDispatch } from "react-redux";
 
+import { ApiDataEndpoint } from "../../../api/endpoints";
+import { removeVim } from "../../../api/vims";
+import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
+import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmationDialog";
 import { useVimsInfoDialog } from "../../../hooks/useVimsInfoDialog";
-import { Vim } from "../../../models/Vims";
+import { showInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
 import { Table } from "../../layout/tables/Table";
 
-type Props = {
-  data: Vim[];
-};
+type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.Vims>;
 
-export const VimsTable: React.FunctionComponent<Props> = (props) => {
+const internalVimsTable: React.FunctionComponent<Props> = ({ data: vims, mutate }) => {
   const theme = useTheme();
   const showVimsInfoDialog = useVimsInfoDialog();
+  const dispatch = useDispatch();
+
+  const showShutDownDialog = useGenericConfirmationDialog(
+    "Confirm Remove",
+    "Are you sure, you want to remove this Vim ?",
+    deleteVim,
+    "Remove Vim"
+  );
+
+  async function deleteVim(confirmed: boolean, id: string) {
+    if (confirmed) {
+      let reply = await removeVim(id);
+      if (reply.success) {
+        mutate(
+          vims.filter((vim) => vim.vimUuid !== id),
+          false
+        );
+        dispatch(showSnackbar("Plugin successfully stopped"));
+      } else {
+        dispatch(showInfoDialog({ title: "Error Infomation", message: reply.message }));
+      }
+    }
+  }
 
   return (
     <TableContainer component={Paper}>
       <Table aria-label="vims table">
         <TableHead>
           <TableRow>
-            <TableCell>Uuid</TableCell>
             <TableCell align="center" style={{ width: "20px" }}>
-              Vendor
+              Name
             </TableCell>
+            <TableCell align="center">Uuid</TableCell>
+
             <TableCell align="center">Cores</TableCell>
             <TableCell align="center">Memory</TableCell>
             <TableCell align="center" style={{ width: "200px" }}>
@@ -41,24 +68,23 @@ export const VimsTable: React.FunctionComponent<Props> = (props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map((row) => (
-            <TableRow key={row.uuid}>
-              <TableCell component="th" scope="row">
-                {row.uuid}
-              </TableCell>
-              <TableCell align="left">{row.vendor}</TableCell>
-              <TableCell align="center">{row.cores}</TableCell>
-              <TableCell align="center">{row.memory}</TableCell>
+          {vims.map((Vim) => (
+            <TableRow key={Vim.vimUuid}>
+              <TableCell align="left">{Vim.vimName}</TableCell>
+              <TableCell align="center">{Vim.vimUuid}</TableCell>
+
+              <TableCell align="center">{Vim.coreUsed + "/" + Vim.coreTotal}</TableCell>
+              <TableCell align="center">{Vim.memoryUsed + "/" + Vim.memoryTotal}</TableCell>
               <TableCell align="center">
                 <Tooltip title="Info" arrow>
-                  <IconButton color="primary" onClick={() => showVimsInfoDialog(row)}>
+                  <IconButton color="primary" onClick={() => showVimsInfoDialog(Vim)}>
                     <InfoRounded />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title={"Remove " + row.vimName} arrow>
-                  <IconButton color="primary">
-                    <DeleteForeverRounded htmlColor={theme.palette.error.main} />
+                <Tooltip title={"Remove " + Vim.vimName} arrow>
+                  <IconButton color="secondary" onClick={() => showShutDownDialog(Vim.vimUuid)}>
+                    <DeleteForeverRounded />
                   </IconButton>
                 </Tooltip>
               </TableCell>
@@ -69,3 +95,5 @@ export const VimsTable: React.FunctionComponent<Props> = (props) => {
     </TableContainer>
   );
 };
+
+export const VimsTable = withAuthorizedSWR(ApiDataEndpoint.Vims)(internalVimsTable);
