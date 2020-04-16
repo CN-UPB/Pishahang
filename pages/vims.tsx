@@ -5,8 +5,8 @@ import { NextPage } from "next";
 import useSWR from "swr";
 
 import { getApiUrl } from "../lib/api";
+import { VimsTable } from "../lib/components/content/tables/VimsTable";
 import { Page } from "../lib/components/layout/Page";
-import { VimsTable } from "../lib/components/layout/tables/VimsTable";
 import { useVimsCreaterDialog } from "../lib/hooks/useVimsCreaterDiallog";
 import { Vim, VimType } from "../lib/models/Vims";
 

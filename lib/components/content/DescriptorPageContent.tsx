@@ -8,8 +8,8 @@ import {
   AwsFunctionDescriptorTable,
   KubernetesFunctionDescriptorTable,
   OpenStackFunctionDescriptorTable,
-} from "../layout/tables/FunctionDescriptorTable";
-import { ServiceDescriptorTable } from "../layout/tables/ServiceDescriptorTable";
+} from "./tables/FunctionDescriptorTable";
+import { ServiceDescriptorTable } from "./tables/ServiceDescriptorTable";
 
 type Props = {
   type: DescriptorType;

@@ -28,7 +28,7 @@ type Props = {
   data: Vim[];
 };
 
-export const VimsTable: React.FunctionComponent<Props> = props => {
+export const VimsTable: React.FunctionComponent<Props> = (props) => {
   const classes = useStyles({});
   const theme = useTheme();
   const showVimsInfoDialog = useVimsInfoDialog();
@@ -51,7 +51,7 @@ export const VimsTable: React.FunctionComponent<Props> = props => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(row => (
+          {props.data.map((row) => (
             <TableRow key={row.uuid}>
               <TableCell component="th" scope="row">
                 {row.uuid}

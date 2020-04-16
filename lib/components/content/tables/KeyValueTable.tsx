@@ -23,7 +23,7 @@ export const KeyValueTable: React.FunctionComponent<Props> = ({ content }) => (
   <TableContainer component={Paper}>
     <Table aria-label="simple table">
       <TableBody>
-        {content.map(entry => (
+        {content.map((entry) => (
           <TableRow key={entry[0]}>
             <TableCell component="th" scope="row">
               <Typography variant="body2" gutterBottom>

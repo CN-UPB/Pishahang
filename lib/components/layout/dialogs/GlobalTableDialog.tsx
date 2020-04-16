@@ -8,7 +8,7 @@ import {
   selectTableDialogIsVisible,
   selectTableDialogTitle,
 } from "../../../store/selectors/dialogs";
-import { KeyValueTable } from "../tables/KeyValueTable";
+import { KeyValueTable } from "../../content/tables/KeyValueTable";
 import { GenericDialog } from "./GenericDialog";
 
 export const GlobalTableDialog: React.FunctionComponent = () => {
