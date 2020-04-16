@@ -9,7 +9,6 @@
 import axios, { AxiosError } from "axios";
 
 import { ApiReply } from "../models/ApiReply";
-import { PluginState } from "../models/Plugins";
 import { getApiUrl } from ".";
 
 export async function getPlugin(id: String): Promise<ApiReply> {
