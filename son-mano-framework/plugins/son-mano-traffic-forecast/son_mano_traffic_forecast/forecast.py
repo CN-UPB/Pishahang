@@ -188,13 +188,16 @@ class TFPlugin(ManoBasePlugin):
         LOG.info(content)
 
         if content['request_type'] == "start_forecast_thread":
-            self.active_services[serv_id] = content
-            self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+            try:
+                self.active_services[serv_id] = content
+                self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
 
-            # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
-           
-            # Start forecasting thread
-            self.forecasting_thread(serv_id)
+                # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
+            
+                # Start forecasting thread
+                self.forecasting_thread(serv_id)
+            except Exception as e:
+                print(e)
 
         elif content['request_type'] == "stop_forecast_thread":
             self.active_services.pop(serv_id, None)
@@ -219,50 +222,78 @@ class TFPlugin(ManoBasePlugin):
 
         training_config = {}
         training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
-        training_config['time_steps'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+        training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+        training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
+        training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
         training_config['traffic_direction'] = 'received'
         # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
-        training_config['group_time'] = self.active_services[serv_id]['policy']['monitoring_config']['average_range']
 
         # Fetch data from netdata
         vim_endpoint = self.active_services[serv_id]['vim_endpoint']
         charts = self.active_services[serv_id]['charts']
         
-        _look_back_time = (training_config['group_time'] * training_config['time_steps']) + 1
-        _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['group_time'], look_back_time=_look_back_time)
-        _data_frame_test = _data_frame_test.iloc[-3:]
-        test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
+        _look_back_time = (training_config['time_block'] * training_config['history_time_block'])
+        _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=_look_back_time)
+        # _data_frame_test = _data_frame_test.iloc[-3:]
+        test_X = self.prepare_data(_data_frame_test, training_config, for_prediction=True)
 
         LOG.info("Prediction")
-        self.predict_using_lstm(test_X, serv_id)
+
+        _prediction = self.predict_using_lstm(test_X, serv_id)
+
+        prediction_metrics = {
+            "mean": np.mean(_prediction),
+            "std": np.std(_prediction),
+            "max": np.max(_prediction),
+            "min": np.min(_prediction)
+        }
+
+        LOG.info(_prediction[0])
+        LOG.info(prediction_metrics)
+
+        return prediction_metrics
 
     @tools.run_async
     def forecasting_thread(self, serv_id):
         LOG.info("### Setting up forecasting thread: " + serv_id)
         LOG.info("### waiting for initial period")
-        time.sleep(self.active_services[serv_id]['policy']['initial_observation_period'])
         if DEBUG_MODE:
             while(True):
                 try:
                     LOG.info("Monitoring Thread " + serv_id)
 
+                    self.active_services[serv_id] = {}
+                    self.active_services[serv_id]['policy'] = {}                    
+                    self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+                    self.active_services[serv_id]['policy']['look_ahead_time_block'] = 3
+                    self.active_services[serv_id]['policy']['history_time_block'] = 30
+                    self.active_services[serv_id]['policy']['time_block'] = 1
+
                     training_config = {}
-                    training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
-                    training_config['time_steps'] = 10
+                    training_config['MODEL_NAME'] = "{}_model.h5".format(serv_id)
                     training_config['traffic_direction'] = 'received'
+
+                    training_config['look_ahead_time_block'] = 3
+                    training_config['history_time_block'] = 30
+                    training_config['time_block'] = 1
+                    # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
                     # Fetch data from netdata
                     vim_endpoint = "vimdemo1.cs.upb.de"
                     charts = ["cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e"]
+
+                    self.active_services[serv_id]["vim_endpoint"] = vim_endpoint
+                    self.active_services[serv_id]["charts"] = charts
                     # 7 days = 604800
                     avg_sec = 604800
-                    group_time = 10
+                    time_block = 10
+                    look_back_time = 300
 
                     # _data = tools.get_netdata_charts_instance(charts,
                     #                                             vim_endpoint)
 
 
-                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time)
 
                     X, Y = self.prepare_data(_data_frame, training_config)
                     self.lstm_training(X, Y, training_config)
@@ -282,26 +313,32 @@ class TFPlugin(ManoBasePlugin):
                     track = traceback.format_exc()
                     LOG.error(track)
 
-                time.sleep(30)
+                time.sleep(10)
+                LOG.info("PREDICTING NOW")
 
-                _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
-                _data_frame_test = _data_frame_test.iloc[-20:]
-                test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
+                # _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'])
+                # _data_frame_test = _data_frame_test.iloc[-100:]
+                # test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
 
-                self.predict_using_lstm(test_X)
+                # self.predict_using_lstm(test_X, serv_id)
+                self.get_prediction_next_time_block(serv_id)
+
+                time.sleep(10)
 
         else:
+            time.sleep(self.active_services[serv_id]['policy']['initial_observation_period'])
             while(serv_id in self.active_services):
                 try:
                     LOG.info("Forecast Thread " + serv_id)
 
                     training_config = {}
                     training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
-                    training_config['time_steps'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
-                    training_config['observation_time_block'] = self.active_services[serv_id]['policy']['observation_time_block']
+                    training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+                    training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
+                    training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
+                    
                     training_config['traffic_direction'] = 'received'
                     # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
-                    training_config['group_time'] = self.active_services[serv_id]['policy']['monitoring_config']['average_range']
 
                     # Fetch data from netdata
                     vim_endpoint = self.active_services[serv_id]['vim_endpoint']
@@ -314,7 +351,7 @@ class TFPlugin(ManoBasePlugin):
 
                     start_time = time.time()
 
-                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['group_time'])
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'])
 
                     X, Y = self.prepare_data(_data_frame, training_config)
                     self.lstm_training(X, Y, training_config)
@@ -333,18 +370,40 @@ class TFPlugin(ManoBasePlugin):
 
         LOG.info("### Stopping forecasting thread for: " + serv_id)
 
-    def create_lstm_dataset(self, X, y, time_steps=1):
-        Xs, ys = [], []
-        for i in range(len(X) - time_steps):
-            v = X.iloc[i:(i + time_steps)].values
-            Xs.append(v)        
-            ys.append(y.iloc[i + time_steps])
-        return np.array(Xs), np.array(ys)
+    # def create_lstm_dataset(self, X, y, time_steps=1):
+    #     Xs, ys = [], []
+    #     for i in range(len(X) - time_steps):
+    #         v = X.iloc[i:(i + time_steps)].values
+    #         Xs.append(v)        
+    #         ys.append(y.iloc[i + time_steps])
+    #     return np.array(Xs), np.array(ys)
 
-    def fetch_data(self, charts, vim_endpoint, group_time, look_back_time=0):
+    # split a univariate sequence into samples
+    def create_lstm_dataset(self, sequence, n_steps_in, n_steps_out):
+        X, y = list(), list()
+        for i in range(len(sequence)):
+            # find the end of this pattern
+            end_ix = i + n_steps_in
+            out_end_ix = end_ix + n_steps_out
+            # check if we are beyond the sequence
+            if out_end_ix > len(sequence):
+                break
+            # gather input and output parts of the pattern
+            seq_x, seq_y = sequence[i:end_ix], sequence[end_ix:out_end_ix]
+            X.append(seq_x)
+            y.append(seq_y)
+        return np.array(X), np.array(y)
+
+    def create_lstm_predict_dataset(self, sequence, n_steps_in, n_steps_out):
+        X = list()
+        seq_x = sequence[:n_steps_in]
+        X.append(seq_x)
+        return np.array(X)
+
+    def fetch_data(self, charts, vim_endpoint, time_block, look_back_time=0):
         # http://vimdemo1.cs.upb.de:19999/api/v1/data?chart=cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e&gtime=60
         _data = tools.get_netdata_charts_instance(charts,
-                                                    vim_endpoint, avg_sec=look_back_time, gtime=group_time)
+                                                    vim_endpoint, avg_sec=look_back_time, gtime=time_block)
 
         train = pd.DataFrame(_data['net']['data'], columns=_data['net']['labels'])
 
@@ -352,8 +411,10 @@ class TFPlugin(ManoBasePlugin):
 
         return train
 
-    def prepare_data(self, raw_data, training_config):
-        time_steps = training_config['time_steps']
+    def prepare_data(self, raw_data, training_config, for_prediction=False):
+        history_time_block = training_config['history_time_block']
+        look_ahead_time_block = training_config['look_ahead_time_block']
+
         traffic_direction = training_config['traffic_direction']
 
         # raw_data = self.fetch_data()
@@ -365,17 +426,32 @@ class TFPlugin(ManoBasePlugin):
         dataset = pd.DataFrame(traffic_training_scaled_complete, columns=[traffic_direction])
         # LOG.info(dataset.head(5))
 
-        # reshape to [samples, time_steps, n_features]
-        X_train, y_train = self.create_lstm_dataset(dataset, dataset[traffic_direction], time_steps)
+        n_steps_in, n_steps_out = history_time_block, look_ahead_time_block
+        n_features = 1
 
-        # LOG.info(str(X_train.shape), str(y_train.shape))
+        if for_prediction:
 
-        return X_train, y_train
+            X_pred = self.create_lstm_predict_dataset(dataset[traffic_direction], n_steps_in, n_steps_out)
+            X_pred = X_pred.reshape((X_pred.shape[0], X_pred.shape[1], n_features))
+            return X_pred
+
+        else:
+            # split into samples
+            X_train, y_train = self.create_lstm_dataset(dataset[traffic_direction], n_steps_in, n_steps_out)
+
+            # reshape from [samples, timesteps] into [samples, timesteps, features]
+            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], n_features))
+
+            # LOG.info(str(X_train.shape), str(y_train.shape))
+
+            return X_train, y_train
 
     def lstm_training(self, X_train, y_train, training_config):
+        # TODO: Fetch from policy 
         EPOCHS = 5
         BATCH_SIZE = 32
         MODEL_NAME = training_config['MODEL_NAME']
+        look_ahead_time_block = training_config['look_ahead_time_block']
 
         model = keras.Sequential()
         # model.add(keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])))
@@ -393,7 +469,7 @@ class TFPlugin(ManoBasePlugin):
         model.add(LSTM(units=50))
         model.add(Dropout(0.2))
 
-        model.add(Dense(units = 1))
+        model.add(Dense(units = look_ahead_time_block))
 
         # model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.001))
         model.compile(optimizer=keras.optimizers.Adam(0.001), loss = 'mean_squared_error')

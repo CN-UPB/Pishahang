@@ -2,3 +2,5 @@ son-mano-framework/plugins/son-mano-mv/son_mano_mv/multi_version/results/*
 son-mano-framework/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/templates/*
 son-mano-framework/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scenarios/*
 son-mano-framework/plugins/son-mano-service-lifecycle-management/core
+son-mano-framework/plugins/son-mano-traffic-forecast/models/*
+.vscode/settings.json
