@@ -4,14 +4,15 @@ export enum VimType {
   Aws = "aws",
 }
 
-/** Vim Model */
 export interface Vim {
+  coreTotal: string;
+  coreUsed: string;
+  memoryTotal: string;
+  memoryUsed: string;
+  vimCity: string;
+  vimDomain: string;
+  vimEndpoint: string;
   vimName: string;
-  country: string;
-  city: string;
-  vimType: VimType;
-  uuid: string;
-  vendor: string;
-  cores: string;
-  memory: string;
+  vimType: string;
+  vimUuid: string;
 }
