@@ -1,5 +1,5 @@
-import { createStyles, Theme } from "@material-ui/core/styles";
 import { Paper as MuiPaper, withStyles } from "@material-ui/core/";
+import { Theme, createStyles } from "@material-ui/core/styles";
 
 /**
  * A custom-styled version of the Material UI Paper component.
