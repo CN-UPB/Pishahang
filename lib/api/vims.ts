@@ -30,3 +30,27 @@ export async function uploadVim(vimType: VimType, vimContent: any): Promise<ApiR
     }
   }
 }
+
+/**
+ * Sends a remove/delete request to the API
+ *
+ *
+ *
+ * @returns An `ApiReply` object with a user-friendly error message in case of failure.
+ */
+
+export async function removeVim(id: String): Promise<ApiReply> {
+  try {
+    if (id == null) return;
+    let reply = await axios.delete(getApiUrl("vims/" + id));
+    console.log(reply);
+    return { success: true };
+  } catch (error) {
+    switch ((error as AxiosError).response?.status) {
+      case 401:
+        return { success: false, message: "Invalid data" };
+      default:
+        return { success: false, message: "An unexpected error occurred. Please try again." };
+    }
+  }
+}
