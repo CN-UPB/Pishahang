@@ -226,6 +226,7 @@ class MVPlugin(ManoBasePlugin):
 
                                     # Start Forecasting thread
                                     self.request_forecast_thread_start(serv_id)
+
                                     # tools.switch_classifier(
                                     #     classifier_ip=CLASSIFIER_IP,
                                     #     vnf_ip=self.active_services[serv_id]['network']['ip'],
@@ -287,6 +288,8 @@ class MVPlugin(ManoBasePlugin):
     @tools.run_async
     def monitoring_policy_thread(self, serv_id):
         LOG.info("### Setting up monitoring thread: " + serv_id)
+        self.active_services[serv_id]['fetching_version'] = False
+        time.sleep(self.active_services[serv_id]['policy']['initial_observation_period'])
         while(serv_id in self.active_services):
             try:
                 LOG.info("Monitoring Thread " + serv_id)
@@ -343,6 +346,16 @@ class MVPlugin(ManoBasePlugin):
                                         self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
                         else:
                             LOG.info("GPU/CON Monitoring")
+                            # Get best version
+                            if not self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = True
+                                self.request_policy_version(serv_id)
+
+                            # FIXME: Better way to switch back
+                            time.sleep(10)
+                            if self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = False
+
 
             except Exception as e:
                 LOG.error("Error")
@@ -371,6 +384,44 @@ class MVPlugin(ManoBasePlugin):
 
     def resp_forecast_thread_start(self):
         LOG.info("MV Handle Forecast Response ")
+
+    def request_policy_version(self, serv_id):
+        corr_id = str(uuid.uuid4())
+        # self.services[serv_id]['act_corr_id'] = corr_id
+
+        MV_POLICY = "mano.service.policy"
+        content = {}
+        content['serv_id'] = serv_id
+        content['policy'] = self.active_services[serv_id]['policy']
+
+        _meta = {
+            "current_version": self.active_services[serv_id]['deployed_version']
+        }
+
+        content['meta'] = _meta
+        content['request_type'] = 'get_policy_version'   
+        
+        # 
+        # self.EXP_REQ_TIME = time.time()
+        # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
+        self.manoconn.call_async(self.handle_resp_policy_version,
+                                MV_POLICY,
+                                yaml.dump(content),
+                                correlation_id=corr_id)
+
+
+    def handle_resp_policy_version(self, ch, method, prop, payload):
+        LOG.info("MV Policy Version Response")
+        content = yaml.load(payload)
+        deployment = content["deployment"]
+        serv_id = content["serv_id"]
+
+        if deployment is None:
+            LOG.info("Prediction not ready or failed")
+        else:
+            LOG.info(deployment)
+
+        self.active_services[serv_id]['fetching_version'] = False
 
 
     def request_version_change(self, serv_id, switch_type, version_image):

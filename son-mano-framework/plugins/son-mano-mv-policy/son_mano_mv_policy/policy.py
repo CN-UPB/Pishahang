@@ -69,6 +69,7 @@ class PolicyPlugin(ManoBasePlugin):
         # broker and register the Policy plugin to the plugin manger)
         ver = "0.1-dev"
         des = "This is the Policy plugin"
+        self.active_services = {}
 
         super(self.__class__, self).__init__(version=ver,
                                              description=des,
@@ -112,16 +113,16 @@ class PolicyPlugin(ManoBasePlugin):
         LOG.info("Policy plugin started and operational.")
         # TEST: here
 
-        import requests
-        import yaml
-        r = requests.get('https://raw.githubusercontent.com/CN-UPB/Pishahang/mvp-thesis/pish-examples/pwm-scripts/descriptors/multiversion/cirros1_mv_policy.yml')
-        # print(r.text)
-        PD = yaml.load(r.text, Loader=yaml.FullLoader)
+        # import requests
+        # import yaml
+        # r = requests.get('https://raw.githubusercontent.com/CN-UPB/Pishahang/mvp-thesis/pish-examples/pwm-scripts/descriptors/multiversion/cirros1_mv_policy.yml')
+        # # print(r.text)
+        # PD = yaml.load(r.text, Loader=yaml.FullLoader)
 
-        weights = [-4, -3, -4, 2, 3]
-        prediction = { "mean": 400, "std": 100, "min": 800, "max": 1800 }
-        meta = { "current_version": "cirros-image-1-gpu" }
-        self.policy_decision(descriptor=PD, prediction=prediction, meta=meta)
+        # weights = [-4, -3, -4, 2, 3]
+        # prediction = { "mean": 400, "std": 100, "min": 800, "max": 1800 }
+        # meta = { "current_version": "cirros-image-1-gpu" }
+        # self.policy_decision(descriptor=PD, prediction=prediction, meta=meta)
 
     def deregister(self):
         """
@@ -185,7 +186,16 @@ class PolicyPlugin(ManoBasePlugin):
             LOG.info(response)
 
         elif content['request_type'] == 'get_policy_version':
-            pass
+            LOG.info("Get prediction")
+            serv_id = content['serv_id']
+
+            self.active_services[serv_id] = {}
+            self.active_services[serv_id]['act_corr_id'] = prop.correlation_id
+            self.active_services[serv_id]['policy'] = content['policy']
+            self.active_services[serv_id]['meta'] = content['meta']
+
+            self.request_forecast(serv_id)
+
 
         # Test 1
         # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
@@ -211,6 +221,65 @@ class PolicyPlugin(ManoBasePlugin):
         # LOG.info("Policy response sent for service: " + content['serv_id'])
         # LOG.info(response)
 
+    def request_forecast(self, serv_id):
+        corr_id = str(uuid.uuid4())
+        # self.services[serv_id]['act_corr_id'] = corr_id
+
+        MV_FORECAST = "mano.service.forecast"
+        content = {}
+        content['serv_id'] = serv_id        
+        content['request_type'] = 'get_prediction'        
+
+        # self.EXP_REQ_TIME = time.time()
+        # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
+        self.manoconn.call_async(self.handle_resp_forecast,
+                                MV_FORECAST,
+                                yaml.dump(content),
+                                correlation_id=corr_id)
+
+
+    def handle_resp_forecast(self, ch, method, prop, payload):
+        LOG.info("MV Policy Forecast Response")
+        MV_POLICY = "mano.service.policy"
+        # MV_FORECAST = "mano.service.forecast"
+
+        content = yaml.load(payload)
+        prediction = content["prediction"]
+        serv_id = content["serv_id"]
+        act_corr_id = self.active_services[serv_id]['act_corr_id']
+
+        LOG.info(content)
+
+        if prediction is None:
+            LOG.info("Prediction not ready or failed")
+            
+            response = {
+                "serv_id": serv_id,
+                "deployment": None,
+            }
+            
+            self.manoconn.notify(MV_POLICY,
+                                yaml.dump(response),
+                                correlation_id=act_corr_id)
+
+        else:
+            LOG.info("Sending resp best version to MV Plugin")
+            PD = self.active_services[serv_id]['policy']
+            meta = self.active_services[serv_id]['meta']
+
+            _deployment = self.policy_decision(descriptor=PD, prediction=prediction, meta=meta)
+
+            response = {
+                "serv_id": serv_id,
+                "deployment": _deployment,
+            }
+
+            self.manoconn.notify(MV_POLICY,
+                                yaml.dump(response),
+                                correlation_id=act_corr_id)
+
+        self.active_services[serv_id]['fetching_version'] = False
+
     def policy_decision(self, descriptor, prediction, meta):
         """
         This is the default policy algorithm that is used if the SLM
@@ -224,6 +293,12 @@ class PolicyPlugin(ManoBasePlugin):
         LOG.info(decision_matrix_df)
         LOG.info("\nSelected version to deploy - {} - {}".format(selected_type, selected_version))
     
+        result = {
+            "deployment_version": selected_type,
+            "deployment_version_image": selected_version
+        }
+
+        return result
         # print("\nSelected version to deploy - ", selected_type, " : ", selected_version, "\n")
 
 

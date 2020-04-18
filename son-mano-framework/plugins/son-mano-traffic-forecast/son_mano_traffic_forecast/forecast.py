@@ -119,10 +119,10 @@ class TFPlugin(ManoBasePlugin):
         super(self.__class__, self).declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        topic = 'mano.service.forecast'
-        self.manoconn.subscribe(self.forecast_request, topic)
+        self.topic = 'mano.service.forecast'
+        self.manoconn.subscribe(self.forecast_request, self.topic)
 
-        LOG.info("Subscribed to topic: " + str(topic))
+        LOG.info("Subscribed to topic: " + str(self.topic))
 
     def on_lifecycle_start(self, ch, mthd, prop, msg):
         """
@@ -197,7 +197,10 @@ class TFPlugin(ManoBasePlugin):
                 # Start forecasting thread
                 self.forecasting_thread(serv_id)
             except Exception as e:
-                print(e)
+                LOG.error("Error")
+                LOG.error(e)
+                track = traceback.format_exc()
+                LOG.error(track)
 
         elif content['request_type'] == "stop_forecast_thread":
             self.active_services.pop(serv_id, None)
@@ -205,53 +208,70 @@ class TFPlugin(ManoBasePlugin):
 
         elif content['request_type'] == "get_prediction":
             LOG.info("Get prediction")
+            
+            req_serv_id = content['serv_id']
+            prediction = self.get_prediction_next_time_block(req_serv_id)
 
-            self.active_services[serv_id] = content
-            self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+            response = {
+                'serv_id': content['serv_id'],
+                'prediction': prediction
+                }
 
-            self.get_prediction_next_time_block(serv_id)
-        # TODO: Add URL Switching for URL version switching 
-        # elif content['request_type'] == "STOP":
-        #     self.active_services.pop(serv_id, None)
-        #     LOG.info("Forecasting stopped")
+            LOG.info(response)
+
+            self.manoconn.notify(self.topic,
+                                yaml.dump(response),
+                                correlation_id=prop.correlation_id)
 
         else:
             LOG.info("Request type not suppoted")
 
     def get_prediction_next_time_block(self, serv_id):
+        try:
+            self.active_services[serv_id]['predicting'] = True
+            training_config = {}
+            training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
+            training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+            training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
+            training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
+            training_config['traffic_direction'] = 'received'
+            # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
-        training_config = {}
-        training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
-        training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
-        training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
-        training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
-        training_config['traffic_direction'] = 'received'
-        # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
+            # Fetch data from netdata
+            vim_endpoint = self.active_services[serv_id]['vim_endpoint']
+            charts = self.active_services[serv_id]['charts']
+            
+            _look_back_time = (training_config['time_block'] * training_config['history_time_block'])
 
-        # Fetch data from netdata
-        vim_endpoint = self.active_services[serv_id]['vim_endpoint']
-        charts = self.active_services[serv_id]['charts']
-        
-        _look_back_time = (training_config['time_block'] * training_config['history_time_block'])
-        _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=_look_back_time)
-        # _data_frame_test = _data_frame_test.iloc[-3:]
-        test_X = self.prepare_data(_data_frame_test, training_config, for_prediction=True)
+            _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=_look_back_time)
+            # _data_frame_test = _data_frame_test.iloc[-3:]
+            test_X = self.prepare_data(_data_frame_test, training_config, for_prediction=True)
 
-        LOG.info("Prediction")
+            LOG.info("Prediction")
 
-        _prediction = self.predict_using_lstm(test_X, serv_id)
+            _prediction = self.predict_using_lstm(test_X, serv_id)
 
-        prediction_metrics = {
-            "mean": np.mean(_prediction),
-            "std": np.std(_prediction),
-            "max": np.max(_prediction),
-            "min": np.min(_prediction)
-        }
+            prediction_metrics = {
+                "mean": float(np.mean(_prediction)),
+                "std": float(np.std(_prediction)),
+                "max": float(np.max(_prediction)),
+                "min": float(np.min(_prediction))
+            }
 
-        LOG.info(_prediction[0])
-        LOG.info(prediction_metrics)
+            LOG.info(_prediction[0])
+            LOG.info(prediction_metrics)
 
-        return prediction_metrics
+            self.active_services[serv_id]['predicting'] = False
+
+            return prediction_metrics
+
+        except Exception as e:
+            LOG.error("Error")
+            LOG.error(e)
+            track = traceback.format_exc()
+            LOG.error(track)
+            self.active_services[serv_id]['predicting'] = False
+            return None
 
     @tools.run_async
     def forecasting_thread(self, serv_id):
@@ -292,13 +312,16 @@ class TFPlugin(ManoBasePlugin):
                     # _data = tools.get_netdata_charts_instance(charts,
                     #                                             vim_endpoint)
 
+                    start_time = time.time()
 
                     _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time)
 
                     X, Y = self.prepare_data(_data_frame, training_config)
                     self.lstm_training(X, Y, training_config)
+            
+                    self.safely_rename_model(serv_id)
+
                     # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                    start_time = time.time()
                     # self.predict_using_lstm(X)
                     LOG.info(time.time()-start_time)
 
@@ -355,9 +378,12 @@ class TFPlugin(ManoBasePlugin):
 
                     X, Y = self.prepare_data(_data_frame, training_config)
                     self.lstm_training(X, Y, training_config)
+
+                    self.safely_rename_model(serv_id)
+
                     LOG.info(time.time()-start_time)
 
-                    self.get_prediction_next_time_block(serv_id)
+                    # self.get_prediction_next_time_block(serv_id)
 
                     time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
                 except Exception as e:
@@ -377,6 +403,16 @@ class TFPlugin(ManoBasePlugin):
     #         Xs.append(v)        
     #         ys.append(y.iloc[i + time_steps])
     #     return np.array(Xs), np.array(ys)
+
+    def safely_rename_model(self, serv_id):
+        while(self.active_services[serv_id]['predicting']):
+            time.sleep(0.5)
+            LOG.info("### Waiting to rename model " + serv_id)
+        
+        MODEL_NAME = self.active_services[serv_id]["MODEL_NAME"]
+        os.rename("models/safe_{}".format(MODEL_NAME), "models/{}".format(MODEL_NAME)) 
+        LOG.info("### Model renamed" + serv_id)
+
 
     # split a univariate sequence into samples
     def create_lstm_dataset(self, sequence, n_steps_in, n_steps_out):
@@ -484,8 +520,8 @@ class TFPlugin(ManoBasePlugin):
 
         # LOG.info(history.history)
 
-        model.save("models/{}".format(MODEL_NAME))
-
+        model.save("models/safe_{}".format(MODEL_NAME))
+        
     def predict_using_lstm(self, input_data, serv_id):
         # TODO: Import model here
         MODEL_NAME = self.active_services[serv_id]["MODEL_NAME"]
