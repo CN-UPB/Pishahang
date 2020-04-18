@@ -62,6 +62,11 @@ try:
 except:
     import helpers as tools
 
+import os
+import psutil
+process = psutil.Process(os.getpid())
+import multiprocessing
+
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:tfp")
 LOG.setLevel(logging.INFO)
@@ -191,6 +196,7 @@ class TFPlugin(ManoBasePlugin):
             try:
                 self.active_services[serv_id] = content
                 self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+                self.active_services[serv_id]["predicting"] = False
 
                 # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
             
@@ -208,12 +214,30 @@ class TFPlugin(ManoBasePlugin):
 
         elif content['request_type'] == "get_prediction":
             LOG.info("Get prediction")
-            
             req_serv_id = content['serv_id']
-            prediction = self.get_prediction_next_time_block(req_serv_id)
+
+            self.process_prediction_request(req_serv_id, prop)
+
+        else:
+            LOG.info("Request type not suppoted")
+
+    @tools.run_async
+    def process_prediction_request(self, req_serv_id, prop):
+            manager = multiprocessing.Manager()
+            return_dict = manager.dict()
+
+            self.active_services[req_serv_id]['predicting'] = True
+            p = multiprocessing.Process(target=self.get_prediction_next_time_block, args=(req_serv_id, return_dict))
+            p.start()
+            p.join()
+            self.active_services[req_serv_id]['predicting'] = False
+
+            prediction = return_dict['prediction']
+
+            # prediction = self.get_prediction_next_time_block(req_serv_id)
 
             response = {
-                'serv_id': content['serv_id'],
+                'serv_id': req_serv_id,
                 'prediction': prediction
                 }
 
@@ -223,12 +247,8 @@ class TFPlugin(ManoBasePlugin):
                                 yaml.dump(response),
                                 correlation_id=prop.correlation_id)
 
-        else:
-            LOG.info("Request type not suppoted")
-
-    def get_prediction_next_time_block(self, serv_id):
+    def get_prediction_next_time_block(self, serv_id, return_dict):
         try:
-            self.active_services[serv_id]['predicting'] = True
             training_config = {}
             training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
             training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
@@ -261,8 +281,9 @@ class TFPlugin(ManoBasePlugin):
             LOG.info(_prediction[0])
             LOG.info(prediction_metrics)
 
-            self.active_services[serv_id]['predicting'] = False
+            # self.active_services[serv_id]['predicting'] = False
 
+            return_dict['prediction'] = prediction_metrics
             return prediction_metrics
 
         except Exception as e:
@@ -270,7 +291,7 @@ class TFPlugin(ManoBasePlugin):
             LOG.error(e)
             track = traceback.format_exc()
             LOG.error(track)
-            self.active_services[serv_id]['predicting'] = False
+            return_dict['prediction'] = None
             return None
 
     @tools.run_async
@@ -359,6 +380,7 @@ class TFPlugin(ManoBasePlugin):
                     training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
                     training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
                     training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
+                    training_config['training_history_days'] = self.active_services[serv_id]['policy']['training_history_days']
                     
                     training_config['traffic_direction'] = 'received'
                     # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
@@ -367,6 +389,8 @@ class TFPlugin(ManoBasePlugin):
                     vim_endpoint = self.active_services[serv_id]['vim_endpoint']
                     charts = self.active_services[serv_id]['charts']
 
+                    look_back_time = int(training_config['training_history_days'] * 24 * 60 * 60) 
+                    
                     # 7 days = 604800
 
                     # _data = tools.get_netdata_charts_instance(charts,
@@ -374,16 +398,27 @@ class TFPlugin(ManoBasePlugin):
 
                     start_time = time.time()
 
-                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'])
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=look_back_time)
 
                     X, Y = self.prepare_data(_data_frame, training_config)
-                    self.lstm_training(X, Y, training_config)
+
+                    # self.lstm_training(X, Y, training_config)
+
+                    p = multiprocessing.Process(target=self.lstm_training, args=(X, Y, training_config))
+                    p.start()
+                    p.join()
+
 
                     self.safely_rename_model(serv_id)
 
                     LOG.info(time.time()-start_time)
 
+                    del _data_frame, X, Y
+
                     # self.get_prediction_next_time_block(serv_id)
+                    LOG.info("\n\n\n")  # in bytes 
+                    LOG.info(process.memory_info().rss)  # in bytes 
+
 
                     time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
                 except Exception as e:
@@ -521,6 +556,8 @@ class TFPlugin(ManoBasePlugin):
         # LOG.info(history.history)
 
         model.save("models/safe_{}".format(MODEL_NAME))
+
+        del model, history, X_train, y_train
         
     def predict_using_lstm(self, input_data, serv_id):
         # TODO: Import model here
