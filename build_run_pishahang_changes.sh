@@ -127,3 +127,18 @@ sudo docker rm mv-policy-plugin
 
 sudo docker build -t mv-policy-plugin -f plugins/son-mano-mv-policy/Dockerfile-dev .
 sudo docker run -d --name mv-policy-plugin --net=son-sp --network-alias=mv-policy-plugin -p 8899:8899 -v $(pwd)/plugins/son-mano-mv-policy:/plugins/son-mano-mv-policy mv-policy-plugin
+
+echo "##############################################"
+echo "##############################################"
+
+cd "$dir/son-mano-framework"
+echo "$(pwd)"
+
+echo "Starting Forecast Plugin.."
+
+sudo docker stop tfplugin
+sudo docker rm tfplugin
+
+sudo docker build -t tfplugin -f plugins/son-mano-traffic-forecast/Dockerfile-dev .
+sudo docker run -d --name tfplugin --net=son-sp --network-alias=tfplugin -v $(pwd)/plugins/son-mano-traffic-forecast:/plugins/son-mano-traffic-forecast -p 8088:8888 -e USERID=1000 tfplugin
+# sudo docker run -d -i -t --name tfplugin --net=son-sp --network-alias=tfplugin -v $(pwd)/plugins/son-mano-traffic-forecast:/plugins/son-mano-traffic-forecast -p 8088:8888 -e USERID=1000 tfplugin jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --no-browser --NotebookApp.token='password' --notebook-dir=/plugins/son-mano-traffic-forecast/notebooks

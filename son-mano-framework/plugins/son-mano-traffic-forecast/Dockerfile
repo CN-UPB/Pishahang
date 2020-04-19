@@ -1,5 +1,6 @@
 FROM python:3.6
 
+RUN apt-get update && apt-get install -y gcc graphviz
 # define plugin name once
 ENV PLUGIN_BASE son-mano-traffic-forecast
 # Configuration
@@ -19,6 +20,10 @@ ADD plugins/${PLUGIN_BASE} /plugins/${PLUGIN_BASE}
 # install actual plugin
 WORKDIR /plugins/${PLUGIN_BASE}
 RUN python setup.py develop
+
+# Install python requirements
+COPY /plugins/${PLUGIN_BASE}/requirements.txt ./
+RUN pip install --no-cache-dir -r /plugins/${PLUGIN_BASE}/requirements.txt
 
 CMD ["son-mano-traffic-forecast"]
 

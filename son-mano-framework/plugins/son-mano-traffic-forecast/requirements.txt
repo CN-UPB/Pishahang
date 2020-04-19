@@ -1,5 +1,6 @@
 argh==0.26.2
 watchdog==0.10.2
+psutil==5.7.0
 
 ##### Core scientific packages
 jupyter==1.0.0
@@ -19,7 +20,9 @@ pydot==1.4.1
 scikit-learn==0.22
 
 # Fix to use 2.0
-./tfbuild/tensorflow-2.0.0-cp36-cp36m-linux_x86_64.whl
+# ./tfbuild/tensorflow-2.0.0-cp36-cp36m-linux_x86_64.whl
+./tfbuild/tensorflow-2.1.0-cp36-cp36m-linux_x86_64.whl
+
 # tensorflow==1.5.0
 # tensorflow-gpu==1.15.0
 # tensorboard==1.15.0
