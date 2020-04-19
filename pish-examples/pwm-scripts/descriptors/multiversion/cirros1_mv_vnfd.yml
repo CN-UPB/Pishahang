@@ -29,17 +29,7 @@ cirros-image-1-vm:
     interface: ipv4
     type: external
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "vm:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "VM"
-      switch: "GPU"
-      switch_image: "cirros-image-1-gpu"
-      condition: "cpu > 90"
-      condition_extra: "all"
 
 cirros-image-2-vm:
 - id: cirros-image-2
@@ -60,17 +50,7 @@ cirros-image-2-vm:
     interface: ipv4
     type: external
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "vm:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "VM"
-      switch: "GPU"
-      switch_image: "cirros-image-2-gpu"
-      condition: "cpu > 90"
-      condition_extra: "all"
 
 # Image name on openstack should be "ashwin_cirros-image-1-mv_1.0_cirros-image-1"
 # Image name on openstack should be "ashwin_cirros-image-1-mv_1.0_cirros-image-2"
@@ -92,28 +72,10 @@ cirros-image-1-gpu:
       size: 32
       size_unit: "Mi"
     gpu:
-      gpus: 2
+      gpus: 1
       type: "nvidia.com/gpu"
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "gpu:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "GPU"
-      switch: "VM"
-      switch_image: "cirros-image-1-vm"
-      condition: "cpu > 90"
-      condition_extra: "user"
-    - name: "gpu:rule:net"
-      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-      duration: 30
-      version: "GPU"
-      switch: "VM"
-      switch_image: "cirros-image-1-vm"
-      condition: "net > 1500"
-      condition_extra: "upload"
 
 cirros-image-2-gpu:
 - id: "cirros-image-2"
@@ -132,25 +94,7 @@ cirros-image-2-gpu:
     gpu:
       gpus: 1
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "gpu:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "GPU"
-      switch: "VM"
-      switch_image: "cirros-image-1-vm"
-      condition: "cpu > 90"
-      condition_extra: "user"
-    - name: "gpu:rule:net"
-      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-      duration: 30
-      version: "GPU"
-      switch: "VM"
-      switch_image: "cirros-image-1-vm"
-      condition: "net > 1500"
-      condition_extra: "upload"
 
 # CON
 
@@ -169,25 +113,7 @@ cirros-image-1-con:
       size: 32
       size_unit: "Mi"      
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "con:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "CON"
-      switch: "GPU"
-      switch_image: "cirros-image-1-gpu"
-      condition: "cpu > 90"
-      condition_extra: "user"
-    - name: "gpu:rule:net"
-      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-      duration: 30
-      version: "CON"
-      switch: "GPU"
-      switch_image: "cirros-image-1-gpu"
-      condition: "net > 1500"
-      condition_extra: "upload"
 
 cirros-image-2-con:
 - id: "cirros-image-2"
@@ -204,25 +130,7 @@ cirros-image-2-con:
       size: 64
       size_unit: "Mi"      
   monitoring_parameters:
-    - cpu
     - net
-  monitoring_rules:
-    - name: "con:rule:cpu"
-      description: "Trigger if CPU usage is above 90 percent in last 30s"
-      duration: 30
-      version: "CON"
-      switch: "GPU"
-      switch_image: "cirros-image-1-gpu"
-      condition: "cpu > 90"
-      condition_extra: "user"
-    - name: "gpu:rule:net"
-      description: "Trigger if NET Upload is above 1500 kbps in last 30s"
-      duration: 30
-      version: "CON"
-      switch: "GPU"
-      switch_image: "cirros-image-1-gpu"
-      condition: "net > 1500"
-      condition_extra: "upload"
 
 # VERSION DESCRIPTORS - END
 

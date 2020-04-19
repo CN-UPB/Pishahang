@@ -1,23 +1,46 @@
 ---
 descriptor_version: policy-schema-01
 description: A policy descriptor for multi-version switching
-name: cirros-image-1-mv
+name: cirros1_mv
 version: '1.0'
 author: ashwin
 
-# The time block for prediction and switching (Minimum 1m) 
-look_ahead_time_block: 15
+# Minimum time before prediction algorithm can be used on the data
+initial_observation_period: 30
+
+# Prediction algorithm selection (lstm, arima, prophet)
+prediction_algorithm: lstm
+
+# accuracy
+
+#################################
+# TRAINING PARAMETERS
+#################################
+
+# time_block in seconds
+time_block: 1
+
+history_time_block: 30
+look_ahead_time_block: 5
+
+# Limit training to the last few days data (0 = unlimited)
+training_history_days: 7
+
+forecast_training_frequency: 30
+
+#################################
+#################################
 
 # Monitoring config (Get average of the last 60s every 10s )
 monitoring_config:
-  fetch_frequency: 10
-  average_range: 60 
+  fetch_frequency: 30
+  average_range: 1
 
 # Whether to allow switching inbetween time blocks 
 static_switching: false
 
 # Default version to deploy on init
-default_deployment_version: "GPU"
+default_deployment_version: "CON"
 default_deployment_version_image: cirros-image-1-con
 
 # Score range for weights
@@ -68,19 +91,3 @@ versions:
       max_data_rate: 1200
       management_overhead: 6
 
-
-# Things to be described in the policy
-#    • Cost VNFs
-#    • VNF Overhead
-#    • Supported datarates
-#    • Monitoring config
-#    • Look ahead time - block time
-#    • Static switching in each time block
-#    • default versions and type
-#    • Score range (ex. 1-5)
-#    • Weights for decision
-#       ◇ Cost (-)           	
-#       ◇ Over Provision (-) 	
-#       ◇ Overhead (-)
-#       ◇ Support deviation (+)
-#       ◇ Same Version (+)
