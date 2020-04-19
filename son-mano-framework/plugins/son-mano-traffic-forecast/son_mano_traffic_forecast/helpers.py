@@ -4,8 +4,7 @@ import logging
 from dateutil import parser
 
 # logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("plugin:mv")
-
+LOG = logging.getLogger("plugin:tfp")
 
 def run_async(func):
     """
@@ -40,6 +39,23 @@ def run_async(func):
 
     return async_func
 
+def get_netdata_charts(instance_id, vim_endpoint, _charts_parameters):
+    netdata_url = "http://{host}:19999/api/v1/charts".format(host=vim_endpoint)
+    r = requests.get(netdata_url, verify=False)
+
+    # LOG.info("netdata_url")
+    # LOG.info(netdata_url)
+    # LOG.info(r.text)
+
+    # _charts_parameters = ["cpu", "net_eth0"]
+    if r.status_code == requests.codes.ok:
+        _result_json = json.loads(r.text)
+        charts = [key for key in _result_json['charts'].keys() if instance_id in key.lower()]
+        # Select only the monitoring parameters
+        charts = [_c for _c in charts if any(_cp in _c for _cp in _charts_parameters)]
+        return charts
+    else:
+        return []
 
 def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=0, gtime=60):
     # http://vimdemo1.cs.upb.de:19999/api/v1/data?chart=cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e&gtime=60

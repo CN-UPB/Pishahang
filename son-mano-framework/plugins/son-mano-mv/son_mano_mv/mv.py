@@ -33,6 +33,7 @@ import threading
 import sys
 import csv
 import concurrent.futures as pool
+import traceback
 
 # import psutil
 try:
@@ -43,9 +44,9 @@ except:
 from sonmanobase.plugin import ManoBasePlugin
 
 CLASSIFIER_IP="IP"
-SWITCH_DEBUG = False
+SWITCH_DEBUG = True
 SWITCH_DEBUG_IMAGE_VM = "cirros-image-1-vm"
-SWITCH_DEBUG_IMAGE_ACC = "cirros-image-1-acc"
+SWITCH_DEBUG_IMAGE_GPU = "cirros-image-1-gpu"
 SWITCH_DEBUG_IMAGE_CON = "cirros-image-1-con"
 
 with open("MV-Logs.log", "w") as f:  
@@ -178,7 +179,7 @@ class MVPlugin(ManoBasePlugin):
         serv_id = content['serv_id']
 
         LOG.info("MV MON request for service: " + serv_id)
-        # LOG.info(content)
+        LOG.info(content['request_type'])
 
         if content['request_type'] == "START":
             # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
@@ -278,6 +279,7 @@ class MVPlugin(ManoBasePlugin):
                                 #     vnf_port=_instance_meta['port'])
 
         elif content['request_type'] == "STOP":
+            self.request_forecast_thread_stop(serv_id)
             self.active_services.pop(serv_id, None)
             LOG.info("Monitoring stopped")
 
@@ -317,10 +319,16 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info("SWITCH_DEBUG:VM: " + data)
                                 if data == "GPU":
                                     self.active_services[serv_id]['version_changed'] = True
-                                    self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_ACC)
+                                    self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_GPU)
                                 if data == "CON":
                                     self.active_services[serv_id]['version_changed'] = True
                                     self.request_version_change(serv_id, switch_type="CON", version_image=SWITCH_DEBUG_IMAGE_CON)
+                            if not self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = True
+                                self.request_policy_version(serv_id)
+                            time.sleep(10)
+                            if self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = False
                         else:
                             LOG.info("VM Monitoring")
 
@@ -333,7 +341,7 @@ class MVPlugin(ManoBasePlugin):
                                 if self.active_services[serv_id]['deployed_version'] == "CON":
                                     if data == "GPU":
                                         self.active_services[serv_id]['version_changed'] = True
-                                        self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_ACC)
+                                        self.request_version_change(serv_id, switch_type="GPU", version_image=SWITCH_DEBUG_IMAGE_GPU)
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
                                         self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
@@ -344,6 +352,13 @@ class MVPlugin(ManoBasePlugin):
                                     if data == "VM":
                                         self.active_services[serv_id]['version_changed'] = True
                                         self.request_version_change(serv_id, switch_type="VM", version_image=SWITCH_DEBUG_IMAGE_VM)
+
+                            if not self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = True
+                                self.request_policy_version(serv_id)
+                            time.sleep(10)
+                            if self.active_services[serv_id]['fetching_version']:
+                                self.active_services[serv_id]['fetching_version'] = False
                         else:
                             LOG.info("GPU/CON Monitoring")
                             # Get best version
@@ -356,16 +371,18 @@ class MVPlugin(ManoBasePlugin):
                             if self.active_services[serv_id]['fetching_version']:
                                 self.active_services[serv_id]['fetching_version'] = False
 
+                if SWITCH_DEBUG:
+                    time.sleep(2)
+                else:
+                    # TODO: Policy data
+                    time.sleep(self.active_services[serv_id]['policy']['monitoring_config']['fetch_frequency'])
 
             except Exception as e:
                 LOG.error("Error")
                 LOG.error(e)
-
-            if SWITCH_DEBUG:
+                track = traceback.format_exc()
+                LOG.error(track)
                 time.sleep(2)
-            else:
-                # TODO: Policy data
-                time.sleep(self.active_services[serv_id]['policy']['monitoring_config']['fetch_frequency'])
 
         LOG.info("### Stopping monitoring thread for: " + serv_id)
 
@@ -385,6 +402,22 @@ class MVPlugin(ManoBasePlugin):
     def resp_forecast_thread_start(self):
         LOG.info("MV Handle Forecast Response ")
 
+    def request_forecast_thread_stop(self, serv_id):
+        MANO_FORECAST = "mano.service.forecast"
+
+        content = {}
+        content['serv_id'] = serv_id
+        content['request_type'] = "stop_forecast_thread"
+
+        # self.EXP_REQ_TIME = time.time()
+        # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
+        self.manoconn.call_async(self.resp_forecast_thread_stop,
+                                MANO_FORECAST,
+                                yaml.dump(content))
+
+    def resp_forecast_thread_stop(self):
+        LOG.info("MV Handle Forecast Stop Response ")
+
     def request_policy_version(self, serv_id):
         corr_id = str(uuid.uuid4())
         # self.services[serv_id]['act_corr_id'] = corr_id
@@ -395,12 +428,15 @@ class MVPlugin(ManoBasePlugin):
         content['policy'] = self.active_services[serv_id]['policy']
 
         _meta = {
-            "current_version": self.active_services[serv_id]['deployed_version']
+            "current_version": self.active_services[serv_id]['version_image']
         }
 
         content['meta'] = _meta
         content['request_type'] = 'get_policy_version'   
         
+        LOG.info("Fetching Version")
+        LOG.info(_meta)
+
         # 
         # self.EXP_REQ_TIME = time.time()
         # LOG.info("EXP: Req Time - {}".format(self.EXP_REQ_TIME))
@@ -416,10 +452,28 @@ class MVPlugin(ManoBasePlugin):
         deployment = content["deployment"]
         serv_id = content["serv_id"]
 
-        if deployment is None:
-            LOG.info("Prediction not ready or failed")
+        if SWITCH_DEBUG:
+            if deployment is None:
+                LOG.info("Prediction not ready or failed")
+            else:
+                LOG.info(deployment)
         else:
-            LOG.info(deployment)
+            if deployment is None:
+                LOG.info("Prediction not ready or failed")
+            else:
+                LOG.info(deployment)
+
+                # Compare versions and send switch request if required
+                if self.active_services[serv_id]['version_image'] == deployment['deployment_version_image']:
+                    LOG.info("Best version already deployed")
+                else:
+                    self.active_services[serv_id]['version_changed'] = True
+                    if deployment['deployment_version'] == "virtual_deployment_units_vm":
+                        self.request_version_change(serv_id, switch_type="VM", version_image=deployment['deployment_version_image'])
+                    if deployment['deployment_version'] == "virtual_deployment_units_gpu":
+                        self.request_version_change(serv_id, switch_type="GPU", version_image=deployment['deployment_version_image'])
+                    if deployment['deployment_version'] == "virtual_deployment_units_con":
+                        self.request_version_change(serv_id, switch_type="CON", version_image=deployment['deployment_version_image'])
 
         self.active_services[serv_id]['fetching_version'] = False
 
@@ -458,6 +512,7 @@ class MVPlugin(ManoBasePlugin):
 
     def handle_resp_change(self):
         LOG.info("MV Handle Change Request ")
+        # TODO: catch the new serv_id and migrate threads
 
     def placement_request(self, ch, method, prop, payload):
         """

@@ -2391,7 +2391,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         add_schedule.append('request_topology')
 
-        add_schedule.append('get_default_version')
+        add_schedule.append('get_policy_descriptor')
         # Perform the placement
         add_schedule.append('SLM_mapping')
         add_schedule.append('ia_prepare')
@@ -2411,7 +2411,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         LOG.info("Service " + term_serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
         # time.sleep(5)
-
 
         # _term_time = time.time()
         if is_nsd:
@@ -3080,6 +3079,64 @@ class ServiceLifecycleManager(ManoBasePlugin):
 #        except Exception as e:
 #            tracebackString = traceback.format_exc(e)
 #            self.services[serv_id]['traceback'] = tracebackString
+    def get_policy_descriptor(self, serv_id):
+        """
+        This method is used to get_policy_descriptor.
+        """
+        # self.TIME_SLM_mapping = time.time()
+        corr_id = str(uuid.uuid4())
+        self.services[serv_id]['act_corr_id'] = corr_id
+
+        LOG.info("Service " + serv_id + ": Fetching policy desc")
+
+        service_name = self.services[serv_id]['service']['nsd']['name']
+
+        content = {
+            'serv_id': serv_id,
+            'request_type': 'get_policy',
+            'service_name': service_name
+        }
+
+        self.manoconn.call_async(self.resp_get_policy_descriptor,
+                                 t.MANO_POLICY,
+                                 yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
+                                 correlation_id=corr_id)
+
+        self.services[serv_id]['pause_chain'] = True
+        LOG.info("Service " + serv_id + ": get_policy_descriptor request sent")
+
+    def resp_get_policy_descriptor(self, ch, method, prop, payload):
+        """
+        This method handles the response on a get_policy_descriptor request
+        """
+        content = yaml.load(payload)
+
+        policy = content['policy']
+
+        serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
+        LOG.info("Service " + serv_id + ": get_policy_descriptor response received")
+
+        LOG.info("resp get_policy_descriptor")
+        # LOG.info(policy)
+
+        if policy is None:
+            # The GK should be informed that the placement failed and the
+            # deployment was aborted.
+            LOG.info("Service " + serv_id + ": unable to get policy")
+            self.error_handling(serv_id,
+                                t.GK_CREATE,
+                                'Unable to get policy.')
+
+            return
+
+        else:
+            # Add mapping to ledger
+            LOG.info("Service " + serv_id + ": Policy fetched")        
+
+            self.services[serv_id]['policy'] = content['policy']
+
+        self.start_next_task(serv_id)
+
     def get_default_version(self, serv_id):
         """
         This method is used to get_default_version.

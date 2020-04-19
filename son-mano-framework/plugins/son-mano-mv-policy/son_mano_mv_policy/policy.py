@@ -183,7 +183,7 @@ class PolicyPlugin(ManoBasePlugin):
                                 correlation_id=prop.correlation_id)
 
             LOG.info("Policy response sent for service: " + content['serv_id'])
-            LOG.info(response)
+            # LOG.info(response)
 
         elif content['request_type'] == 'get_policy_version':
             LOG.info("Get prediction")
@@ -248,7 +248,7 @@ class PolicyPlugin(ManoBasePlugin):
         serv_id = content["serv_id"]
         act_corr_id = self.active_services[serv_id]['act_corr_id']
 
-        LOG.info(content)
+        # LOG.info(content)
 
         if prediction is None:
             LOG.info("Prediction not ready or failed")

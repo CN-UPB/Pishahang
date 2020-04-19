@@ -190,7 +190,7 @@ class TFPlugin(ManoBasePlugin):
         serv_id = content['serv_id']
 
         LOG.info("Forecast request for service: " + serv_id)
-        LOG.info(content)
+        # LOG.info(content)
 
         if content['request_type'] == "start_forecast_thread":
             try:
@@ -229,23 +229,37 @@ class TFPlugin(ManoBasePlugin):
             self.active_services[req_serv_id]['predicting'] = True
             p = multiprocessing.Process(target=self.get_prediction_next_time_block, args=(req_serv_id, return_dict))
             p.start()
-            p.join()
-            self.active_services[req_serv_id]['predicting'] = False
+            p_killed = False
+            while(p.is_alive()):
+                # LOG.info("Predicting..." + req_serv_id)
+                if req_serv_id in self.active_services:
+                    # LOG.info("Still active..." + req_serv_id)
+                    pass
+                else:
+                    LOG.info("Killing training..." + req_serv_id)
+                    p.terminate()
+                    p_killed = True
 
-            prediction = return_dict['prediction']
+                time.sleep(1)
 
-            # prediction = self.get_prediction_next_time_block(req_serv_id)
+            if not p_killed:
+                # p.join()
+                self.active_services[req_serv_id]['predicting'] = False
 
-            response = {
-                'serv_id': req_serv_id,
-                'prediction': prediction
-                }
+                prediction = return_dict['prediction']
 
-            LOG.info(response)
+                # prediction = self.get_prediction_next_time_block(req_serv_id)
 
-            self.manoconn.notify(self.topic,
-                                yaml.dump(response),
-                                correlation_id=prop.correlation_id)
+                response = {
+                    'serv_id': req_serv_id,
+                    'prediction': prediction
+                    }
+
+                LOG.info(response)
+
+                self.manoconn.notify(self.topic,
+                                    yaml.dump(response),
+                                    correlation_id=prop.correlation_id)
 
     def get_prediction_next_time_block(self, serv_id, return_dict):
         try:
@@ -258,8 +272,15 @@ class TFPlugin(ManoBasePlugin):
             # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
             # Fetch data from netdata
+            # FIXME: need to fix how charts are fetched from netdata
+            _instance_meta = self.active_services[serv_id]['ports']
+            _mon_parameters = self.active_services[serv_id]['monitoring_parameters']
             vim_endpoint = self.active_services[serv_id]['vim_endpoint']
-            charts = self.active_services[serv_id]['charts']
+
+            _charts = tools.get_netdata_charts(_instance_meta['uid'], vim_endpoint, _mon_parameters)
+            charts = _charts            
+            # vim_endpoint = self.active_services[serv_id]['vim_endpoint']
+            # charts = self.active_services[serv_id]['charts']
             
             _look_back_time = (training_config['time_block'] * training_config['history_time_block'])
 
@@ -386,8 +407,13 @@ class TFPlugin(ManoBasePlugin):
                     # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
                     # Fetch data from netdata
+                    # FIXME: need to fix how charts are fetched from netdata
+                    _instance_meta = self.active_services[serv_id]['ports']
+                    _mon_parameters = self.active_services[serv_id]['monitoring_parameters']
                     vim_endpoint = self.active_services[serv_id]['vim_endpoint']
-                    charts = self.active_services[serv_id]['charts']
+
+                    _charts = tools.get_netdata_charts(_instance_meta['uid'], vim_endpoint, _mon_parameters)
+                    charts = _charts
 
                     look_back_time = int(training_config['training_history_days'] * 24 * 60 * 60) 
                     
@@ -406,27 +432,39 @@ class TFPlugin(ManoBasePlugin):
 
                     p = multiprocessing.Process(target=self.lstm_training, args=(X, Y, training_config))
                     p.start()
-                    p.join()
+
+                    p_killed = False
+                    while(p.is_alive()):
+                        # LOG.info("Training..." + serv_id)
+                        if serv_id in self.active_services:
+                            # LOG.info("Still active..." + serv_id)
+                            pass
+                        else:
+                            LOG.info("Killing training..." + serv_id)
+                            p.terminate()
+                            p_killed = True
+                        time.sleep(1)
+                    # p.join()
+
+                    if not p_killed:
+                        self.safely_rename_model(serv_id)
+
+                        LOG.info(time.time()-start_time)
+
+                        del _data_frame, X, Y
+
+                        # self.get_prediction_next_time_block(serv_id)
+                        LOG.info("\n\n\n")  # in bytes 
+                        LOG.info(process.memory_info().rss)  # in bytes 
 
 
-                    self.safely_rename_model(serv_id)
-
-                    LOG.info(time.time()-start_time)
-
-                    del _data_frame, X, Y
-
-                    # self.get_prediction_next_time_block(serv_id)
-                    LOG.info("\n\n\n")  # in bytes 
-                    LOG.info(process.memory_info().rss)  # in bytes 
-
-
-                    time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
+                        time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
                 except Exception as e:
                     LOG.error("Error")
                     LOG.error(e)
                     track = traceback.format_exc()
                     LOG.error(track)
-                    time.sleep(30)
+                    time.sleep(10)
 
 
         LOG.info("### Stopping forecasting thread for: " + serv_id)
