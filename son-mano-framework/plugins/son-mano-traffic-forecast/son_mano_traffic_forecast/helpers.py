@@ -59,7 +59,7 @@ def get_netdata_charts(instance_id, vim_endpoint, _charts_parameters):
 
 def get_netdata_charts_instance(charts, vim_endpoint, avg_sec=0, gtime=60):
     # http://vimdemo1.cs.upb.de:19999/api/v1/data?chart=cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e&gtime=60
-    _chart_avg_url = "http://{host}:19999/api/v1/data?chart={chart_id}&format=json&after=-{last_sec_avg}&gtime={gtime}"
+    _chart_avg_url = "http://{host}:19999/api/v1/data?chart={chart_id}&format=json&after={last_sec_avg}&gtime={gtime}&options=flip"
 
     _instance_metrics = {}
 

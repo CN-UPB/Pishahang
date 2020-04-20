@@ -197,6 +197,7 @@ class TFPlugin(ManoBasePlugin):
                 self.active_services[serv_id] = content
                 self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
                 self.active_services[serv_id]["predicting"] = False
+                self.active_services[serv_id]["last_seen_until"] = 0
 
                 # LOG.info("EXP: Switch Time - {}".format(time.time() - self.EXP_REQ_TIME))
             
@@ -282,7 +283,7 @@ class TFPlugin(ManoBasePlugin):
             # vim_endpoint = self.active_services[serv_id]['vim_endpoint']
             # charts = self.active_services[serv_id]['charts']
             
-            _look_back_time = (training_config['time_block'] * training_config['history_time_block'])
+            _look_back_time = (training_config['time_block'] * training_config['history_time_block']) * -1
 
             _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=_look_back_time)
             # _data_frame_test = _data_frame_test.iloc[-3:]
@@ -299,8 +300,8 @@ class TFPlugin(ManoBasePlugin):
                 "min": float(np.min(_prediction))
             }
 
-            LOG.info(_prediction[0])
-            LOG.info(prediction_metrics)
+            # LOG.info(_prediction[0])
+            # LOG.info(prediction_metrics)
 
             # self.active_services[serv_id]['predicting'] = False
 
@@ -324,48 +325,48 @@ class TFPlugin(ManoBasePlugin):
                 try:
                     LOG.info("Monitoring Thread " + serv_id)
 
-                    self.active_services[serv_id] = {}
-                    self.active_services[serv_id]['policy'] = {}                    
-                    self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
-                    self.active_services[serv_id]['policy']['look_ahead_time_block'] = 3
-                    self.active_services[serv_id]['policy']['history_time_block'] = 30
-                    self.active_services[serv_id]['policy']['time_block'] = 1
+                    # self.active_services[serv_id] = {}
+                    # self.active_services[serv_id]['policy'] = {}                    
+                    # self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
+                    # self.active_services[serv_id]['policy']['look_ahead_time_block'] = 3
+                    # self.active_services[serv_id]['policy']['history_time_block'] = 30
+                    # self.active_services[serv_id]['policy']['time_block'] = 1
 
-                    training_config = {}
-                    training_config['MODEL_NAME'] = "{}_model.h5".format(serv_id)
-                    training_config['traffic_direction'] = 'received'
+                    # training_config = {}
+                    # training_config['MODEL_NAME'] = "{}_model.h5".format(serv_id)
+                    # training_config['traffic_direction'] = 'received'
 
-                    training_config['look_ahead_time_block'] = 3
-                    training_config['history_time_block'] = 30
-                    training_config['time_block'] = 1
-                    # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
+                    # training_config['look_ahead_time_block'] = 3
+                    # training_config['history_time_block'] = 30
+                    # training_config['time_block'] = 1
+                    # # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
-                    # Fetch data from netdata
-                    vim_endpoint = "vimdemo1.cs.upb.de"
-                    charts = ["cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e"]
+                    # # Fetch data from netdata
+                    # vim_endpoint = "vimdemo1.cs.upb.de"
+                    # charts = ["cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e"]
 
-                    self.active_services[serv_id]["vim_endpoint"] = vim_endpoint
-                    self.active_services[serv_id]["charts"] = charts
-                    # 7 days = 604800
-                    avg_sec = 604800
-                    time_block = 10
-                    look_back_time = 300
+                    # self.active_services[serv_id]["vim_endpoint"] = vim_endpoint
+                    # self.active_services[serv_id]["charts"] = charts
+                    # # 7 days = 604800
+                    # avg_sec = 604800
+                    # time_block = 10
+                    # look_back_time = 300
 
-                    # _data = tools.get_netdata_charts_instance(charts,
-                    #                                             vim_endpoint)
+                    # # _data = tools.get_netdata_charts_instance(charts,
+                    # #                                             vim_endpoint)
 
-                    start_time = time.time()
+                    # start_time = time.time()
 
-                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time)
+                    # _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time)
 
-                    X, Y = self.prepare_data(_data_frame, training_config)
-                    self.lstm_training(X, Y, training_config)
+                    # X, Y = self.prepare_data(_data_frame, training_config)
+                    # self.lstm_training(X, Y, training_config)
             
-                    self.safely_rename_model(serv_id)
+                    # self.safely_rename_model(serv_id)
 
-                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                    # self.predict_using_lstm(X)
-                    LOG.info(time.time()-start_time)
+                    # # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
+                    # # self.predict_using_lstm(X)
+                    # LOG.info(time.time()-start_time)
 
                     # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
 
@@ -415,16 +416,31 @@ class TFPlugin(ManoBasePlugin):
                     _charts = tools.get_netdata_charts(_instance_meta['uid'], vim_endpoint, _mon_parameters)
                     charts = _charts
 
-                    look_back_time = int(training_config['training_history_days'] * 24 * 60 * 60) 
-                    
+                    # training_history_days = int(training_config['training_history_days'] * 24 * 60 * 60) 
+
+                    # if training_history_days > 0:
+                    #     _last_seen_until =  self.active_services[serv_id]["last_seen_until"]
+
+                    #     if _last_seen_until < training_history_days:
+                    #         look_back_time = _last_seen_until
+                    #     else:
+                    #         look_back_time = training_history_days
+
+                    # else:
+
+                    look_back_time = self.active_services[serv_id]["last_seen_until"]
+
                     # 7 days = 604800
 
                     # _data = tools.get_netdata_charts_instance(charts,
                     #                                             vim_endpoint)
 
                     start_time = time.time()
+                    LOG.info("#### Starting Training \n\n\n")  # in bytes 
 
                     _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=look_back_time)
+
+                    new_look_back_time = int(_data_frame.index[-1])
 
                     X, Y = self.prepare_data(_data_frame, training_config)
 
@@ -448,6 +464,8 @@ class TFPlugin(ManoBasePlugin):
 
                     if not p_killed:
                         self.safely_rename_model(serv_id)
+
+                        self.active_services[serv_id]["last_seen_until"] = new_look_back_time
 
                         LOG.info(time.time()-start_time)
 
@@ -562,27 +580,34 @@ class TFPlugin(ManoBasePlugin):
         MODEL_NAME = training_config['MODEL_NAME']
         look_ahead_time_block = training_config['look_ahead_time_block']
 
-        model = keras.Sequential()
-        # model.add(keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])))
-        # model.add(keras.layers.Dense(1))
+        if os.path.isfile("models/{}".format(MODEL_NAME)):
+            # load model
+            LOG.info("Iterative learning - loading model")
+            model = load_model("models/{}".format(MODEL_NAME))
+        else:
+            LOG.info("Creating model first time")
 
-        model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-        model.add(Dropout(0.2))
+            model = keras.Sequential()
+            # model.add(keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])))
+            # model.add(keras.layers.Dense(1))
 
-        model.add(LSTM(units=50, return_sequences=True))
-        model.add(Dropout(0.2))
+            model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+            model.add(Dropout(0.2))
 
-        model.add(LSTM(units=50, return_sequences=True))
-        model.add(Dropout(0.2))
+            model.add(LSTM(units=50, return_sequences=True))
+            model.add(Dropout(0.2))
 
-        model.add(LSTM(units=50))
-        model.add(Dropout(0.2))
+            model.add(LSTM(units=50, return_sequences=True))
+            model.add(Dropout(0.2))
 
-        model.add(Dense(units = look_ahead_time_block))
+            model.add(LSTM(units=50))
+            model.add(Dropout(0.2))
 
-        # model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.001))
-        model.compile(optimizer=keras.optimizers.Adam(0.001), loss = 'mean_squared_error')
-        
+            model.add(Dense(units = look_ahead_time_block))
+
+            # model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.001))
+            model.compile(optimizer=keras.optimizers.Adam(0.001), loss = 'mean_squared_error')
+            
         history = model.fit(
             X_train, y_train, 
             epochs=EPOCHS, 

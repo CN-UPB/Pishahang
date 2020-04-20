@@ -29,9 +29,11 @@ git config user.email ashwinprasad.me@gmail.com
 
 <!-- ######################## -->
 
-sudo docker logs -f pishahang_tfplugin_1
-sudo docker logs -f pishahang_mv-policy-plugin_1
 sudo docker logs -f pishahang_mvplugin_1
+sudo docker logs -f pishahang_mv-policy-plugin_1
+sudo docker logs -f pishahang_tfplugin_1
+
+sudo docker exec -it pishahang_tfplugin_1
 
 sudo docker logs -f pishahang_servicelifecyclemanagement_1
 sudo docker logs -f pishahang_functionlifecyclemanagement_1
