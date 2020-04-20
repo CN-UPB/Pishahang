@@ -2314,6 +2314,11 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         is_nsd = content['is_nsd']
 
+        term_serv_meta = {
+            "term_serv_id": term_serv_id,
+            "is_nsd": is_nsd
+        }
+
         # LOG.info(payload)
         # LOG.info("Service " + serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
         # time.sleep(5)
@@ -2323,6 +2328,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Add the service to the ledger and add instance ids
         self.services[serv_id] = {}
         self.services[serv_id]['service'] = {}
+        self.services[serv_id]['term_serv_meta'] = term_serv_meta
 
         # self.services[serv_id]['time_vm'] = content['time_vm']
         # self.services[serv_id]['time_acc'] = content['time_acc']
@@ -2399,9 +2405,13 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('vnfs_start')
         add_schedule.append('cs_deploy')
         add_schedule.append('store_nsr')
-        add_schedule.append('wan_configure')
+        # add_schedule.append('wan_configure')
+        # migrate tf function
+        # add_schedule.append('migrate_forecasting')
         add_schedule.append('start_mv_monitoring')
         add_schedule.append('inform_gk_instantiation')
+        # terminate function
+        add_schedule.append('terminate_old_service')
 
         self.services[serv_id]['schedule'].extend(add_schedule)
 
@@ -2409,23 +2419,39 @@ class ServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Service " + serv_id + msg)
         # Start the chain of tasks
 
-        LOG.info("Service " + term_serv_id + ": Waiting to re init\n\n\n\n\n\n\n\n")
-        # time.sleep(5)
-
-        # _term_time = time.time()
-        if is_nsd:
-            corr_id = str(uuid.uuid4())
-            self.terminate_workflow(term_serv_id,
-                                corr_id)
-        else:
-            self.roll_back_instantiation(term_serv_id)
-            self.stop_mv_monitoring(term_serv_id)
-
         # LOG.info("Termination Req Time : {} | is_nsd: {}".format(time.time()-_term_time, is_nsd) + "\n\n")
 
         self.start_next_task(serv_id)
         
         return
+
+
+    def terminate_old_service(self, serv_id):
+        """
+        This method is used to terminate_old_service.
+
+        :param serv_id: The instance uuid of the service
+        """
+        try:
+            corr_id = str(uuid.uuid4())
+
+            term_serv_id  = self.services[serv_id]['term_serv_meta']['term_serv_id']
+            is_nsd = self.services[serv_id]['term_serv_meta']['is_nsd']
+
+            LOG.info("Terminating Old Service " + term_serv_id)
+
+            # _term_time = time.time()
+            if is_nsd:
+                corr_id = str(uuid.uuid4())
+                self.terminate_workflow(term_serv_id,
+                                    corr_id)
+            else:
+                self.roll_back_instantiation(term_serv_id)
+                self.stop_mv_monitoring(term_serv_id)
+
+        except Exception as e:
+            LOG.info("Termination exception")
+            LOG.info(e)
 
 
     def start_mv_monitoring(self, serv_id):
