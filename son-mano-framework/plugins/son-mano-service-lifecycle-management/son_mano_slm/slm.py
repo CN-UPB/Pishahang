@@ -2407,7 +2407,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append('store_nsr')
         # add_schedule.append('wan_configure')
         # migrate tf function
-        # add_schedule.append('migrate_forecasting')
+        add_schedule.append('migrate_forecasting')
         add_schedule.append('start_mv_monitoring')
         add_schedule.append('inform_gk_instantiation')
         # terminate function
@@ -2452,6 +2452,62 @@ class ServiceLifecycleManager(ManoBasePlugin):
         except Exception as e:
             LOG.info("Termination exception")
             LOG.info(e)
+
+
+    def migrate_forecasting(self, serv_id):
+        """
+        This method is used migrate_forecasting
+
+        :param serv_id: The instance uuid of the service
+        """
+        corr_id = str(uuid.uuid4())
+        self.services[serv_id]['act_corr_id'] = corr_id
+
+        LOG.info("Service " + serv_id + ": Migrate forecasting model")
+        term_serv_id  = self.services[serv_id]['term_serv_meta']['term_serv_id']            
+
+        content = {
+            'request_type': 'migrate_model',
+            'term_serv_id': term_serv_id,
+            'serv_id': serv_id
+            }
+
+        self.manoconn.call_async(self.resp_migrate_forecasting,
+                                 t.MANO_FORECAST,
+                                 yaml.dump(content, default_flow_style=False, Dumper=noalias_dumper),
+                                 correlation_id=corr_id)
+
+        self.services[serv_id]['pause_chain'] = True
+
+        LOG.info("Service " + serv_id + ": Migrate forecasting request sent")
+
+    def resp_migrate_forecasting(self, ch, method, prop, payload):
+        """
+        This method handles the response on a mapping request
+        """
+        content = yaml.load(payload)
+        result = content["result"]
+
+        serv_id = tools.servid_from_corrid(self.services, prop.correlation_id)
+        LOG.info("result " + serv_id + ": Migrate forecasting response received")
+
+        LOG.info(content["result"])
+
+        if not result:
+            # The GK should be informed that the placement failed and the
+            # deployment was aborted.
+            LOG.info("Service " + serv_id + ": Migrate forecasting not possible")
+            self.error_handling(serv_id,
+                                t.GK_CREATE,
+                                'Unable to Migrate forecasting.')
+
+            return
+
+        else:
+            LOG.info("Service " + serv_id + ": Migrate forecasting completed")
+
+
+        self.start_next_task(serv_id)
 
 
     def start_mv_monitoring(self, serv_id):

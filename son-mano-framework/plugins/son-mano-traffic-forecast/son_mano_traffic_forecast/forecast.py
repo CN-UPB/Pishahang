@@ -219,8 +219,47 @@ class TFPlugin(ManoBasePlugin):
 
             self.process_prediction_request(req_serv_id, prop)
 
+        elif content['request_type'] == "migrate_model":
+            LOG.info("Get prediction")
+
+            self.process_migrate_request(content, prop)
+
         else:
             LOG.info("Request type not suppoted")
+
+    @tools.run_async
+    def process_migrate_request(self, content, prop):
+
+        OLD_MODEL_NAME = "{}_model.h5".format(content["term_serv_id"])
+        NEW_MODEL_NAME = "{}_model.h5".format(content["serv_id"])
+
+        try:
+            if os.path.isfile("models/{}".format(OLD_MODEL_NAME)):
+                os.rename("models/{}".format(OLD_MODEL_NAME), "models/{}".format(NEW_MODEL_NAME)) 
+                response = {
+                    'result': True,
+                    'status': "Model renamed"
+                    }
+            else:
+                response = {
+                    'result': True,
+                    'status': "No previous model found"
+                    }
+
+        except Exception as e:
+            LOG.info("Migrate error")
+            LOG.info(e)
+            response = {
+                'result': False,
+                'status': "Error"
+                }
+
+        LOG.info(response)
+
+        self.manoconn.notify(self.topic,
+                            yaml.dump(response),
+                            correlation_id=prop.correlation_id)
+
 
     @tools.run_async
     def process_prediction_request(self, req_serv_id, prop):
