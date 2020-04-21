@@ -23,7 +23,7 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
     var file = new File([blb], "descriptor", { type: "text/json;charset=utf-8" });
     const reader = new FileReader();
 
-    reader.onload = e => {
+    reader.onload = (e) => {
       var text = reader.result.toString();
       readFile = JSON.parse(text);
     };
