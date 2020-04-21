@@ -308,7 +308,7 @@ class TFPlugin(ManoBasePlugin):
             training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
             training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
             training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
-            training_config['traffic_direction'] = 'received'
+            training_config['traffic_direction'] = 'sent'
             # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
             # Fetch data from netdata
@@ -443,7 +443,7 @@ class TFPlugin(ManoBasePlugin):
                     training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
                     training_config['training_history_days'] = self.active_services[serv_id]['policy']['training_history_days']
                     
-                    training_config['traffic_direction'] = 'received'
+                    training_config['traffic_direction'] = 'sent'
                     # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
                     # Fetch data from netdata
@@ -574,6 +574,8 @@ class TFPlugin(ManoBasePlugin):
         train = pd.DataFrame(_data['net']['data'], columns=_data['net']['labels'])
 
         train = train.set_index("time")
+
+        train['sent'] = train['sent'].abs()
 
         return train
 

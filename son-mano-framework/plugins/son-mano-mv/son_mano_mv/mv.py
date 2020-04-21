@@ -43,11 +43,11 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
-CLASSIFIER_IP="IP"
+CLASSIFIER_IP="vimdemo2.cs.upb.de"
 SWITCH_DEBUG = True
-SWITCH_DEBUG_IMAGE_VM = "cirros-image-1-vm"
-SWITCH_DEBUG_IMAGE_GPU = "cirros-image-1-gpu"
-SWITCH_DEBUG_IMAGE_CON = "cirros-image-1-con"
+SWITCH_DEBUG_IMAGE_VM = "transcoder-image-1-vm"
+SWITCH_DEBUG_IMAGE_GPU = "transcoder-image-1-gpu"
+SWITCH_DEBUG_IMAGE_CON = "transcoder-image-1-con"
 
 with open("MV-Logs.log", "w") as f:  
     f.truncate()
@@ -228,10 +228,10 @@ class MVPlugin(ManoBasePlugin):
                                     # Start Forecasting thread
                                     self.request_forecast_thread_start(serv_id)
 
-                                    # tools.switch_classifier(
-                                    #     classifier_ip=CLASSIFIER_IP,
-                                    #     vnf_ip=self.active_services[serv_id]['network']['ip'],
-                                    #     vnf_port=self.active_services[serv_id]['network']['port'])
+                                    tools.switch_classifier(
+                                        classifier_ip=CLASSIFIER_IP,
+                                        vnf_ip=self.active_services[serv_id]['network']['ip'],
+                                        vnf_port=self.active_services[serv_id]['network']['port'])
             else:
                 # LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
@@ -273,10 +273,10 @@ class MVPlugin(ManoBasePlugin):
                                 # Start Forecasting thread
                                 self.request_forecast_thread_start(serv_id)
 
-                                # tools.switch_classifier(
-                                #     classifier_ip=CLASSIFIER_IP, 
-                                #     vnf_ip=_instance_meta['ip'], 
-                                #     vnf_port=_instance_meta['port'])
+                                tools.switch_classifier(
+                                    classifier_ip=CLASSIFIER_IP, 
+                                    vnf_ip=_instance_meta['ip'], 
+                                    vnf_port=_instance_meta['port'])
 
         elif content['request_type'] == "STOP":
             self.request_forecast_thread_stop(serv_id)

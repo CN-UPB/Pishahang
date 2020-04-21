@@ -2793,24 +2793,24 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # self.services[serv_id]['time_acc'] = 0.50
 
         # FIXME: Should be VNF based to support multi VNF NSDs
-        _default_version = self.services[serv_id]['service']['nsd']['default_deployment_version']
-        self.services[serv_id]['version_image'] = self.services[serv_id]['service']['nsd']['default_deployment_version_image']
+        # _default_version = self.services[serv_id]['service']['nsd']['default_deployment_version']
+        # self.services[serv_id]['version_image'] = self.services[serv_id]['service']['nsd']['default_deployment_version_image']
 
-        if _default_version == "VM":
-            LOG.info("Default to VM")
-            self.services[serv_id]['as_vm'] = True
-            self.services[serv_id]['as_container'] = False
-            self.services[serv_id]['as_accelerated'] = False
-        elif _default_version == "GPU":
-            LOG.info("Default to GPU")
-            self.services[serv_id]['as_vm'] = False
-            self.services[serv_id]['as_container'] = False
-            self.services[serv_id]['as_accelerated'] = True
-        elif _default_version == "CON":
-            LOG.info("Default to CON")
-            self.services[serv_id]['as_vm'] = False
-            self.services[serv_id]['as_container'] = True
-            self.services[serv_id]['as_accelerated'] = False
+        # if _default_version == "VM":
+        #     LOG.info("Default to VM")
+        #     self.services[serv_id]['as_vm'] = True
+        #     self.services[serv_id]['as_container'] = False
+        #     self.services[serv_id]['as_accelerated'] = False
+        # elif _default_version == "GPU":
+        #     LOG.info("Default to GPU")
+        #     self.services[serv_id]['as_vm'] = False
+        #     self.services[serv_id]['as_container'] = False
+        #     self.services[serv_id]['as_accelerated'] = True
+        # elif _default_version == "CON":
+        #     LOG.info("Default to CON")
+        #     self.services[serv_id]['as_vm'] = False
+        #     self.services[serv_id]['as_container'] = True
+        #     self.services[serv_id]['as_accelerated'] = False
 
         for key in payload.keys():
             if key[:4] == 'VNFD':
