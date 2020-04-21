@@ -13,16 +13,17 @@ import { InfoRounded, PlayCircleOutline } from "@material-ui/icons";
 import React from "react";
 import { useDispatch } from "react-redux";
 
+import { ApiDataEndpoint } from "../../../api/endpoints";
+import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
+import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
 import { Service } from "../../../models/Service";
 import { showServiceInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
 import { formatDate } from "../../../util/time";
 import { Table } from "../../layout/tables/Table";
 
-type Props = {
-  data: Service[];
-};
+type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.Services>;
 
-export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
+const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services, mutate }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -45,7 +46,7 @@ export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((service) => (
+          {services.map((service) => (
             <TableRow key={service.name}>
               <TableCell component="th" scope="row">
                 {service.name}
@@ -83,3 +84,5 @@ export const ServicesTable: React.FunctionComponent<Props> = ({ data }) => {
     </TableContainer>
   );
 };
+
+export const ServicesTable = withAuthorizedSWR(ApiDataEndpoint.Services)(InternalServicesTable);
