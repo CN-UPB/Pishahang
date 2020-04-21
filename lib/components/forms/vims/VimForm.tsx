@@ -65,8 +65,8 @@ export const VimForm: React.FunctionComponent = () => {
   const classes = useStyles(1);
   let vimtype: String;
 
-  const onSubmit = (e) => {
-    console.log(JSON.stringify(e, null, 2));
+  const onSubmit = (values: FormValues) => {
+    console.log(JSON.stringify(values, null, 2));
   };
 
   const validationSchema = Yup.object().shape({
