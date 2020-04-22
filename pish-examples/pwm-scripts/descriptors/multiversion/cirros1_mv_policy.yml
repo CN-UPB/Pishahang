@@ -83,11 +83,11 @@ versions:
 
   virtual_deployment_units_con:
     cirros-image-1-con: 
-      cost_per_min: 2
+      cost_per_min: 3
       max_data_rate: 1200
       management_overhead: 6
     cirros-image-2-con: 
-      cost_per_min: 2
+      cost_per_min: 3
       max_data_rate: 1200
       management_overhead: 6
 
