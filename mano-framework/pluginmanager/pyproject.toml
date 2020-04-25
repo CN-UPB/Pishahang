@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "pluginmanager"
+version = "0.9.0"
+description = "Pishahang MANO framework plugin manager"
+authors = ["Manuel Peuster <manuel.peuster@upb.de>"]
+license = "apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+argparse = "^1.4.0"
+amqpstorm = "^2.7.2"
+pytest = "^5.4.1"
+mongoengine = "^0.19.1"
+flask = "^1.1.2"
+flask-restful = "^0.3.8"
+requests = "^2.23.0"
+pyyaml = "^5.3.1"
+manobase = { path = "../base" }
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.4.1"
+
+[tool.poetry.scripts]
+start = "pluginmanager.__main__:main"
+pm-cli = "pluginmanager.cli:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
