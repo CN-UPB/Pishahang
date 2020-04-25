@@ -1,6 +1,7 @@
 argh==0.26.2
 watchdog==0.10.2
 psutil==5.7.0
+lxml==4.5.0
 
 ##### Core scientific packages
 jupyter==1.0.0
