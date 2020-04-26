@@ -2,13 +2,13 @@
 name = "test_plugin"
 version = "0.9.0"
 description = "Pishahang Test Plugin"
-authors = ["Your Name <you@example.com>"]
+authors = ["Pishahang <pishahang@noreply.github.com>"]
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.6"
 amqpstorm = "^2.7.2"
-manobase = {path = "../../base"}
+manobase = { path = "../../base" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"

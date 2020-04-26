@@ -2,7 +2,7 @@
 name = "slm"
 version = "0.9.0"
 description = "Pishahang Service Lifecycle Management Plugin"
-authors = ["Your Name <you@example.com>"]
+authors = ["Pishahang <pishahang@noreply.github.com>"]
 license = "apache-2.0"
 
 [tool.poetry.dependencies]

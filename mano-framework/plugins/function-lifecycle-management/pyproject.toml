@@ -2,7 +2,7 @@
 name = "flm"
 version = "0.9.0"
 description = "Pishahang function lifecycle management plugin"
-authors = ["Your Name <you@example.com>"]
+authors = ["Pishahang <pishahang@noreply.github.com>"]
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
