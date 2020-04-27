@@ -1,9 +1,11 @@
 [tool.poetry]
-name = "pishahang_docs"
+name = "pishahang-docs"
 version = "0.1.0"
 description = "Pishahang Documentation"
 authors = ["Pishahang <pishahang@noreply.github.com>"]
 license = "apache-2.0"
+# Hack to make the "pip install ." during the read the docs build pass:
+packages = [{ include = ".package" }]
 
 [tool.poetry.dependencies]
 python = "^3.6"
