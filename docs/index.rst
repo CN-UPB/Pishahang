@@ -12,7 +12,7 @@ Joint Orchestration of Network Function Chains and Distributed Cloud Application
    users/installation/*
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: For Developers
 
    developers/developing
