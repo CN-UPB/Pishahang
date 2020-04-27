@@ -1,5 +1,3 @@
-[![Build Status](http://jenkins.sonata-nfv.eu/buildStatus/icon?job=son-mano-framework)](http://jenkins.sonata-nfv.eu/job/son-mano-framework)
-
 # son-mano-framework
 
 SONATA's MANO framework is the core of SONATA's service platform. It consists of a set of loosely coupled components (micro-services) that use a message broker to communicate, thus providing a highly flexible orchestration system. These components are called **MANO plugins** and can easily be replaced to customize the orchestration functionalities of the platform.
