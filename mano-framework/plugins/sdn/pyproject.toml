@@ -13,6 +13,8 @@ pyzmq = "^19.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
+flake8 = "^3.7.9"
+black = "^19.10b0"
 
 [tool.poetry.scripts]
 start = "sdn.__main__:main"
