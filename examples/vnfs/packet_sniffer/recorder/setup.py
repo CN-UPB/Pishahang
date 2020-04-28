@@ -33,7 +33,7 @@ setup(
     license='Apache 2.0',
 
     packages=find_packages(),
-    install_requires=['argparse', 'mongoengine', 'amqpstorm', 'PyYAML', 'Flask==0.10.1', 'flask-restful', 'requests', 'Jinja2==2.11.0'],
+    install_requires=['argparse', 'mongoengine', 'amqpstorm', 'PyYAML', 'Flask==1.0', 'flask-restful', 'requests', 'Jinja2==2.11.0'],
     setup_requires=[],
 
     # To provide executable scripts, use entry points in preference to the
