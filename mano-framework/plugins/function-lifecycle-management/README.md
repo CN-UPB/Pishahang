@@ -1,5 +1,6 @@
-# SONATA's function lifecycle manager plugin
-Function Lifecycle Manager: Component in the SONATA framework that is responsible to manage the lifecycle of the deployed functions.
+# OpenStack Lifecycle Manager(OLM) plugin
+
+This plugins manages the lifecycle of functions that run on Openstack domain
 
 ## Requires
 * Docker
@@ -7,25 +8,25 @@ Function Lifecycle Manager: Component in the SONATA framework that is responsibl
 ## Implementation
 * implemented in Python 3.4
 * dependecies: amqp-storm
-* The main implementation can be found in: `son_mano_flm/flm.py`
+* The main implementation can be found in: `flm/flm.py`
 
 ## How to run it
 
 * (follow the general README.md of this repository to setup and test your environment)
-* To run the FLM locally, you need:
+* To run the OLM locally, you need:
  * a running RabbitMQ broker (see general README.md of this repo for info on how to do this)
  * a running plugin manager connected to the broker (see general README.md of this repo for info on how to do this)
  
 * Run the FLM (directly in your terminal not in a Docker container):
- * `python3.4 plugins/son-mano-function-lifecycle-management/son_mano_flm/flm.py`
+ * `python3.4 plugins/function-lifecycle-management/flm/flm.py`
 
 * Or: run the FLM (in a Docker container):
- * (do in `son-mano-framework/`)
- * `docker build -t flm -f plugins/son-mano-function-lifecycle-management/Dockerfile .`
- * `docker run -it --link broker:broker --name flm flm`
+ * (do in `mano-framework/`)
+ * `docker build -t olm -f plugins/function-lifecycle-management/Dockerfile .`
+ * `docker run -it --link broker:broker --name olm olm`
  
 ## Output
-The output of the FLM should look like this:
+The output of the OLM should look like this:
 
 ```
 INFO:son-mano-base:plugin:Starting MANO Plugin: 'son-plugin.FunctionLifecycleManager' ...
