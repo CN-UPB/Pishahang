@@ -1,7 +1,0 @@
----
-# vars file for mysql
-mysqlservice: mysql
-mysql_port: 3306
-dbuser: root
-dbname: son-sp
-upassword: 123qwe

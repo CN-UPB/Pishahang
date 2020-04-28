@@ -1,7 +1,0 @@
----
-# defaults file for docker-haproxy
-
-docker_vpsa_mgmt: son-mgmt
-docker_haprx_in:  son-haprx-in
-docker_haprx_out: son-haprx-out
-

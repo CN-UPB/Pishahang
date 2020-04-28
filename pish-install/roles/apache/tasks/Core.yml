@@ -1,3 +1,0 @@
-- name: install Apache2
-  yum: name=httpd update_cache=yes state=latest
-

@@ -1,5 +1,0 @@
----
-# handlers file for odoo
-- name: reload firewalld
-  service: name=firewalld state=reloaded
-

@@ -1,3 +1,0 @@
----
-# defaults file for docker
-docker_network_name: son-mgmt

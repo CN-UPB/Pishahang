@@ -1,4 +1,0 @@
----
-# tasks file for mysql
-- name: installing MYSQL for several distros
-  include: "{{ ansible_os_family }}.yml"

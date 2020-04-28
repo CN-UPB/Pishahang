@@ -1,8 +1,0 @@
----
-# defaults file for docker-openvpn
-
-plat: docker-vpsa
-
-vl_mgmt: vpsa-mgmt
-vl_enduser: vpsa-enduser
-vl_vpn: vpsa-vpn

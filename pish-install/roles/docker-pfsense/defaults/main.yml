@@ -1,6 +1,0 @@
----
-# defaults file for roles/docker-pfsense
-
-vl_mgmt: vpsa-mgmt
-vl_vpn_fw: vpsa-vpn
-

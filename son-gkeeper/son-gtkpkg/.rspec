@@ -1,4 +1,0 @@
---color
---require spec_helper
-#--format json
---out son-gtkapi-test.xml

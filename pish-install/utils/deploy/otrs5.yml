@@ -1,8 +1,0 @@
----
-- name: "deploy OTRS 5 HelpDesk to the VM appliance"
-  hosts: "{{ target }}"
-  sudo: yes
-  roles:
-  - apache
-#  - mysql
-  - otrs5

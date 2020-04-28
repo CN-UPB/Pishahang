@@ -1,4 +1,0 @@
----
-- name: copy www content 
-  unarchive: src=son-sp-api.tar.gz dest=/usr/share/nginx/html owner=root group=root mode=0755
-  notify: restart nginx

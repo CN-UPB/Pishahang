@@ -1,7 +1,0 @@
----
-- name: deploy NGINX to the target machine
-  hosts: "{{ target }}"
-  become: true
-  roles:
-  - firewall
-  - nginx

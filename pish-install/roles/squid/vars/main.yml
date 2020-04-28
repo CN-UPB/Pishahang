@@ -1,4 +1,0 @@
----
-# vars file for squid
-public_ip: '192.168.10.61'
-plat_hostname: squid-ncsrd-demo-xenial-01-1500899371

@@ -1,7 +1,0 @@
----
-- name: deploy Openstack Mistral as a Docker container to the target machine
-  hosts: "{{ target }}"
-  become: true
-  roles:
-    - docker-mistral
-

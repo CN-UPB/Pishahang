@@ -1,5 +1,0 @@
----
-# handlers file for kubemaster
-
-- name: restart etcd
-  service: name=etcd state=restarted 
