@@ -23,7 +23,7 @@ technologies to provide orchestration for services deployed across multiple tech
 
 ## Usage
 
-Full documentation can be foun [here](https://pishahang.readthedocs.io/en/latest/)
+Full documentation can be found [here](https://pishahang.readthedocs.io/en/latest/)
 
 Please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) wikipage for installing Pishahang, Devstack, and Kubernetes. 
 
