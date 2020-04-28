@@ -48,8 +48,8 @@ PASSWORD = "1234"
 
 # VNFDNAME = "transcoder_mv"
 # NSDNAME = "transcoder_mv" #  Keep this same as this key _n['nsd']['name']
-VNFDNAME = "cirros1_mv"
-NSDNAME = "cirros1_mv" #  Keep this same as this key _n['nsd']['name']
+VNFDNAME = "transcoder_mv"
+NSDNAME = "transcoder_mv" #  Keep this same as this key _n['nsd']['name']
 
 DESCRIPTORS_PATH = "/home/ashwin/Documents/MSc/Thesis/src/Pishahang/pish-examples/pwm-scripts/descriptors/multiversion"
 
@@ -91,12 +91,31 @@ def delete_services():
       body = client.V1DeleteOptions()
       api_response = api_instance.delete_namespaced_service(i.metadata.name, i.metadata.namespace, body=body)
 
+def delete_stacks():
+    auth = v3.Password(auth_url=AUTH_URL,
+                    username=OS_USERNAME,
+                    password=OS_PASSWORD,
+                    project_name='demo',
+                    user_domain_id='default',
+                    project_domain_id='default')
+    sess = session.Session(auth=auth)
+    heat = hclient.Client('1', session=sess)
+
+    for s in heat.stacks.list():
+        try:
+            s.delete()
+        except Exception as e:
+            print(e)
+
 # #####################################################
 
 if CLEAR_VIM:
     delete_replication_controller()
     delete_pod()
     delete_services()
+
+    delete_stacks()
+
 
     time.sleep(5)
 # #####################################################

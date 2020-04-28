@@ -40,8 +40,8 @@ monitoring_config:
 static_switching: false
 
 # Default version to deploy on init
-default_deployment_version: "CON"
-default_deployment_version_image: transcoder-image-1-con
+default_deployment_version: "VM"
+default_deployment_version_image: transcoder-image-1-vm
 
 # Score range for weights
 score_range:
