@@ -1113,8 +1113,14 @@ class ServiceLifecycleManager(ManoBasePlugin):
             corr_id = str(uuid.uuid4())
             self.services[serv_id]['act_corr_id'].append(corr_id)
 
+            # FIXME: Dirty fix to allow avoid schema changes to include 'net'
+            _vnfd = function['vnfd']
+            if 'monitoring_parameters' in _vnfd['virtual_deployment_units'][0]:
+                _vnfd['virtual_deployment_units'][0].pop('monitoring_parameters')
+                LOG.info("POPPING parameterss")
+
             message = {}
-            message['vnfd'] = function['vnfd']
+            message['vnfd'] = _vnfd
             message['id'] = function['id']
             message['vim_uuid'] = function['vim_uuid']
             message['serv_id'] = serv_id
@@ -3355,7 +3361,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         LOG.info("resp Mapping")
         # LOG.info(content["mapping"]["functions"])
-        LOG.info(content["mapping"]["cloud_services"][0]["csd"])
+        # LOG.info(content["mapping"]["cloud_services"][0]["csd"])
 
 
         if mapping is None:

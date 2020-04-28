@@ -43,7 +43,7 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
-CLASSIFIER_IP="vimdemo2.cs.upb.de"
+CLASSIFIER_IP="131.234.250.117"
 SWITCH_DEBUG = True
 SWITCH_DEBUG_IMAGE_VM = "transcoder-image-1-vm"
 SWITCH_DEBUG_IMAGE_GPU = "transcoder-image-1-gpu"
@@ -206,7 +206,10 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info(_t)
                                 if _t['vim_uuid'] == _vnfi['vim_id']:
                                     _instance_id = tools.get_nova_server_info(serv_id, _t)
-                                    _charts = tools.get_netdata_charts(_instance_id, _t, _function['vnfd'][version_image][0]['monitoring_parameters'])
+                                    # FIXME: Dirty fix to allow avoid schema changes to include 'net'
+                                    # _mon_parameters = _function['vnfd'][version_image][0]['monitoring_parameters']
+                                    _mon_parameters = ['net']
+                                    _charts = tools.get_netdata_charts(_instance_id, _t, _mon_parameters)
                                     # LOG.info("Mon?")
                                     # LOG.info(_vdu['monitoring_parameters'])
                                     self.active_services[serv_id]['charts'] = _charts
@@ -217,7 +220,7 @@ class MVPlugin(ManoBasePlugin):
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
                                     }
-                                    self.active_services[serv_id]['monitoring_parameters'] = _function['vnfd'][version_image][0]['monitoring_parameters']
+                                    self.active_services[serv_id]['monitoring_parameters'] = _mon_parameters
                                     # self.active_services[serv_id]['monitoring_rules'] = _function['vnfd'][version_image][0]['monitoring_rules']
                                     # self.active_services[serv_id]['monitoring_config'] = _function['vnfd']['monitoring_config']
                                     self.active_services[serv_id]['deployed_version'] = content['deployed_version']
