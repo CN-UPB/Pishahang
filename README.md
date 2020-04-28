@@ -23,6 +23,8 @@ technologies to provide orchestration for services deployed across multiple tech
 
 ## Usage
 
+Full documentation can be foun [here](https://pishahang.readthedocs.io/en/latest/)
+
 Please refer to [this](https://github.com/CN-UPB/Pishahang/wiki) wikipage for installing Pishahang, Devstack, and Kubernetes. 
 
 
@@ -123,9 +125,12 @@ Please find example CSDs and COSDs in the `son-examples/complex-services` folder
 -   Open the "Running Complex Services" tab
 -   Click the "Terminate" button of the service you want to stop
 
-## Lead Developers:
-
+## Lead Developer:
 - Hadi Razzaghi Kouchaksaraei (https://github.com/hadik3r)
+
+## Contributors:
+- bjoluc (https://github.com/bjoluc)
+- Ashwin Prasad Shivarpatna Venkatesh (https://github.com/ashwinprasadme) 
 - Tobias Dierich (https://github.com/tobiasdierich)
 - Marvin Illian (https://github.com/OrangeOnBlack)
 
