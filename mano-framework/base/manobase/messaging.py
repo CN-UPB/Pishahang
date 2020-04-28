@@ -35,7 +35,7 @@ import time
 import os
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger('pika').setLevel(logging.ERROR)
+logging.getLogger("pika").setLevel(logging.ERROR)
 LOG = logging.getLogger("manobase:messaging")
 LOG.setLevel(logging.DEBUG)
 
@@ -61,10 +61,12 @@ class ManoBrokerConnection(object):
         self.app_id = app_id
         # fetch configuration
         if "url" in kwargs:
-            self.rabbitmq_url = kwargs['url']
+            self.rabbitmq_url = kwargs["url"]
         else:
             self.rabbitmq_url = os.environ.get("broker_host", RABBITMQ_URL_FALLBACK)
-        self.rabbitmq_exchange = os.environ.get("broker_exchange", RABBITMQ_EXCHANGE_FALLBACK)
+        self.rabbitmq_exchange = os.environ.get(
+            "broker_exchange", RABBITMQ_EXCHANGE_FALLBACK
+        )
         self.rabbitmq_exchange_type = "topic"
         # create additional members
         self._connection = None
@@ -109,7 +111,9 @@ class ManoBrokerConnection(object):
         # create a new channel
         with self._connection.channel() as channel:
             # declare the exchange to be used
-            channel.exchange.declare(self.rabbitmq_exchange, exchange_type=self.rabbitmq_exchange_type)
+            channel.exchange.declare(
+                self.rabbitmq_exchange, exchange_type=self.rabbitmq_exchange_type
+            )
             # update the default properties with custom ones from the properties argument
             if properties is None:
                 properties = dict()
@@ -118,7 +122,7 @@ class ManoBrokerConnection(object):
                 "content_type": "application/json",
                 "correlation_id": None,
                 "reply_to": None,
-                "headers": dict()
+                "headers": dict(),
             }
             default_properties.update(properties)
             # fix properties (amqpstorm does not like None values):
@@ -128,10 +132,12 @@ class ManoBrokerConnection(object):
                 for k, v in default_properties["headers"].items():
                     default_properties["headers"][k] = "" if v is None else v
             # publish the message
-            channel.basic.publish(body=message,
-                                  routing_key=topic,
-                                  exchange=self.rabbitmq_exchange,
-                                  properties=default_properties)
+            channel.basic.publish(
+                body=message,
+                routing_key=topic,
+                exchange=self.rabbitmq_exchange,
+                properties=default_properties,
+            )
             LOG.debug("PUBLISHED to %r: %r", topic, message)
 
     def subscribe(self, cbf, topic, subscription_queue=None):
@@ -155,14 +161,14 @@ class ManoBrokerConnection(object):
             # translate msg properties
             ch = msg.channel
             body = msg.body
-            method = type('method', (object,), msg.method)
+            method = type("method", (object,), msg.method)
             # ensure that we have a header field
             if "headers" not in msg.properties:
                 msg.properties["headers"] = dict()
             # make emtpy strings to None to be compatible
             for k, v in msg.properties.items():
                 msg.properties[k] = None if v == "" else v
-            properties = type('properties', (object,), msg.properties)
+            properties = type("properties", (object,), msg.properties)
             # call cbf of subscription
             cbf(ch, method, properties, body)
             # ack the message to let broker know that message was delivered
@@ -175,16 +181,28 @@ class ManoBrokerConnection(object):
             """
             with self._connection.channel() as channel:
                 # declare exchange for this channes
-                channel.exchange.declare(exchange=self.rabbitmq_exchange, exchange_type=self.rabbitmq_exchange_type)
+                channel.exchange.declare(
+                    exchange=self.rabbitmq_exchange,
+                    exchange_type=self.rabbitmq_exchange_type,
+                )
                 # create queue for subscription
                 q = channel.queue
                 q.declare(subscription_queue)
                 # bind queue to given topic
-                q.bind(queue=subscription_queue, routing_key=topic, exchange=self.rabbitmq_exchange)
+                q.bind(
+                    queue=subscription_queue,
+                    routing_key=topic,
+                    exchange=self.rabbitmq_exchange,
+                )
                 # recommended qos setting
                 channel.basic.qos(100)
                 # setup consumer (use queue name as tag)
-                channel.basic.consume(_wrapper_cbf, subscription_queue, consumer_tag=subscription_queue, no_ack=False)
+                channel.basic.consume(
+                    _wrapper_cbf,
+                    subscription_queue,
+                    consumer_tag=subscription_queue,
+                    no_ack=False,
+                )
                 try:
                     # start consuming messages.
                     channel.start_consuming(to_tuple=False)
@@ -204,7 +222,7 @@ class ManoBrokerConnection(object):
 
         self.tasks.append(task)
 
-        #Make sure that consuming has started, before method finishes.
+        # Make sure that consuming has started, before method finishes.
         time.sleep(0.1)
 
         LOG.debug("SUBSCRIBED to %r", topic)
@@ -274,13 +292,10 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             return  # do not send a response
         # we cannot send None
         result = "" if result is None else result
-        assert(isinstance(result, str))
+        assert isinstance(result, str)
 
         # build header
-        reply_headers = {
-            "key": None,
-            "type": "reply"
-        }
+        reply_headers = {"key": None, "type": "reply"}
         if props.headers is None:
             props.headers = dict()
         props.headers.update(reply_headers)
@@ -290,7 +305,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             "content_type": props.content_type,
             "reply_to": None,
             "correlation_id": props.correlation_id,
-            "headers": props.headers
+            "headers": props.headers,
         }
 
         # return its result
@@ -314,7 +329,11 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             self._execute_async(
                 self._on_execute_async_finished,  # function called after execution of cbf
                 cbf,  # function to be executed
-                ch, method, props, body)
+                ch,
+                method,
+                props,
+                body,
+            )
 
         return _on_call_async_request_received
 
@@ -334,9 +353,8 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             LOG.debug("Notification on topic %r received." % method.routing_key)
             # call the user defined callback function (in a new thread to be async.
             self._execute_async(
-                None,
-                cbf,  # function to be executed
-                ch, method, props, body)
+                None, cbf, ch, method, props, body  # function to be executed
+            )
 
         return _on_notification_received
 
@@ -353,27 +371,35 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         """
         # check if we really have a response, not a request
         if props.reply_to is not None:
-            #LOG.debug("Non-response message dropped at response endpoint.")
+            # LOG.debug("Non-response message dropped at response endpoint.")
             return
         if props.correlation_id in self._async_calls_pending.keys():
-            LOG.debug("Async response received. Matches to corr_id: %r" % props.correlation_id)
+            LOG.debug(
+                "Async response received. Matches to corr_id: %r" % props.correlation_id
+            )
             # call callback (in new thread)
-            self._execute_async(None,
-                                self._async_calls_pending[props.correlation_id]['cbf'],
-                                ch, method, props, body
-                                )
+            self._execute_async(
+                None,
+                self._async_calls_pending[props.correlation_id]["cbf"],
+                ch,
+                method,
+                props,
+                body,
+            )
             # if no other call_async is using this queue, remove the queue
-            queue_tag = self._async_calls_pending[props.correlation_id]['queue']
+            queue_tag = self._async_calls_pending[props.correlation_id]["queue"]
             queue_empty = True
             for corr_id in self._async_calls_pending.keys():
                 if corr_id != props.correlation_id:
-                    if self._async_calls_pending[corr_id]['queue'] == queue_tag:
+                    if self._async_calls_pending[corr_id]["queue"] == queue_tag:
                         queue_empty = False
                         break
             if queue_empty:
                 LOG.debug("Removing queue, as it is no longer used by any async call")
                 ch.queue.delete()
-                del self._async_calls_response_topics[self._async_calls_pending[props.correlation_id]['topic']]
+                del self._async_calls_response_topics[
+                    self._async_calls_pending[props.correlation_id]["topic"]
+                ]
 
             # remove from pending calls
             del self._async_calls_pending[props.correlation_id]
@@ -381,10 +407,16 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         else:
             LOG.debug("Received unmatched call response. Ignore it.")
 
-    def call_async(self, cbf, topic, msg=None, key="default",
-                   content_type="application/json",
-                   correlation_id=None,
-                   headers=None):
+    def call_async(
+        self,
+        cbf,
+        topic,
+        msg=None,
+        key="default",
+        content_type="application/json",
+        correlation_id=None,
+        headers=None,
+    ):
         """
         Sends a request message to a topic. If a "register_async_endpoint" is listening to this topic,
         it will execute the request and reply. This method sets up the subscriber for this reply and calls it
@@ -400,10 +432,11 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         """
         if msg is None:
             msg = "{}"
-        assert(isinstance(msg, str))
+        assert isinstance(msg, str)
         if cbf is None:
             raise BaseException(
-                "No callback function (cbf) given to call_async. Use notify if you want one-way communication.")
+                "No callback function (cbf) given to call_async. Use notify if you want one-way communication."
+            )
         # generate uuid to match requests and responses
         correlation_id = str(uuid.uuid4()) if correlation_id is None else correlation_id
         # initialize response subscription if a callback function was defined
@@ -411,22 +444,25 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             queue_uuid = str(uuid.uuid4())
             subscription_queue = "%s.%s.%s" % ("q", topic, queue_uuid)
 
-            self.subscribe(self._on_call_async_response_received, topic, subscription_queue)
+            self.subscribe(
+                self._on_call_async_response_received, topic, subscription_queue
+            )
             # keep track of request
             self._async_calls_response_topics[topic] = subscription_queue
         else:
-            #find the queue related to this topic
+            # find the queue related to this topic
             subscription_queue = self._async_calls_response_topics[topic]
 
-        self._async_calls_pending[correlation_id] = {'cbf':cbf, 'topic':topic, 'queue':subscription_queue}
+        self._async_calls_pending[correlation_id] = {
+            "cbf": cbf,
+            "topic": topic,
+            "queue": subscription_queue,
+        }
 
         # build headers
         if headers is None:
             headers = dict()
-        default_headers = {
-            "key": key,
-            "type": "request"
-        }
+        default_headers = {"key": key, "type": "request"}
         default_headers.update(headers)
 
         # build properties
@@ -434,11 +470,16 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             "content_type": content_type,
             "reply_to": topic,
             "correlation_id": correlation_id,
-            "headers": default_headers
+            "headers": default_headers,
         }
 
         # publish request message
-        LOG.debug("async request made on " + str(topic) + ", with corr_id " + str(correlation_id))
+        LOG.debug(
+            "async request made on "
+            + str(topic)
+            + ", with corr_id "
+            + str(correlation_id)
+        )
         self.publish(topic, msg, properties=properties)
 
     def register_async_endpoint(self, cbf, topic):
@@ -452,11 +493,16 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         self.subscribe(self._generate_cbf_call_async_rquest_received(cbf), topic)
         LOG.debug("Registered async endpoint: topic: %r cbf: %r" % (topic, cbf))
 
-    def notify(self, topic, msg=None, key="default",
-               content_type="application/json",
-               correlation_id=None,
-               headers={},
-               reply_to=None):
+    def notify(
+        self,
+        topic,
+        msg=None,
+        key="default",
+        content_type="application/json",
+        correlation_id=None,
+        headers={},
+        reply_to=None,
+    ):
         """
         Sends a simple one-way notification that does not expect a reply.
         :param topic: topic for communication (callee has to be described to it)
@@ -470,15 +516,12 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         """
         if msg is None:
             msg = "{}"
-        assert (isinstance(msg, str))
+        assert isinstance(msg, str)
 
         # build headers
         if headers is None:
             headers = dict()
-        default_headers = {
-            "key": key,
-            "type": "request"
-        }
+        default_headers = {"key": key, "type": "request"}
         default_headers.update(headers)
 
         # build properties
@@ -486,7 +529,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             "content_type": content_type,
             "reply_to": reply_to,
             "correlation_id": correlation_id,
-            "headers": default_headers
+            "headers": default_headers,
         }
 
         # publish request message
@@ -504,11 +547,16 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         """
         return self.subscribe(self._generate_cbf_notification_received(cbf), topic)
 
-    def call_sync(self, topic, msg=None, key="default",
-                  content_type="application/json",
-                  correlation_id=None,
-                  headers={},
-                  timeout=20):  # a sync. request has a timeout
+    def call_sync(
+        self,
+        topic,
+        msg=None,
+        key="default",
+        content_type="application/json",
+        correlation_id=None,
+        headers={},
+        timeout=20,
+    ):  # a sync. request has a timeout
         """
         Client method to sync. call an endpoint registered and bound to the given topic by any
         other component connected to the broker. The method waits for a response and returns it
@@ -537,10 +585,15 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             lock.set()
 
         # do a normal async call
-        self.call_async(result_cbf, topic=topic, msg=msg, key=key,
-                        content_type=content_type,
-                        correlation_id=correlation_id,
-                        headers=headers)
+        self.call_async(
+            result_cbf,
+            topic=topic,
+            msg=msg,
+            key=key,
+            content_type=content_type,
+            correlation_id=correlation_id,
+            headers=headers,
+        )
         # block until we get our result
         lock.clear()
         lock.wait(timeout)
@@ -549,8 +602,10 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
 
 def callback_print(self, ch, method, properties, msg):
-        """
+    """
         Helper callback that prints the received message.
         """
-        LOG.debug("RECEIVED from %r on %r: %r" % (
-            properties.app_id, method.routing_key, str(msg)))
+    LOG.debug(
+        "RECEIVED from %r on %r: %r" % (properties.app_id, method.routing_key, str(msg))
+    )
+
