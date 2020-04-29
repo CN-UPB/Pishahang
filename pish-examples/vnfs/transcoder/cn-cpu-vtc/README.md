@@ -72,5 +72,5 @@ docker run -it --entrypoint='bash' fellonoverhere45/pishahang-cnf:nvidia-ffmpeg-
 
 ### dockerhub
 
-docker tag transcoder-cpu-cn:latest pgscramble/transcoder-cpu-cn:1.1
-docker push pgscramble/transcoder-cpu-cn:1.0
+docker tag transcoder-cpu-cn:latest pgscramble/transcoder-cpu-cn:1.5
+docker push pgscramble/transcoder-cpu-cn:1.5
