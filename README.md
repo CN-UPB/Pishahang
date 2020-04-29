@@ -1,4 +1,5 @@
 [![Build Status](http://pishahang-jenkins.cs.upb.de:8080/buildStatus/icon?job=pishahang)](http://pishahang-jenkins.cs.upb.de:8080/job/pishahang/)
+[![Documentation Status](https://readthedocs.org/projects/pishahang/badge/?version=latest)](https://pishahang.readthedocs.io)
 
 <p align="center">
     <img width="600" src="./figures/pishahang-logo.svg">
