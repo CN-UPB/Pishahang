@@ -90,6 +90,10 @@ class Message:
     def headers(self):
         return {} if "headers" not in self.properties else self.properties["headers"]
 
+    @property
+    def app_id(self):
+        self.properties.get("app_id", None)
+
 
 class ManoBrokerConnection:
     """
