@@ -794,11 +794,15 @@ components:
           required:
             - type
             - content
+
           properties:
             type:
               $ref: "#/components/schemas/DescriptorType"
             content:
               $ref: "#/components/schemas/DescriptorContent"
+            contentString:
+              type: string
+              description: Need some thoughts!!
     Descriptors:
       type: "array"
       items:
@@ -942,10 +946,7 @@ components:
     Vims:
       type: "array"
       items:
-        oneOf:
-          - $ref: "#/components/schemas/OpenStackVim"
-          - $ref: "#/components/schemas/AwsVim"
-          - $ref: "#/components/schemas/KubernetesVim"
+        $ref: "#/components/schemas/BaseVim"
 
     User:
       allOf:

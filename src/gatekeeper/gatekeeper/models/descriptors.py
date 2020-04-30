@@ -48,6 +48,7 @@ class BaseDescriptorMixin:
 
     type = StringField(required=True, choices=[t.value for t in DescriptorType])
     content = EmbeddedDocumentField(DescriptorContent, required=True)
+    contentString = StringField(default="")
 
 
 class Descriptor(BaseDescriptorMixin, UuidDocument, TimestampsDocument):

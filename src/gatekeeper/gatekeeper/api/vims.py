@@ -41,13 +41,8 @@ def deleteVim(id):
     """
     Delete A VIM by giving its uuid.
     """
-    # try:
-    #     vim = Vim.objects(id=id).get()
-    #     vim.delete()
     return broker.call_sync_simple("infrastructure.management.compute.remove",
                                    msg={"uuid": id})
-    # except DoesNotExist:
-    #     raise ProblemException(404, "Not Found", NO_Vim_FOUND_MESSAGE)
 
 
 # ADD vim
@@ -77,6 +72,5 @@ def addVim(body):
                   "vim_address": body["vimAddress"],
                   "username": body["username"], "pass": body["password"],
                   "domain": "Default"}
-        returnValue = broker.call_sync_simple("infrastructure.management.compute.add",
-                                              msg=addVim)
-        return dict([(renameKey.get(k), v) for k, v in returnValue[0].items()])
+        return broker.call_sync_simple("infrastructure.management.compute.add",
+                                       msg=addVim)
