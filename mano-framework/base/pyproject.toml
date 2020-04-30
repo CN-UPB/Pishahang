@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "manobase"
-version = "0.9.0"
+version = "1.0.0"
 description = "Pishahang MANO framework base"
 authors = ["Manuel Peuster <manuel.peuster@upb.de>"]
 license = "Apache-2.0"

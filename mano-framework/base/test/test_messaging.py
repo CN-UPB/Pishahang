@@ -27,19 +27,23 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import unittest
-import time
+from logging import Logger
+from queue import Queue
+from time import time
+from typing import List
 
-from manobase.messaging import ManoBrokerConnection, ManoBrokerRequestResponseConnection
+from manobase.messaging import (
+    ManoBrokerConnection,
+    ManoBrokerRequestResponseConnection,
+    Message,
+)
 
-# TODO the active waiting for messages should be replaced by threading.Event() functionality
+LOG = Logger("manobase:messaging:test")
 
 
 class BaseTestCase(unittest.TestCase):
-
     def setUp(self):
-        self._message_buffer = list()
-        self._message_buffer.append(list())
-        self._message_buffer.append(list())
+        self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
         self.m = None
 
     def tearDown(self):
@@ -47,62 +51,51 @@ class BaseTestCase(unittest.TestCase):
         self.m.stop_threads()
         del self.m
 
-    def _simple_subscribe_cbf1(self, ch, method, props, body):
-        self.assertIsNotNone(props.app_id)
-        self.assertIsNotNone(props.headers)
-        self.assertIsNotNone(props.content_type)
-        self.waiting = 0
-        self._message_buffer[0].append(body)
-        print("SUBSCRIBE CBF1: %s" % body)
+    def create_cbf(self, queue=0):
+        def simple_subscribe_cbf(message: Message):
+            self.assertIsNotNone(message.properties["app_id"])
+            self.assertIsNotNone(message.headers)
+            LOG.debug("SUBSCRIBE CBF %d: Received %s", queue, message.payload)
+            self._message_queues[queue].put(message)
 
-    def _simple_subscribe_cbf2(self, ch, method, props, body):
-        self.assertIsNotNone(props.app_id)
-        self.assertIsNotNone(props.headers)
-        self.assertIsNotNone(props.content_type)
-        self.waiting = 0
-        self._message_buffer[1].append(body)
-        print("SUBSCRIBE CBF2: %s" % body)
+        return simple_subscribe_cbf
 
-    def _simple_request_echo_cbf(self, ch, method, props, body):
-        self.assertIsNotNone(props.app_id)
-        self.assertIsNotNone(props.reply_to)
-        self.assertIsNotNone(props.correlation_id)
-        self.assertIsNotNone(props.headers)
-        self.assertIsNotNone(props.content_type)
-        print("REQUEST ECHO CBF: %s" % body)
-        return body
+    def echo_cbf(self, message: Message):
+        self.assertIsNotNone(message.properties["app_id"])
+        self.assertIsNotNone(message.reply_to)
+        self.assertIsNotNone(message.correlation_id)
+        self.assertIsNotNone(message.headers)
+        LOG.debug("REQUEST ECHO CBF: %s", message.payload)
+        return message.payload
 
-    def wait_for_messages(self, buffer=0, n_messages=1, timeout=5):
+    def wait_for_messages(self, queue=0, number=1, timeout=5):
         """
-        Helper to deal with async messaging system.
-        Waits until a message is written to self._last_message
-        or until a timeout is reached.
-        :param timeout: seconds to wait
-        :return:
+        Waits until `number` messages are added to the specified message queue
+        or until a timeout is reached. Returns a list of received message
+        payloads.
         """
-        self.waiting = 0
-        while len(self._message_buffer[buffer]) < n_messages and self.waiting < timeout:
-            time.sleep(0.01)
-            self.waiting += 0.01
-        if not self.waiting < timeout:
-            raise Exception("Message lost. Subscription timeout reached. Buffer: %r" % self._message_buffer[buffer])
-        return self._message_buffer[buffer]
+        queue = self._message_queues[queue]
+        payloads = []
+        end_time = time() + timeout
+        while len(payloads) < number and time() < end_time:
+            payloads.append(queue.get(block=True, timeout=end_time - time()).payload)
 
-    def wait_for_particular_messages(self, message, buffer=0, timeout=5):
+        return payloads
+
+    def wait_for_particular_messages(self, payload, queue=0, timeout=5):
         """
-        Helper to deal with async messaging system.
-        Waits until a the specified message can be found in the buffer.
-        :param timeout: seconds to wait
-        :return:
+        Waits until a message with a specified payload is received. Throws an
+        exception if the message has not been received within the specified
+        time.
         """
-        self.waiting = 0
-        while message not in self._message_buffer[buffer] and self.waiting < timeout:
-            time.sleep(0.01)
-            self.waiting += 0.01
-        if not self.waiting < timeout:
-            raise Exception(
-                "Message never found. Subscription timeout reached. Buffer: %r" % self._message_buffer[buffer])
-        return True
+        queue = self._message_queues[queue]
+        end_time = time() + timeout
+        while time() < end_time:
+            if queue.get(block=True, timeout=end_time - time()).payload == payload:
+                return
+        raise Exception(
+            'Message "%s" never found. Subscription timeout reached.', payload
+        )
 
 
 class TestManoBrokerConnection(BaseTestCase):
@@ -114,46 +107,41 @@ class TestManoBrokerConnection(BaseTestCase):
         super().setUp()
         self.m = ManoBrokerConnection("test-basic-broker-connection")
 
-    #@unittest.skip("disabled")
     def test_broker_connection(self):
         """
         Test broker connection.
         """
-        self.m.publish("test.topic", "testmessage")
+        self.m.publish("test.topic1", "testmessage")
 
-    #@unittest.skip("disabled")
     def test_broker_bare_publishsubscribe(self):
         """
         Test publish / subscribe messaging.
         """
-        self.m.subscribe(self._simple_subscribe_cbf1, "test.topic")
-        time.sleep(1)
-        self.m.publish("test.topic", "testmsg")
-        self.assertEqual(self.wait_for_messages()[0], "testmsg")
+        self.m.subscribe(self.create_cbf(), "test.topic2")
+        self.m.publish("test.topic2", "testmsg")
+        assert ["testmsg"] == self.wait_for_messages()
 
-    #@unittest.skip("disabled")
     def test_broker_multi_publish(self):
         """
         Test publish / subscribe messaging.
         """
-        self.m.subscribe(self._simple_subscribe_cbf1, "test.topic")
-        time.sleep(1)
-        for i in range(0, 100):
-            self.m.publish("test.topic", "%d" % i)
-        self.assertEqual(self.wait_for_messages(n_messages=100)[99], "99")
+        self.m.subscribe(self.create_cbf(), "test.topic3")
+        for i in range(5):
+            self.m.publish("test.topic3", str(i))
+        assert [str(i) for i in range(5)] == self.wait_for_messages(0, 5)
 
-    #@unittest.skip("disabled")
     def test_broker_doulbe_subscription(self):
         """
         Test publish / subscribe messaging.
         """
-        self.m.subscribe(self._simple_subscribe_cbf1, "test.topic")
-        self.m.subscribe(self._simple_subscribe_cbf2, "test.topic")
-        time.sleep(1)
-        for i in range(0, 100):
-            self.m.publish("test.topic", "%d" % i)
-        self.assertEqual(self.wait_for_messages(buffer=0, n_messages=100)[99], "99")
-        self.assertEqual(self.wait_for_messages(buffer=1, n_messages=100)[99], "99")
+        for queue in range(2):
+            self.m.subscribe(self.create_cbf(queue), "test.topic4")
+
+        for i in range(5):
+            self.m.publish("test.topic4", str(i))
+
+        for queue in range(2):
+            assert [str(i) for i in range(5)] == self.wait_for_messages(queue, 5)
 
 
 class TestManoBrokerRequestResponseConnection(BaseTestCase):
@@ -163,104 +151,91 @@ class TestManoBrokerRequestResponseConnection(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.m = ManoBrokerRequestResponseConnection("test-request-response-broker-connection")
+        self.m = ManoBrokerRequestResponseConnection(
+            "test-request-response-broker-connection"
+        )
 
-    #@unittest.skip("disabled")
     def test_broker_connection(self):
         """
         Test broker connection.
         """
-        self.m.notify("test.topic2", "simplemessage")
+        self.m.notify("test.topic5", "simplemessage")
 
-    #@unittest.skip("disabled")
     def test_request_response(self):
         """
         Test request/response messaging pattern.
         """
-        self.m.register_async_endpoint(self._simple_request_echo_cbf, "test.request")
-        time.sleep(0.5)  # give broker some time to register subscriptions
-        self.m.call_async(self._simple_subscribe_cbf1, "test.request", "ping-pong")
-        self.assertEqual(self.wait_for_messages()[0], "ping-pong")
 
-    #@unittest.skip("disabled")
+        def endpoint_callback(message):
+            return message.payload + "-pong"
+
+        self.m.register_async_endpoint(endpoint_callback, "test.request")
+        self.m.call_async(self.create_cbf(), "test.request", "ping")
+
+        assert ["ping-pong"] == self.wait_for_messages()
+
     def test_request_response_sync(self):
         """
         Test request/response messaging pattern (synchronous).
         """
-        self.m.register_async_endpoint(self._simple_request_echo_cbf, "test.request.sync")
-        time.sleep(0.5)  # give broker some time to register subscriptions
-        result = self.m.call_sync("test.request.sync", "ping-pong")
-        self.assertTrue(len(result) == 4)
-        self.assertEqual(str(result[3]), "ping-pong")
+        self.m.register_async_endpoint(self.echo_cbf, "test.request.sync")
+        response = self.m.call_sync("test.request.sync", "ping-pong", timeout=5)
+        assert type(response) is Message
+        assert "ping-pong" == response.payload
 
-    #@unittest.skip("disabled")
     def test_notification(self):
         """
         Test notification messaging pattern.
         """
-        self.m.register_notification_endpoint(self._simple_subscribe_cbf1, "test.notification")
-        time.sleep(0.5)  # give broker some time to register subscriptions
+        self.m.register_notification_endpoint(self.create_cbf(), "test.notification")
         self.m.notify("test.notification", "my-notification")
-        self.assertTrue(self.wait_for_particular_messages("my-notification"))
+        self.wait_for_particular_messages("my-notification")
 
-    #@unittest.skip("disabled")
     def test_notification_pub_sub_mix(self):
         """
         Test notification messaging pattern mixed with basic pub/sub calls.
         """
-        self.m.register_notification_endpoint(self._simple_subscribe_cbf1, "test.notification1")
-        self.m.subscribe(self._simple_subscribe_cbf1, "test.notification2")
-        time.sleep(0.5)  # give broker some time to register subscriptions
-        # send publish to notify endpoint
-        self.m.publish("test.notification1", "my-notification1")
-        self.assertEqual(self.wait_for_messages()[0], "my-notification1")
-        # send notify to subscribe endpoint
-        self.m.notify("test.notification2", "my-notification2")
-        #res = self.wait_for_messages(n_messages=2)
-        self.assertTrue(self.wait_for_particular_messages("my-notification1"))
-        self.assertTrue(self.wait_for_particular_messages("my-notification2"))
+        self.m.register_notification_endpoint(self.create_cbf(0), "test.notification1")
+        self.m.subscribe(self.create_cbf(0), "test.notification2")
 
-    #@unittest.skip("disabled")
+        # Publish regular message to notification endpoint
+        self.m.publish("test.notification1", "n1")
+        assert ["n1"] == self.wait_for_messages()
+
+        # Publish notification to regular endpoint
+        self.m.notify("test.notification2", "n2")
+        assert ["n2"] == self.wait_for_messages()
+
     def test_double_subscriptions(self):
         """
         Ensure that messages are delivered to all subscriptions of a topic.
         (e.g. identifies queue setup problems)
-        :return:
         """
-        self.m.subscribe(self._simple_subscribe_cbf1, "test.interleave")
-        self.m.subscribe(self._simple_subscribe_cbf2, "test.interleave")
-        time.sleep(0.5)
-        # send publish to notify endpoint
-        self.m.publish("test.interleave", "my-notification1")
-        # enusre that it is received by each subscription
-        self.assertTrue(self.wait_for_particular_messages("my-notification1", buffer=0))
-        self.assertTrue(self.wait_for_particular_messages("my-notification1", buffer=1))
+        for queue in range(2):
+            self.m.subscribe(self.create_cbf(queue), "test.double")
 
-    #@unittest.skip("disabled")
+        # Publish a message
+        self.m.publish("test.double", "my-message")
+
+        # enusre that it is received by each subscription
+        for queue in range(2):
+            self.wait_for_particular_messages("my-message", queue=queue)
+
     def test_interleaved_subscriptions(self):
         """
         Ensure that interleaved subscriptions to the same topic do not lead to problems.
-        :return:
         """
-        self.m.subscribe(self._simple_subscribe_cbf2, "test.interleave2")
-        time.sleep(0.5)
-        # do a async call on the same topic
-        self.m.register_async_endpoint(self._simple_request_echo_cbf, "test.interleave2")
-        time.sleep(0.5)  # give broker some time to register subscriptions
-        self.m.call_async(self._simple_subscribe_cbf1, "test.interleave2", "ping-pong")
-        self.assertTrue(self.wait_for_particular_messages("ping-pong"))
-        # send publish to notify endpoint
-        self.m.publish("test.interleave2", "my-notification1")
-        time.sleep(0.5)
-        # ensure that the subcriber still gets the message (and also sees the one from async_call)
-        self.assertTrue(self.wait_for_particular_messages("ping-pong"))
-        self.assertTrue(self.wait_for_particular_messages("my-notification1", buffer=1))
+        self.m.subscribe(self.create_cbf(0), "test.interleave")
 
-if __name__ == "__main__":
-    #unittest.main()
-    t = TestManoBrokerRequestResponseConnection()
-    t.setUp()
-    t.test_request_response()
-    t.tearDown()
+        # Do an async call on the same topic
+        self.m.register_async_endpoint(self.echo_cbf, "test.interleave")
+        self.m.call_async(self.create_cbf(1), "test.interleave", "ping-pong")
+        assert ["ping-pong"] == self.wait_for_messages(queue=1)
 
+        # Publish a message
+        self.m.publish("test.interleave", "my-message")
 
+        # Ensure that the subscriber gets the message (and sees the ones from async_call)
+        assert ["ping-pong", "ping-pong", "my-message"] == self.wait_for_messages(
+            queue=0, number=3
+        )
