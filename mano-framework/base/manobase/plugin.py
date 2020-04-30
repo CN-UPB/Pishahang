@@ -27,10 +27,11 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
-import json
-import time
 import os
 import threading
+import time
+
+import amqpstorm
 
 from manobase import messaging
 
@@ -48,18 +49,20 @@ class ManoBasePlugin(object):
     - send/receive notifications
     - register / de-register plugin to plugin manager
 
-    It also implements a automatic heartbeat mechanism that periodically sends
+    It also implements an automatic heartbeat mechanism that periodically sends
     heartbeat notifications.
     """
 
-    def __init__(self,
-                 name="son-plugin",
-                 version=None,
-                 description=None,
-                 auto_register=True,
-                 wait_for_registration=True,
-                 start_running=True,
-                 auto_heartbeat_rate=0.5):
+    def __init__(
+        self,
+        name="son-plugin",
+        version=None,
+        description=None,
+        auto_register=True,
+        wait_for_registration=True,
+        start_running=True,
+        auto_heartbeat_rate=0.5,
+    ):
         """
         Performs plugin initialization steps, e.g., connection setup
         :param name: Plugin name prefix
@@ -76,14 +79,15 @@ class ManoBasePlugin(object):
         self.uuid = None  # uuid given by plugin manager on registration
         self.state = None  # the state of this plugin READY/RUNNING/PAUSED/FAILED
 
-        LOG.info(
-            "Starting MANO Plugin: %r ..." % self.name)
+        self._registered_event = threading.Event()
+
+        LOG.info("Starting MANO Plugin: %s ...", self.name)
         # create and initialize broker connection
         while True:
             try:
                 self.manoconn = messaging.ManoBrokerRequestResponseConnection(self.name)
                 break
-            except:
+            except amqpstorm.AMQPConnectionError:
                 time.sleep(5)
         # register subscriptions
         LOG.info("Plugin connected to broker.")
@@ -126,7 +130,7 @@ class ManoBasePlugin(object):
             while True:
                 if self.uuid is not None:
                     self._send_heartbeat()
-                time.sleep(1/rate)
+                time.sleep(1 / rate)
 
         # run heartbeats in separated thread
         t = threading.Thread(target=run)
@@ -136,8 +140,8 @@ class ManoBasePlugin(object):
     def _send_heartbeat(self):
         self.manoconn.notify(
             "platform.management.plugin.%s.heartbeat" % str(self.uuid),
-            json.dumps({"uuid": self.uuid,
-            "state": str(self.state)}))
+            {"uuid": self.uuid, "state": str(self.state)},
+        )
 
     def declare_subscriptions(self):
         """
@@ -147,7 +151,8 @@ class ManoBasePlugin(object):
         # plugin status update subscription
         self.manoconn.register_notification_endpoint(
             self.on_plugin_status_update,  # call back method
-            "platform.management.plugin.status")
+            "platform.management.plugin.status",
+        )
 
     def run(self):
         """
@@ -157,21 +162,21 @@ class ManoBasePlugin(object):
         while True:
             time.sleep(1)
 
-    def on_lifecycle_start(self, ch, method, properties, message):
+    def on_lifecycle_start(self, message: messaging.Message):
         """
         To be overwritten by subclass
         """
         LOG.debug("Received lifecycle.start event.")
         self.state = "RUNNING"
 
-    def on_lifecycle_pause(self, ch, method, properties, message):
+    def on_lifecycle_pause(self, message: messaging.Message):
         """
         To be overwritten by subclass
         """
         LOG.debug("Received lifecycle.pause event.")
         self.state = "PAUSED"
 
-    def on_lifecycle_stop(self, ch, method, properties, message):
+    def on_lifecycle_stop(self, message: messaging.Message):
         """
         To be overwritten by subclass
         """
@@ -186,97 +191,98 @@ class ManoBasePlugin(object):
         LOG.debug("Received registration ok event.")
         pass
 
-    def on_plugin_status_update(self, ch, method, properties, message):
+    def on_plugin_status_update(self, message: messaging.Message):
         """
         To be overwritten by subclass.
         Called when a plugin list status update
         is received from the plugin manager.
         """
-        LOG.debug("Received plugin status update %r." % str(message))
+        LOG.debug("Received plugin status update %s.", message.payload)
 
     def register(self):
         """
         Send a register request to the plugin manager component to announce this plugin.
         """
-        message = {"name": self.name,
-                   "version": self.version,
-                   "description": self.description}
+        self.manoconn.call_async(
+            self._on_register_response,
+            "platform.management.plugin.register",
+            {
+                "name": self.name,
+                "version": self.version,
+                "description": self.description,
+            },
+        )
 
-        self.manoconn.call_async(self._on_register_response,
-                                 "platform.management.plugin.register",
-                                 json.dumps(message))
-
-    def _on_register_response(self, ch, method, props, response):
+    def _on_register_response(self, message: messaging.Message):
         """
         Event triggered when register response is received.
         :param props: response properties
         :param response: response body
         :return: None
         """
-        response = json.loads(str(response))
-        if response.get("status") != "OK":
-            LOG.debug("Response %r" % response)
+        response = message.payload
+        if response["status"] != "OK":
+            LOG.debug("Response %r", response)
             LOG.error("Plugin registration failed. Exit.")
             exit(1)
-        self.uuid = response.get("uuid")
+        self.uuid = response["uuid"]
         # mark this plugin to be ready to be started
         self.state = "READY"
-        LOG.info("Plugin registered with UUID: %r" % response.get("uuid"))
+        LOG.info("Plugin registered with UUID: %s", response["uuid"])
         # jump to on_registration_ok()
         self.on_registration_ok()
         # subscribe to start topic
         self._register_lifecycle_endpoints()
-        # start heartbeat mechanism
-        self._send_heartbeat()
+        self._registered_event.set()
 
     def deregister(self):
         """
         Send a deregister event to the plugin manager component.
         """
         LOG.info("De-registering plugin...")
-        message = {"uuid": self.uuid}
-        self.manoconn.call_async(self._on_deregister_response,
-                                 "platform.management.plugin.deregister",
-                                 json.dumps(message))
-    def _on_deregister_response(self, ch, method, props, response):
+        self.manoconn.call_async(
+            self._on_deregister_response,
+            "platform.management.plugin.deregister",
+            {"uuid": self.uuid},
+        )
+
+    def _on_deregister_response(self, message: messaging.Message):
         """
         Event triggered when de-register response is received.
         :param props: response properties
         :param response: response body
         :return: None
         """
-        response = json.loads(str(response))
-        if response.get("status") != "OK":
+        if message.payload["status"] != "OK":
             LOG.error("Plugin de-registration failed. Exit.")
             exit(1)
+        self.uuid = None
+        self._registered_event.clear()
         LOG.info("Plugin de-registered.")
 
-    def _wait_for_registration(self, timeout=5, sleep_interval=0.1):
+    def _wait_for_registration(self, timeout=5):
         """
-        Method to do active waiting until the registration is completed.
-        (not nice, but ok for now)
-        :param timeout: max wait
-        :param sleep_interval: sleep interval
+        Method to block until the registration is completed or a timeout reached.
+        :param timeout: Timeout in seconds
         :return: None
         """
-        # FIXME: Use threading.Event() for this?
-        c = 0
-        LOG.debug("Waiting for registration (timeout=%d) ..." % timeout)
-        while self.uuid is None and c < timeout:
-            time.sleep(sleep_interval)
-            c += sleep_interval
+        LOG.debug("Waiting for registration (timeout=%d) ...", timeout)
+        self._registered_event.wait(timeout)
 
     def _register_lifecycle_endpoints(self):
         if self.uuid is not None:
             # lifecycle.start
             self.manoconn.register_notification_endpoint(
                 self.on_lifecycle_start,  # call back method
-                "platform.management.plugin.%s.lifecycle.start" % str(self.uuid))
+                "platform.management.plugin.%s.lifecycle.start" % str(self.uuid),
+            )
             # lifecycle.pause
             self.manoconn.register_notification_endpoint(
                 self.on_lifecycle_pause,  # call back method
-                "platform.management.plugin.%s.lifecycle.pause" % str(self.uuid))
+                "platform.management.plugin.%s.lifecycle.pause" % str(self.uuid),
+            )
             # lifecycle.stop
             self.manoconn.register_notification_endpoint(
                 self.on_lifecycle_stop,  # call back method
-                "platform.management.plugin.%s.lifecycle.stop" % str(self.uuid))
+                "platform.management.plugin.%s.lifecycle.stop" % str(self.uuid),
+            )
