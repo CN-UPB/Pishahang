@@ -14,10 +14,11 @@ import { getApiUrl } from "./index";
  */
 export async function uploadDescriptor(
   type: DescriptorType,
-  content: DescriptorContent
+  content: DescriptorContent,
+  contentString: string
 ): Promise<ApiReply<Descriptor>> {
   try {
-    let reply = await axios.post(getApiUrl("descriptors"), { content, type });
+    let reply = await axios.post(getApiUrl("descriptors"), { content, contentString, type });
     return { success: true, payload: reply.data };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
@@ -41,7 +42,6 @@ export async function getDescriptor(uuid: String): Promise<ApiReply> {
   try {
     if (uuid == null) return;
     let reply = await axios.get(getApiUrl("descriptors/" + uuid));
-    console.log(reply);
     return { success: true, payload: reply.data };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {
