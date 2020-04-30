@@ -1,4 +1,5 @@
 import { Button } from "@material-ui/core";
+import yaml from "js-yaml";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 import { useDispatch } from "react-redux";
@@ -16,16 +17,19 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
   /**
    * Display a dialog for uploading Descriptors...
    */
-  let readFile;
+  let yamlFile, parsedYamlFile;
   let type = descriptorType;
+
   function onDrop(files) {
-    const blb = new Blob([files], { type: "text/json" });
-    var file = new File([blb], "descriptor", { type: "text/json;charset=utf-8" });
+    const blb = new Blob([files], { type: "text/yaml" });
+    var file = new File([blb], "descriptor", { type: "text/yaml;charset=utf-8" });
     const reader = new FileReader();
 
     reader.onload = (e) => {
-      var text = reader.result.toString();
-      readFile = JSON.parse(text);
+      //text contains the file contents as is.
+      var fileText = reader.result.toString();
+      yamlFile = fileText;
+      parsedYamlFile = yaml.safeLoad(fileText);
     };
 
     // Start reading the blob as text.
@@ -34,7 +38,11 @@ export function useDescriptorUploadDialog(descriptorType: DescriptorType) {
 
   async function upload() {
     hideFileSelector();
-    const reply = await uploadDescriptor(type, readFile);
+
+    /**
+     * Upload descriptor type, parsedYamlFile, File with the API
+     */
+    const reply = await uploadDescriptor(type, parsedYamlFile, yamlFile);
     if (reply.success) {
       dispatch(showSnackbar("Descriptor successfully uploaded"));
       refreshWindow();
