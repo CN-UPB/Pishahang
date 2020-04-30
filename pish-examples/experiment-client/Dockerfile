@@ -9,4 +9,7 @@ ADD app /app
 
 WORKDIR /app
 
-# CMD ["bash"]
+COPY start_jupyter.sh /start_jupyter.sh
+RUN chmod +x /start_jupyter.sh
+
+CMD ["bash", "/start_jupyter.sh"]

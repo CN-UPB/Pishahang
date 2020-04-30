@@ -1,0 +1,16 @@
+,history,avg_datarate,playing_time,down_time
+0,virtual_deployment_units_con:transcoder-image-1-con,790.6755482157072,60.0,0.0
+1,virtual_deployment_units_con:transcoder-image-1-con,813.3834848801295,60.0,0.0
+2,virtual_deployment_units_con:transcoder-image-1-con,828.9912432432175,60.0,0.0
+3,virtual_deployment_units_con:transcoder-image-1-con,841.8186417858427,60.0,0.0
+4,virtual_deployment_units_con:transcoder-image-1-con,732.4666400750478,60.0,0.0
+5,virtual_deployment_units_con:transcoder-image-1-con,846.5975845853487,60.0,0.0
+6,virtual_deployment_units_gpu:transcoder-image-1-gpu,4779.686545040093,49.0,11.0
+7,virtual_deployment_units_gpu:transcoder-image-1-gpu,6972.855297185607,59.0,1.0
+8,virtual_deployment_units_gpu:transcoder-image-1-gpu,5908.144126504155,59.0,1.0
+9,virtual_deployment_units_gpu:transcoder-image-1-gpu,6551.3508677482605,60.0,0.0
+10,virtual_deployment_units_gpu:transcoder-image-1-gpu,6848.09056520462,60.0,0.0
+11,virtual_deployment_units_gpu:transcoder-image-1-gpu,6849.6867299079895,60.0,0.0
+12,virtual_deployment_units_con:transcoder-image-1-con,2589.359516805073,51.0,9.0
+13,virtual_deployment_units_gpu:transcoder-image-1-gpu,4197.10210023018,50.0,10.0
+14,virtual_deployment_units_con:transcoder-image-1-con,1948.5064469850981,50.0,10.0

@@ -4,7 +4,7 @@ import vlc
 import os
 import time
 
-filepath = 'http://vimdemo2.cs.upb.de/data/stream_1.m3u8'
+filepath = 'http://vimdemo1.cs.upb.de:9000/data/stream_1.m3u8'
 
 movie = os.path.expanduser(filepath)
 instance = vlc.Instance("--vout=dummy --aout=dummy".split())
