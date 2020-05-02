@@ -21,19 +21,17 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-import json
 import logging
 import os
 import threading
 import time
 import unittest
 import uuid
-from collections import namedtuple
 from multiprocessing import Process
 
 import yaml
 
-from manobase.messaging import ManoBrokerRequestResponseConnection
+from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 from slm.slm import ServiceLifecycleManager
 
 logging.basicConfig(level=logging.INFO)
@@ -98,38 +96,40 @@ class testSlmRegistrationAndHeartbeat(unittest.TestCase):
         message is correctly formatted.
         """
 
-        def on_registration_trigger(ch, method, properties, message):
+        registration_request_received = threading.Event()
+        heartbeat_received = threading.Event()
+
+        def on_registration_trigger(message: Message):
             """
             When the registration request from the plugin is received,
             this method replies as if it were the plugin manager
             """
-            self.eventFinished()
-            return json.dumps({"status": "OK", "uuid": self.uuid})
+            registration_request_received.set()
+            return {"status": "OK", "uuid": self.uuid}
 
-        def on_heartbeat_receive(ch, method, properties, message):
+        def on_heartbeat_receive(message: Message):
             """
             When the heartbeat message is received, this
             method checks if it is formatted correctly
             """
-            msg = json.loads(str(message))
+            msg = message.payload
             # CHECK: The message should be a dictionary.
             self.assertTrue(isinstance(msg, dict), msg="Message is not a dictionary.")
             # CHECK: The dictionary should have a key 'uuid'.
-            self.assertTrue("uuid" in msg.keys(), msg="uuid is not a key.")
+            self.assertTrue("uuid" in msg, msg="uuid is not a key.")
             # CHECK: The value of 'uuid' should be a string.
             self.assertTrue(isinstance(msg["uuid"], str), msg="uuid is not a string.")
             # CHECK: The uuid in the message should be the same as the assigned uuid.
             self.assertEqual(self.uuid, msg["uuid"], msg="uuid not correct.")
             # CHECK: The dictionary should have a key 'state'.
-            self.assertTrue("state" in msg.keys(), msg="state is not a key.")
+            self.assertTrue("state" in msg, msg="state is not a key.")
             # CHECK: The value of 'state' should be a 'READY', 'RUNNING', 'PAUSED' or 'FAILED'.
             self.assertTrue(
                 msg["state"] in ["READY", "RUNNING", "PAUSED", "FAILED"],
                 msg="Not a valid state.",
             )
 
-            # Stop the wait
-            self.eventFinished()
+            heartbeat_received.set()
 
         # STEP1: subscribe to the correct topics
         self.manoconn.register_async_endpoint(
@@ -144,11 +144,10 @@ class testSlmRegistrationAndHeartbeat(unittest.TestCase):
         self.slm_proc.start()
 
         # STEP3: Wait until the registration request has been answered
-        self.waitForEvent(msg="No registration request received")
-
-        self.wait_for_event.clear()
+        registration_request_received.wait(5)
 
         # STEP4: Wait until the heartbeat message is received.
+        heartbeat_received.wait(5)
 
     def testSlmRegistration(self):
         """
@@ -159,13 +158,13 @@ class testSlmRegistrationAndHeartbeat(unittest.TestCase):
         """
 
         # STEP3a: When receiving the message, we need to check whether all fields present. TODO: check properties
-        def on_register_receive(ch, method, properties, message):
+        def on_register_receive(message: Message):
 
-            msg = json.loads(str(message))
+            msg = message.payload
             # CHECK: The message should be a dictionary.
             self.assertTrue(isinstance(msg, dict), msg="message is not a dictionary")
             # CHECK: The dictionary should have a key 'name'.
-            self.assertIn("name", msg.keys(), msg="No name provided in message.")
+            self.assertIn("name", msg, msg="No name provided in message.")
             if isinstance(msg["name"], str):
                 # CHECK: The value of 'name' should not be an empty string.
                 self.assertTrue(len(msg["name"]) > 0, msg="empty name provided.")
@@ -173,7 +172,7 @@ class testSlmRegistrationAndHeartbeat(unittest.TestCase):
                 # CHECK: The value of 'name' should be a string
                 self.assertEqual(True, False, msg="name is not a string")
             # CHECK: The dictionary should have a key 'version'.
-            self.assertIn("version", msg.keys(), msg="No version provided in message.")
+            self.assertIn("version", msg, msg="No version provided in message.")
             if isinstance(msg["version"], str):
                 # CHECK: The value of 'version' should not be an empty string.
                 self.assertTrue(len(msg["version"]) > 0, msg="empty version provided.")
@@ -182,7 +181,7 @@ class testSlmRegistrationAndHeartbeat(unittest.TestCase):
                 self.assertEqual(True, False, msg="version is not a string")
             # CHECK: The dictionary should have a key 'description'
             self.assertIn(
-                "description", msg.keys(), msg="No description provided in message."
+                "description", msg, msg="No description provided in message."
             )
             if isinstance(msg["description"], str):
                 # CHECK: The value of 'description' should not be an empty string.
@@ -214,7 +213,7 @@ class testSlmFunctionality(unittest.TestCase):
     life cycle of the network services.
     """
 
-    slm_proc = None
+    slm_proc: ServiceLifecycleManager = None
     uuid = "1"
     corr_id = "1ba347d6-6210-4de7-9ca3-a383e50d0330"
 
@@ -222,8 +221,8 @@ class testSlmFunctionality(unittest.TestCase):
     # SETUP
     ########################
     def setUp(self):
-        def on_register_trigger(ch, method, properties, message):
-            return json.dumps({"status": "OK", "uuid": self.uuid})
+        def on_register_trigger(message: Message):
+            return {"status": "OK", "uuid": self.uuid}
 
         # vnfcounter for when needed
         self.vnfcounter = 0
@@ -291,27 +290,26 @@ class testSlmFunctionality(unittest.TestCase):
 
         descriptors_path = TEST_DIR + "/test_descriptors/"
 
-        nsd_descriptor = open(descriptors_path + "sonata-demo.yml", "r")
-        vnfd1_descriptor = open(descriptors_path + "firewall-vnfd.yml", "r")
-        vnfd2_descriptor = open(descriptors_path + "iperf-vnfd.yml", "r")
-        vnfd3_descriptor = open(descriptors_path + "tcpdump-vnfd.yml", "r")
+        def load_descriptor(filename: str):
+            with open(descriptors_path + filename) as descriptor_file:
+                return yaml.safe_load(descriptor_file)
 
         # import the nsd and vnfds that form the service
-        if correctlyFormatted:
-            service_request = {
-                "NSD": yaml.load(nsd_descriptor),
-                "VNFD1": yaml.load(vnfd1_descriptor),
-                "VNFD2": yaml.load(vnfd2_descriptor),
-                "VNFD3": yaml.load(vnfd3_descriptor),
-            }
-        else:
-            service_request = {
-                "VNFD1": yaml.load(vnfd1_descriptor),
-                "VNFD2": yaml.load(vnfd2_descriptor),
-                "VNFD3": yaml.load(vnfd3_descriptor),
-            }
+        nsd_descriptor = load_descriptor("sonata-demo.yml")
+        vnfd1_descriptor = load_descriptor("firewall-vnfd.yml")
+        vnfd2_descriptor = load_descriptor("iperf-vnfd.yml")
+        vnfd3_descriptor = load_descriptor("tcpdump-vnfd.yml")
 
-        return yaml.dump(service_request)
+        service_request = {
+            "VNFD1": vnfd1_descriptor,
+            "VNFD2": vnfd2_descriptor,
+            "VNFD3": vnfd3_descriptor,
+        }
+
+        if correctlyFormatted:
+            service_request["NSD"] = nsd_descriptor
+
+        return service_request
 
     # Method that terminates the timer that waits for an event
     def firstEventFinished(self):
@@ -322,7 +320,7 @@ class testSlmFunctionality(unittest.TestCase):
         if not self.wait_for_first_event.wait(timeout):
             self.assertEqual(True, False, msg=msg)
 
-    def dummy(self, ch, method, properties, message):
+    def dummy(self, message: Message):
         """
         Sometimes, we need a cbf for a async_call, without actually using it.
         """
@@ -347,7 +345,7 @@ class testSlmFunctionality(unittest.TestCase):
 
         # SUBTEST1: Check a correctly formatted message
         message = self.createGkNewServiceRequestMessage()
-        service_dict[service_id]["payload"] = yaml.load(message)
+        service_dict[service_id]["payload"] = message
 
         self.slm_proc.set_services(service_dict)
         self.slm_proc.validate_deploy_request(service_id)
@@ -363,8 +361,7 @@ class testSlmFunctionality(unittest.TestCase):
         )
 
         # SUBTEST2: Check a message that is not a dictionary
-        message = "test message"
-        service_dict[service_id]["payload"] = message
+        service_dict[service_id]["payload"] = "test message"
 
         self.slm_proc.set_services(service_dict)
         self.slm_proc.validate_deploy_request(service_id)
@@ -384,15 +381,14 @@ class testSlmFunctionality(unittest.TestCase):
 
         # SUBTEST3: Check a message that contains no NSD
         message = self.createGkNewServiceRequestMessage()
-        loaded_message = yaml.load(message)
-        del loaded_message["NSD"]
-        service_dict[service_id]["payload"] = loaded_message
+        del message["NSD"]
+        service_dict[service_id]["payload"] = message
 
         self.slm_proc.set_services(service_dict)
         self.slm_proc.validate_deploy_request(service_id)
         result = self.slm_proc.get_services()
 
-        expected_message = "Request " + corr_id + ": NSD is not a dict."
+        expected_message = "Request " + corr_id + ": NSD/COSD is not a dict."
         expected_response = {"status": "ERROR", "error": expected_message}
 
         self.assertEqual(
@@ -406,9 +402,8 @@ class testSlmFunctionality(unittest.TestCase):
 
         # SUBTEST4: The number of VNFDs must be the same as listed in the NSD
         message = self.createGkNewServiceRequestMessage()
-        loaded_message = yaml.load(message)
-        loaded_message["NSD"]["network_functions"].append({})
-        service_dict[service_id]["payload"] = loaded_message
+        message["NSD"]["network_functions"].append({})
+        service_dict[service_id]["payload"] = message
 
         self.slm_proc.set_services(service_dict)
         self.slm_proc.validate_deploy_request(service_id)
@@ -428,9 +423,8 @@ class testSlmFunctionality(unittest.TestCase):
 
         # SUBTEST5: VNFDs can not be empty
         message = self.createGkNewServiceRequestMessage()
-        loaded_message = yaml.load(message)
-        loaded_message["VNFD1"] = None
-        service_dict[service_id]["payload"] = loaded_message
+        message["VNFD1"] = None
+        service_dict[service_id]["payload"] = message
 
         self.slm_proc.set_services(service_dict)
         self.slm_proc.validate_deploy_request(service_id)
@@ -476,7 +470,7 @@ class testSlmFunctionality(unittest.TestCase):
 
         # Create the ledger
         service_dict[service_id]["schedule"] = task_list
-        service_dict[service_id]["payload"] = yaml.load(message)
+        service_dict[service_id]["payload"] = message
 
         # Run the method
         self.slm_proc.set_services(service_dict)
@@ -519,7 +513,7 @@ class testSlmFunctionality(unittest.TestCase):
 
         # Create the ledger
         service_dict[service_id]["schedule"] = task_list
-        service_dict[service_id]["payload"] = yaml.load(message)
+        service_dict[service_id]["payload"] = message
 
         # Run the method
         self.slm_proc.set_services(service_dict)
@@ -531,9 +525,7 @@ class testSlmFunctionality(unittest.TestCase):
 
         # Check result: if successful, service_id will not be a key in result
 
-        self.assertFalse(
-            service_id in result.keys(), msg="key is part of ledger in SUBTEST2."
-        )
+        self.assertFalse(service_id in result, msg="key is part of ledger in SUBTEST2.")
 
     # ###############################################################
     # #TEST3: Test service_instance_create
@@ -606,7 +598,6 @@ class testSlmFunctionality(unittest.TestCase):
             "core_total": 12,
         }
         topology_message = [first, second, third]
-        payload = yaml.dump(topology_message)
 
         # Create ledger
         service_dict = {}
@@ -623,18 +614,19 @@ class testSlmFunctionality(unittest.TestCase):
 
         self.slm_proc.set_services(service_dict)
 
-        # Create properties
+        # Create Message
         topic = "infrastructure.management.compute.list"
-        prop_dict = {
-            "reply_to": topic,
-            "correlation_id": corr_id,
-            "app_id": "InfrastructureAdaptor",
-        }
-
-        properties = namedtuple("properties", prop_dict.keys())(*prop_dict.values())
 
         # Run method
-        self.slm_proc.resp_topo("foo", "bar", properties, payload)
+        self.slm_proc.resp_topo(
+            Message(
+                topic=topic,
+                payload=topology_message,
+                reply_to=topic,
+                correlation_id=corr_id,
+                app_id="InfrastructureAdaptor",
+            )
+        )
 
         # Check result
         result = self.slm_proc.get_services()
@@ -656,10 +648,9 @@ class testSlmFunctionality(unittest.TestCase):
         # SUBTEST1: Only one VNFD in the service
         # Setup
         # Create the message
-        vnfr = yaml.load(open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml", "r"))
+        with open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml") as file:
+            vnfr = yaml.safe_load(file)
         message = {"status": "DEPLOYED", "error": None, "vnfr": vnfr}
-
-        payload = yaml.dump(message)
 
         # Create ledger
         service_dict = {}
@@ -677,18 +668,18 @@ class testSlmFunctionality(unittest.TestCase):
 
         self.slm_proc.set_services(service_dict)
 
-        # Create properties
         topic = "mano.function.deploy"
-        prop_dict = {
-            "reply_to": topic,
-            "correlation_id": corr_id,
-            "app_id": "FunctionLifecycleManager",
-        }
-
-        properties = namedtuple("props", prop_dict.keys())(*prop_dict.values())
 
         # Run method
-        self.slm_proc.resp_vnf_depl("foo", "bar", properties, payload)
+        self.slm_proc.resp_vnf_depl(
+            Message(
+                topic=topic,
+                reply_to=topic,
+                payload=message,
+                correlation_id=corr_id,
+                app_id="FunctionLifecycleManager",
+            )
+        )
 
         # Check result
         result = self.slm_proc.get_services()
@@ -706,10 +697,9 @@ class testSlmFunctionality(unittest.TestCase):
         # SUBTEST2: Two VNFDs in the service
         # Setup
         # Create the message
-        vnfr = yaml.load(open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml", "r"))
+        with open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml") as file:
+            vnfr = yaml.safe_load(file)
         message = {"status": "DEPLOYED", "error": None, "vnfr": vnfr}
-
-        payload = yaml.dump(message)
 
         # Create ledger
         service_dict = {}
@@ -727,18 +717,18 @@ class testSlmFunctionality(unittest.TestCase):
 
         self.slm_proc.set_services(service_dict)
 
-        # Create properties
         topic = "mano.function.deploy"
-        prop_dict = {
-            "reply_to": topic,
-            "correlation_id": corr_id,
-            "app_id": "FunctionLifecycleManager",
-        }
-
-        properties = namedtuple("props", prop_dict.keys())(*prop_dict.values())
 
         # Run method
-        self.slm_proc.resp_vnf_depl("foo", "bar", properties, payload)
+        self.slm_proc.resp_vnf_depl(
+            Message(
+                topic=topic,
+                reply_to=topic,
+                payload=message,
+                correlation_id=corr_id,
+                app_id="FunctionLifecycleManager",
+            )
+        )
 
         # Check result
         result = self.slm_proc.get_services()
@@ -775,8 +765,6 @@ class testSlmFunctionality(unittest.TestCase):
             "error": None,
         }
 
-        payload = yaml.dump(message)
-
         # Create ledger
         service_dict = {}
         service_id = str(uuid.uuid4())
@@ -794,26 +782,27 @@ class testSlmFunctionality(unittest.TestCase):
 
         # Create properties
         topic = "infrastructure.service.prepare"
-        prop_dict = {
-            "reply_to": topic,
-            "correlation_id": corr_id,
-            "app_id": "InfrastructureAdaptor",
-        }
-
-        properties = namedtuple("props", prop_dict.keys())(*prop_dict.values())
 
         # Run method
-        self.slm_proc.resp_prepare("foo", "bar", properties, payload)
+        self.slm_proc.resp_prepare(
+            Message(
+                topic=topic,
+                reply_to=topic,
+                payload=message,
+                correlation_id=corr_id,
+                app_id="InfrastructureAdaptor",
+            )
+        )
 
         # Check result
         result = self.slm_proc.get_services()
 
         self.assertFalse(
-            "status" in result[service_id].keys(), msg="Key in dictionary SUBTEST 1"
+            "status" in result[service_id], msg="Key in dictionary SUBTEST 1"
         )
 
         self.assertFalse(
-            "error" in result[service_id].keys(), msg="Key in dictionary SUBTEST 1"
+            "error" in result[service_id], msg="Key in dictionary SUBTEST 1"
         )
 
         # #SUBTEST 2: Failed response message
@@ -886,50 +875,50 @@ class testSlmFunctionality(unittest.TestCase):
         """
 
         # Check result SUBTEST 1
-        def on_contact_gk_subtest1(ch, mthd, prop, payload):
-            message = yaml.load(payload)
+        def on_contact_gk_subtest1(message: Message):
+            payload = message.payload
 
             self.assertEqual(
-                message["status"], "FOO", msg="Status not correct in SUBTEST 1"
+                payload["status"], "FOO", msg="Status not correct in SUBTEST 1"
             )
 
             self.assertEqual(
-                message["error"], "BAR", msg="Error not correct in SUBTEST 1"
+                payload["error"], "BAR", msg="Error not correct in SUBTEST 1"
             )
 
             self.assertTrue(
-                "timestamp" in message.keys(), msg="Timestamp missing in SUBTEST 1"
+                "timestamp" in payload, msg="Timestamp missing in SUBTEST 1"
             )
 
             self.assertEqual(
-                len(message.keys()), 3, msg="Number of keys not correct in SUBTEST1"
+                len(payload), 3, msg="Number of keys not correct in SUBTEST1"
             )
             self.firstEventFinished()
 
         # Check result SUBTEST2
-        def on_contact_gk_subtest2(ch, mthd, prop, payload):
+        def on_contact_gk_subtest2(message: Message):
             self.firstEventFinished()
 
-            message = yaml.load(payload)
+            payload = message.payload
 
             self.assertEqual(
-                message["status"], "FOO", msg="Status not correct in SUBTEST 2"
+                payload["status"], "FOO", msg="Status not correct in SUBTEST 2"
             )
 
             self.assertEqual(
-                message["error"], "BAR", msg="Error not correct in SUBTEST 2"
+                payload["error"], "BAR", msg="Error not correct in SUBTEST 2"
             )
 
             self.assertEqual(
-                message["FOO"], "BAR", msg="Error not correct in SUBTEST 2"
+                payload["FOO"], "BAR", msg="Error not correct in SUBTEST 2"
             )
 
             self.assertTrue(
-                "timestamp" in message.keys(), msg="Timestamp missing in SUBTEST 2"
+                "timestamp" in payload, msg="Timestamp missing in SUBTEST 2"
             )
 
             self.assertEqual(
-                len(message.keys()), 4, msg="Number of keys not correct in SUBTEST2"
+                len(payload), 4, msg="Number of keys not correct in SUBTEST2"
             )
 
         # SUBTEST1: Without additional content
@@ -954,9 +943,6 @@ class testSlmFunctionality(unittest.TestCase):
 
         # Spy the message bus
         self.manoconn_spy.subscribe(on_contact_gk_subtest1, "service.instances.create")
-
-        # Wait until subscription is completed
-        time.sleep(0.1)
 
         # Run the method
         self.slm_proc.contact_gk(service_id)
@@ -987,9 +973,6 @@ class testSlmFunctionality(unittest.TestCase):
         # Spy the message bus
         self.manoconn_gk.subscribe(on_contact_gk_subtest2, "service.instances.create")
 
-        # Wait until subscription is completed
-        time.sleep(0.1)
-
         # Run the method
         self.slm_proc.contact_gk(service_id)
 
@@ -1005,9 +988,9 @@ class testSlmFunctionality(unittest.TestCase):
         """
 
         # Check result SUBTEST 1
-        def on_request_topology_subtest1(ch, mthd, prop, payload):
+        def on_request_topology_subtest1(message: Message):
 
-            self.assertEqual(payload, "{}", msg="Payload is not empty")
+            self.assertEqual(message.payload, {}, msg="Payload is not empty")
 
             self.firstEventFinished()
 
@@ -1035,9 +1018,6 @@ class testSlmFunctionality(unittest.TestCase):
         self.manoconn_spy.subscribe(
             on_request_topology_subtest1, "infrastructure.management.compute.list"
         )
-
-        # Wait until subscription is completed
-        time.sleep(0.1)
 
         # Run the method
         self.slm_proc.request_topology(service_id)
@@ -1109,9 +1089,6 @@ class testSlmFunctionality(unittest.TestCase):
 #     #Spy the message bus
 #     self.manoconn_spy.subscribe(on_ia_prepare_subtest1,
 #                                 'infrastructure.service.prepare')
-
-#     #Wait until subscription is completed
-#     time.sleep(0.1)
 
 #     #Run the method
 #     self.slm_proc.ia_prepare(service_id)
@@ -1215,9 +1192,6 @@ class testSlmFunctionality(unittest.TestCase):
 #         #Spy the message bus
 #         self.manoconn_spy.subscribe(on_vnf_deploy_subtest1,
 #                                     'mano.function.deploy')
-
-#         #Wait until subscription is completed
-#         time.sleep(0.1)
 
 #         #Run the method
 #         self.slm_proc.vnf_deploy(service_id)
