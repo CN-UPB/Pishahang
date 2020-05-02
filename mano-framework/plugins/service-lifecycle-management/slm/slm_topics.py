@@ -19,8 +19,7 @@ funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).a
-"""
-"""
+
 This is SONATA's service lifecycle management plugin
 """
 
@@ -59,27 +58,27 @@ WC_KILL = "*.instance.terminate"
 WC_UPDATE = "*.instances.update"
 
 # With infrastructure adaptor
-IA_DEPLOY = 'infrastructure.function.deploy'
-IA_REMOVE = 'infrastructure.service.remove'
-IA_TOPO = 'infrastructure.management.compute.list'
-IA_PREPARE = 'infrastructure.service.prepare'
-IA_CONF_CHAIN = 'infrastructure.service.chain.configure'
-IA_DECONF_CHAIN = 'infrastructure.service.chain.deconfigure'
-IA_CONF_WAN = 'infrastructure.service.wan.configure'
-IA_DECONF_WAN = 'infrastructure.service.wan.deconfigure'
+IA_DEPLOY = "infrastructure.function.deploy"
+IA_REMOVE = "infrastructure.service.remove"
+IA_TOPO = "infrastructure.management.compute.list"
+IA_PREPARE = "infrastructure.service.prepare"
+IA_CONF_CHAIN = "infrastructure.service.chain.configure"
+IA_DECONF_CHAIN = "infrastructure.service.chain.deconfigure"
+IA_CONF_WAN = "infrastructure.service.wan.configure"
+IA_DECONF_WAN = "infrastructure.service.wan.deconfigure"
 
 # With specific manager registry
-SRM_ONBOARD = 'specific.manager.registry.ssm.on-board'
-SRM_INSTANT = 'specific.manager.registry.ssm.instantiate'
-SRM_UPDATE = 'specific.manager.registry.ssm.update'
-SSM_TERM = 'specific.manager.registry.ssm.terminate'
-FSM_TERM = 'specific.manager.registry.fsm.terminate'
+SRM_ONBOARD = "specific.manager.registry.ssm.on-board"
+SRM_INSTANT = "specific.manager.registry.ssm.instantiate"
+SRM_UPDATE = "specific.manager.registry.ssm.update"
+SSM_TERM = "specific.manager.registry.ssm.terminate"
+FSM_TERM = "specific.manager.registry.fsm.terminate"
 
 # with sdn plugin
-MANO_CHAIN_DPLOY = 'chain.dploy.sdnplugin'
+MANO_CHAIN_DPLOY = "chain.dploy.sdnplugin"
 
 # With Executive
-EXEC_PLACE = 'placement.executive.request'
+EXEC_PLACE = "placement.executive.request"
 
 # With plugin mananger
 PL_STATUS = "platform.management.plugin.status"
@@ -98,14 +97,14 @@ if temp is None:
 p = urlparse(temp)
 GK_PORT = p.port
 BASE_URL = p.scheme + "://" + p.hostname + ":" + str(GK_PORT)
-API_VER = '/api/v2'
-PUPLIC_KEY_PATH = '/public-key'
-REG_PATH = '/micro-services'
-LOGIN_PATH = '/micro-services'
-SERVICES = '/services/'
-COMPLEX_SERVICES = '/complex-services/'
-FUNCTIONS = '/functions/'
-CLOUD_SERVICES = '/cloud-services/'
+API_VER = "/api/v2"
+PUPLIC_KEY_PATH = "/public-key"
+REG_PATH = "/micro-services"
+LOGIN_PATH = "/micro-services"
+SERVICES = "/services/"
+COMPLEX_SERVICES = "/complex-services/"
+FUNCTIONS = "/functions/"
+CLOUD_SERVICES = "/cloud-services/"
 
 GK_REGISTER = BASE_URL + API_VER + REG_PATH
 GK_LOGIN = BASE_URL + API_VER + LOGIN_PATH
@@ -115,8 +114,8 @@ GK_FUNCTIONS = BASE_URL + API_VER + FUNCTIONS
 GK_CLOUD_SERVICES = BASE_URL + API_VER + CLOUD_SERVICES
 
 # REST API with GK
-GK_SERVICES_URL = BASE_URL + '/api/v2/services/'
-GK_FUNCTIONS_URL = BASE_URL + '/api/v2/functions/'
+GK_SERVICES_URL = BASE_URL + "/api/v2/services/"
+GK_FUNCTIONS_URL = BASE_URL + "/api/v2/functions/"
 
 # With Repositories
 temp = os.environ.get("url_nsr_repository")
