@@ -43,7 +43,7 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
-CLASSIFIER_IP="131.234.250.117"
+CLASSIFIER_IP="131.234.250.116"
 SWITCH_DEBUG = True
 SWITCH_DEBUG_IMAGE_VM = "transcoder-image-1-vm"
 SWITCH_DEBUG_IMAGE_GPU = "transcoder-image-1-gpu"
@@ -216,7 +216,7 @@ class MVPlugin(ManoBasePlugin):
                                     self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
                                     self.active_services[serv_id]['metadata'] = content
                                     self.active_services[serv_id]['is_nsd'] = is_nsd                                                                        
-                                    self.active_services[serv_id]['network'] = {
+                                    self.active_services[serv_id]['ports'] = {
                                         "ip": _vnfi["connection_points"][0]["interface"]["address"],
                                         "port": 80
                                     }
@@ -233,8 +233,8 @@ class MVPlugin(ManoBasePlugin):
 
                                     tools.switch_classifier(
                                         classifier_ip=CLASSIFIER_IP,
-                                        vnf_ip=self.active_services[serv_id]['network']['ip'],
-                                        vnf_port=self.active_services[serv_id]['network']['port'])
+                                        vnf_ip=self.active_services[serv_id]['ports']['ip'],
+                                        vnf_port=self.active_services[serv_id]['ports']['port'])
             else:
                 # LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:

@@ -2,3 +2,4 @@ watchdog==0.10.2
 argh==0.26.2
 openstack-heat==13.0.0
 kubernetes==10.0.1
+Flask==0.12.2

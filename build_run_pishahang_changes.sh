@@ -71,7 +71,7 @@ sudo docker stop pishahang_placementplugin_1
 sudo docker stop pishahang_mvplugin_1
 sudo docker rm pishahang_mvplugin_1
 sudo docker build -t pishahang_mvplugin_1 -f plugins/son-mano-mv/Dockerfile-dev .
-sudo docker run -d --name pishahang_mvplugin_1 --net=pishahang_pishanet --network-alias=mvplugin -v $(pwd)/plugins/son-mano-mv:/plugins/son-mano-mv pishahang_mvplugin_1
+sudo docker run -d --name pishahang_mvplugin_1 --net=pishahang_pishanet --network-alias=mvplugin -p 8898:8898 -v $(pwd)/plugins/son-mano-mv:/plugins/son-mano-mv pishahang_mvplugin_1
 
 echo "##############################################"
 echo "##############################################"
