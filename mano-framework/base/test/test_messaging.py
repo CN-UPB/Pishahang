@@ -53,7 +53,7 @@ class BaseTestCase(unittest.TestCase):
 
     def create_cbf(self, queue=0):
         def simple_subscribe_cbf(message: Message):
-            self.assertIsNotNone(message.properties["app_id"])
+            self.assertIsNotNone(message.app_id)
             self.assertIsNotNone(message.headers)
             LOG.debug("SUBSCRIBE CBF %d: Received %s", queue, message.payload)
             self._message_queues[queue].put(message)
@@ -61,7 +61,7 @@ class BaseTestCase(unittest.TestCase):
         return simple_subscribe_cbf
 
     def echo_cbf(self, message: Message):
-        self.assertIsNotNone(message.properties["app_id"])
+        self.assertIsNotNone(message.app_id)
         self.assertIsNotNone(message.reply_to)
         self.assertIsNotNone(message.correlation_id)
         self.assertIsNotNone(message.headers)

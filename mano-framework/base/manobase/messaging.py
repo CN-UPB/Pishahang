@@ -55,11 +55,38 @@ class Message:
     Represents a message from the message broker.
     """
 
-    def __init__(self, message: amqpstorm.Message):
+    def __init__(
+        self,
+        topic: str,
+        payload: Any = {},
+        correlation_id: str = None,
+        reply_to=None,
+        headers={},
+        message_id: str = None,
+        channel: amqpstorm.Channel = None,
+        app_id: str = None,
+    ):
         """
-        Initializes a new `Message` object with data from an AMQPStorm Message object (includes
-        deserializing the body)
+        Note: Unless during unit tests, there's no need to manually create
+        message objects.
         """
+        self.topic = topic
+        self.payload = payload
+        self.correlation_id = correlation_id
+        self.reply_to = reply_to
+        self.headers = headers
+        self.message_id = message_id
+        self.channel = channel
+        self.app_id = app_id
+
+    @staticmethod
+    def from_amqpstorm_message(message: amqpstorm.Message):
+        """
+        Initializes a new `Message` object with data from an AMQPStorm Message
+        object (includes deserializing the body)
+        """
+        assert type(message) == amqpstorm.Message
+
         # Deserialize payload
         if "yaml" in message.content_type:
             payload = yaml.safe_load(message.body)
@@ -72,27 +99,25 @@ class Message:
                 message,
             )
             payload = message.body
-        self.payload: Any = payload
 
-        self.channel: amqpstorm.Channel = message.channel
-        self.method = message.method
-        self.topic: str = self.method["routing_key"]
-        self.correlation_id: str = message.correlation_id
-        self.message_id: str = message.message_id
-        self.reply_to: str = None if message.reply_to == "" else message.reply_to
+        app_id = message.properties.get("app_id", None)
+        if app_id == "":
+            app_id = None
 
-        self.properties: Dict = message.properties
-        # Convert empty strings in properties to None
-        for k, v in self.properties.items():
-            self.properties[k] = None if v == "" else v
+        headers = (
+            {} if "headers" not in message.properties else message.properties["headers"]
+        )
 
-    @property
-    def headers(self):
-        return {} if "headers" not in self.properties else self.properties["headers"]
-
-    @property
-    def app_id(self):
-        self.properties.get("app_id", None)
+        return Message(
+            topic=message.method["routing_key"],
+            payload=payload,
+            correlation_id=message.correlation_id,
+            reply_to=None if message.reply_to == "" else message.reply_to,
+            headers=headers,
+            message_id=message.message_id,
+            channel=message.channel,
+            app_id=app_id,
+        )
 
 
 class ManoBrokerConnection:
@@ -204,9 +229,14 @@ class ManoBrokerConnection:
         """
 
         def _on_message_received(amqpstormMessage: amqpstorm.Message):
-            message = Message(amqpstormMessage)  # Create custom message object
-            cbf(message)  # Call cbf of subscription
-            amqpstormMessage.ack()  # Ack the message to let the broker know that message was delivered
+            # Create custom message object
+            message = Message.from_amqpstorm_message(amqpstormMessage)
+
+            # Call cbf of subscription
+            cbf(message)
+
+            # Ack the message to let the broker know that message was delivered
+            amqpstormMessage.ack()
 
         consumption_started_event = Event()
 
@@ -546,7 +576,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         """
         Client method to sync. call an endpoint registered and bound to the given topic by any
         other component connected to the broker. The method waits for a response and returns it
-        as a tuple containing message properties and content.
+        as a `manobase.messaging.Message` object.
 
         :param topic: topic for communication (callee has to be described to it)
         :param payload: The message payload (serializable object)
