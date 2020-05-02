@@ -26,20 +26,22 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-import unittest
 import time
-import json
-import threading
-import requests
+import unittest
 from multiprocessing import Process
+from threading import Event
+
+import requests
+
+from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 from pluginmanager.pluginmanager import SonPluginManager
-from manobase.messaging import ManoBrokerRequestResponseConnection
 
 
 class TestPluginManagerBase(unittest.TestCase):
     """
     Commen functionalities used my many test cases
     """
+
     pm_proc = None
 
     @classmethod
@@ -59,7 +61,7 @@ class TestPluginManagerBase(unittest.TestCase):
     def setUp(self):
         # initialize messaging subsystem
         self.m = ManoBrokerRequestResponseConnection("pm-client" + self.id())
-        self.wait_for_reply = threading.Event()
+        self.wait_for_reply = Event()
         self.plugin_uuid = None
 
     def tearDown(self):
@@ -80,52 +82,33 @@ class TestPluginManagerBase(unittest.TestCase):
         Helper: We need this in many tests.
         :return:
         """
-        def on_register_reply(ch, method, properties, message):
-            msg = json.loads(str(message))
-            assert(msg.get("status") == "OK")
-            assert(len(msg.get("uuid")) > 0)
-            assert(msg.get("error") is None)
-            # set internal state variables
-            self.plugin_uuid = msg.get("uuid")
-            # stop waiting
-            self.messageReceived()
-
-        # create register request message
-        msg = dict(name="test-plugin",
-                   version="v0.01",
-                   description="description")
-
         # do the registration call
-        self.m.call_async(on_register_reply,
-                          "platform.management.plugin.register",
-                          json.dumps(msg))
+        response = self.m.call_sync(
+            "platform.management.plugin.register",
+            {"name": "test-plugin", "version": "v0.01", "description": "description"},
+        )
 
-        # make our test synchronous: wait
-        self.waitForMessage()
+        assert response is not None
+        msg = response.payload
+        assert msg["status"] == "OK"
+        assert len(msg["uuid"]) > 0
+        assert msg["error"] is None
+        # set internal state variables
+        self.plugin_uuid = msg["uuid"]
 
     def deregister(self):
         """
         Helper: We need this in many tests.
         :return:
         """
-        assert(self.plugin_uuid is not None)
+        assert self.plugin_uuid is not None
 
-        def on_deregister_reply(ch, method, properties, message):
-            msg = json.loads(str(message))
-            assert(msg.get("status") == "OK")
-            # stop waiting
-            self.messageReceived()
+        response = self.m.call_sync(
+            "platform.management.plugin.deregister", {"uuid": self.plugin_uuid}
+        )
 
-        # create register request message
-        msg = dict(uuid=self.plugin_uuid)
-
-        # do the registration call
-        self.m.call_async(on_deregister_reply,
-                          "platform.management.plugin.deregister",
-                          json.dumps(msg))
-
-        # make our test synchronous: wait
-        self.waitForMessage()
+        assert response is not None
+        assert {"status": "OK"} == response.payload
 
 
 class TestPluginManagerMessageInterface(TestPluginManagerBase):
@@ -133,6 +116,7 @@ class TestPluginManagerMessageInterface(TestPluginManagerBase):
     Tests the rabbit mq interface of the the plugin manager by interacting
     with it like a plugin.
     """
+
     # TODO Add more test cases to cover all functionailites of the interface
 
     @unittest.skip("skip")
@@ -143,32 +127,32 @@ class TestPluginManagerMessageInterface(TestPluginManagerBase):
         """
         self.register()
 
-        # callback for status updates
-        def on_start_receive(ch, method, properties, message):
-            msg = json.loads(str(message))
-            assert(len(msg) == 0)
-            # stop waiting
-            self.messageReceived()
+        start_received = Event()
 
-        # create heartbeat message
-        msg = dict(uuid=self.plugin_uuid,
-                   state="READY")
+        # callback for status updates
+        def on_start_receive(message: Message):
+            assert len(message.payload) == 0
+            # stop waiting
+            start_received.set()
 
         # subscribe to status updates
-        self.m.subscribe(on_start_receive,
-                         "platform.management.plugin.%s.lifecycle.start" % self.plugin_uuid)
-        time.sleep(0.5)  # wait to establish subscription
+        self.m.subscribe(
+            on_start_receive,
+            "platform.management.plugin.%s.lifecycle.start" % self.plugin_uuid,
+        )
 
         # send heartbeat with status update to trigger autostart
-        self.m.notify("platform.management.plugin.%s.heartbeat" % self.plugin_uuid, json.dumps(msg))
+        self.m.notify(
+            "platform.management.plugin.%s.heartbeat" % self.plugin_uuid,
+            {"uuid": self.plugin_uuid, "state": "READY"},
+        )
 
         # make our test synchronous: wait
-        self.waitForMessage()
+        start_received.wait(5)
 
         # de-register
         self.deregister()
 
-    #@unittest.skip("skip")
     def testHeartbeatStatusUpdate(self):
         """
         Do registration and confirm the global status update message that has to be send by the PM.
@@ -178,24 +162,21 @@ class TestPluginManagerMessageInterface(TestPluginManagerBase):
         self.register()
 
         # callback for status updates
-        def on_status_update(ch, method, properties, message):
-            msg = json.loads(str(message))
+        def on_status_update(message: Message):
+            msg = message.payload
             self.assertTrue(len(msg.get("timestamp")) > 0)
             self.assertTrue(len(msg.get("plugin_dict")) > 0)
             # stop waiting
             self.messageReceived()
 
-        # create heartbeat message
-        msg = dict(uuid=self.plugin_uuid,
-                   state="READY")
-
         # subscribe to status updates
-        self.m.subscribe(on_status_update,
-                         "platform.management.plugin.status")
-        time.sleep(0.5)  # wait to establish subscription
+        self.m.subscribe(on_status_update, "platform.management.plugin.status")
 
         # send heartbeat with status update
-        self.m.notify("platform.management.plugin.%s.heartbeat" % self.plugin_uuid, json.dumps(msg))
+        self.m.notify(
+            "platform.management.plugin.%s.heartbeat" % self.plugin_uuid,
+            {"uuid": self.plugin_uuid, "state": "READY"},
+        )
 
         # make our test synchronous: wait
         self.waitForMessage()
@@ -245,15 +226,15 @@ class TestPluginManagerManagementInterface(TestPluginManagerBase):
         self.assertIn("registered_at", p_state)
         self.assertIn("last_heartbeat_at", p_state)
 
-#    def testDeletePlugin(self):
-#        """
-#        Test if we can request the deletion of a plugin.
-#        :return:
-#        """
-#        self.register()
-#        r = requests.delete("%s/api/plugins/%s" % (self.URL, self.plugin_uuid))
-#        self.assertEqual(r.status_code, 200)
-#        # TODO check that plugin was really removed
+    #    def testDeletePlugin(self):
+    #        """
+    #        Test if we can request the deletion of a plugin.
+    #        :return:
+    #        """
+    #        self.register()
+    #        r = requests.delete("%s/api/plugins/%s" % (self.URL, self.plugin_uuid))
+    #        self.assertEqual(r.status_code, 200)
+    #        # TODO check that plugin was really removed
 
     def testPutPluginLifecycle(self):
         """
@@ -261,9 +242,11 @@ class TestPluginManagerManagementInterface(TestPluginManagerBase):
         :return:
         """
         self.register()
-        req = {"target_state": "pause"}
-        r = requests.put("%s/api/plugins/%s/lifecycle" % (self.URL, self.plugin_uuid), json=json.dumps(req))
-        self.assertEqual(r.status_code, 200)
+        r = requests.put(
+            "%s/api/plugins/%s/lifecycle" % (self.URL, self.plugin_uuid),
+            json={"target_state": "pause"},
+        )
+        assert 200 == r.status_code
 
     def testPutPluginLifecycleMalformed(self):
         """
@@ -271,9 +254,11 @@ class TestPluginManagerManagementInterface(TestPluginManagerBase):
         :return:
         """
         self.register()
-        req = {"target_state123": "pause"}
-        r = requests.put("%s/api/plugins/%s/lifecycle" % (self.URL, self.plugin_uuid), json=json.dumps(req))
-        self.assertEqual(r.status_code, 500)
+        r = requests.put(
+            "%s/api/plugins/%s/lifecycle" % (self.URL, self.plugin_uuid),
+            json={"target_state123": "pause"},
+        )
+        assert 500 == r.status_code
 
 
 if __name__ == "__main__":
