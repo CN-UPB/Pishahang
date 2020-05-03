@@ -1,8 +1,8 @@
 init:
-	pipenv install --dev
+	poetry install
 run:
-	ENV=development pipenv run python -m gatekeeper
+	ENV=development poetry run python -m gatekeeper
 test:
-	pipenv run py.test
+	poetry run pytest
 test-watch:
-	pipenv run pytest-watch
+	poetry run pytest-watch
