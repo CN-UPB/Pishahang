@@ -177,12 +177,12 @@ class ManoBrokerConnection:
 
     def publish(
         self,
-        topic,
+        topic: str,
         payload,
         app_id: str = None,
-        correlation_id: str = "",
-        reply_to: str = "",
-        headers: Dict = {},
+        correlation_id: str = None,
+        reply_to: str = None,
+        headers: Dict[str, str] = {},
     ):
         """
         This method provides basic topic-based message publishing.
@@ -210,8 +210,10 @@ class ManoBrokerConnection:
                 properties={
                     "app_id": app_id,
                     "content_type": "application/yaml",
-                    "correlation_id": correlation_id,
-                    "reply_to": reply_to,
+                    "correlation_id": correlation_id
+                    if correlation_id is not None
+                    else "",
+                    "reply_to": reply_to if reply_to is not None else "",
                     "headers": headers,
                 },
             )
@@ -452,7 +454,13 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             LOG.debug("Received unmatched call response. Ignore it.")
 
     def call_async(
-        self, cbf, topic, payload={}, key="default", correlation_id=None, headers={},
+        self,
+        cbf,
+        topic: str,
+        payload={},
+        key="default",
+        correlation_id: str = None,
+        headers: Dict[str, str] = {},
     ):
         """
         Sends a request message to a topic. If a "register_async_endpoint" is listening to this topic,
@@ -464,7 +472,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         :param key: additional header field
         :param correlation_id: used to match requests to replies. If correlation_id is not given, a new one is generated.
         :param headers: Dictionary with additional header fields.
-        :return:
+        :return: The correlation_id used for the request message
         """
         if cbf is None:
             raise BaseException(
@@ -507,6 +515,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             correlation_id=correlation_id,
             headers=headers,
         )
+        return correlation_id
 
     def register_async_endpoint(self, cbf, topic):
         """
@@ -521,12 +530,11 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
     def notify(
         self,
-        topic,
+        topic: str,
         payload={},
         key="default",
-        correlation_id=None,
-        headers={},
-        reply_to=None,
+        correlation_id: str = None,
+        headers: Dict[str, str] = {},
     ):
         """
         Sends a simple one-way notification that does not expect a reply.
@@ -535,7 +543,6 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         :param msg: actual message
         :param correlation_id: allow to set individual correlation ids
         :param headers: header dict
-        :param reply_to: (normally not used)
         :return: None
         """
         # Set header defaults
@@ -544,11 +551,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
         # publish request message
         self.publish(
-            topic,
-            payload,
-            correlation_id=correlation_id,
-            reply_to=reply_to,
-            headers=headers,
+            topic, payload, correlation_id=correlation_id, headers=headers,
         )
 
     def register_notification_endpoint(self, cbf, topic, key="default"):
@@ -566,11 +569,11 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
     def call_sync(
         self,
-        topic,
+        topic: str,
         payload={},
         key="default",
-        correlation_id=None,
-        headers={},
+        correlation_id: str = None,
+        headers: Dict[str, str] = {},
         timeout=20,  # a sync. request has a timeout
     ) -> Message:
         """
@@ -613,10 +616,3 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         lock.wait(timeout)
         # return received response
         return response
-
-
-def callback_print(self, message: Message):
-    """
-    Helper callback that prints the received message.
-    """
-    LOG.debug("RECEIVED from %r on %r: %s", message.app_id, message.topic, message)
