@@ -247,7 +247,7 @@ class MVPlugin(ManoBasePlugin):
                                 # LOG.info(_vdu['vim_id'])
                                 # LOG.info(_t['vim_endpoint'])
                                 # FIXME: Timer for creation delay (Add a loop?)
-                                time.sleep(10)
+                                time.sleep(2)
                                 # _instance_timings = tools.get_k8_pod_times(serv_id, _t)
                                 # LOG.info("EXP: K8 VIM Time - {}\n".format(
                                 #         _instance_timings["vim_time"]
