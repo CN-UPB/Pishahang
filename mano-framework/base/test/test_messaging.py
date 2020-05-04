@@ -26,8 +26,8 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
+import logging
 import unittest
-from logging import Logger
 from queue import Queue
 from time import time
 from typing import List
@@ -38,18 +38,17 @@ from manobase.messaging import (
     Message,
 )
 
-LOG = Logger("manobase:messaging:test")
+logging.getLogger("manobase:messaging").setLevel(logging.DEBUG)
+LOG = logging.Logger("manobase:messaging:test")
 
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
-        self.m = None
+        self.m: ManoBrokerConnection = None
 
     def tearDown(self):
         self.m.stop_connection()
-        self.m.stop_threads()
-        del self.m
 
     def create_cbf(self, queue=0):
         def simple_subscribe_cbf(message: Message):

@@ -26,23 +26,22 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-from concurrent import futures as pool
 import json
 import logging
 import os
 import threading
-import uuid
-from threading import Event
-from typing import Any, Dict
+from threading import Event, Thread
+from typing import Any, Dict, Set
+from uuid import uuid4
 
 import amqpstorm
 import yaml
 from amqpstorm.exception import AMQPConnectionError
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("pika").setLevel(logging.ERROR)
+logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
 LOG = logging.getLogger("manobase:messaging")
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 # if we don't find a broker configuration in our ENV, we use this URL as default
 RABBITMQ_URL_FALLBACK = "amqp://guest:guest@localhost:5672/%2F"
@@ -145,14 +144,12 @@ class ManoBrokerConnection:
 
         # create additional members
         self._connection: amqpstorm.UriConnection = None
-        # trigger connection setup (without blocking)
-        # TODO (bjoluc) "without blocking"?
         self.setup_connection()
 
-        # Threading workers
-        self.thrd_pool = pool.ThreadPoolExecutor(max_workers=100)
-        # Track the workers
-        self.tasks = []
+        self._consuming_channels: Set[amqpstorm.Channel] = set()
+
+    def __del__(self):
+        self.stop_connection()
 
     def setup_connection(self):
         """
@@ -163,17 +160,23 @@ class ManoBrokerConnection:
 
     def stop_connection(self):
         """
-        Close the connection
-        :return:
+        Stop all consuming threads and close the connection
         """
-        self._connection.close()
+        self.stop_threads()
+        if self._connection.is_open or self._connection.is_opening:
+            self._connection.close()
 
     def stop_threads(self):
         """
-        Stop all the threads that are consuming messages
+        Stop all the threads that are consuming messages.
+
+        Note: This method is only public for backwards compatibility; it is called
+        internally in `stop_connection()` now.
         """
-        for task in self.tasks:
-            task.cancel()
+        for channel in list(self._consuming_channels):
+            channel.stop_consuming()
+            if channel.is_open or channel.is_opening:
+                channel.close()
 
     def publish(
         self,
@@ -230,6 +233,13 @@ class ManoBrokerConnection:
         :return:
         """
 
+        # We create an individual consumer tag ("subscription_queue") for each subscription to allow
+        # multiple subscriptions to the same topic.
+        if subscription_queue is None:
+            subscription_queue = "%s.%s.%s" % ("q", topic, uuid4())
+
+        consumption_started_event = Event()
+
         def _on_message_received(amqpstormMessage: amqpstorm.Message):
             # Create custom message object
             message = Message.from_amqpstorm_message(amqpstormMessage)
@@ -240,12 +250,9 @@ class ManoBrokerConnection:
             # Ack the message to let the broker know that message was delivered
             amqpstormMessage.ack()
 
-        consumption_started_event = Event()
-
-        def connection_thread():
+        def _subscriber():
             """
-            Each subscription consumes messages in its own thread.
-            :return:
+            A function that handles messages of the subscription.
             """
             with self._connection.channel() as channel:
                 # declare exchange for this channel
@@ -269,28 +276,23 @@ class ManoBrokerConnection:
                     subscription_queue,
                     consumer_tag=subscription_queue,
                 )
+                self._consuming_channels.add(channel)
                 try:
-                    # start consuming messages.
                     consumption_started_event.set()
+                    # start consuming messages.
                     channel.start_consuming()
                 except AMQPConnectionError:
                     pass
                 except BaseException:
                     LOG.exception("Error in subscription thread:")
+                    channel.stop_consuming()
                     channel.close()
+                finally:
+                    self._consuming_channels.discard(channel)
 
-        # Attention: We crate an individual queue for each subscription to allow multiple subscriptions
-        # to the same topic.
-        if subscription_queue is None:
-            queue_uuid = str(uuid.uuid4())
-            subscription_queue = "%s.%s.%s" % ("q", topic, queue_uuid)
-        # each subscriber is an own thread
+        # Each subscriber runs in a separate thread
         LOG.debug("Starting new thread to consume %s", subscription_queue)
-        task = self.thrd_pool.submit(connection_thread)
-
-        self.tasks.append(task)
-
-        # Make sure that consuming has started, before method finishes.
+        Thread(target=_subscriber).start()
         consumption_started_event.wait()
 
         LOG.debug("SUBSCRIBED to %s", topic)
@@ -312,10 +314,9 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
     """
 
     def __init__(self, app_id, **kwargs):
+        super(ManoBrokerRequestResponseConnection, self).__init__(app_id, **kwargs)
         self._async_calls_pending = {}
-        self._async_calls_response_topics = {}
-        # call superclass to setup the connection
-        super(self.__class__, self).__init__(app_id, **kwargs)
+        self._async_calls_response_topics: Dict[str, str] = {}
 
     def _execute_async(self, async_finish_cbf, func, message: Message):
         """
@@ -370,7 +371,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         :return:
         """
 
-        def _on_call_async_request_received(message: Message):
+        def _on_async_request_received(message: Message):
             # verify that the message is a request (reply_to != None)
             if message.reply_to is None:
                 LOG.debug(
@@ -387,7 +388,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
                 message,
             )
 
-        return _on_call_async_request_received
+        return _on_async_request_received
 
     def _generate_on_notification_received_cbf(self, cbf):
         """
@@ -408,7 +409,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
         return _on_notification_received
 
-    def _on_call_async_response_received(self, message: Message):
+    def _on_async_response_received(self, message: Message):
         """
         Event method that is called on caller side when a response for an previously
         issued request is received. Might be called multiple times if more than one callee
@@ -423,7 +424,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
                 + "Dropping it, as it does not seem to be a response."
             )
             return
-        if message.correlation_id in self._async_calls_pending.keys():
+        if message.correlation_id in self._async_calls_pending:
             LOG.debug(
                 "Async response received. Matches to corr_id: %r",
                 message.correlation_id,
@@ -435,7 +436,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             # if no other call_async is using this queue, remove the queue
             queue_tag = self._async_calls_pending[message.correlation_id]["queue"]
             queue_empty = True
-            for corr_id in self._async_calls_pending.keys():
+            for corr_id in self._async_calls_pending:
                 if corr_id != message.correlation_id:
                     if self._async_calls_pending[corr_id]["queue"] == queue_tag:
                         queue_empty = False
@@ -479,15 +480,12 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
                 "No callback function (cbf) given to call_async. Use notify if you want one-way communication."
             )
         # generate uuid to match requests and responses
-        correlation_id = str(uuid.uuid4()) if correlation_id is None else correlation_id
+        correlation_id = str(uuid4()) if correlation_id is None else correlation_id
         # initialize response subscription if a callback function was defined
-        if topic not in self._async_calls_response_topics.keys():
-            queue_uuid = str(uuid.uuid4())
-            subscription_queue = "%s.%s.%s" % ("q", topic, queue_uuid)
+        if topic not in self._async_calls_response_topics:
+            subscription_queue = "%s.%s.%s" % ("q", topic, str(uuid4()))
 
-            self.subscribe(
-                self._on_call_async_response_received, topic, subscription_queue
-            )
+            self.subscribe(self._on_async_response_received, topic, subscription_queue)
             # keep track of request
             self._async_calls_response_topics[topic] = subscription_queue
         else:
