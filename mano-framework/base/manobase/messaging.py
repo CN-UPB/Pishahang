@@ -26,12 +26,13 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
+import functools
 import json
 import logging
 import os
 import threading
 from threading import Event, Thread
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, Callable
 from uuid import uuid4
 
 import amqpstorm
@@ -315,32 +316,29 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
 
     def __init__(self, app_id, **kwargs):
         super(ManoBrokerRequestResponseConnection, self).__init__(app_id, **kwargs)
-        self._async_calls_pending = {}
-        self._async_calls_response_topics: Dict[str, str] = {}
+        self._async_calls_pending: Dict[str, Dict] = {}
+        self._async_calls_response_queues: Dict[str, str] = {}
 
-    def _execute_async(self, async_finish_cbf, func, message: Message):
+    def _execute_async_endpoint_handler(
+        self, handler: Callable[[Message], Any], message: Message, on_finish: Callable
+    ):
         """
-        Run `func` and `async_finish_cbf` when it returns.
+        Run `handler` with `message` and run `on_finish` with its return value.
 
-        :param async_finish_cbf: callback function
-        :param func: function to execute
-        :param message: The "request" message that triggered this function call
+        :param handler: The endpoint handler function to be executed
+        :param message: The "request" message that triggered the execution
+        :param on_finish: Callback function that is executed when `handler` returns
         :return: None
         """
-        # TODO (bjoluc) This is not "async". Do we want blocking behavior for
-        # subscriptions or not?
-        result = func(message)
-        if async_finish_cbf is not None:
-            async_finish_cbf(message, result)
+        result = handler(message)
+        on_finish(message, result)
 
-        LOG.debug("Async execution finished: %r.", func)
-
-    def _on_execute_async_finished(self, request: Message, result):
+    def _on_async_endpoint_handler_finished(self, request: Message, result):
         """
-        Event method that is called when an async. executed function
-        has finishes its execution.
+        Event method that is called when an async endpoint handler has returned.
+
         :param request: The request message
-        :param result: return value of executed function
+        :param result: The return value of the async handler
         :return: None
         """
         LOG.debug("Async execution finished.")
@@ -363,96 +361,85 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             headers=reply_headers,
         )
 
-    def _generate_on_async_request_received_cbf(self, cbf):
+    def _on_async_request_received(
+        self,
+        endpoint_executor: Callable[
+            [Callable[[Message], Any], Message, Callable], None
+        ],
+        endpoint_handler: Callable[[Message], Any],
+        on_handler_finished: Callable,
+        message: Message,
+    ):
         """
-        Generates a callback function. Only reacts if reply_to is set.
-        CBF is executed asynchronously. Publishes CBF return value to reply to.
-        :param cbf: function
-        :return:
+        Callback function that handles async requests by calling `endpoint_executor`
+        with `endpoint_handler`, `message`, and `on_handler_finished`
         """
-
-        def _on_async_request_received(message: Message):
-            # verify that the message is a request (reply_to != None)
-            if message.reply_to is None:
-                LOG.debug(
-                    'Async request received: Message on topic "%s" does not specify reply_to.'
-                    + " Assuming it's not a request and dropping the message.",
-                    message.topic,
-                )
-                return
-            LOG.debug("Async request on topic %s received.", message.topic)
-            # call the user defined callback function (in a new thread to be async.
-            self._execute_async(
-                self._on_execute_async_finished,  # function called after execution of cbf
-                cbf,  # function to be executed
-                message,
+        # verify that the message is a request (reply_to != None)
+        if message.reply_to is None:
+            LOG.debug(
+                'Async request received: Message on topic "%s" does not specify reply_to.'
+                + " Assuming it's not a request and dropping the message.",
+                message.topic,
             )
+            return
+        LOG.debug("Async request on topic %s received.", message.topic)
+        endpoint_executor(
+            endpoint_handler, message, on_handler_finished,
+        )
 
-        return _on_async_request_received
-
-    def _generate_on_notification_received_cbf(self, cbf):
+    def _on_notification_received(self, callback_function, message: Message):
         """
-        Generates a callback function. Only reacts if reply_to is None.
-        CBF is executed asynchronously.
-        :param cbf: function
-        :return:
+        Callback function that handles notifications by calling `callback_function` with
+        `message`
         """
-
-        def _on_notification_received(message: Message):
-            # verify that the message is a notification (reply_to == None)
-            if message.reply_to is not None:
-                LOG.debug("Notification cbf: reply_to is not None. Drop!")
-                return
-            LOG.debug("Notification on topic %r received.", message.topic)
-            # call the user defined callback function (in a new thread to be async.
-            self._execute_async(None, cbf, message)
-
-        return _on_notification_received
+        # verify that the message is a notification (reply_to == None)
+        if message.reply_to is not None:
+            LOG.debug("Notification cbf: reply_to is not None. Drop!")
+            return
+        LOG.debug("Notification on topic %r received.", message.topic)
+        callback_function(message)
 
     def _on_async_response_received(self, message: Message):
         """
-        Event method that is called on caller side when a response for an previously
-        issued request is received. Might be called multiple times if more than one callee
-        are subscribed to the used topic.
-        :param message: Received message
+        Callback function that handles the response of a remote function call.
+
+        :param message: The response message that has been received
         :return: None
         """
         # check if we really have a response, not a request
         if message.reply_to is not None:
             LOG.info(
-                "Message with non-empty reply_to field received at response endpoint. "
-                + "Dropping it, as it does not seem to be a response."
+                "Message with non-empty reply_to field (%s) received at response endpoint. "
+                + "Dropping it, as it does not seem to be a response.",
+                message.reply_to,
             )
             return
-        if message.correlation_id in self._async_calls_pending:
-            LOG.debug(
-                "Async response received. Matches to corr_id: %r",
-                message.correlation_id,
-            )
-            # call callback (in new thread)
-            self._execute_async(
-                None, self._async_calls_pending[message.correlation_id]["cbf"], message
-            )
-            # if no other call_async is using this queue, remove the queue
-            queue_tag = self._async_calls_pending[message.correlation_id]["queue"]
-            queue_empty = True
-            for corr_id in self._async_calls_pending:
-                if corr_id != message.correlation_id:
-                    if self._async_calls_pending[corr_id]["queue"] == queue_tag:
-                        queue_empty = False
-                        break
-            if queue_empty:
-                LOG.debug("Removing queue, as it is no longer used by any async call")
-                message.channel.queue.delete()
-                del self._async_calls_response_topics[
-                    self._async_calls_pending[message.correlation_id]["topic"]
-                ]
 
-            # remove from pending calls
-            del self._async_calls_pending[message.correlation_id]
+        corr_id = message.correlation_id
+        if corr_id not in self._async_calls_pending:
+            LOG.info(
+                "Received unmatched call response on topic %s. Ignoring it.",
+                message.topic,
+            )
+            return
 
-        else:
-            LOG.debug("Received unmatched call response. Ignore it.")
+        LOG.debug("Async response received. Matches via corr_id %r", corr_id)
+        call_details = self._async_calls_pending.pop(corr_id)
+
+        # Call callback function
+        call_details["cbf"](message)
+
+        # If no other call_async is using this queue, remove the queue
+        queue_tag = call_details["queue"]
+        queue_empty = True
+        for other_call_details in self._async_calls_pending.values():
+            if other_call_details["queue"] == queue_tag:
+                queue_empty = False
+                break
+        if queue_empty:
+            LOG.debug("Removing queue, as it is no longer used by any async call")
+            message.channel.queue.delete()
+            del self._async_calls_response_queues[call_details["topic"]]
 
     def call_async(
         self,
@@ -467,6 +454,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         Sends a request message to a topic. If a "register_async_endpoint" is listening to this topic,
         it will execute the request and reply. This method sets up the subscriber for this reply and calls it
         when the reply is received.
+
         :param cbf: Function that is called when reply is received.
         :param topic: Topic for this call.
         :param payload: The message payload (serializable object)
@@ -481,16 +469,16 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             )
         # generate uuid to match requests and responses
         correlation_id = str(uuid4()) if correlation_id is None else correlation_id
-        # initialize response subscription if a callback function was defined
-        if topic not in self._async_calls_response_topics:
+        # initialize response subscription
+        if topic not in self._async_calls_response_queues:
             subscription_queue = "%s.%s.%s" % ("q", topic, str(uuid4()))
 
             self.subscribe(self._on_async_response_received, topic, subscription_queue)
             # keep track of request
-            self._async_calls_response_topics[topic] = subscription_queue
+            self._async_calls_response_queues[topic] = subscription_queue
         else:
             # find the queue related to this topic
-            subscription_queue = self._async_calls_response_topics[topic]
+            subscription_queue = self._async_calls_response_queues[topic]
 
         self._async_calls_pending[correlation_id] = {
             "cbf": cbf,
@@ -515,16 +503,27 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         )
         return correlation_id
 
-    def register_async_endpoint(self, cbf, topic):
+    def register_async_endpoint(self, endpoint_handler, topic):
         """
         Executed by callees that want to expose the functionality implemented in cbf
         to callers that are connected to the broker.
-        :param cbf: function to be called when requests with the given topic and key are received
-        :param topic: topic for requests and responses
+
+        :param endpoint_handler: Function to be called when requests with the given topic and key are received
+        :param topic: Topic for requests and responses
         :return: None
         """
-        self.subscribe(self._generate_on_async_request_received_cbf(cbf), topic)
-        LOG.debug("Registered async endpoint: topic: %r cbf: %r", topic, cbf)
+        self.subscribe(
+            functools.partial(
+                self._on_async_request_received,
+                self._execute_async_endpoint_handler,
+                endpoint_handler,
+                self._on_async_endpoint_handler_finished,
+            ),
+            topic,
+        )
+        LOG.debug(
+            "Registered async endpoint: topic: %r handler: %r", topic, endpoint_handler
+        )
 
     def notify(
         self,
@@ -536,9 +535,10 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
     ):
         """
         Sends a simple one-way notification that does not expect a reply.
-        :param topic: topic for communication (callee has to be described to it)
+
+        :param topic: topic for communication (callee needs to have a subscription to it)
+        :param payload: actual message
         :param key: optional identifier for endpoints (enables more than 1 endpoint per topic)
-        :param msg: actual message
         :param correlation_id: allow to set individual correlation ids
         :param headers: header dict
         :return: None
@@ -548,22 +548,23 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         headers.setdefault("type", "notification")
 
         # publish request message
-        self.publish(
-            topic, payload, correlation_id=correlation_id, headers=headers,
-        )
+        self.publish(topic, payload, correlation_id=correlation_id, headers=headers)
 
-    def register_notification_endpoint(self, cbf, topic, key="default"):
+    def register_notification_endpoint(self, endpoint_handler, topic, key="default"):
         """
         Wrapper for register_async_endpoint that allows to register
         notification endpoints that do not send responses after executing
         the callback function.
-        :param cbf: function to be called when requests with the given topic and key are received
+
+        :param endpoint_handler: function to be called when requests with the given topic and key are received
         :param topic: topic for requests and responses
         :param key:  optional identifier for endpoints (enables more than 1 endpoint per topic)
         :return: None
         """
         # TODO (bjoluc) The key is not used here! Also, there's no unit test for keys.
-        return self.subscribe(self._generate_on_notification_received_cbf(cbf), topic)
+        return self.subscribe(
+            functools.partial(self._on_notification_received, endpoint_handler), topic,
+        )
 
     def call_sync(
         self,
@@ -587,8 +588,8 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         :param timeout: time in s to wait for a response
         :return: message
         """
-        # we use this lock to wait for the response
-        lock = threading.Event()
+        # we use this event to wait for the response
+        response_received_event = threading.Event()
         response = None
 
         def result_cbf(message):
@@ -598,7 +599,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             nonlocal response
             response = message
             # release lock
-            lock.set()
+            response_received_event.set()
 
         # do a normal async call
         self.call_async(
@@ -610,7 +611,6 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
             headers=headers,
         )
         # block until we get our response
-        lock.clear()
-        lock.wait(timeout)
+        response_received_event.wait(timeout)
         # return received response
         return response
