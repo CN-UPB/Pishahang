@@ -32,12 +32,11 @@ import logging
 import os
 import threading
 from threading import Event, Thread
-from typing import Any, Dict, Set, Callable
+from typing import Any, Callable, Dict
 from uuid import uuid4
 
 import amqpstorm
 import yaml
-from amqpstorm.exception import AMQPConnectionError
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
@@ -143,11 +142,8 @@ class ManoBrokerConnection:
             "broker_exchange", RABBITMQ_EXCHANGE_FALLBACK
         )
 
-        # create additional members
         self._connection: amqpstorm.UriConnection = None
         self.setup_connection()
-
-        self._consuming_channels: Set[amqpstorm.Channel] = set()
 
     def __del__(self):
         self.stop_connection()
@@ -169,15 +165,10 @@ class ManoBrokerConnection:
 
     def stop_threads(self):
         """
-        Stop all the threads that are consuming messages.
-
-        Note: This method is only public for backwards compatibility; it is called
-        internally in `stop_connection()` now.
+        Deprecated: AMQPStorm stops the threads automatically by closing the channels on
+        `stop_connection()`.
         """
-        for channel in list(self._consuming_channels):
-            channel.stop_consuming()
-            if channel.is_open or channel.is_opening:
-                channel.close()
+        pass
 
     def publish(
         self,
@@ -187,7 +178,7 @@ class ManoBrokerConnection:
         correlation_id: str = None,
         reply_to: str = None,
         headers: Dict[str, str] = {},
-    ):
+    ) -> None:
         """
         This method provides basic topic-based message publishing.
 
@@ -223,15 +214,25 @@ class ManoBrokerConnection:
             )
             LOG.debug("PUBLISHED to %s: %s", topic, payload)
 
-    def subscribe(self, cbf, topic, subscription_queue=None):
+    def subscribe(
+        self,
+        cbf: Callable[[Message], None],
+        topic: str,
+        subscription_queue: str = None,
+        concurrent=True,
+    ) -> str:
         """
-        Implements basic subscribe functionality.
-        Starts a new thread for each subscription in which messages are consumed and the callback functions
-        are called.
+        Subscribe to `topic` and invoke `cbf` for each received message. Starts a new
+        thread that waits for messages and handles them. If `concurrent` is ``True``,
+        each callback function invocation will be executed in a separate thread.
+        Otherwise, the subscription thread will also execute the callback function, one
+        call after another.
 
-        :param cbf: callback function cbf(message)
-        :param topic: topic to subscribe to
-        :return:
+        :param cbf: A callback function that will be invoked with every received message on the specified topic
+        :param topic: The topic to subscribe to
+        :param subscription_queue: A custom consumer tag for the subscription (will be auto-generated if omitted)
+        :param concurrent: Whether or not to spawn a new thread for each callback invocation
+        :return: The subscription's consumer tag
         """
 
         # We create an individual consumer tag ("subscription_queue") for each subscription to allow
@@ -239,17 +240,22 @@ class ManoBrokerConnection:
         if subscription_queue is None:
             subscription_queue = "%s.%s.%s" % ("q", topic, uuid4())
 
-        consumption_started_event = Event()
-
         def _on_message_received(amqpstormMessage: amqpstorm.Message):
             # Create custom message object
             message = Message.from_amqpstorm_message(amqpstormMessage)
 
             # Call cbf of subscription
-            cbf(message)
+            if concurrent:
+                Thread(
+                    target=cbf, args=(message,), name=subscription_queue + ".callback"
+                ).start()
+            else:
+                cbf(message)
 
             # Ack the message to let the broker know that message was delivered
             amqpstormMessage.ack()
+
+        consumption_started_event = Event()
 
         def _subscriber():
             """
@@ -277,23 +283,20 @@ class ManoBrokerConnection:
                     subscription_queue,
                     consumer_tag=subscription_queue,
                 )
-                self._consuming_channels.add(channel)
                 try:
                     consumption_started_event.set()
                     # start consuming messages.
                     channel.start_consuming()
-                except AMQPConnectionError:
+                except amqpstorm.exception.AMQPConnectionError:
                     pass
-                except BaseException:
-                    LOG.exception("Error in subscription thread:")
-                    channel.stop_consuming()
-                    channel.close()
-                finally:
-                    self._consuming_channels.discard(channel)
+                except Exception:
+                    LOG.exception(
+                        "Error in subscription thread %s:", subscription_queue
+                    )
 
         # Each subscriber runs in a separate thread
         LOG.debug("Starting new thread to consume %s", subscription_queue)
-        Thread(target=_subscriber).start()
+        Thread(target=_subscriber, name=subscription_queue).start()
         consumption_started_event.wait()
 
         LOG.debug("SUBSCRIBED to %s", topic)
@@ -438,8 +441,11 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
                 break
         if queue_empty:
             LOG.debug("Removing queue, as it is no longer used by any async call")
-            message.channel.queue.delete()
-            del self._async_calls_response_queues[call_details["topic"]]
+            try:
+                message.channel.queue.delete()
+            except amqpstorm.exception.AMQPConnectionError:
+                pass
+            self._async_calls_response_queues.pop(call_details["topic"])
 
     def call_async(
         self,
