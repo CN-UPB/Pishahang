@@ -66,8 +66,6 @@ class TestPluginManagerBase(unittest.TestCase):
 
     def tearDown(self):
         self.m.stop_connection()
-        self.m.stop_threads()
-        del self.m
 
     def waitForMessage(self, timeout=5):
         self.wait_for_reply.clear()

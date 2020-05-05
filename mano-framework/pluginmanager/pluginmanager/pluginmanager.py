@@ -29,7 +29,6 @@ This is the main module of the plugin manager component.
 """
 
 import logging
-import json
 import datetime
 import uuid
 from mongoengine import DoesNotExist

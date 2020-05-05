@@ -24,14 +24,12 @@ funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
+
+Adds a REST interface to the plugin manager to control plugins registered to the platform.
 """
 
-"""
-Adds a REST interface to the plugin manager to control plugins registered to the platfoem.
-"""
 import logging
 import threading
-import json
 from flask import Flask, request
 import flask_restful as fr
 from mongoengine import DoesNotExist
@@ -44,14 +42,12 @@ logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 
 class PluginsEndpoint(fr.Resource):
-
     def get(self):
         LOG.debug("GET plugin list")
         return [p.uuid for p in model.Plugin.objects], 200
 
 
 class PluginEndpoint(fr.Resource):
-
     def get(self, plugin_uuid=None):
         LOG.debug("GET plugin info for: %r" % plugin_uuid)
         try:
@@ -75,7 +71,6 @@ class PluginEndpoint(fr.Resource):
 
 
 class PluginLifecycleEndpoint(fr.Resource):
-
     def put(self, plugin_uuid=None):
         LOG.debug("PUT plugin lifecycle: %r" % plugin_uuid)
         try:
@@ -112,11 +107,12 @@ api.add_resource(PluginLifecycleEndpoint, "/api/plugins/<string:plugin_uuid>/lif
 
 def _start_flask(host, port):
     # start the Flask server (not the best performance but ok for our use case)
-    app.run(host=host,
-            port=port,
-            debug=True,
-            use_reloader=False  # this is needed to run Flask in a non-main thread
-            )
+    app.run(
+        host=host,
+        port=port,
+        debug=True,
+        use_reloader=False,  # this is needed to run Flask in a non-main thread
+    )
 
 
 def start(pm, host="0.0.0.0", port=8001):
