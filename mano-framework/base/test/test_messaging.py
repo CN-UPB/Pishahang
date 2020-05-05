@@ -27,10 +27,11 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
-import unittest
 from queue import Queue
 from time import time
 from typing import List
+
+import pytest
 
 from manobase.messaging import (
     ManoBrokerConnection,
@@ -42,199 +43,220 @@ logging.getLogger("manobase:messaging").setLevel(logging.DEBUG)
 LOG = logging.Logger("manobase:messaging:test")
 
 
-class BaseTestCase(unittest.TestCase):
-    def setUp(self):
-        self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
-        self.m: ManoBrokerConnection = None
-
-    def tearDown(self):
-        self.m.stop_connection()
-
-    def create_cbf(self, queue=0):
-        def simple_subscribe_cbf(message: Message):
-            self.assertIsNotNone(message.app_id)
-            self.assertIsNotNone(message.headers)
-            LOG.debug("SUBSCRIBE CBF %d: Received %s", queue, message.payload)
-            self._message_queues[queue].put(message)
-
-        return simple_subscribe_cbf
-
-    def echo_cbf(self, message: Message):
-        self.assertIsNotNone(message.app_id)
-        self.assertIsNotNone(message.reply_to)
-        self.assertIsNotNone(message.correlation_id)
-        self.assertIsNotNone(message.headers)
-        LOG.debug("REQUEST ECHO CBF: %s", message.payload)
-        return message.payload
-
-    def wait_for_messages(self, queue=0, number=1, timeout=5):
-        """
-        Waits until `number` messages are added to the specified message queue
-        or until a timeout is reached. Returns a list of received message
-        payloads.
-        """
-        queue = self._message_queues[queue]
-        payloads = []
-        end_time = time() + timeout
-        while len(payloads) < number and time() < end_time:
-            payloads.append(queue.get(block=True, timeout=end_time - time()).payload)
-
-        return payloads
-
-    def wait_for_particular_messages(self, payload, queue=0, timeout=5):
-        """
-        Waits until a message with a specified payload is received. Throws an
-        exception if the message has not been received within the specified
-        time.
-        """
-        queue = self._message_queues[queue]
-        end_time = time() + timeout
-        while time() < end_time:
-            if queue.get(block=True, timeout=end_time - time()).payload == payload:
-                return
-        raise Exception(
-            'Message "%s" never found. Subscription timeout reached.', payload
-        )
-
-
-class TestManoBrokerConnection(BaseTestCase):
+@pytest.fixture
+def receiver():
     """
-    Test basic broker interactions.
+    Common helper object fixture that hands out callback functions and allows to
+    wait for messages received by them
     """
 
-    def setUp(self):
-        super().setUp()
-        self.m = ManoBrokerConnection("test-basic-broker-connection")
+    class Receiver:
+        def __init__(self):
+            self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
 
-    def test_broker_connection(self):
-        """
-        Test broker connection.
-        """
-        self.m.publish("test.topic1", "testmessage")
+        def create_cbf(self, queue=0):
+            def simple_subscribe_cbf(message: Message):
+                assert message.app_id is not None
+                assert type(message.headers) is dict
+                LOG.debug("SUBSCRIBE CBF %d: Received %s", queue, message.payload)
+                self._message_queues[queue].put(message)
 
-    def test_broker_bare_publishsubscribe(self):
-        """
-        Test publish / subscribe messaging.
-        """
-        self.m.subscribe(self.create_cbf(), "test.topic2")
-        self.m.publish("test.topic2", "testmsg")
-        assert ["testmsg"] == self.wait_for_messages()
+            return simple_subscribe_cbf
 
-    def test_broker_multi_publish(self):
-        """
-        Test publish / subscribe messaging.
-        """
-        self.m.subscribe(self.create_cbf(), "test.topic3")
-        for i in range(5):
-            self.m.publish("test.topic3", str(i))
-        assert [str(i) for i in range(5)] == self.wait_for_messages(0, 5)
+        def echo_cbf(self, message: Message):
+            assert message.app_id is not None
+            assert message.reply_to is not None
+            assert message.correlation_id is not None
+            assert type(message.headers) is dict
+            LOG.debug("REQUEST ECHO CBF: %s", message.payload)
+            return message.payload
 
-    def test_broker_doulbe_subscription(self):
-        """
-        Test publish / subscribe messaging.
-        """
-        for queue in range(2):
-            self.m.subscribe(self.create_cbf(queue), "test.topic4")
+        def wait_for_messages(self, queue=0, number=1, timeout=5):
+            """
+            Waits until `number` messages are added to the specified message queue
+            or until a timeout is reached. Returns a list of received message
+            payloads.
+            """
+            queue = self._message_queues[queue]
+            payloads = []
+            end_time = time() + timeout
+            while len(payloads) < number and time() < end_time:
+                payloads.append(
+                    queue.get(block=True, timeout=end_time - time()).payload
+                )
 
-        for i in range(5):
-            self.m.publish("test.topic4", str(i))
+            return payloads
 
-        for queue in range(2):
-            assert [str(i) for i in range(5)] == self.wait_for_messages(queue, 5)
+        def wait_for_particular_messages(self, payload, queue=0, timeout=5):
+            """
+            Waits until a message with a specified payload is received. Throws an
+            exception if the message has not been received within the specified
+            time.
+            """
+            queue = self._message_queues[queue]
+            end_time = time() + timeout
+            while time() < end_time:
+                if queue.get(block=True, timeout=end_time - time()).payload == payload:
+                    return
+            raise Exception(
+                'Message "%s" never found. Subscription timeout reached.', payload
+            )
+
+    return Receiver()
 
 
-class TestManoBrokerRequestResponseConnection(BaseTestCase):
+@pytest.fixture
+def connection(request):
+    connection_class = request.param
+    print(connection_class.__name__)
+    connection = connection_class(connection_class.__name__)
+    yield connection
+    connection.close()
+
+
+def connection_classes(*args):
     """
-    Test async. request/response and notification functionality.
+    Sets the classes that the `connection` fixture uses
+    """
+    return pytest.mark.parametrize("connection", args, indirect=["connection"])
+
+
+# Test ManBrokerConnection functions
+@connection_classes(ManoBrokerConnection, ManoBrokerRequestResponseConnection)
+def test_connection(connection):
+    """
+    Test broker connection.
+    """
+    connection.publish("test.topic1", "testmessage")
+
+
+@connection_classes(ManoBrokerConnection)
+def test_bare_publishsubscribe(connection, receiver):
+    """
+    Test publish / subscribe messaging.
+    """
+    connection.subscribe(receiver.create_cbf(), "test.topic2")
+    connection.publish("test.topic2", "testmsg")
+    assert ["testmsg"] == receiver.wait_for_messages()
+
+
+@connection_classes(ManoBrokerConnection)
+def test_multi_publish(connection, receiver):
+    """
+    Test publish / subscribe messaging.
+    """
+    connection.subscribe(receiver.create_cbf(), "test.topic3")
+    for i in range(5):
+        connection.publish("test.topic3", str(i))
+    assert [str(i) for i in range(5)] == receiver.wait_for_messages(0, 5)
+
+
+@connection_classes(ManoBrokerConnection)
+def test_doulbe_subscription(connection, receiver):
+    """
+    Test publish / subscribe messaging.
+    """
+    for queue in range(2):
+        connection.subscribe(receiver.create_cbf(queue), "test.topic4")
+
+    for i in range(5):
+        connection.publish("test.topic4", str(i))
+
+    for queue in range(2):
+        assert [str(i) for i in range(5)] == receiver.wait_for_messages(queue, 5)
+
+
+# Test ManoBrokerRequestResponseConnection functions
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_request_response(connection, receiver):
+    """
+    Test request/response messaging pattern.
     """
 
-    def setUp(self):
-        super().setUp()
-        self.m = ManoBrokerRequestResponseConnection(
-            "test-request-response-broker-connection"
-        )
+    def endpoint_callback(message):
+        return message.payload + "-pong"
 
-    def test_broker_connection(self):
-        """
-        Test broker connection.
-        """
-        self.m.notify("test.topic5", "simplemessage")
+    connection.register_async_endpoint(endpoint_callback, "test.request")
+    connection.call_async(receiver.create_cbf(), "test.request", "ping")
 
-    def test_request_response(self):
-        """
-        Test request/response messaging pattern.
-        """
+    assert ["ping-pong"] == receiver.wait_for_messages()
 
-        def endpoint_callback(message):
-            return message.payload + "-pong"
 
-        self.m.register_async_endpoint(endpoint_callback, "test.request")
-        self.m.call_async(self.create_cbf(), "test.request", "ping")
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_request_response_sync(connection, receiver):
+    """
+    Test request/response messaging pattern (synchronous).
+    """
+    connection.register_async_endpoint(receiver.echo_cbf, "test.request.sync")
+    response = connection.call_sync("test.request.sync", "ping-pong", timeout=5)
+    assert type(response) is Message
+    assert "ping-pong" == response.payload
 
-        assert ["ping-pong"] == self.wait_for_messages()
 
-    def test_request_response_sync(self):
-        """
-        Test request/response messaging pattern (synchronous).
-        """
-        self.m.register_async_endpoint(self.echo_cbf, "test.request.sync")
-        response = self.m.call_sync("test.request.sync", "ping-pong", timeout=5)
-        assert type(response) is Message
-        assert "ping-pong" == response.payload
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_notification(connection, receiver):
+    """
+    Test notification messaging pattern.
+    """
+    connection.register_notification_endpoint(
+        receiver.create_cbf(), "test.notification"
+    )
+    connection.notify("test.notification", "my-notification")
+    receiver.wait_for_particular_messages("my-notification")
 
-    def test_notification(self):
-        """
-        Test notification messaging pattern.
-        """
-        self.m.register_notification_endpoint(self.create_cbf(), "test.notification")
-        self.m.notify("test.notification", "my-notification")
-        self.wait_for_particular_messages("my-notification")
 
-    def test_notification_pub_sub_mix(self):
-        """
-        Test notification messaging pattern mixed with basic pub/sub calls.
-        """
-        self.m.register_notification_endpoint(self.create_cbf(0), "test.notification1")
-        self.m.subscribe(self.create_cbf(0), "test.notification2")
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_notification_pub_sub_mix(connection, receiver):
+    """
+    Test notification messaging pattern mixed with basic pub/sub calls.
+    """
+    connection.register_notification_endpoint(
+        receiver.create_cbf(0), "test.notification1"
+    )
+    connection.subscribe(receiver.create_cbf(0), "test.notification2")
 
-        # Publish regular message to notification endpoint
-        self.m.publish("test.notification1", "n1")
-        assert ["n1"] == self.wait_for_messages()
+    # Publish regular message to notification endpoint
+    connection.publish("test.notification1", "n1")
+    assert ["n1"] == receiver.wait_for_messages()
 
-        # Publish notification to regular endpoint
-        self.m.notify("test.notification2", "n2")
-        assert ["n2"] == self.wait_for_messages()
+    # Publish notification to regular endpoint
+    connection.notify("test.notification2", "n2")
+    assert ["n2"] == receiver.wait_for_messages()
 
-    def test_double_subscriptions(self):
-        """
-        Ensure that messages are delivered to all subscriptions of a topic.
-        (e.g. identifies queue setup problems)
-        """
-        for queue in range(2):
-            self.m.subscribe(self.create_cbf(queue), "test.double")
 
-        # Publish a message
-        self.m.publish("test.double", "my-message")
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_double_subscriptions(connection, receiver):
+    """
+    Ensure that messages are delivered to all subscriptions of a topic.
+    (e.g. identifies queue setup problems)
+    """
+    for queue in range(2):
+        connection.subscribe(receiver.create_cbf(queue), "test.double")
 
-        # enusre that it is received by each subscription
-        for queue in range(2):
-            self.wait_for_particular_messages("my-message", queue=queue)
+    # Publish a message
+    connection.publish("test.double", "my-message")
 
-    def test_interleaved_subscriptions(self):
-        """
-        Ensure that interleaved subscriptions to the same topic do not lead to problems.
-        """
-        self.m.subscribe(self.create_cbf(0), "test.interleave")
+    # enusre that it is received by each subscription
+    for queue in range(2):
+        receiver.wait_for_particular_messages("my-message", queue=queue)
 
-        # Do an async call on the same topic
-        self.m.register_async_endpoint(self.echo_cbf, "test.interleave")
-        self.m.call_async(self.create_cbf(1), "test.interleave", "ping-pong")
-        assert ["ping-pong"] == self.wait_for_messages(queue=1)
 
-        # Publish a message
-        self.m.publish("test.interleave", "my-message")
+@connection_classes(ManoBrokerRequestResponseConnection)
+def test_interleaved_subscriptions(connection, receiver):
+    """
+    Ensure that interleaved subscriptions to the same topic do not lead to problems.
+    """
+    connection.subscribe(receiver.create_cbf(0), "test.interleave")
 
-        # Ensure that the subscriber gets the message (and sees the ones from async_call)
-        assert ["ping-pong", "ping-pong", "my-message"] == self.wait_for_messages(
-            queue=0, number=3
-        )
+    # Do an async call on the same topic
+    connection.register_async_endpoint(receiver.echo_cbf, "test.interleave")
+    connection.call_async(receiver.create_cbf(1), "test.interleave", "ping-pong")
+    assert ["ping-pong"] == receiver.wait_for_messages(queue=1)
+
+    # Publish a message
+    connection.publish("test.interleave", "my-message")
+
+    # Ensure that the subscriber gets the message (and sees the ones from async_call)
+    assert ["ping-pong", "ping-pong", "my-message"] == receiver.wait_for_messages(
+        queue=0, number=3
+    )
