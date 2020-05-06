@@ -31,7 +31,7 @@ import json
 import concurrent.futures as pool
 
 from manobase.plugin import ManoBasePlugin
-import manobase.messaging as messaging
+import manobase.messaging as Message
 
 try:
     from clm import clm_helpers as tools
@@ -101,19 +101,15 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # The topic on which deploy requests are posted.
         self.manoconn.subscribe(self.cloud_service_instance_create, t.CS_DEPLOY)
 
-    def on_lifecycle_start(self, ch, mthd, prop, msg):
+    def on_lifecycle_start(self, message : Message):
         """
         This event is called when the plugin has successfully registered itself
         to the plugin manager and received its lifecycle.start event from the
         plugin manager. The plugin is expected to do its work after this event.
 
-        :param ch: RabbitMQ channel
-        :param method: RabbitMQ method
-        :param properties: RabbitMQ properties
-        :param message: RabbitMQ message content
         :return:
         """
-        super(self.__class__, self).on_lifecycle_start(ch, mthd, prop, msg)
+        super(self.__class__, self).on_lifecycle_start(message)
         LOG.info("CLM started and operational.")
 
     def deregister(self):
@@ -281,16 +277,16 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # Pause the chain of tasks to wait for response
         self.cloud_services[cservice_id]['pause_chain'] = True
 
-    def ia_deploy_response(self, ch, method, prop, payload):
+    def ia_deploy_response(message : Message):
         """
         This method handles the response from the IA on the
         cs deploy request.
         """
 
         LOG.info("Response from IA on cs deploy call received.")
-        LOG.debug("Payload of request: " + str(payload))
+        LOG.debug("Payload of request: " + str(message))
 
-        inc_message = yaml.load(payload)
+        inc_message = message
 
         cservice_id = tools.cserviceid_from_corrid(self.cloud_services, prop.correlation_id)
 
