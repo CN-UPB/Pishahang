@@ -1,5 +1,5 @@
 """
-Copyright (c) 2015 SONATA-NFV
+Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
 ALL RIGHTS RESERVED.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+Neither the name of the SONATA-NFV, Pishahang,
 nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written
 permission.
 
-This work has been performed in the framework of the SONATA project,
+Parts of this work have been performed in the framework of the SONATA project,
 funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
@@ -27,6 +27,7 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
+import traceback
 from queue import Queue
 from time import time
 from typing import List
@@ -34,6 +35,7 @@ from typing import List
 import pytest
 
 from manobase.messaging import (
+    AsyncioBrokerConnection,
     ManoBrokerConnection,
     ManoBrokerRequestResponseConnection,
     Message,
@@ -53,22 +55,47 @@ def receiver():
     class Receiver:
         def __init__(self):
             self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
+            self._exception_message: str = None
+
+        @staticmethod
+        def _check_message(message: Message):
+            try:
+                assert message.app_id is not None
+                assert type(message.headers) is dict
+            except AssertionError:
+                self._exception_message = traceback.format_exc()
 
         def create_cbf(self, queue=0):
             def simple_subscribe_cbf(message: Message):
-                assert message.app_id is not None
-                assert type(message.headers) is dict
-                LOG.debug("SUBSCRIBE CBF %d: Received %s", queue, message.payload)
+                Receiver._check_message(message)
+                LOG.debug("Callback function %d: Received %s", queue, message.payload)
                 self._message_queues[queue].put(message)
 
             return simple_subscribe_cbf
 
+        def create_callback_coroutine(self, queue=0):
+            async def simple_subscribe_coroutine(message: Message):
+                Receiver._check_message(message)
+                LOG.debug("Callback coroutine %d: Received %s", queue, message.payload)
+                self._message_queues[queue].put(message)
+
+            return simple_subscribe_coroutine
+
         def echo_cbf(self, message: Message):
-            assert message.app_id is not None
+            Receiver._check_message(message)
+            try:
+                assert message.reply_to is not None
+                assert message.correlation_id is not None
+            except AssertionError:
+                self._exception_message = traceback.format_exc()
+            LOG.debug("Echo callback function: Received %s", message.payload)
+            return message.payload
+
+        async def echo_callback_coroutine(self, message: Message):
+            Receiver._check_message(message)
             assert message.reply_to is not None
             assert message.correlation_id is not None
-            assert type(message.headers) is dict
-            LOG.debug("REQUEST ECHO CBF: %s", message.payload)
+            LOG.debug("Echo callback coroutine: Received %s", message.payload)
             return message.payload
 
         def wait_for_messages(self, queue=0, number=1, timeout=5):
@@ -98,17 +125,19 @@ def receiver():
             while time() < end_time:
                 if queue.get(block=True, timeout=end_time - time()).payload == payload:
                     return
-            raise Exception(
+            Exception(
                 'Message "%s" never found. Subscription timeout reached.', payload
             )
 
-    return Receiver()
+    receiver = Receiver()
+    yield receiver
+    if receiver._exception_message:
+        pytest.fail(msg=receiver._exception_message)
 
 
 @pytest.fixture
 def connection(request):
     connection_class = request.param
-    print(connection_class.__name__)
     connection = connection_class(connection_class.__name__)
     yield connection
     connection.close()
@@ -122,7 +151,9 @@ def connection_classes(*args):
 
 
 # Test ManBrokerConnection functions
-@connection_classes(ManoBrokerConnection, ManoBrokerRequestResponseConnection)
+@connection_classes(
+    ManoBrokerConnection, ManoBrokerRequestResponseConnection, AsyncioBrokerConnection
+)
 def test_connection(connection):
     """
     Test broker connection.
@@ -130,7 +161,7 @@ def test_connection(connection):
     connection.publish("test.topic1", "testmessage")
 
 
-@connection_classes(ManoBrokerConnection)
+@connection_classes(ManoBrokerConnection, AsyncioBrokerConnection)
 def test_bare_publishsubscribe(connection, receiver):
     """
     Test publish / subscribe messaging.
@@ -166,8 +197,9 @@ def test_doulbe_subscription(connection, receiver):
         assert [str(i) for i in range(5)] == receiver.wait_for_messages(queue, 5)
 
 
-# Test ManoBrokerRequestResponseConnection functions
-@connection_classes(ManoBrokerRequestResponseConnection)
+# Test ManoBrokerRequestResponseConnection functions (which AsyncioBrokerConnection
+# should support as well)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_request_response(connection, receiver):
     """
     Test request/response messaging pattern.
@@ -182,7 +214,7 @@ def test_request_response(connection, receiver):
     assert ["ping-pong"] == receiver.wait_for_messages()
 
 
-@connection_classes(ManoBrokerRequestResponseConnection)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_request_response_sync(connection, receiver):
     """
     Test request/response messaging pattern (synchronous).
@@ -193,7 +225,7 @@ def test_request_response_sync(connection, receiver):
     assert "ping-pong" == response.payload
 
 
-@connection_classes(ManoBrokerRequestResponseConnection)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_notification(connection, receiver):
     """
     Test notification messaging pattern.
@@ -205,7 +237,7 @@ def test_notification(connection, receiver):
     receiver.wait_for_particular_messages("my-notification")
 
 
-@connection_classes(ManoBrokerRequestResponseConnection)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_notification_pub_sub_mix(connection, receiver):
     """
     Test notification messaging pattern mixed with basic pub/sub calls.
@@ -224,7 +256,7 @@ def test_notification_pub_sub_mix(connection, receiver):
     assert ["n2"] == receiver.wait_for_messages()
 
 
-@connection_classes(ManoBrokerRequestResponseConnection)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_double_subscriptions(connection, receiver):
     """
     Ensure that messages are delivered to all subscriptions of a topic.
@@ -241,7 +273,7 @@ def test_double_subscriptions(connection, receiver):
         receiver.wait_for_particular_messages("my-message", queue=queue)
 
 
-@connection_classes(ManoBrokerRequestResponseConnection)
+@connection_classes(ManoBrokerRequestResponseConnection, AsyncioBrokerConnection)
 def test_interleaved_subscriptions(connection, receiver):
     """
     Ensure that interleaved subscriptions to the same topic do not lead to problems.
@@ -260,3 +292,87 @@ def test_interleaved_subscriptions(connection, receiver):
     assert ["ping-pong", "ping-pong", "my-message"] == receiver.wait_for_messages(
         queue=0, number=3
     )
+
+
+# Test AsyncioBrokerConnection
+@connection_classes(AsyncioBrokerConnection)
+def test_asyncio_publishsubscribe(connection, receiver):
+    """
+    Test publish / subscribe messaging.
+    """
+    connection.subscribe(receiver.create_callback_coroutine(), "test.asyncio.topic1")
+    connection.publish("test.asyncio.topic1", "my-message")
+    assert ["my-message"] == receiver.wait_for_messages()
+
+
+@connection_classes(AsyncioBrokerConnection)
+def test_asyncio_request_response(connection, receiver):
+    """
+    Test request/response messaging pattern with coroutine callbacks
+    """
+
+    async def endpoint_handler(message):
+        return message.payload + "-pong"
+
+    connection.register_async_endpoint(endpoint_handler, "test.asyncio.request")
+    connection.call_async(
+        receiver.create_callback_coroutine(), "test.asyncio.request", "ping"
+    )
+
+    assert ["ping-pong"] == receiver.wait_for_messages()
+
+
+@connection_classes(AsyncioBrokerConnection)
+def test_asyncio_notification(connection, receiver):
+    """
+    Test notification messaging pattern with coroutine callbacks
+    """
+    connection.register_notification_endpoint(
+        receiver.create_callback_coroutine(), "test.asyncio.notification"
+    )
+    connection.notify("test.asyncio.notification", "my-notification")
+    receiver.wait_for_particular_messages("my-notification")
+
+
+@connection_classes(AsyncioBrokerConnection)
+def test_asyncio_future_functions(connection: AsyncioBrokerConnection, receiver):
+    """
+    Test the `call()`, `subscribe_awaitable()`, `await_message()`, and
+    `await_notification()` functions (implicitly tests `await_generic()`)
+    """
+
+    connection.subscribe_awaitable("test.await_message_1")
+    connection.subscribe_awaitable("test.await_notification")
+
+    async def handler(message: Message):
+        # Test `call()`
+        response_future = connection.call("test.call", "my-message")
+        assert "my-message" == (await response_future).payload
+
+        # Test `await_message()` with initial call to `subscribe_awaitable()`
+        message_future = connection.await_message("test.await_message_1")
+        connection.publish("test.await_message_1", "message-1")
+        assert "message-1" == (await message_future).payload
+
+        # Test `await_message()` with on-demand call to `subscribe_awaitable()`
+        connection.subscribe_awaitable("test.await_message_2")
+        message_future = connection.await_message("test.await_message_2")
+        connection.publish("test.await_message_2", "message-2")
+        assert "message-2" == (await message_future).payload
+
+        # Test `await_notification()`
+        message_future = connection.await_notification("test.await_notification")
+        # Request with empty payload, should be ignored:
+        connection.call_async(
+            lambda message: None, "test.await_notification", "not-a-notification"
+        )
+        connection.notify("test.await_notification", "notification")
+        assert "notification" == (await message_future).payload
+
+        return "response-message"
+
+    connection.register_async_endpoint(handler, "test.handler")
+    connection.register_async_endpoint(receiver.echo_callback_coroutine, "test.call")
+
+    connection.call_async(receiver.create_callback_coroutine(), "test.handler", "ping")
+    assert ["response-message"] == receiver.wait_for_messages()
