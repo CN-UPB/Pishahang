@@ -1,5 +1,7 @@
-# ## 1. Get PD
+# -*- coding: utf-8 -*-
 # %%
+# ## 1. Get PD
+# -
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -16,14 +18,16 @@ START_TIME = time.time()
 LIMIT_DATASET = False
 
 LOOK_AHEAD = 5  # Mins
-EXPERIMENT_RUNS = 10
+EXPERIMENT_RUNS = 1
+
+_SCORE_MIN, _SCORE_MAX = 1, 5
 
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
         "cost": 5,
-        "over_provision": 2,
-        "overhead": 3
+        "over_provision": 5,
+        "overhead": 1
     },
     "positive": {
         "support_deviation": 1,
@@ -33,6 +37,7 @@ WEIGHTS = {
     }
 }
 
+# accuracy_list = [1.0]
 accuracy_list = [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]
 
 # %%
@@ -46,7 +51,7 @@ PD = yaml.load(r.text, Loader=yaml.FullLoader)
 #     'virtual_deployment_units_gpu': {'transcoder-image-1-gpu': {'cost_per_min': 0.0087,
 #                                                                 'max_data_rate': 3000,
 #                                                                 'management_overhead': 6}},
-#     'virtual_deployment_units_con': {'transcoder-image-1-con': {'cost_per_min': 0.0007,
+#     'virtual_deployment_units_con': {'transcoder-image-1-con': {'cost_per_min': 0.00045,
 #                                                                 'max_data_rate': 1200,
 #                                                                 'management_overhead': 6}}}
 
@@ -61,9 +66,7 @@ GPU_COST_PER_MINUTE = PD["versions"]['virtual_deployment_units_gpu']["transcoder
 #         print(_vm_version_value)
 #         print("\n")
 
-# %%
-
-_SCORE_MIN, _SCORE_MAX = 1, 5
+# %% endofcell="--"
 
 '''
 Find the version with the max supported datarate
@@ -203,14 +206,17 @@ def get_policy_decision(decision_matrix, weights):
     # Positive
     support_deviation = weights["positive"]['support_deviation']
     same_version = weights["positive"]['same_version']
+    support_max = weights["positive"]['support_max']
+    support_recent_history = weights["positive"]['support_recent_history']
 
     # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
     weights_row = [cost, over_provision,
-                   overhead, support_deviation, same_version]
+                   overhead, support_deviation, same_version, support_max, support_recent_history]
 
     for index_label, row_series in decision_matrix.iterrows():
         _row = np.array([row_series.cost, row_series.over_provision, row_series.overhead,
-                         row_series.support_deviation, row_series.same_version])
+                         row_series.support_deviation, row_series.same_version, row_series.support_max, 
+                         row_series.support_recent_history])
 
         decision_matrix.at[index_label, 'score'] = np.dot(
             np.array(weights_row), _row)
@@ -246,6 +252,33 @@ def find_cheapest_version(versions):
 
     return _cost_version
 
+def get_switch_price(current_version, previous_version):
+    _price = 0
+    if "vm" in previous_version:
+        if "vm" in current_version:
+            _price = 0
+        if "con" in current_version:
+            _price = (5/60) * VM_COST_PER_MINUTE
+        if "gpu" in current_version:
+            _price = (5/60) * VM_COST_PER_MINUTE
+
+    if "con" in previous_version:
+        if "con" in current_version:
+            _price = 0
+        if "vm" in current_version:
+            _price = (85/60) * CON_COST_PER_MINUTE
+        if "gpu" in current_version:
+            _price = (5/60) * CON_COST_PER_MINUTE
+
+    if "gpu" in previous_version:
+        if "gpu" in current_version:
+            _price = 0
+        if "vm" in current_version:
+            _price = (85/60) * GPU_COST_PER_MINUTE
+        if "con" in current_version:
+            _price = (5/60) * GPU_COST_PER_MINUTE
+
+    return _price
 
 def get_switch_qos_metrics(current_version, previous_version):
     qos_metrics = {}
@@ -323,7 +356,8 @@ def get_prob_new_datarate(datarate, p=0.5, accuracy=0.9):
 # # Run Policy on Dataset
 # ---
 #
-# %%
+# --
+# %% endofcell="--"
 
 
 traffic_training_complete = pd.read_csv(
@@ -335,6 +369,7 @@ if LIMIT_DATASET:
 print(traffic_training_complete.shape)
 traffic_training_complete.head(5)
 # -
+# --
 
 # %%
 ##################################
@@ -434,10 +469,17 @@ def get_decision_dataset(traffic_grouped, traffic_history):
         final_decision_dataset[_acc_pc] = _results[_acc_pc].iloc[np.repeat(np.arange(
             len(_results[_acc_pc])), 5)].reset_index().drop('index', axis=1)['policy']
 
-        # print("\npc_{}".format(int(_acc*100)))
-        # print(final_decision_dataset[_acc_pc].value_counts())
+        print("\npc_{}".format(int(_acc*100)))
+        print(final_decision_dataset[_acc_pc].value_counts())
 
     final_decision_dataset['history'] = traffic_history['history']
+
+    print("\nHistory")
+    print(final_decision_dataset['history'].value_counts())
+
+    print("Switch Stats")
+    print(switch_counter)
+    print("\n\n")
 
     return {
         "switch_counter": switch_counter,
@@ -571,35 +613,87 @@ def get_total_price(final_decision_dataset):
         _acc_price = 0
         _value_counts = final_decision_dataset[_acc_pc].value_counts()
 
+        _result[_acc_pc] = {
+            # 'datarate': [],
+            'total_cost': [],
+            'deployment_cost': [],
+            'switching_cost': []
+        }
+
         for k, v in _value_counts.iteritems():
             if "gpu" in k:
-                _acc_price += (GPU_COST_PER_MINUTE * LOOK_AHEAD * v)
+                _acc_price += (GPU_COST_PER_MINUTE  * v)
             if "vm" in k:
-                _acc_price += (VM_COST_PER_MINUTE * LOOK_AHEAD * v)
+                _acc_price += (VM_COST_PER_MINUTE * v)
             if "con" in k:
-                _acc_price += (CON_COST_PER_MINUTE * LOOK_AHEAD * v)
+                _acc_price += (CON_COST_PER_MINUTE * v)
 
-        if _acc_pc not in _result.keys():
-            _result[_acc_pc] = _acc_price
+        # Calculate cost of switching
+        _previous_version = None
+        _current_version = None
+        _switch_price = 0
 
+        for index_label, row_series in final_decision_dataset.iterrows():
+            if _previous_version == None:
+                _previous_version = row_series[_acc_pc]
+
+            _current_version = row_series[_acc_pc]
+
+            _switch_price += get_switch_price(
+                _current_version, _previous_version)
+
+            _previous_version = _current_version
+
+        _result[_acc_pc]['total_cost'].append(_acc_price + _switch_price)
+        _result[_acc_pc]['deployment_cost'].append(_acc_price)
+        _result[_acc_pc]['switching_cost'].append(_switch_price)
+
+
+    # For history 
     _acc_pc = "history"
     _acc_price = 0
+
+    _result[_acc_pc] = {
+        'total_cost': [],
+        'deployment_cost': [],
+        'switching_cost': []
+    }
 
     _value_counts = final_decision_dataset[_acc_pc].value_counts()
 
     for k, v in _value_counts.iteritems():
         # print(k, v)
         if "gpu" in k:
-            _acc_price += (GPU_COST_PER_MINUTE * LOOK_AHEAD * v)
+            _acc_price += (GPU_COST_PER_MINUTE * v)
         if "vm" in k:
-            _acc_price += (VM_COST_PER_MINUTE * LOOK_AHEAD * v)
+            _acc_price += (VM_COST_PER_MINUTE * v)
         if "con" in k:
-            _acc_price += (CON_COST_PER_MINUTE * LOOK_AHEAD * v)
+            _acc_price += (CON_COST_PER_MINUTE * v)
 
-    if _acc_pc not in _result.keys():
-        _result[_acc_pc] = _acc_price
+    # Calculate cost of switching
+    _previous_version = None
+    _current_version = None
+    _switch_price = 0
 
-    return(_result)
+    for index_label, row_series in final_decision_dataset.iterrows():
+        if _previous_version == None:
+            _previous_version = row_series[_acc_pc]
+
+        _current_version = row_series[_acc_pc]
+
+        _switch_price += get_switch_price(
+            _current_version, _previous_version)
+
+        _previous_version = _current_version
+
+    _result[_acc_pc]['total_cost'].append(_acc_price + _switch_price)
+    _result[_acc_pc]['deployment_cost'].append(_acc_price)
+    _result[_acc_pc]['switching_cost'].append(_switch_price)
+
+    price_final_decision_dataset = pd.DataFrame.from_dict({(i, j): _result[i][j]
+                                                         for i in _result.keys()
+                                                         for j in _result[i].keys()})    
+    return(price_final_decision_dataset.sum())
 # ## Random errors to get different accuracies
 # %%
 
@@ -677,6 +771,11 @@ prices_df.to_csv(
 switch_counter_df.head()
 qos_sum_df.head()
 prices_df.head()
+# -
+
+# Decision Histogram
+decision_results["final_decision_dataset"]['pc_100'].hist()
+# decision_results["final_decision_dataset"]['history'].hist()
 
 # %%
 
@@ -697,7 +796,7 @@ switch_counter_df_complete = pd.read_csv(
 qos_sum_df_complete = pd.read_csv(
     './data/{}_runs_experiment_qos_sum_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
 prices_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS), index_col=0)
+    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
 
 # switch_counter_df = switch_counter_df_complete.agg(
 #     ['mean', 'std', 'min', 'max', 'median']).transpose()
@@ -821,8 +920,9 @@ plot_file_name = "./results/2a_qos_times.png"
 bplot.figure.savefig(plot_file_name,
                      format='png',
                      dpi=300)
+# -
 
-# %%
+
 # %%
 
 #############################################
@@ -901,7 +1001,10 @@ qos_sum_df_unstacked = qos_sum_df_complete.unstack(
     level=0).reset_index(level=2, drop=True).reset_index(name='data')
 
 wrong_versions = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin(
-    ['under_utilized', 'over_loaded', 'wrongversion'])]
+    ['under_utilized', 'over_loaded'])]
+
+# wrong_versions = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin(
+#     ['under_utilized', 'over_loaded', 'wrongversion'])]
 
 bplot = sns.boxplot(
     x='level_0',
@@ -924,7 +1027,7 @@ bplot = sns.stripplot(
 
 handles, labels = bplot.get_legend_handles_labels()
 
-_HANDLES = 3
+_HANDLES = 2
 l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
                bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
@@ -959,20 +1062,39 @@ bplot.figure.savefig(plot_file_name,
 sns.set_style("darkgrid")
 plt.figure(figsize=(8, 5))
 
-# make boxplot with Seaborn
+prices_df_unstacked = prices_df_complete.unstack(
+    level=0).reset_index(level=2, drop=True).reset_index(name='data')
+
+prices_result = prices_df_unstacked[prices_df_unstacked["level_1"].isin(
+    ['total_cost'])]
+
+# switching_cost = prices_df_unstacked[prices_df_unstacked["level_1"].isin([
+                    # 'deployment_cost', 'switching_cost'])]
+
 bplot = sns.boxplot(
-    data=prices_df_complete,
+    x='level_0',
+    y='data',
+    hue="level_1",
+    data=prices_result,
     width=0.5,
-    palette="colorblind"
-)
+    palette="colorblind")
 
 # add stripplot to boxplot with Seaborn
 bplot = sns.stripplot(
-    data=prices_df_complete,
+    x='level_0',
+    y='data',
+    hue="level_1",
+    data=prices_result,
     jitter=False,
     marker='o',
     alpha=0.5,
     color='black')
+
+handles, labels = bplot.get_legend_handles_labels()
+
+_HANDLES = 1
+l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
+               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 bplot.axes.set_title("Prices vs Model",
                      fontsize=16)
@@ -992,7 +1114,6 @@ plot_file_name = "./results/3_prices.png"
 bplot.figure.savefig(plot_file_name,
                      format='png',
                      dpi=300)
-
 
 # %%
 
