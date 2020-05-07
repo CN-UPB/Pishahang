@@ -78,6 +78,6 @@ versions:
 
   virtual_deployment_units_con:
     transcoder-image-1-con: 
-      cost_per_min: 0.0007
+      cost_per_min: 0.00045
       max_data_rate: 1200
       management_overhead: 6
