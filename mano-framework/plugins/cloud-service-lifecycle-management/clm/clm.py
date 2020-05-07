@@ -101,7 +101,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # The topic on which deploy requests are posted.
         self.manoconn.subscribe(self.cloud_service_instance_create, t.CS_DEPLOY)
 
-    def on_lifecycle_start(self, message : Message):
+    def on_lifecycle_start(message : Message):
         """
         This event is called when the plugin has successfully registered itself
         to the plugin manager and received its lifecycle.start event from the
@@ -211,7 +211,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # Kill the current workflow
         self.cloud_services[cservice_id]['kill_chain'] = True
 
-    def cloud_service_instance_create(self, ch, method, properties, payload):
+    def cloud_service_instance_create(message : Message):
         """
         This cloud service handles a received message on the *.cloud_service.create
         topic.
@@ -222,15 +222,15 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
             return
 
         LOG.info("Cloud Service instance create request received.")
-        message = yaml.load(payload)
+        loc_message = message.payload
 
         # Extract the correlation id
         corr_id = properties.correlation_id
 
-        cservice_id = message['id']
+        cservice_id = loc_message['id']
 
         # Add the function to the ledger
-        self.add_cloud_service_to_ledger(message, corr_id, cservice_id, t.CS_DEPLOY)
+        self.add_cloud_service_to_ledger(loc_message, message.corr_id, cservice_id, t.CS_DEPLOY)
 
         # Schedule the tasks that the FLM should do for this request.
         add_schedule = []
@@ -284,9 +284,9 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
 
         LOG.info("Response from IA on cs deploy call received.")
-        LOG.debug("Payload of request: " + str(message))
+        LOG.debug("Payload of request: " + str(message.payload))
 
-        inc_message = message
+        inc_message = message.payload
 
         cservice_id = tools.cserviceid_from_corrid(self.cloud_services, prop.correlation_id)
 
