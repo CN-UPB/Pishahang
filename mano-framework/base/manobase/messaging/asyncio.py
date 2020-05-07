@@ -1,5 +1,5 @@
 """
-Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
+Copyright (c) 2017 Pishahang
 ALL RIGHTS RESERVED.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Neither the name of the SONATA-NFV, Pishahang,
-nor the names of its contributors may be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-Parts of this work have been performed in the framework of the SONATA project,
-funded by the European Commission under Grant number 671517 through
-the Horizon 2020 and 5G-PPP programmes. The authors would like to
-acknowledge the contributions of their colleagues of the SONATA
-partner consortium (www.sonata-nfv.eu).
+Neither the name of Pishahang, nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
 """
 
 import asyncio
