@@ -161,7 +161,9 @@ class ManoBrokerConnection:
         """
         Close the connection, stopping all consuming threads
         """
-        if self._connection.is_open or self._connection.is_opening:
+        if self._connection is not None and (
+            self._connection.is_open or self._connection.is_opening
+        ):
             self._connection.close()
 
     def setup_connection(self):
