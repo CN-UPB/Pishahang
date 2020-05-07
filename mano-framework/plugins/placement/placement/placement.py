@@ -134,7 +134,7 @@ class PlacementPlugin(ManoBasePlugin):
         if prop.app_id == self.name:
             return
 
-        content = message
+        content = message.payload
         LOG.info("Placement request for service: " + content['serv_id'])
         topology = content['topology']
         descriptor = content['nsd'] if 'nsd' in content else content['cosd']
