@@ -5,27 +5,34 @@ name: transcoder_mv
 version: '1.0'
 author: ashwin
 
-# Minimum time before prediction algorithm can be used on the data
+# Minimum time before prediction algorithm can be used on the data (seconds)
 initial_observation_period: 30
 
 # Prediction algorithm selection (lstm, arima, prophet)
 prediction_algorithm: lstm
 
-# accuracy
+# 
+minimum_accuracy: 
+
+# Default version to deploy on init
+default_deployment_version: "CON"
+default_deployment_version_image: transcoder-image-1-con
 
 #################################
 # TRAINING PARAMETERS
 #################################
 
-# time_block in seconds
+# Minimum observation period time_block in (seconds)
 time_block: 1
 
+# Number of blocks to look back and predict forward
 history_time_block: 30
 look_ahead_time_block: 5
 
 # Limit training to the last few days data (0 = unlimited)
 training_history_days: 7
 
+# How often to train with new data
 forecast_training_frequency: 30
 
 #################################
@@ -38,10 +45,6 @@ monitoring_config:
 
 # Whether to allow switching inbetween time blocks 
 static_switching: false
-
-# Default version to deploy on init
-default_deployment_version: "VM"
-default_deployment_version_image: transcoder-image-1-vm
 
 # Score range for weights
 score_range:
@@ -63,18 +66,18 @@ weights:
 versions:
   virtual_deployment_units_vm:
     transcoder-image-1-vm: 
-      cost_per_min: 2
+      cost_per_min: 0.0003
       max_data_rate: 600
       management_overhead: 60
 
   virtual_deployment_units_gpu:
     transcoder-image-1-gpu: 
-      cost_per_min: 10
+      cost_per_min: 0.0087
       max_data_rate: 3000
       management_overhead: 6
 
   virtual_deployment_units_con:
     transcoder-image-1-con: 
-      cost_per_min: 3
+      cost_per_min: 0.0007
       max_data_rate: 1200
       management_overhead: 6

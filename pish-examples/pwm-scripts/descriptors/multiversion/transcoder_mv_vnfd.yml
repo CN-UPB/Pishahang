@@ -30,7 +30,7 @@ transcoder-image-1-vm:
 transcoder-image-1-gpu:
 - id: "transcoder-image-1"
   name: "transcoder-image-1"
-  service_image: "pgscramble/transcoder-cn:1.0"
+  service_image: "pgscramble/transcoder-cn:1.5.short"
   service_type: "LoadBalancer"
   service_ports:
   - name: "http"
@@ -53,7 +53,7 @@ transcoder-image-1-gpu:
 transcoder-image-1-con:
 - id: "transcoder-image-1"
   name: "transcoder-image-1"
-  service_image: "pgscramble/transcoder-cpu-cn:1.2"
+  service_image: "pgscramble/transcoder-cpu-cn:1.5.short"
   service_type: "LoadBalancer"
   service_ports:
   - name: "http"
