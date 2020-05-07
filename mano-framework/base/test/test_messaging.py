@@ -28,7 +28,7 @@ partner consortium (www.sonata-nfv.eu).
 
 import logging
 import traceback
-from queue import Queue
+from queue import Queue, Empty
 from time import time
 from typing import List
 
@@ -57,8 +57,7 @@ def receiver():
             self._message_queues: List["Queue[Message]"] = [Queue() for _ in range(2)]
             self._exception_message: str = None
 
-        @staticmethod
-        def _check_message(message: Message):
+        def _check_message(self, message: Message):
             try:
                 assert message.app_id is not None
                 assert type(message.headers) is dict
@@ -67,7 +66,7 @@ def receiver():
 
         def create_cbf(self, queue=0):
             def simple_subscribe_cbf(message: Message):
-                Receiver._check_message(message)
+                self._check_message(message)
                 LOG.debug("Callback function %d: Received %s", queue, message.payload)
                 self._message_queues[queue].put(message)
 
@@ -75,14 +74,14 @@ def receiver():
 
         def create_callback_coroutine(self, queue=0):
             async def simple_subscribe_coroutine(message: Message):
-                Receiver._check_message(message)
+                self._check_message(message)
                 LOG.debug("Callback coroutine %d: Received %s", queue, message.payload)
                 self._message_queues[queue].put(message)
 
             return simple_subscribe_coroutine
 
         def echo_cbf(self, message: Message):
-            Receiver._check_message(message)
+            self._check_message(message)
             try:
                 assert message.reply_to is not None
                 assert message.correlation_id is not None
@@ -92,7 +91,7 @@ def receiver():
             return message.payload
 
         async def echo_callback_coroutine(self, message: Message):
-            Receiver._check_message(message)
+            self._check_message(message)
             assert message.reply_to is not None
             assert message.correlation_id is not None
             LOG.debug("Echo callback coroutine: Received %s", message.payload)
@@ -107,12 +106,19 @@ def receiver():
             queue = self._message_queues[queue]
             payloads = []
             end_time = time() + timeout
-            while len(payloads) < number and time() < end_time:
-                payloads.append(
-                    queue.get(block=True, timeout=end_time - time()).payload
-                )
+            try:
+                while len(payloads) < number and time() < end_time:
+                    payloads.append(
+                        queue.get(block=True, timeout=end_time - time()).payload
+                    )
 
-            return payloads
+                return payloads
+            except Empty:
+                raise Exception(
+                    "Timeout reached, {:d} of {:d} messages received.".format(
+                        len(payloads), number
+                    )
+                )
 
         def wait_for_particular_messages(self, payload, queue=0, timeout=5):
             """
@@ -122,12 +128,17 @@ def receiver():
             """
             queue = self._message_queues[queue]
             end_time = time() + timeout
-            while time() < end_time:
-                if queue.get(block=True, timeout=end_time - time()).payload == payload:
-                    return
-            Exception(
-                'Message "%s" never found. Subscription timeout reached.', payload
-            )
+            try:
+                while time() < end_time:
+                    if (
+                        queue.get(block=True, timeout=end_time - time()).payload
+                        == payload
+                    ):
+                        return
+            except Empty:
+                raise Exception(
+                    'Timeout reached, message "{}" never found.'.format(payload)
+                )
 
     receiver = Receiver()
     yield receiver
