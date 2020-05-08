@@ -1,3 +1,3 @@
-,pc_100,pc_100,pc_100,pc_100,pc_100,pc_100,pc_90,pc_90,pc_90,pc_90,pc_90,pc_90,pc_80,pc_80,pc_80,pc_80,pc_80,pc_80,pc_70,pc_70,pc_70,pc_70,pc_70,pc_70,pc_60,pc_60,pc_60,pc_60,pc_60,pc_60,history,history,history,history,history,history
-,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded
-0,39,39,65,0,0,0,57,57,95,50,0,50,75,75,125,125,125,0,231,231,385,530,0,530,84,84,140,280,280,0,543,543,905,108,43,65
+,pc_100,pc_100,pc_100,pc_100,pc_100,pc_100,history,history,history,history,history,history
+,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded,downtime,buffertime,switchtime,wrongversion,under_utilized,over_loaded
+0,276,276,1260,0,0,0,1998,1998,7890,515,203,167

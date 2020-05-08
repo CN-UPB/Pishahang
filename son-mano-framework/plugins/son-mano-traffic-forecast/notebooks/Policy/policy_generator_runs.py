@@ -17,16 +17,18 @@ import random
 START_TIME = time.time()
 LIMIT_DATASET = False
 
-LOOK_AHEAD = 5  # Mins
-EXPERIMENT_RUNS = 1
+LOOK_AHEAD = 5  # Mins (factor of shape)
+EXPERIMENT_RUNS = 60
 
+# DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_7_day_traffic.csv'
+DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/extended_dataset_six_traffic.csv'
 _SCORE_MIN, _SCORE_MAX = 1, 5
 
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
-        "cost": 5,
-        "over_provision": 5,
+        "cost": 10,
+        "over_provision": 10,
         "overhead": 1
     },
     "positive": {
@@ -38,7 +40,8 @@ WEIGHTS = {
 }
 
 # accuracy_list = [1.0]
-accuracy_list = [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]
+accuracy_list = [1.0, 0.98, 0.96, 0.94, 0.92, 0.90]
+# accuracy_list = [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]
 
 # %%
 r = requests.get(
@@ -360,8 +363,7 @@ def get_prob_new_datarate(datarate, p=0.5, accuracy=0.9):
 # %% endofcell="--"
 
 
-traffic_training_complete = pd.read_csv(
-    r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv', index_col=0)
+traffic_training_complete = pd.read_csv(DATASET_PATH, index_col=0)
 
 if LIMIT_DATASET:
     traffic_training_complete = traffic_training_complete[:LIMIT_DATASET]
@@ -467,7 +469,7 @@ def get_decision_dataset(traffic_grouped, traffic_history):
         _acc_pc = "pc_{}".format(int(_acc*100))
 
         final_decision_dataset[_acc_pc] = _results[_acc_pc].iloc[np.repeat(np.arange(
-            len(_results[_acc_pc])), 5)].reset_index().drop('index', axis=1)['policy']
+            len(_results[_acc_pc])), LOOK_AHEAD)].reset_index().drop('index', axis=1)['policy']
 
         print("\npc_{}".format(int(_acc*100)))
         print(final_decision_dataset[_acc_pc].value_counts())
@@ -690,6 +692,40 @@ def get_total_price(final_decision_dataset):
     _result[_acc_pc]['deployment_cost'].append(_acc_price)
     _result[_acc_pc]['switching_cost'].append(_switch_price)
 
+    ADD_NON_MV_COSTS = False
+    if ADD_NON_MV_COSTS:
+        _no_deployments = final_decision_dataset.shape[0]
+
+        for k, v in _value_counts.iteritems():
+            # print(k, v)
+            if "gpu" in k:       
+                _acc_price = _no_deployments * GPU_COST_PER_MINUTE
+                _switch_price = 0
+
+                _result["gpu_only"] = {
+                        'total_cost': [(_acc_price + _switch_price)],
+                        'deployment_cost': [_acc_price],
+                        'switching_cost': [0]
+                    }
+            if "vm" in k:
+                _acc_price = _no_deployments * VM_COST_PER_MINUTE
+                _switch_price = 0
+
+                _result["vm_only"] = {
+                        'total_cost': [(_acc_price + _switch_price)],
+                        'deployment_cost': [_acc_price],
+                        'switching_cost': [0]
+                    }
+            if "con" in k:
+                _acc_price = _no_deployments * CON_COST_PER_MINUTE
+                _switch_price = 0
+
+                _result["con_only"] = {
+                        'total_cost': [(_acc_price + _switch_price)],
+                        'deployment_cost': [_acc_price],
+                        'switching_cost': [0]
+                    }
+
     price_final_decision_dataset = pd.DataFrame.from_dict({(i, j): _result[i][j]
                                                          for i in _result.keys()
                                                          for j in _result[i].keys()})    
@@ -828,7 +864,7 @@ bplot = sns.boxplot(
 # add stripplot to boxplot with Seaborn
 bplot = sns.stripplot(
     data=switch_counter_df_complete,
-    jitter=False,
+    jitter=True,
     marker='o',
     alpha=0.5,
     color='black')
@@ -891,7 +927,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=qos_times,
-    jitter=False,
+    jitter=True,
     marker='o',
     alpha=0.5,
     color='black')
@@ -940,7 +976,6 @@ qos_sum_df_unstacked = qos_sum_df_complete.unstack(
 switch_times = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin([
                                                                          'switchtime'])]
 
-
 bplot = sns.boxplot(
     x='level_0',
     y='data',
@@ -955,7 +990,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=switch_times,
-    jitter=False,
+    jitter=True,
     marker='o',
     alpha=0.5,
     color='black')
@@ -1020,7 +1055,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=wrong_versions,
-    jitter=False,
+    jitter=True,
     marker='o',
     alpha=0.5,
     color='black')
@@ -1085,7 +1120,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=prices_result,
-    jitter=False,
+    jitter=True,
     marker='o',
     alpha=0.5,
     color='black')
