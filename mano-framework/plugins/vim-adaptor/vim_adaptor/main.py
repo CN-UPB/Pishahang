@@ -21,6 +21,9 @@ without specific prior written permission.
 
 import logging
 
+from mongoengine import connect
+from config2.config import config
+
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 
@@ -29,6 +32,7 @@ logging.getLogger("manobase:plugin").setLevel(logging.INFO)
 logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
 
 LOG = logging.getLogger("plugin:vim-adaptor")
+LOG.setLevel(logging.DEBUG)
 
 
 class VimAdaptor(ManoBasePlugin):
@@ -48,6 +52,11 @@ class VimAdaptor(ManoBasePlugin):
 
 
 def main():
+    # Connect to MongoDB
+    LOG.debug("Connecting to MongoDB at %s", config.mongo)
+    connect(host=config.mongo)
+    LOG.info("Connected to MongoDB")
+
     VimAdaptor()
 
 

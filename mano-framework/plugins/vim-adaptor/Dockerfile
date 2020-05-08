@@ -9,4 +9,6 @@ RUN poetry install --no-root --no-dev --no-interaction
 COPY . ./
 RUN poetry install --no-dev --no-interaction
 
+ENV ENVIRONMENT production
+
 CMD ["poetry", "run", "start"]
