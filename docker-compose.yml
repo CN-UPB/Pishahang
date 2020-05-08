@@ -489,9 +489,19 @@ services:
     networks:
       - pishanet
 
+  # Vim Adaptor
+  vim-adaptor:
+    image: pishahang/vim-adaptor-new:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - pluginmanager
+      - mongo
+    networks:
+      - pishanet
+
   # Infastructure Adaptor ------------------------------------------------------
   # Infrastructure Abstractor VIM Adaptor
-  vim-adaptor:
+  old-vim-adaptor:
     image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
     restart: always
     depends_on:
