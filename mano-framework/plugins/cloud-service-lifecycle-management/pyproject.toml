@@ -6,7 +6,7 @@ authors = []
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 amqpstorm = "^2.7.2"
 manobase = { path = "../../base" }
 
