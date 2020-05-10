@@ -5,6 +5,7 @@
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 from sklearn import preprocessing
 import numpy as np
 import pandas as pd
@@ -12,6 +13,7 @@ import time
 import requests
 import yaml
 import random
+from glob import glob
 
 # %%
 START_TIME = time.time()
@@ -20,8 +22,11 @@ LIMIT_DATASET = False
 LOOK_AHEAD = 5  # Mins (factor of shape)
 EXPERIMENT_RUNS = 1
 
-# DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_7_day_traffic.csv'
-DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv'
+DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/varience_manual/'
+traffic_files = [y for x in os.walk(DATASET_PATH) for y in glob(os.path.join(x[0], '*.csv'))]
+traffic_files.sort()
+
+# DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv'
 _SCORE_MIN, _SCORE_MAX = 1, 5
 
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
@@ -357,21 +362,6 @@ def get_prob_new_datarate(datarate, p=0.5, accuracy=0.9):
 # -
 
 # # Run Policy on Dataset
-# ---
-#
-# --
-# %% endofcell="--"
-
-
-traffic_training_complete = pd.read_csv(DATASET_PATH, index_col=0)
-
-if LIMIT_DATASET:
-    traffic_training_complete = traffic_training_complete[:LIMIT_DATASET]
-
-print(traffic_training_complete.shape)
-traffic_training_complete.head(5)
-# -
-# --
 
 # %%
 ##################################
@@ -769,15 +759,21 @@ def get_total_price(final_decision_dataset):
 #####################################################
 #####################################################
 
+_traffic_results = {}
 
-_run_results = {
-    "switch_counter": [],
-    "qos_sum": [],
-    "prices": []
-}
+for _traffic_file in traffic_files:
 
-for _run in range(EXPERIMENT_RUNS):
-    print("RUN: ", _run)
+    _traffic_file_name = os.path.basename(_traffic_file)
+
+    traffic_training_complete = pd.read_csv(_traffic_file, index_col=0)
+
+    if LIMIT_DATASET:
+        traffic_training_complete = traffic_training_complete[:LIMIT_DATASET]
+
+    print(_traffic_file_name)
+    print(traffic_training_complete.shape)
+    traffic_training_complete.head(5)
+
     # Generate different probabalistic datasets
     for _acc in accuracy_list:
         _acc_pc = "pc_{}".format(int(_acc*100))
@@ -786,8 +782,8 @@ for _run in range(EXPERIMENT_RUNS):
             size=traffic_training_complete.shape[0], n=1, p=_acc)
 
         traffic_training_complete[_acc_pc] = np.where(_acc_samples,
-                                                      traffic_training_complete['sent'],
-                                                      get_prob_new_datarate(traffic_training_complete['sent'], accuracy=_acc))
+                                                    traffic_training_complete['sent'],
+                                                    get_prob_new_datarate(traffic_training_complete['sent'], accuracy=_acc))
 
     # Group data according to look ahead
     traffic_grouped = traffic_training_complete.groupby(
@@ -798,42 +794,8 @@ for _run in range(EXPERIMENT_RUNS):
 # Get decision dataset
     decision_results = get_decision_dataset(traffic_grouped, traffic_history)
 
-    _run_results["switch_counter"].append(decision_results["switch_counter"])
+    _traffic_results[_traffic_file_name] = decision_results
 
-# Get QoS results
-    qos_results = get_qos_dataset(decision_results["final_decision_dataset"])
-    _run_results["qos_sum"].append(
-        qos_results["qos_final_decision_dataset_sum"])
-
-# Get Prices
-    price_result = get_total_price(decision_results["final_decision_dataset"])
-    _run_results["prices"].append(
-        price_result)
-
-# final_decision_dataset.to_csv('./data/{}m_policy_decisions_dataset_six_traffic.csv'.format(LOOK_AHEAD))
-# print(final_decision_dataset.shape)
-# final_decision_dataset.head(10)
-
-switch_counter_df = pd.DataFrame.from_records(_run_results["switch_counter"])
-qos_sum_df = pd.DataFrame.from_records(_run_results["qos_sum"])
-prices_df = pd.DataFrame.from_records(_run_results["prices"])
-
-switch_counter_df.to_csv(
-    './data/{}_runs_experiment_switch_counter_df.csv'.format(EXPERIMENT_RUNS))
-qos_sum_df.to_csv(
-    './data/{}_runs_experiment_qos_sum_df.csv'.format(EXPERIMENT_RUNS))
-prices_df.to_csv(
-    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS))
-
-
-switch_counter_df.head()
-qos_sum_df.head()
-prices_df.head()
-# -
-
-# Decision Histogram
-decision_results["final_decision_dataset"]['pc_100'].hist()
-# decision_results["final_decision_dataset"]['history'].hist()
 
 # %%
 
@@ -849,329 +811,60 @@ decision_results["final_decision_dataset"]['pc_100'].hist()
 #####################################################
 #####################################################
 
-switch_counter_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_switch_counter_df.csv'.format(EXPERIMENT_RUNS), index_col=0)
-qos_sum_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_qos_sum_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
-prices_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
+# https://stackoverflow.com/questions/53766397/how-to-center-the-grid-of-a-plot-on-scatter-points
+# https://stackoverflow.com/questions/47684652/how-to-customize-marker-colors-and-shapes-in-scatter-plot
+markers = ["v" , "^" , "v" , ">" , "^" , "<", ">"]
+colors = ['r','g','b','c','m', 'y', 'k']
 
-# switch_counter_df = switch_counter_df_complete.agg(
-#     ['mean', 'std', 'min', 'max', 'median']).transpose()
-# qos_sum_df = qos_sum_df_complete.agg(
-#     ['mean', 'std', 'min', 'max', 'median']).transpose()
+fig, ax = plt.subplots(5, figsize=(8,8))
+_counter = 0
+for _traffic_file in traffic_files:
 
-# boxplot = qos_sum_df_complete.boxplot( figsize=(10,5))
+    _traffic_file_name = os.path.basename(_traffic_file)
 
-# b = qos_sum_df_complete.stack(level=0).reset_index(level=0, drop=True).reset_index().boxplot(by='index', column=["buffertime","downtime"], figsize=(10,10))
+    _res = _traffic_results[_traffic_file_name]
 
-# %%
+    x = _res["final_decision_dataset"].index
+    y = [_res["final_decision_dataset"].history, _res["final_decision_dataset"].pc_100]
+    labels = ['history', 'pc_100']
 
-#############################################
-#############################################
-# 1. Switches (Box Plot)
-#############################################
-#############################################
+    # traffic_policy_test.reset_index().plot.scatter(figsize=(20,10), fontsize=20, x=x, y=y, marker="v")
 
-sns.set_style("darkgrid")
-plt.figure(figsize=(8, 5))
+    for i in range(len(labels)): #for each of the 7 features 
+        mi = markers[i] #marker for ith feature 
+        xi = x #x array for ith feature .. here is where you would generalize      different x for every feature
+        yi = y[i] #y array for ith feature 
+        ci = colors[i] #color for ith feature 
+        ax[_counter].scatter(xi,yi, marker=mi, color=ci, s=49, label=labels[i])
 
-# make boxplot with Seaborn
-bplot = sns.boxplot(
-    data=switch_counter_df_complete,
-    width=0.5,
-    palette="colorblind"
-)
+        # ax[_counter].set_title(_traffic_file_name)
+        ax[_counter].set_title("{} | Policy:{} | History:{}".format(_traffic_file_name, _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
 
-# add stripplot to boxplot with Seaborn
-bplot = sns.stripplot(
-    data=switch_counter_df_complete,
-    jitter=True,
-    marker='o',
-    alpha=0.5,
-    color='black')
 
-bplot.axes.set_title("# Switches vs Model",
-                     fontsize=16)
+        ax[_counter].set_yticks(np.arange(3))
+        ax[_counter].set_yticks(np.arange(3+1)-0.5, minor=True)
 
-bplot.set_xlabel("Model",
-                 fontsize=14)
+        ax[_counter].set_xticks(np.arange(len(y[0])))
+        ax[_counter].set_xticks(np.arange(len(y[0])+1)-0.5, minor=True)
 
-bplot.set_ylabel("# Switches",
-                 fontsize=14)
+        loc = plticker.MultipleLocator(base=5.0) # this locator puts ticks at regular intervals
+        ax[_counter].xaxis.set_major_locator(loc)
+        ax[_counter].grid(True, which="minor")
+        ax[_counter].set_aspect("equal")
 
-bplot.tick_params(labelsize=10)
+    _counter += 1
 
-# output file name
-plot_file_name = "./results/1_no_switches.png"
+plt.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+plt.show()
 
-# save as jpeg
-bplot.figure.savefig(plot_file_name,
-                     format='png',
-                     dpi=300)
+fig.savefig("./results/manual_variation_decision_scatter.png",
+            format='png',
+            dpi=300)
 
-# %%
-
-#############################################
-#############################################
-# 2a. QoS Times (Box Plot)
-#############################################
-#############################################
-
-sns.set_style("darkgrid")
-plt.figure(figsize=(8, 5))
-
-# qos_sum_df_complete.xs('downtime', axis=1, level=1, drop_level=False)
-
-# qos_sum_df_complete.xs('downtime', axis=1, level=1).boxplot(figsize=(10, 5))
-
-qos_sum_df_unstacked = qos_sum_df_complete.unstack(
-    level=0).reset_index(level=2, drop=True).reset_index(name='data')
-
-qos_times = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin(
-    ['downtime', 'buffertime'])]
-
-switch_times = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin([
-                                                                         'switchtime'])]
-
-
-bplot = sns.boxplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=qos_times,
-    width=0.5,
-    palette="colorblind")
-
-# add stripplot to boxplot with Seaborn
-bplot = sns.stripplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=qos_times,
-    jitter=True,
-    marker='o',
-    alpha=0.5,
-    color='black')
-
-handles, labels = bplot.get_legend_handles_labels()
-
-_HANDLES = 2
-l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
-               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-bplot.axes.set_title("QoS Time vs Model",
-                     fontsize=16)
-
-bplot.set_xlabel("Model",
-                 fontsize=14)
-
-bplot.set_ylabel("Time taken (s)",
-                 fontsize=14)
-
-bplot.tick_params(labelsize=10)
-
-# output file name
-plot_file_name = "./results/2a_qos_times.png"
-
-# save as jpeg
-bplot.figure.savefig(plot_file_name,
-                     format='png',
-                     dpi=300)
-# -
-
-
-# %%
-
-#############################################
-#############################################
-# 2b. Switch Time  (Box Plot)
-#############################################
-#############################################
-
-sns.set_style("darkgrid")
-plt.figure(figsize=(8, 5))
-
-qos_sum_df_unstacked = qos_sum_df_complete.unstack(
-    level=0).reset_index(level=2, drop=True).reset_index(name='data')
-
-switch_times = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin([
-                                                                         'switchtime'])]
-
-bplot = sns.boxplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=switch_times,
-    width=0.5,
-    palette="colorblind")
-
-# add stripplot to boxplot with Seaborn
-bplot = sns.stripplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=switch_times,
-    jitter=True,
-    marker='o',
-    alpha=0.5,
-    color='black')
-
-handles, labels = bplot.get_legend_handles_labels()
-
-_HANDLES = 1
-l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
-               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-bplot.axes.set_title("Switch Time vs Model",
-                     fontsize=16)
-
-bplot.set_xlabel("Model",
-                 fontsize=14)
-
-bplot.set_ylabel("Time taken (s)",
-                 fontsize=14)
-
-bplot.tick_params(labelsize=10)
-
-# output file name
-plot_file_name = "./results/2b_switch_times.png"
-
-# save as jpeg
-bplot.figure.savefig(plot_file_name,
-                     format='png',
-                     dpi=300)
-
-
-# %%
-
-#############################################
-#############################################
-# 2c. Wrong Versions (Box Plot)
-#############################################
-#############################################
-
-sns.set_style("darkgrid")
-plt.figure(figsize=(8, 5))
-
-qos_sum_df_unstacked = qos_sum_df_complete.unstack(
-    level=0).reset_index(level=2, drop=True).reset_index(name='data')
-
-wrong_versions = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin(
-    ['under_utilized', 'over_loaded'])]
-
-# wrong_versions = qos_sum_df_unstacked[qos_sum_df_unstacked["level_1"].isin(
-#     ['under_utilized', 'over_loaded', 'wrongversion'])]
-
-bplot = sns.boxplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=wrong_versions,
-    width=0.5,
-    palette="colorblind")
-
-# add stripplot to boxplot with Seaborn
-bplot = sns.stripplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=wrong_versions,
-    jitter=True,
-    marker='o',
-    alpha=0.5,
-    color='black')
-
-handles, labels = bplot.get_legend_handles_labels()
-
-_HANDLES = 2
-l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
-               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-bplot.axes.set_title("Wrong Versions vs Model",
-                     fontsize=16)
-
-bplot.set_xlabel("Model",
-                 fontsize=14)
-
-bplot.set_ylabel("# Wrong Deployments",
-                 fontsize=14)
-
-bplot.tick_params(labelsize=10)
-
-# output file name
-plot_file_name = "./results/2c_wrong_versions.png"
-
-# save as jpeg
-bplot.figure.savefig(plot_file_name,
-                     format='png',
-                     dpi=300)
-
-
-# %%
-
-#############################################
-#############################################
-# 3. Prices (Box Plot)
-#############################################
-#############################################
-
-sns.set_style("darkgrid")
-plt.figure(figsize=(8, 5))
-
-prices_df_unstacked = prices_df_complete.unstack(
-    level=0).reset_index(level=2, drop=True).reset_index(name='data')
-
-prices_result = prices_df_unstacked[prices_df_unstacked["level_1"].isin(
-    ['total_cost'])]
-
-# switching_cost = prices_df_unstacked[prices_df_unstacked["level_1"].isin([
-                    # 'deployment_cost', 'switching_cost'])]
-
-bplot = sns.boxplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=prices_result,
-    width=0.5,
-    palette="colorblind")
-
-# add stripplot to boxplot with Seaborn
-bplot = sns.stripplot(
-    x='level_0',
-    y='data',
-    hue="level_1",
-    data=prices_result,
-    jitter=True,
-    marker='o',
-    alpha=0.5,
-    color='black')
-
-handles, labels = bplot.get_legend_handles_labels()
-
-_HANDLES = 1
-l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
-               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-bplot.axes.set_title("Prices vs Model",
-                     fontsize=16)
-
-bplot.set_xlabel("Model",
-                 fontsize=14)
-
-bplot.set_ylabel("Price ($)",
-                 fontsize=14)
-
-bplot.tick_params(labelsize=10)
-
-# output file name
-plot_file_name = "./results/3_prices.png"
-
-# save as jpeg
-bplot.figure.savefig(plot_file_name,
-                     format='png',
-                     dpi=300)
 
 # %%
 
 print("Took: {}".format((time.time() - START_TIME)/60))
+
+
+# %%
