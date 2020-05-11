@@ -6,7 +6,7 @@ def getAllVims():
     Returns the list of added Vims.
     """
     # return Vim.objects()
-    vim = broker.call_sync_simple("infrastructure.management.compute.list")
+    vim = broker.call_sync("infrastructure.management.compute.list")
     # return vim
     renameKey = {
         "core_total": "coreTotal",
@@ -31,7 +31,7 @@ def deleteVim(id):
     """
     Delete A VIM by giving its uuid.
     """
-    return broker.call_sync_simple(
+    return broker.call_sync(
         "infrastructure.management.compute.remove", msg={"uuid": id}
     )
 
@@ -39,35 +39,35 @@ def deleteVim(id):
 def addVim(body):
 
     if body["type"] == "kubernetes":
-        addVim = {
-            "vim_type": "Kubernetes",
-            "configuration": {"cluster_ca_cert": body["ccc"]},
-            "city": body["vimCity"],
-            "name": body["vimName"],
-            "country": body["country"],
-            "vim_address": body["vimAddress"],
-            "pass": body["serviceToken"],
-        }
-        return broker.call_sync_simple(
-            "infrastructure.management.compute.add", msg=addVim
+        broker.call_sync(
+            "infrastructure.management.compute.add",
+            {
+                "vim_type": "Kubernetes",
+                "configuration": {"cluster_ca_cert": body["ccc"]},
+                "city": body["vimCity"],
+                "name": body["vimName"],
+                "country": body["country"],
+                "vim_address": body["vimAddress"],
+                "pass": body["serviceToken"],
+            },
         )
 
     elif body["type"] == "openStack":
-        addVim = {
-            "vim_type": "heat",
-            "configuration": {
-                "tenant_ext_router": body["tenantExternalRouterId"],
-                "tenant_ext_net": body["tenantExternalNetworkId"],
-                "tenant": body["tenantId"],
+        broker.call_sync(
+            "infrastructure.management.compute.add",
+            {
+                "vim_type": "heat",
+                "configuration": {
+                    "tenant_ext_router": body["tenantExternalRouterId"],
+                    "tenant_ext_net": body["tenantExternalNetworkId"],
+                    "tenant": body["tenantId"],
+                },
+                "city": body["city"],
+                "name": body["vimName"],
+                "country": body["country"],
+                "vim_address": body["vimAddress"],
+                "username": body["username"],
+                "pass": body["password"],
+                "domain": "Default",
             },
-            "city": body["city"],
-            "name": body["vimName"],
-            "country": body["country"],
-            "vim_address": body["vimAddress"],
-            "username": body["username"],
-            "pass": body["password"],
-            "domain": "Default",
-        }
-        return broker.call_sync_simple(
-            "infrastructure.management.compute.add", msg=addVim
         )
