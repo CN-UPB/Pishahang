@@ -35,6 +35,7 @@ import concurrent.futures as pool
 # import psutil
 
 from manobase.plugin import ManoBasePlugin
+from manobase.messaging import Message
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:placement")
@@ -92,19 +93,15 @@ class PlacementPlugin(ManoBasePlugin):
 
         LOG.info("Subscribed to topic: " + str(topic))
 
-    def on_lifecycle_start(self, ch, mthd, prop, msg):
+    def on_lifecycle_start(message : Message):
         """
         This event is called when the plugin has successfully registered itself
         to the plugin manager and received its lifecycle.start event from the
         plugin manager. The plugin is expected to do its work after this event.
 
-        :param ch: RabbitMQ channel
-        :param method: RabbitMQ method
-        :param properties: RabbitMQ properties
-        :param message: RabbitMQ message content
         :return:
         """
-        super(self.__class__, self).on_lifecycle_start(ch, mthd, prop, msg)
+        super(self.__class__, self).on_lifecycle_start(message)
         LOG.info("Placement plugin started and operational.")
 
     def deregister(self):
@@ -129,7 +126,7 @@ class PlacementPlugin(ManoBasePlugin):
 # Placement
 ##########################
 
-    def placement_request(self, ch, method, prop, payload):
+    def placement_request(message : Message):
         """
         This method handles a placement request
         """
@@ -137,7 +134,7 @@ class PlacementPlugin(ManoBasePlugin):
         if prop.app_id == self.name:
             return
 
-        content = yaml.load(payload)
+        content = message.payload
         LOG.info("Placement request for service: " + content['serv_id'])
         topology = content['topology']
         descriptor = content['nsd'] if 'nsd' in content else content['cosd']

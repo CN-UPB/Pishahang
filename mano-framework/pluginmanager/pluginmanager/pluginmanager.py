@@ -24,21 +24,17 @@ funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
-"""
 
-"""
 This is the main module of the plugin manager component.
 """
+
 import logging
-import json
 import datetime
-import yaml
 import uuid
-import os
-import time
 from mongoengine import DoesNotExist
 
 from manobase.plugin import ManoBasePlugin
+from manobase.messaging import Message
 from pluginmanager import model
 from pluginmanager import interface
 
@@ -63,16 +59,21 @@ class SonPluginManager(ManoBasePlugin):
         interface.start(self)
 
         # call super class to do all the messaging and registration overhead
-        super(self.__class__, self).__init__(auto_register=False,
-                                             auto_heartbeat_rate=0)
+        super(self.__class__, self).__init__(auto_register=False, auto_heartbeat_rate=0)
 
     def declare_subscriptions(self):
         """
         Declare topics to which we want to listen and define callback methods.
         """
-        self.manoconn.subscribe(self._on_register, "platform.management.plugin.register")
-        self.manoconn.subscribe(self._on_deregister, "platform.management.plugin.deregister")
-        self.manoconn.register_notification_endpoint(self._on_heartbeat, "platform.management.plugin.*.heartbeat")
+        self.manoconn.subscribe(
+            self._on_register, "platform.management.plugin.register"
+        )
+        self.manoconn.subscribe(
+            self._on_deregister, "platform.management.plugin.deregister"
+        )
+        self.manoconn.register_notification_endpoint(
+            self._on_heartbeat, "platform.management.plugin.*.heartbeat"
+        )
 
     def _send_lifecycle_notification(self, plugin, operation):
         """
@@ -82,7 +83,8 @@ class SonPluginManager(ManoBasePlugin):
         :return:
         """
         self.manoconn.notify(
-            "platform.management.plugin.%s.lifecycle.%s" % (str(plugin.uuid), str(operation)))
+            "platform.management.plugin.%s.lifecycle.%s" % (plugin.uuid, operation)
+        )
 
     def send_start_notification(self, plugin):
         self._send_lifecycle_notification(plugin, "start")
@@ -100,19 +102,19 @@ class SonPluginManager(ManoBasePlugin):
         as status information for each of these plugins.
         This method should always be called when the status of a plugin changes.
         """
-        # generate status update message
-        plugin_dict = {}
-        for p in model.Plugin.objects:
-            plugin_dict[p.uuid] = p.to_dict()
-        # create correct message format
-        message = {"timestamp": str(datetime.datetime.now()),
-                    "plugin_dict": plugin_dict}
-        LOG.info("Broadcasting plugin status update to 'platform.management.plugin.status': %r" % message)
-        # broadcast plugin status update message
-        self.manoconn.notify(
-            "platform.management.plugin.status", json.dumps(message))
+        message = {
+            "timestamp": str(datetime.datetime.now()),
+            "plugin_dict": {p.uuid: p.to_dict() for p in model.Plugin.objects},
+        }
 
-    def _on_register(self, ch, method, properties, message):
+        LOG.info(
+            "Broadcasting plugin status update to 'platform.management.plugin.status': %r"
+            % message
+        )
+        # broadcast plugin status update message
+        self.manoconn.notify("platform.management.plugin.status", message)
+
+    def _on_register(self, message: Message):
         """
         Event method that is called when a registration request is received.
         Registers the new plugin in the internal data model and returns
@@ -122,19 +124,18 @@ class SonPluginManager(ManoBasePlugin):
         :return: response message
         """
 
-        #Don't trigger on messages coming from the PM
-        if properties.app_id == self.name:
+        # Don't trigger on messages coming from the PM
+        if message.app_id == self.name:
             return
 
-        message = json.loads(str(message))
-        pid = str(uuid.uuid4())
-        # create a entry in our plugin database
+        payload = message.payload
+        # create an entry in our plugin database
         p = model.Plugin(
-            uuid=pid,
-            name=message.get("name"),
-            version=message.get("version"),
-            description=message.get("description"),
-            state="REGISTERED"
+            uuid=str(uuid.uuid4()),
+            name=payload["name"],
+            version=payload["version"],
+            description=payload["description"],
+            state="REGISTERED",
         )
 
         p.save()
@@ -145,15 +146,18 @@ class SonPluginManager(ManoBasePlugin):
             "name": p.name,
             "version": p.version,
             "description": p.description,
-            "uuid": pid,
-            "error": None
+            "uuid": p.uuid,
+            "error": None,
         }
         self.manoconn.notify(
-            'platform.management.plugin.register', json.dumps(response), correlation_id=properties.correlation_id)
+            "platform.management.plugin.register",
+            response,
+            correlation_id=message.correlation_id,
+        )
         # broadcast a plugin status update to the other plugin
         self.send_plugin_status_update()
 
-    def _on_deregister(self, ch, method, properties, message):
+    def _on_deregister(self, message: Message):
         """
         Event method that is called when a de-registration request is received.
         Removes the given plugin from the internal data model.
@@ -161,26 +165,22 @@ class SonPluginManager(ManoBasePlugin):
         :param message: request body (contains UUID to identify plugin)
         :return: response message
         """
-        message = json.loads(str(message))
+        uuid = message.payload["uuid"]
 
         try:
-            p = model.Plugin.objects.get(uuid=message.get("uuid"))
+            p = model.Plugin.objects.get(uuid=uuid)
             p.delete()
         except DoesNotExist:
-            LOG.debug("Couldn't find plugin with UUID %r in DB" % pid)
+            LOG.debug("Couldn't find plugin with UUID %s in DB", uuid)
 
-        LOG.info("DE-REGISTERED: %r" % message.get("uuid"))
+        LOG.info("DE-REGISTERED: %s", uuid)
         # broadcast a plugin status update to the other plugin
         self.send_plugin_status_update()
         # return result
-        response = {
-            "status": "OK"
-        }
-        return json.dumps(response)
+        return {"status": "OK"}
 
-    def _on_heartbeat(self, ch, method, properties, message):
-        message = json.loads(str(message))
-        pid = message.get("uuid")
+    def _on_heartbeat(self, message: Message):
+        pid = message.payload["uuid"]
 
         try:
             p = model.Plugin.objects.get(uuid=pid)
@@ -191,13 +191,14 @@ class SonPluginManager(ManoBasePlugin):
             change = False
 
             # TODO ugly: state management of plugins should be hidden with plugin class
-            if message.get("state") == "READY" and p.state != "READY":
+            state = message.payload["state"]
+            if state == "READY" and p.state != "READY":
                 # a plugin just announced that it is ready, lets start it
                 self.send_start_notification(p)
                 change = True
-            elif message.get("state") != p.state:
+            elif state != p.state:
                 # lets keep track of the reported state update
-                p.state = message.get("state")
+                p.state = state
                 change = True
 
             p.save()
@@ -205,11 +206,12 @@ class SonPluginManager(ManoBasePlugin):
                 # there was a state change lets schedule an plugin status update notification
                 self.send_plugin_status_update()
         except DoesNotExist:
-            LOG.debug("Couldn't find plugin with UUID %r in DB" % pid)
+            LOG.debug("Couldn't find plugin with UUID %s in DB", pid)
 
 
 def main():
     SonPluginManager()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

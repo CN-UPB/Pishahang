@@ -6,9 +6,8 @@ authors = ["Manuel Peuster <manuel.peuster@upb.de>"]
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 argparse = "^1.4.0"
-amqpstorm = "^2.7.2"
 pytest = "^5.4.1"
 mongoengine = "^0.19.1"
 flask = "^1.1.2"
