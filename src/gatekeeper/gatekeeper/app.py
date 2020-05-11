@@ -2,13 +2,15 @@ import logging
 import secrets
 import time
 
-import connexion
 import fakeredis
 import redis
+from amqpstorm import AMQPConnectionError
 from config2.config import config
 from flask_jwt_extended import JWTManager
 from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
+
+import connexion
 from gatekeeper.models.users import User
 from gatekeeper.util.flask import MongoEngineJSONEncoder
 from gatekeeper.util.messaging import ConnexionBrokerConnection
@@ -36,7 +38,7 @@ else:
             broker = ConnexionBrokerConnection("gatekeeper")
             logger.info("Connection to RabbitMQ successfully established")
             break
-        except:
+        except AMQPConnectionError:
             logger.warning("Failed to connect to RabbitMQ. Retrying in 5 seconds.")
             time.sleep(5)
 

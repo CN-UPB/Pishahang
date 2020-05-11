@@ -4,7 +4,7 @@ from gatekeeper.app import app
 
 
 def main():
-    debug = config.get_env() == "development"
+    debug = config.get_env() != "production"
     app.run(host="0.0.0.0", port=5555, debug=debug)
 
 
