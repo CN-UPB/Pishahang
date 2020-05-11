@@ -125,20 +125,26 @@ class ManoBrokerConnection:
     It uses the asynchronous adapter implementation of the amqpstorm library.
     """
 
-    def __init__(self, app_id, **kwargs):
+    def __init__(self, app_id, url=None, exchange=None):
         """
         Initialize broker connection.
-        :param app_id: string that identifies application
+
+        :param app_id: A string that identifies the application of the connection
+        :param url: The RabbitMQ URL to use for the connection
+        :param exchange: The RabbitMQ exchange to be used
 
         """
         self.app_id = app_id
-        # fetch configuration
-        if "url" in kwargs:
-            self.rabbitmq_url = kwargs["url"]
-        else:
-            self.rabbitmq_url = os.environ.get("broker_host", RABBITMQ_URL_FALLBACK)
-        self.rabbitmq_exchange = os.environ.get(
-            "broker_exchange", RABBITMQ_EXCHANGE_FALLBACK
+
+        self.rabbitmq_url = (
+            url
+            if url is not None
+            else os.environ.get("broker_host", RABBITMQ_URL_FALLBACK)
+        )
+        self.rabbitmq_exchange = (
+            exchange
+            if exchange is not None
+            else os.environ.get("broker_exchange", RABBITMQ_EXCHANGE_FALLBACK)
         )
 
         self._subscription_queues: Dict[str, amqpstorm.queue.Queue] = {}
