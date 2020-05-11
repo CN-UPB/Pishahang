@@ -19,7 +19,8 @@ class Vim(UuidDocument, TimestampsDocument):
     """
     A mongoengine document base class for General VIM
     """
-    meta = {'allow_inheritance': True}
+
+    meta = {"allow_inheritance": True}
     vimName = StringField(required=True)
     country = StringField(required=True)
     vimCity = StringField(required=True)

@@ -7,7 +7,8 @@ from gatekeeper.util.mongoengine_custom_json import to_custom_dict
 
 class MongoEngineJSONEncoder(JSONEncoder):
     """
-    A flask JSONEncoder which provides serialization of MongoEngine documents and queryset objects.
+    A flask JSONEncoder which provides serialization of MongoEngine documents and
+    queryset objects.
     """
 
     def default(self, obj):

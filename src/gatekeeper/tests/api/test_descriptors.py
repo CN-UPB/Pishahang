@@ -12,25 +12,25 @@ descriptorTypeValues = [t.value for t in DescriptorType]
 @pytest.mark.parametrize("type", descriptorTypeValues)
 def testCrud(api, type, exampleCsd, exampleVnfd):
     descriptorContent = copy.deepcopy(
-        exampleCsd if type == DescriptorType.SERVICE.value else exampleVnfd)
+        exampleCsd if type == DescriptorType.SERVICE.value else exampleVnfd
+    )
 
     # GET all descriptors
     def getDescriptors():
-        return api.get('/api/v3/descriptors?type=' + type).get_json()
+        return api.get("/api/v3/descriptors?type=" + type).get_json()
 
     assert [] == getDescriptors()
 
     # POST new descriptor
     descriptor = api.post(
-        '/api/v3/descriptors',
-        json={'type': type, 'content': descriptorContent}
+        "/api/v3/descriptors", json={"type": type, "content": descriptorContent}
     ).get_json()
     assert descriptorKeys <= set(descriptor)
 
     assert [descriptor] == getDescriptors()
 
     # GET single descriptor
-    assert descriptor == api.get('/api/v3/descriptors/' + descriptor['id']).get_json()
+    assert descriptor == api.get("/api/v3/descriptors/" + descriptor["id"]).get_json()
 
     # PUT descriptor
     oldDescriptorName = descriptorContent["name"]
@@ -38,20 +38,18 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
     descriptorContent["name"] = newDescriptorName
 
     updatedDesriptor = api.put(
-        '/api/v3/descriptors/' + descriptor["id"],
-        json={'type': type, 'content': descriptorContent}
+        "/api/v3/descriptors/" + descriptor["id"],
+        json={"type": type, "content": descriptorContent},
     ).get_json()
-    assert updatedDesriptor['id'] == descriptor['id']
+    assert updatedDesriptor["id"] == descriptor["id"]
     assert updatedDesriptor != descriptor
-    assert updatedDesriptor['content']['name'] == newDescriptorName
+    assert updatedDesriptor["content"]["name"] == newDescriptorName
     assert descriptorKeys <= set(updatedDesriptor)
 
     assert [updatedDesriptor] == getDescriptors()
 
     # DELETE descriptor
-    deletedDescriptor = api.delete(
-        '/api/v3/descriptors/' + descriptor["id"]
-    ).get_json()
+    deletedDescriptor = api.delete("/api/v3/descriptors/" + descriptor["id"]).get_json()
     assert deletedDescriptor == updatedDesriptor
 
     assert [] == getDescriptors()
@@ -59,15 +57,20 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
 
 @pytest.mark.parametrize("type", descriptorTypeValues)
 def testDescriptorValidation(api, type):
-    assert 400 == api.post(
-        "/api/v3/descriptors",
-        json={"type": type, "content": {}}
-    ).status_code
+    assert (
+        400
+        == api.post(
+            "/api/v3/descriptors", json={"type": type, "content": {}}
+        ).status_code
+    )
 
-    assert 400 == api.post(
-        "/api/v3/descriptors",
-        json={"type": type, "content": {"name": "my-descriptor"}}
-    ).status_code
+    assert (
+        400
+        == api.post(
+            "/api/v3/descriptors",
+            json={"type": type, "content": {"name": "my-descriptor"}},
+        ).status_code
+    )
 
 
 def testDuplicateNames(api, exampleCsd, exampleVnfd):
@@ -75,8 +78,7 @@ def testDuplicateNames(api, exampleCsd, exampleVnfd):
 
     def addDescriptor(type, descriptor: dict):
         return api.post(
-            "/api/v3/descriptors",
-            json={"type": type, "content": descriptor}
+            "/api/v3/descriptors", json={"type": type, "content": descriptor}
         ).status_code
 
     assert 201 == addDescriptor("service", exampleCsd)
@@ -92,7 +94,9 @@ def testDuplicateNames(api, exampleCsd, exampleVnfd):
     exampleVnfd["vendor"] = exampleCsd["vendor"]
     exampleVnfd["name"] = exampleCsd["name"]
     exampleVnfd["version"] = exampleCsd["version"]
-    for type in (DescriptorType.OPENSTACK.value,
-                 DescriptorType.KUBERNETES.value,
-                 DescriptorType.AWS.value):
+    for type in (
+        DescriptorType.OPENSTACK.value,
+        DescriptorType.KUBERNETES.value,
+        DescriptorType.AWS.value,
+    ):
         assert 400 == addDescriptor(type, exampleVnfd)

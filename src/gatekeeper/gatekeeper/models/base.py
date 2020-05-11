@@ -22,6 +22,7 @@ class UpdatedAtMixin:
     """
     Document mixin that defines an auto-generated `updatedAt` field
     """
+
     updatedAt = DateTimeField(custom_json=makeHttpDatetime)
 
     def save(self, *args, **kwargs):
@@ -33,6 +34,7 @@ class TimestampsMixin(CreatedAtMixin, UpdatedAtMixin):
     """
     Document mixin that defines an auto-generated `updatedAt` field
     """
+
     pass
 
 
@@ -40,13 +42,15 @@ class TimestampsDocument(TimestampsMixin, Document):
     """
     Abstract `Document` subclass that defines and manages a `createdAt` and an `updatedAt` field
     """
-    meta = {'abstract': True}
+
+    meta = {"abstract": True}
 
 
 class UuidMixin:
     """
     Document mixin that defines a primary-key `id` field containing an auto-generated UUID
     """
+
     id = UUIDField(default=uuid4, primary_key=True, custom_json=("id", str))
 
 
@@ -55,4 +59,5 @@ class UuidDocument(UuidMixin, Document):
     Abstract `Document` subclass that defines a primary-key `id` field containing an auto-generated
     UUID
     """
-    meta = {'abstract': True}
+    meta = {"abstract": True}
+

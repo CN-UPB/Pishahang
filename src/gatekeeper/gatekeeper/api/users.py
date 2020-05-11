@@ -72,7 +72,8 @@ def updateUsers(username, body):
 
 def updateCurrentUser(user, body):
     try:
-        # The user with name `user` must exists, as the authorization would have failed otherwise
+        # The user with name `user` must exists, as the authorization would have failed
+        # otherwise
         user: User = User.objects(username=user).get()
         user.username = body["username"]
         user.email = body["email"]

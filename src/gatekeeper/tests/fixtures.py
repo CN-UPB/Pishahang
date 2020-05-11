@@ -12,9 +12,11 @@ from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
 from gatekeeper.models.vims import Vim
 
-from config2.config import config  # Has to be imported after app to get the right config path
+from config2.config import (
+    config,
+)  # Has to be imported after app to get the right config path
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures/')
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures/")
 MONGO_DATABASE_NAME = os.path.basename(config.databases.mongo)
 
 
@@ -24,14 +26,15 @@ class AuthorizedFlaskClient(FlaskClient):
 
     def open(self, *args, **kwargs):
         headers = kwargs.pop("headers", Headers())
-        headers.extend(Headers({
-            "Authorization": "Bearer " + AuthorizedFlaskClient.accessToken
-        }))
+        headers.extend(
+            Headers({"Authorization": "Bearer " + AuthorizedFlaskClient.accessToken})
+        )
         kwargs["headers"] = headers
         return super().open(*args, **kwargs)
 
 
 # User and auth fixtures
+
 
 @pytest.fixture(scope="session")
 def adminUser():
@@ -57,6 +60,7 @@ def refreshToken(adminUser):
 
 # Api fixtures
 
+
 @pytest.fixture(scope="module")
 def api():
     app.app.test_client_class = FlaskClient
@@ -74,6 +78,7 @@ def authorizedApi(accessToken):
 
 # Database-related fixtures
 
+
 @pytest.fixture(scope="function", autouse=True)
 def dropMongoDbCollections():
     """
@@ -87,6 +92,7 @@ def dropMongoDbCollections():
 
 
 # Data fixtures
+
 
 @pytest.fixture(scope="session")
 def getDescriptorFixture():
@@ -111,19 +117,21 @@ def exampleVnfd(getDescriptorFixture):
 def exampleService(api, getDescriptorFixture):
     def uploadDescriptor(type: DescriptorType, content):
         response = api.post(
-            "/api/v3/descriptors",
-            json={"type": type.value, "content": content}
+            "/api/v3/descriptors", json={"type": type.value, "content": content}
         )
         print(response.get_json())
         assert 201 == response.status_code
         return response.get_json()
 
     serviceDescriptor = uploadDescriptor(
-        DescriptorType.SERVICE, getDescriptorFixture("onboarding/root-service.yml"))
+        DescriptorType.SERVICE, getDescriptorFixture("onboarding/root-service.yml")
+    )
 
     for i in range(1, 3):
-        uploadDescriptor(DescriptorType.OPENSTACK,
-                         getDescriptorFixture("onboarding/vnf-{}.yml".format(i)))
+        uploadDescriptor(
+            DescriptorType.OPENSTACK,
+            getDescriptorFixture("onboarding/vnf-{}.yml".format(i)),
+        )
 
     response = api.post("/api/v3/services", json={"id": serviceDescriptor["id"]})
     assert 201 == response.status_code

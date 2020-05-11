@@ -6,10 +6,9 @@ import connexion
 from connexion.exceptions import ProblemException
 from gatekeeper.app import broker
 from gatekeeper.exceptions import DescriptorNotFoundError, ServiceNotFoundError
-from gatekeeper.models.descriptors import (Descriptor, DescriptorSnapshot,
-                                           DescriptorType)
+from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
 from gatekeeper.models.services import Service
-from gatekeeper.util.mongoengine_custom_json import to_custom_dict, to_custom_json
+from gatekeeper.util.mongoengine_custom_json import to_custom_json
 import json
 
 
@@ -30,8 +29,9 @@ def getServiceById(id):
 
 def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
     """
-    Given a service descriptor, returns a list of all descriptors referenced by the service
-    descriptor or raises a connexion `ProblemException` with a user-friendly message.
+    Given a service descriptor, returns a list of all descriptors referenced by the
+    service descriptor or raises a connexion `ProblemException` with a user-friendly
+    message.
     """
     referencedDescriptors = []
     referencedDescriptorIds = set()
@@ -40,8 +40,9 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
         raise ProblemException(
             status=400,
             title="Faulty Descriptor",
-            detail='{} does not specify any network functions.'.format(
-                descriptor.content)
+            detail="{} does not specify any network functions.".format(
+                descriptor.content
+            ),
         )
 
     for function in descriptor.content.network_functions:
@@ -50,9 +51,7 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             name = function["vnf_name"]
             version = function["vnf_version"]
             referencedDescriptor = Descriptor.objects(
-                content__vendor=vendor,
-                content__name=name,
-                content__version=version,
+                content__vendor=vendor, content__name=name, content__version=version,
             ).get()
 
             if referencedDescriptor.id not in referencedDescriptorIds:
@@ -63,11 +62,11 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             raise ProblemException(
                 status=400,
                 title="Missing Dependency",
-                detail=('{} contains reference to missing '
-                        'Descriptor(vendor="{}",name="{}",version="{}"). '
-                        'Please upload that descriptor and try again.').format(
-                    descriptor.content, vendor, name, version
-                )
+                detail=(
+                    "{} contains reference to missing "
+                    'Descriptor(vendor="{}",name="{}",version="{}"). '
+                    "Please upload that descriptor and try again."
+                ).format(descriptor.content, vendor, name, version),
             )
 
     return referencedDescriptors
@@ -87,8 +86,8 @@ def addService(body):
             return connexion.problem(
                 400,
                 "Service Descriptor Required",
-                "You are trying to onboard a non-service descriptor. " +
-                "Only service descriptors can be onboarded."
+                "You are trying to onboard a non-service descriptor. "
+                + "Only service descriptors can be onboarded.",
             )
 
         # Get referenced descriptors
@@ -101,7 +100,7 @@ def addService(body):
             vendor=rootDescriptor.content.vendor,
             name=rootDescriptor.content.name,
             version=rootDescriptor.content.version,
-            descriptorSnapshots=[_createDescriptorSnapshot(d) for d in allDescriptors]
+            descriptorSnapshots=[_createDescriptorSnapshot(d) for d in allDescriptors],
         )
         service.save()
         return service, 201
@@ -116,8 +115,10 @@ def deleteServiceById(id):
     if instanceCount > 0:
         raise ProblemException(
             title="Bad Request",
-            detail=("The service has {:d} instances that need to be stopped before it "
-                    "can be deleted.").format(instanceCount)
+            detail=(
+                "The service has {:d} instances that need to be stopped before it "
+                "can be deleted."
+            ).format(instanceCount),
         )
 
     service.delete()
@@ -125,6 +126,7 @@ def deleteServiceById(id):
 
 
 # Service instances
+
 
 def getServiceInstances(serviceId):
     service = _getServiceByIdOrFail(serviceId)
@@ -142,30 +144,30 @@ def instantiateService(serviceId):
             "customer": {
                 "email": "pishahang@gmail.com",
                 "phone": None,
-                "keys": {"public": None, "private": None}
+                "keys": {"public": None, "private": None},
             },
-            "developer": {"email":  None, "phone": None}
-        }
+            "developer": {"email": None, "phone": None},
+        },
     }
     vnfdCounter = 0
     for descriptor in service.descriptorSnapshots:
         descriptorContent = json.loads(to_custom_json(descriptor.content))
-        descriptorContent['uuid'] = descriptor.id  # For backwards compatibility with SLM
+        descriptorContent[
+            "uuid"
+        ] = descriptor.id  # For backwards compatibility with SLM
         if descriptor.type == DescriptorType.SERVICE.value:
-            payload['COSD'] = descriptorContent
+            payload["COSD"] = descriptorContent
         if descriptor.type == DescriptorType.OPENSTACK.value:
-            payload['VNFD{:d}'.format(vnfdCounter)] = descriptorContent
+            payload["VNFD{:d}".format(vnfdCounter)] = descriptorContent
         elif descriptor.type == DescriptorType.KUBERNETES.value:
-            payload['CSD{:d}'.format(vnfdCounter)] = descriptorContent
+            payload["CSD{:d}".format(vnfdCounter)] = descriptorContent
         vnfdCounter += 1
 
     # Send instantiation message
     validationReply = broker.call_sync_simple("service.instances.create", msg=payload)
     if validationReply["status"] == "ERROR":
         raise ProblemException(
-            status=500,
-            title="Instantiation Failed",
-            detail=validationReply["error"]
+            status=500, title="Instantiation Failed", detail=validationReply["error"]
         )
 
     # TODO register for notification and create service instance in database, return instance

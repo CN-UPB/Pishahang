@@ -1,7 +1,6 @@
 from mongoengine.errors import DoesNotExist, NotUniqueError
 
-from gatekeeper.exceptions import (DescriptorNotFoundError,
-                                   DuplicateDescriptorError)
+from gatekeeper.exceptions import DescriptorNotFoundError, DuplicateDescriptorError
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
 
 
@@ -32,8 +31,8 @@ def addDescriptor(body):
 
 def updateDescriptor(id, body):
     """
-    Updates a given descriptor's content by its ID, or returns a 404 error if no descriptor matching
-    the given id exists.
+    Updates a given descriptor's content by its ID, or returns a 404 error if no
+    descriptor matching the given id exists.
     """
     try:
         descriptor: Descriptor = Descriptor.objects(id=id).get()
@@ -48,8 +47,8 @@ def updateDescriptor(id, body):
 
 def deleteDescriptorById(id):
     """
-    Deletes a descriptor by its ID, or returns a 404 error if no descriptor matching the given id
-    exists.
+    Deletes a descriptor by its ID, or returns a 404 error if no descriptor matching the
+    given id exists.
     """
     try:
         descriptor = Descriptor.objects(id=id).get()

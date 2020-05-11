@@ -15,8 +15,9 @@ class CustomJsonRules(IntEnum):
 
 def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
     """
-    Converts a Mongoengine document (anything inheriting from `mongoengine.base.BaseDocument`) or a
-    Mongoengine QuerySet to a Python `dict`, considering fields' `custom_json` attributes (if any).
+    Converts a Mongoengine document (anything inheriting from
+    `mongoengine.base.BaseDocument`) or a Mongoengine QuerySet to a Python `dict`,
+    considering fields' `custom_json` attributes (if any).
     """
     if isinstance(obj, QuerySet):
         return [to_custom_dict(entry) for entry in obj]
@@ -33,7 +34,9 @@ def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
                 try:
                     doc.pop(fieldName)
                 except KeyError:
-                    doc.pop("_id")  # TODO Is the field always stored in "_id" in this case?
+                    doc.pop(
+                        "_id"
+                    )  # TODO Is the field always stored in "_id" in this case?
             else:
                 # Check for recursive document fields and process them recursively
                 if isinstance(field, (ReferenceField, EmbeddedDocumentField)):
@@ -51,7 +54,10 @@ def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
                 altName, conversionFunc = rule
             elif isinstance(rule, str):
                 altName = rule
-                def conversionFunc(x): return x
+
+                def conversionFunc(x):
+                    return x
+
             elif callable(rule):
                 altName = None
                 conversionFunc = rule
@@ -64,7 +70,9 @@ def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
                 fieldName = "_id"
 
             # Handle field according to altName and conversionFunc
-            doc[fieldName if altName is None else altName] = conversionFunc(doc.pop(fieldName))
+            doc[fieldName if altName is None else altName] = conversionFunc(
+                doc.pop(fieldName)
+            )
 
         # Remove Mongoengine class field if it exists
         # TODO Find alternative solution that does not hardcode this
@@ -79,6 +87,7 @@ def to_custom_json(obj: Union[BaseDocument, QuerySet]):
 
 
 # Common handler functions
+
 
 def makeHttpDatetime(value: datetime):
     return value.replace(tzinfo=timezone.utc, microsecond=0).isoformat()

@@ -7,7 +7,7 @@ def testUser():
         password="gates",
         isAdmin="true",
         email="user@example.org",
-        fullName="Bill"
+        fullName="Bill",
     ).save()
 
     user: User = User.objects(username="bill").get()

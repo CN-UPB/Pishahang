@@ -20,14 +20,15 @@ def generateSalt() -> bytes:
 
 def hashPassword(password: str, salt: bytes) -> bytes:
     """
-    Given a password, returns a hash using the given salt (use `generateSalt()`) to generate it.
+    Given a password, returns a hash using the given salt (use `generateSalt()`) to
+    generate it.
     """
     return hashlib.pbkdf2_hmac(
-        'sha256',
-        password.encode('utf-8'),  # Convert the password to bytes
+        "sha256",
+        password.encode("utf-8"),  # Convert the password to bytes
         salt,
         100000,  # It is recommended to use at least 100,000 iterations of SHA-256
-        dklen=128  # Get a 128 byte key
+        dklen=128,  # Get a 128 byte key
     )
 
 
@@ -51,8 +52,12 @@ class User(UuidDocument, TimestampsDocument):
 
     isAdmin = BooleanField(required=True)
 
-    passwordSalt = BinaryField(max_bytes=32, required=True, custom_json=CustomJsonRules.HIDDEN)
-    passwordHash = BinaryField(max_bytes=128, required=True, custom_json=CustomJsonRules.HIDDEN)
+    passwordSalt = BinaryField(
+        max_bytes=32, required=True, custom_json=CustomJsonRules.HIDDEN
+    )
+    passwordHash = BinaryField(
+        max_bytes=128, required=True, custom_json=CustomJsonRules.HIDDEN
+    )
 
     def setPassword(self, password: str):
         self.passwordSalt = generateSalt()
@@ -61,4 +66,4 @@ class User(UuidDocument, TimestampsDocument):
     def validatePassword(self, password: str) -> bool:
         return bytes(self.passwordHash) == hashPassword(password, self.passwordSalt)
 
-    meta = {'allow_inheritance': True}
+    meta = {"allow_inheritance": True}

@@ -17,7 +17,7 @@ def _getPluginById(id):
     fieldNameMap = {
         "uuid": "id",
         "last_heartbeat_at": "lastHeartbeatAt",
-        "registered_at": "registeredAt"
+        "registered_at": "registeredAt",
     }
     for originalFieldName, newFieldName in fieldNameMap.items():
         plugin[newFieldName] = plugin.pop(originalFieldName)
@@ -36,7 +36,8 @@ def getPluginById(id):
 
 def _validateRequestStatus(status, pluginId):
     """
-    Depending on a plugin manager response status code, either raise an appropriate exception or
+    Depending on a plugin manager response status code, either raise an appropriate
+    exception or
     return.
     """
     if status != 200:
@@ -55,6 +56,6 @@ def shutdownPluginById(id):
 def changePluginStateById(id, body):
     status = requests.put(
         "{}/{}/lifecycle".format(PLUGINMANAGER_API_URL, id),
-        json={"target_state": body["targetState"]}
+        json={"target_state": body["targetState"]},
     ).status_code
     _validateRequestStatus(status, id)
