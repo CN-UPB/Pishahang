@@ -51,15 +51,15 @@ class SonPluginManager(ManoBasePlugin):
     themselves to it by doing a registration call.
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # initialize plugin DB model
         model.initialize()
 
         # start up management interface
         interface.start(self)
 
-        # call super class to do all the messaging and registration overhead
-        super(self.__class__, self).__init__(auto_register=False, auto_heartbeat_rate=0)
+        kwargs.update({"auto_register": False, "auto_heartbeat_rate": 0})
+        super().__init__(*args, **kwargs)
 
     def declare_subscriptions(self):
         """
