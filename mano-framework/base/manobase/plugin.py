@@ -30,6 +30,7 @@ import logging
 import os
 import time
 from threading import Event, Thread
+from uuid import uuid4
 
 from amqpstorm import AMQPConnectionError
 
@@ -40,7 +41,7 @@ LOG = logging.getLogger("manobase:plugin")
 LOG.setLevel(logging.DEBUG)
 
 
-class ManoBasePlugin(object):
+class ManoBasePlugin:
     """
     Abstract class that should be inherited by other MANO plugins.
     This class provides basic mechanisms to
@@ -63,6 +64,7 @@ class ManoBasePlugin(object):
         start_running=True,
         auto_heartbeat_rate=0.5,
         use_loopback_connection=False,
+        fake_registration=False,
     ):
         """
         Performs plugin initialization steps, e.g., connection setup
@@ -72,13 +74,15 @@ class ManoBasePlugin(object):
         :param auto_register: Automatically register on init
         :param wait_for_registration: Wait for registration before returning from init
         :param auto_heartbeat_rate: rate of automatic heartbeat notifications 1/n seconds. 0=deactivated
-        :param use_loopback_connection: Whether or not to set up the connection with `is_loopback=True`
+        :param use_loopback_connection: For unit testing: Whether to set up the connection with `is_loopback=True`
+        :param fake_registration: For unit testing: Whether to fake the registration process without a real PluginManager instance involved
         """
         self.name = "%s.%s" % (name, self.__class__.__name__)
         self.version = version
         self.description = description
         self.uuid: str = None  # uuid given by plugin manager on registration
         self.state: str = None  # the state of this plugin READY/RUNNING/PAUSED/FAILED
+        self._fake_registration = fake_registration
 
         self._registered_event = Event()
 
@@ -207,26 +211,30 @@ class ManoBasePlugin(object):
         self.conn.run_coroutine(self._register())
 
     async def _register(self):
-        response = (
-            await self.conn.call(
-                "platform.management.plugin.register",
-                {
-                    "name": self.name,
-                    "version": self.version,
-                    "description": self.description,
-                },
-            )
-        ).payload
+        if self._fake_registration:
+            self.uuid = str(uuid4())
+        else:
+            response = (
+                await self.conn.call(
+                    "platform.management.plugin.register",
+                    {
+                        "name": self.name,
+                        "version": self.version,
+                        "description": self.description,
+                    },
+                )
+            ).payload
 
-        if response["status"] != "OK":
-            LOG.debug("Response %r", response)
-            LOG.error("Plugin registration failed. Exit.")
-            exit(1)
+            if response["status"] != "OK":
+                LOG.debug("Response %r", response)
+                LOG.error("Plugin registration failed. Exit.")
+                exit(1)
 
-        self.uuid = response["uuid"]
+            self.uuid = response["uuid"]
+
         self.state = "READY"
 
-        LOG.info("Plugin registered with UUID: %s", response["uuid"])
+        LOG.info("Plugin registered with UUID: %s", self.uuid)
         self.on_registration_ok()
 
         self._register_lifecycle_endpoints()
