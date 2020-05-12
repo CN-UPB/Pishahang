@@ -28,7 +28,8 @@ partner consortium (www.sonata-nfv.eu).
 
 import logging
 import traceback
-from queue import Queue, Empty
+from itertools import product
+from queue import Empty, Queue
 from time import time
 from typing import List
 
@@ -148,17 +149,21 @@ def receiver():
 
 @pytest.fixture
 def connection(request):
-    connection_class = request.param
-    connection = connection_class(connection_class.__name__)
+    connection_class, is_loopback = request.param
+    connection = connection_class(connection_class.__name__, is_loopback=is_loopback)
     yield connection
     connection.close()
 
 
 def connection_classes(*args):
     """
-    Sets the classes that the `connection` fixture uses
+    Sets the classes that the `connection` fixture uses. Each class is used once with
+    `is_loopback=False` and once with `is_loopback=True`.
     """
-    return pytest.mark.parametrize("connection", args, indirect=["connection"])
+
+    return pytest.mark.parametrize(
+        "connection", product(args, (False, True)), indirect=["connection"]
+    )
 
 
 # Test ManBrokerConnection functions

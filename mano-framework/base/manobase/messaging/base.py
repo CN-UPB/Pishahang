@@ -29,8 +29,11 @@ partner consortium (www.sonata-nfv.eu).
 import json
 import logging
 import os
-from threading import Event, Thread
-from typing import Any, Callable, Dict
+from collections import defaultdict
+from copy import deepcopy
+from queue import Queue
+from threading import Event, Lock, Thread
+from typing import Any, Callable, Dict, Set
 from uuid import uuid4
 
 import amqpstorm
@@ -40,12 +43,64 @@ from amqpstorm.exception import AMQPConnectionError
 
 logging.getLogger("amqpstorm.Channel").setLevel(logging.ERROR)
 LOG = logging.getLogger("manobase:messaging:base")
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 # if we don't find a broker configuration in our ENV, we use this URL as default
 RABBITMQ_URL_FALLBACK = "amqp://guest:guest@localhost:5672/%2F"
 # if we don't find a broker configuration in our ENV, we use this exchange as default
 RABBITMQ_EXCHANGE_FALLBACK = "son-kernel"
+
+# For connections with is_loopback=True:
+
+# Map topics to tags of local queues
+_loopback_queue_tags_by_topic: Dict[str, Set[str]] = defaultdict(set)
+
+# Map queue tags to local queues
+_loopback_queue_by_tag: Dict[str, "Queue[Message]"] = defaultdict(Queue)
+
+# Map queue tags to topics
+_loopback_topic_by_tag: Dict[str, str] = {}
+
+# A lock to coordinate creation and deletion of loopback queues
+_loopback_queue_lock = Lock()
+
+
+def _publish_to_loopback_queues(topic: str, message: "Message"):
+    """
+    Publish a copy of `message` on all local loopback queues that belong to `topic`
+    """
+    with _loopback_queue_lock:
+        LOG.debug(
+            "Locally publishing message on topic %s to %d queues",
+            topic,
+            len(_loopback_queue_tags_by_topic[topic]),
+        )
+
+        for queue in [
+            _loopback_queue_by_tag[tag] for tag in _loopback_queue_tags_by_topic[topic]
+        ]:
+            queue.put(deepcopy(message))
+
+
+def _get_loopback_queue(topic: str, tag: str):
+    with _loopback_queue_lock:
+        if tag in _loopback_queue_tags_by_topic[topic]:
+            return _loopback_queue_by_tag[_loopback_queue_tags_by_topic[topic]]
+
+        # Create new queue
+        _loopback_queue_tags_by_topic[topic].add(tag)
+        _loopback_topic_by_tag[tag] = topic
+        return _loopback_queue_by_tag[tag]
+
+
+def _delete_loopback_queue(tag: str):
+    with _loopback_queue_lock:
+        if tag in _loopback_queue_by_tag:
+            queue = _loopback_queue_by_tag.pop(tag)
+            queue.put("STOP")  # Stop subscriber thread
+
+            topic = _loopback_topic_by_tag.pop(tag)
+            _loopback_queue_tags_by_topic[topic].discard(tag)
 
 
 class Message:
@@ -125,17 +180,19 @@ class ManoBrokerConnection:
     It uses the asynchronous adapter implementation of the amqpstorm library.
     """
 
-    def __init__(self, app_id, url=None, exchange=None):
+    def __init__(self, app_id, url=None, exchange=None, is_loopback=False):
         """
         Initialize broker connection.
 
         :param app_id: A string that identifies the application of the connection
         :param url: The RabbitMQ URL to use for the connection
         :param exchange: The RabbitMQ exchange to be used
-
+        :param loopback: Useful for unit testing: If set to True, no broker connection
+        will be made, but messages will directly be delivered to all
+        `ManoBrokerConnection` objects with ``loopback=True`` within the running python
+        application.
         """
         self.app_id = app_id
-
         self.rabbitmq_url = (
             url
             if url is not None
@@ -146,14 +203,16 @@ class ManoBrokerConnection:
             if exchange is not None
             else os.environ.get("broker_exchange", RABBITMQ_EXCHANGE_FALLBACK)
         )
+        self._is_loopback = is_loopback
 
-        self._subscription_queues: Dict[str, amqpstorm.queue.Queue] = {}
-
+        self._subscription_queue_by_tag: Dict[str, amqpstorm.queue.Queue] = {}
         self._connection: amqpstorm.UriConnection = None
-        self.connect()
+
+        if not self._is_loopback:
+            self.connect()
 
     def __del__(self):
-        self.stop_connection()
+        self.close()
 
     def connect(self):
         """
@@ -167,10 +226,14 @@ class ManoBrokerConnection:
         """
         Close the connection, stopping all consuming threads
         """
-        if self._connection is not None and (
-            self._connection.is_open or self._connection.is_opening
-        ):
-            self._connection.close()
+        if self._is_loopback:
+            for tag in self._subscription_queue_by_tag:
+                _delete_loopback_queue(tag)
+        else:
+            if self._connection is not None and (
+                self._connection.is_open or self._connection.is_opening
+            ):
+                self._connection.close()
 
     def setup_connection(self):
         """
@@ -214,26 +277,40 @@ class ManoBrokerConnection:
         # Serialize message as yaml
         body = yaml.dump(payload)
 
-        with self._connection.channel() as channel:  # Create a new channel
-            # Declare the exchange to be used
-            channel.exchange.declare(self.rabbitmq_exchange, exchange_type="topic")
-
-            # Publish the message
-            channel.basic.publish(
-                body=body,
-                routing_key=topic,
-                exchange=self.rabbitmq_exchange,
-                properties={
-                    "app_id": app_id,
-                    "content_type": "application/yaml",
-                    "correlation_id": correlation_id
-                    if correlation_id is not None
-                    else "",
-                    "reply_to": reply_to if reply_to is not None else "",
-                    "headers": headers,
-                },
+        if self._is_loopback:
+            _publish_to_loopback_queues(
+                topic,
+                Message(
+                    topic=topic,
+                    payload=payload,
+                    correlation_id=correlation_id,
+                    reply_to=reply_to,
+                    headers=headers,
+                    message_id=uuid4(),
+                    app_id=app_id,
+                ),
             )
-            LOG.debug("PUBLISHED to %s: %s", topic, payload)
+        else:
+            with self._connection.channel() as channel:  # Create a new channel
+                # Declare the exchange to be used
+                channel.exchange.declare(self.rabbitmq_exchange, exchange_type="topic")
+
+                # Publish the message
+                channel.basic.publish(
+                    body=body,
+                    routing_key=topic,
+                    exchange=self.rabbitmq_exchange,
+                    properties={
+                        "app_id": app_id,
+                        "content_type": "application/yaml",
+                        "correlation_id": correlation_id
+                        if correlation_id is not None
+                        else "",
+                        "reply_to": reply_to if reply_to is not None else "",
+                        "headers": headers,
+                    },
+                )
+        LOG.debug("PUBLISHED to %s: %s", topic, payload)
 
     def subscribe(
         self,
@@ -261,10 +338,7 @@ class ManoBrokerConnection:
         if subscription_queue is None:
             subscription_queue = "%s.%s.%s" % ("q", topic, uuid4())
 
-        def on_message_received(amqpstormMessage: amqpstorm.Message):
-            # Create custom message object
-            message = Message.from_amqpstorm_message(amqpstormMessage)
-
+        def on_message_received(message: Message):
             # Call cbf of subscription
             if concurrent:
                 Thread(
@@ -273,12 +347,16 @@ class ManoBrokerConnection:
             else:
                 cbf(message)
 
-            # Ack the message to let the broker know that message was delivered
+        def on_amqpstorm_message_received(amqpstormMessage: amqpstorm.Message):
+            # Create custom message object and call cbf of subscription
+            on_message_received(Message.from_amqpstorm_message(amqpstormMessage))
+
+            # Acknowledge the message
             amqpstormMessage.ack()
 
         consumption_started_event = Event()
 
-        def subscriber():
+        def amqpstorm_subscriber():
             """
             A function that handles messages of the subscription.
             """
@@ -298,13 +376,13 @@ class ManoBrokerConnection:
                 )
 
                 # Store a reference to the queue (used for unsubscribing)
-                self._subscription_queues[subscription_queue] = queue
+                self._subscription_queue_by_tag[subscription_queue] = queue
 
                 # recommended qos setting
                 channel.basic.qos(100)
                 # setup consumer (use queue name as tag)
                 channel.basic.consume(
-                    on_message_received,
+                    on_amqpstorm_message_received,
                     subscription_queue,
                     consumer_tag=subscription_queue,
                 )
@@ -320,13 +398,35 @@ class ManoBrokerConnection:
                     )
                 finally:
                     try:
-                        self._subscription_queues.pop(subscription_queue, None)
+                        self._subscription_queue_by_tag.pop(subscription_queue, None)
                     except AMQPConnectionError:
                         pass
 
+        def loopback_subscriber():
+            """
+            Like amqpstorm_subscriber, but using a local loopback queue
+            """
+            consumption_started_event.set()
+            queue: Queue = _get_loopback_queue(topic, subscription_queue)
+
+            # Store queue tag for unsubscribing (None, as no AMQPStorm queue is present)
+            self._subscription_queue_by_tag[subscription_queue] = None
+
+            while True:
+                message = queue.get()
+                if message == "STOP":
+                    break
+                else:
+                    on_message_received(message)
+
         # Each subscriber runs in a separate thread
         LOG.debug("Starting new thread to consume %s", subscription_queue)
-        Thread(target=subscriber, name=subscription_queue).start()
+        Thread(
+            target=amqpstorm_subscriber
+            if not self._is_loopback
+            else loopback_subscriber,
+            name=subscription_queue,
+        ).start()
         consumption_started_event.wait()
 
         LOG.debug("SUBSCRIBED to %s", topic)
@@ -340,16 +440,19 @@ class ManoBrokerConnection:
         :param subscription_queue: The consumer tag that was used for the subscription, as handed out by `subscribe()`
         :return: None
         """
-        try:
-            self._subscription_queues.pop(subscription_queue).delete()
-            LOG.debug(
-                "unsubscribe(): Successfully deleted subscription queue %s.",
-                subscription_queue,
-            )
-        except KeyError:
-            LOG.debug(
-                "unsubscribe(): Deletion of subscription queue %s failed: Queue not found.",
-                subscription_queue,
-            )
-        except AMQPConnectionError:
-            pass
+        if self._is_loopback:
+            _delete_loopback_queue(subscription_queue)
+        else:
+            try:
+                self._subscription_queue_by_tag.pop(subscription_queue).delete()
+                LOG.debug(
+                    "unsubscribe(): Successfully deleted subscription queue %s.",
+                    subscription_queue,
+                )
+            except KeyError:
+                LOG.debug(
+                    "unsubscribe(): Deletion of subscription queue %s failed: Queue not found.",
+                    subscription_queue,
+                )
+            except AMQPConnectionError:
+                pass
