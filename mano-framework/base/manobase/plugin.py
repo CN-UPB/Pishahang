@@ -62,6 +62,7 @@ class ManoBasePlugin(object):
         wait_for_registration=True,
         start_running=True,
         auto_heartbeat_rate=0.5,
+        use_loopback_connection=False,
     ):
         """
         Performs plugin initialization steps, e.g., connection setup
@@ -71,7 +72,7 @@ class ManoBasePlugin(object):
         :param auto_register: Automatically register on init
         :param wait_for_registration: Wait for registration before returning from init
         :param auto_heartbeat_rate: rate of automatic heartbeat notifications 1/n seconds. 0=deactivated
-        :return:
+        :param use_loopback_connection: Whether or not to set up the connection with `is_loopback=True`
         """
         self.name = "%s.%s" % (name, self.__class__.__name__)
         self.version = version
@@ -82,10 +83,13 @@ class ManoBasePlugin(object):
         self._registered_event = Event()
 
         LOG.info("Starting MANO Plugin: %s ...", self.name)
-        # create and initialize broker connection
+
+        # Initialize broker connection
         while True:
             try:
-                self.conn = AsyncioBrokerConnection(self.name)
+                self.conn = AsyncioBrokerConnection(
+                    self.name, is_loopback=use_loopback_connection
+                )
                 break
             except AMQPConnectionError:
                 time.sleep(5)
