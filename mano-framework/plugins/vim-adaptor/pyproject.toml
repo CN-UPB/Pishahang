@@ -16,6 +16,7 @@ pytest = "^5.4.1"
 flake8 = "^3.7.9"
 black = "^19.10b0"
 mongomock = "^3.19.0"
+pytest-env = "^0.6.2"
 
 [tool.poetry.scripts]
 start = "vim_adaptor.main:main"

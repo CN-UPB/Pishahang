@@ -20,9 +20,10 @@ without specific prior written permission.
 """
 
 import logging
+import time
 
-from mongoengine import connect
 from config2.config import config
+from mongoengine import connect
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
@@ -40,8 +41,23 @@ class VimAdaptor(ManoBasePlugin):
     Vim Adaptor main class. Instantiate this class to run the Vim Adaptor.
     """
 
-    def __init__(self):
-        super().__init__(version="0.1.0")
+    def __init__(self, *args, **kwargs):
+        # Connect to MongoDB
+        LOG.debug("Connecting to MongoDB at %s", config.mongo)
+        connect(host=config.mongo)
+        LOG.info("Connected to MongoDB")
+
+        kwargs.update({"version": "0.1.0", "start_running": False})
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        """
+        To be overwritten by subclass
+        """
+        # go into infinity loop (we could do anything here)
+        while True:
+            time.sleep(1)
+            print("lol")
 
     def declare_subscriptions(self):
         super().declare_subscriptions()
@@ -52,11 +68,6 @@ class VimAdaptor(ManoBasePlugin):
 
 
 def main():
-    # Connect to MongoDB
-    LOG.debug("Connecting to MongoDB at %s", config.mongo)
-    connect(host=config.mongo)
-    LOG.info("Connected to MongoDB")
-
     VimAdaptor()
 
 

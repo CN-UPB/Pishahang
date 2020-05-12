@@ -545,6 +545,17 @@ checkqa-mypy = ["mypy (v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
+category = "dev"
+description = "py.test plugin that allows you to add environment variables."
+name = "pytest-env"
+optional = false
+python-versions = "*"
+version = "0.6.2"
+
+[package.dependencies]
+pytest = ">=2.6.0"
+
+[[package]]
 category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
@@ -739,7 +750,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "f45c9640eb2ed8bfcb265331bebfe213b8616cd46bb618d62944dfb75779c966"
+content-hash = "8f78b880b4c5abb77182bf4ae82871bf5f9538abcdfd6fc3e57532c1982ab29f"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1017,6 +1028,9 @@ pyreadline = [
 pytest = [
     {file = "pytest-5.4.1-py3-none-any.whl", hash = "sha256:0e5b30f5cb04e887b91b1ee519fa3d89049595f428c1db76e73bd7f17b09b172"},
     {file = "pytest-5.4.1.tar.gz", hash = "sha256:84dde37075b8805f3d1f392cc47e38a0e59518fb46a431cfdaf7cf1ce805f970"},
+]
+pytest-env = [
+    {file = "pytest-env-0.6.2.tar.gz", hash = "sha256:7e94956aef7f2764f3c147d216ce066bf6c42948bb9e293169b1b1c880a580c2"},
 ]
 pyyaml = [
     {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
