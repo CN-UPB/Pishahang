@@ -38,12 +38,10 @@ from uuid import uuid4
 
 import amqpstorm
 import yaml
-from amqpstorm import Channel
 from amqpstorm.exception import AMQPConnectionError
 
 logging.getLogger("amqpstorm.Channel").setLevel(logging.ERROR)
 LOG = logging.getLogger("manobase:messaging:base")
-LOG.setLevel(logging.DEBUG)
 
 # if we don't find a broker configuration in our ENV, we use this URL as default
 RABBITMQ_URL_FALLBACK = "amqp://guest:guest@localhost:5672/%2F"
@@ -116,7 +114,6 @@ class Message:
         reply_to=None,
         headers={},
         message_id: str = None,
-        channel: Channel = None,
         app_id: str = None,
     ):
         """
@@ -129,7 +126,6 @@ class Message:
         self.reply_to = reply_to
         self.headers = headers
         self.message_id = message_id
-        self.channel = channel
         self.app_id = app_id
 
     @staticmethod
@@ -168,7 +164,6 @@ class Message:
             reply_to=None if message.reply_to == "" else message.reply_to,
             headers=headers,
             message_id=message.message_id,
-            channel=message.channel,
             app_id=app_id,
         )
 
