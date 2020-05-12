@@ -65,9 +65,9 @@ class AsyncioBrokerConnection(ManoBrokerRequestResponseConnection):
         self._loop_thread = Thread(target=run_loop, args=(self._loop,), daemon=True)
         self._loop_thread.start()
 
-    def _run_coroutine(self, coroutine) -> Future:
+    def run_coroutine(self, coroutine) -> Future:
         """
-        Schedules a coroutine to run in `this._loop` and logs any exception that the
+        Schedules a coroutine to run in the event loop and logs any exception that the
         coroutine may rise.
         """
         future: Future = asyncio.run_coroutine_threadsafe(coroutine, self._loop)
@@ -92,7 +92,7 @@ class AsyncioBrokerConnection(ManoBrokerRequestResponseConnection):
         if inspect.iscoroutinefunction(function):
 
             def runner(*args, **kwargs):
-                self._run_coroutine(function(*args, **kwargs))
+                self.run_coroutine(function(*args, **kwargs))
 
             return runner
 
@@ -148,7 +148,7 @@ class AsyncioBrokerConnection(ManoBrokerRequestResponseConnection):
                 LOG.exception("Exception in coroutine %r", coroutine)
             on_finish(message, result)
 
-        self._run_coroutine(runner())
+        self.run_coroutine(runner())
 
     def register_async_endpoint(self, endpoint_handler, topic):
         if not inspect.iscoroutinefunction(endpoint_handler):
@@ -286,7 +286,7 @@ class AsyncioBrokerConnection(ManoBrokerRequestResponseConnection):
 
     def await_notification(self, topic, correlation_id=None) -> "Future[Message]":
         """
-        Returns a future that is resolved with thenext notification that is received on
+        Returns a future that is resolved with the next notification that is received on
         `topic`, matching `correlation_id` (if provided).
 
         Note: `subscribe_awaitable()` has to be called once for every topic that this
