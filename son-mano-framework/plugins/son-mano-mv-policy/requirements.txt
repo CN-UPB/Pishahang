@@ -3,7 +3,9 @@ argh==0.26.2
 numpy==1.18.0
 pandas==0.25.3
 scipy==1.4.1
+
 scikit-learn==0.22
+scikit-criteria==0.2.10
 
 # For server
 requests==2.18.1

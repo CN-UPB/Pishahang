@@ -239,7 +239,7 @@ class PolicyPlugin(ManoBasePlugin):
 
 
     def handle_resp_forecast(self, ch, method, prop, payload):
-        LOG.info("MV Policy Forecast Response")
+        LOG.info("\n\n\n\n\n\nMV Policy Forecast Response")
         MV_POLICY = "mano.service.policy"
         # MV_FORECAST = "mano.service.forecast"
 
@@ -288,7 +288,7 @@ class PolicyPlugin(ManoBasePlugin):
         supported_versions = policy_helpers.get_supported_versions(prediction=prediction, versions=descriptor["versions"])
         decision_matrix_df = policy_helpers.build_decision_matrix(prediction=prediction, meta=meta, versions=supported_versions)
 
-        selected_type, selected_version = policy_helpers.get_policy_decision(decision_matrix_df, descriptor["weights"])
+        selected_type, selected_version = policy_helpers.get_policy_decision_mcda(decision_matrix_df, descriptor["weights"])
 
         LOG.info(decision_matrix_df)
         LOG.info("\nSelected version to deploy - {} - {}".format(selected_type, selected_version))

@@ -19,6 +19,7 @@ pydot==1.4.1
 
 ##### Machine Learning packages
 scikit-learn==0.22
+scikit-criteria==0.2.10
 
 # Fix to use 2.0
 # ./tfbuild/tensorflow-2.0.0-cp36-cp36m-linux_x86_64.whl
