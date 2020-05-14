@@ -15,6 +15,9 @@ import yaml
 import random
 from glob import glob
 
+from skcriteria import Data, MIN, MAX
+from skcriteria.madm import closeness, simple
+
 # %%
 START_TIME = time.time()
 LIMIT_DATASET = False
@@ -33,14 +36,14 @@ _SCORE_MIN, _SCORE_MAX = 1, 5
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
-        "cost": 8,
-        "over_provision": 8,
+        "cost": 9,
+        "over_provision": 9,
         "overhead": 1
     },
     "positive": {
-        "support_deviation": 10,
-        "same_version": 1,
-        "support_max": 10,
+        "support_deviation": 1,
+        "same_version": 3,
+        "support_max": 0,
         "support_recent_history": 0
     }
 }
@@ -234,12 +237,51 @@ def get_policy_decision(decision_matrix, weights):
                                decision_matrix.score.max()].index[0]
     return _version
 
+def get_policy_decision_mcda(decision_matrix, weights, mcda_method="WPM"):
+    # Negative
+    cost = weights["negative"]["cost"]
+    over_provision = weights["negative"]["over_provision"]
+    overhead = weights["negative"]["overhead"]
+    support_deviation = weights["positive"]['support_deviation']
+    same_version = weights["positive"]['same_version']
+    support_max = weights["positive"]['support_max']
+    support_recent_history = weights["positive"]['support_recent_history']
+
+    c_cost = MIN
+    c_over_provision = MIN
+    c_overhead = MIN
+    c_support_deviation = MAX
+    c_same_version = MAX
+    c_support_max = MAX
+    c_support_recent_history = MAX
+
+    _weights = [cost, support_deviation, over_provision,
+                    same_version, overhead, support_max, support_recent_history]
+
+    criteria = [c_cost, c_support_deviation, c_over_provision,
+                    c_same_version, c_overhead, c_support_max, c_support_recent_history]
+
+    data = Data(decision_matrix.values, criteria,
+            weights=_weights,
+            anames=decision_matrix.index,
+            cnames=list(decision_matrix.columns))
+
+    if mcda_method == "WPM":
+        dm = simple.WeightedProduct()
+    elif mcda_method == "WSM":
+        dm = simple.WeightedSum()
+    elif mcda_method == "TOPSIS":
+        dm = closeness.TOPSIS()
+
+    dec = dm.decide(data)
+
+    # print(dec.e_.points)
+    return data.anames[dec.best_alternative_]
+
 
 '''
 Find the version with least cost
 '''
-
-
 def find_cheapest_version(versions):
     _cost = None
 
@@ -405,7 +447,7 @@ def get_decision_dataset(traffic_grouped, traffic_history):
                     prediction=row_series, meta=meta, versions=supported_versions)
 
                 _selected_version = ":".join(
-                    get_policy_decision(decision_matrix_df, WEIGHTS))
+                    get_policy_decision_mcda(decision_matrix_df, WEIGHTS, mcda_method="WPM"))
                 _results[_acc_pc].at[index_label, 'policy'] = _selected_version
 
                 if not _selected_version.split(":")[1] == meta["current_version"]:
@@ -911,6 +953,111 @@ fig.savefig("./results/manual_variation_decision_plot.png",
             format='png',
             dpi=300)
 
+
+
+# %%
+
+_acc_pc = "pc_100"
+_results = traffic_grouped[_acc_pc].copy()
+
+# iterate over the dataframe row by row and set version
+prediction = { "mean": 350, "std": 0, "min": 350, "max": 350 }
+prediction_history = { "mean": 1000, "std": 0, "min": 1000, "max": 1000 }
+
+meta = {
+    "current_version": "transcoder-image-1-con",
+    "current_version_history_grouped": "transcoder-image-1-con",
+    "recent_history": prediction_history
+}
+
+
+supported_versions = get_supported_versions(
+    prediction=prediction, versions=PD["versions"])
+
+decision_matrix_df = build_decision_matrix(
+    prediction=prediction, meta=meta, versions=supported_versions)
+
+# weights = WEIGHTS
+weights = {
+    "negative": {
+        "cost": 9,
+        "over_provision": 9,
+        "overhead": 5
+    },
+    "positive": {
+        "support_deviation": 4,
+        "same_version": 5,
+        "support_max": 1,
+        "support_recent_history": 1
+    }
+}
+
+# Negative
+cost = weights["negative"]["cost"]
+over_provision = weights["negative"]["over_provision"]
+overhead = weights["negative"]["overhead"]
+support_deviation = weights["positive"]['support_deviation']
+same_version = weights["positive"]['same_version']
+support_max = weights["positive"]['support_max']
+support_recent_history = weights["positive"]['support_recent_history']
+
+c_cost = MIN
+c_over_provision = MIN
+c_overhead = MIN
+c_support_deviation = MAX
+c_same_version = MAX
+c_support_max = MAX
+c_support_recent_history = MAX
+
+
+# WEIGHTS --> [cost, support_deviation, over_provision, same_version, overhead, support_max, support_recent_history]
+weights = [cost, support_deviation, over_provision,
+                same_version, overhead, support_max, support_recent_history]
+
+criteria = [c_cost, c_support_deviation, c_over_provision,
+                c_same_version, c_overhead, c_support_max, c_support_recent_history]
+
+list(decision_matrix_df.index)
+
+get_policy_decision_mcda
+
+print("WSM")
+data = Data(decision_matrix_df.values, criteria,
+            weights=weights,
+            anames=decision_matrix_df.index,
+            cnames=list(decision_matrix_df.columns))
+
+dm = simple.WeightedSum()
+dec = dm.decide(data)
+print(data.anames[dec.best_alternative_])
+
+print("WPM")
+data = Data(decision_matrix_df.values, criteria,
+            weights=weights,
+            anames=decision_matrix_df.index,
+            cnames=list(decision_matrix_df.columns))
+
+dm = simple.WeightedProduct()
+dec = dm.decide(data)
+print(data.anames[dec.best_alternative_])
+
+print("TOPSIS")
+data = Data(decision_matrix_df.values, criteria,
+            weights=weights,
+            anames=decision_matrix_df.index,
+            cnames=list(decision_matrix_df.columns))
+
+dm = closeness.TOPSIS()
+dec = dm.decide(data)
+print(data.anames[dec.best_alternative_])
+
+print("Ideal:", dec.e_.ideal)
+print("Anti-Ideal:", dec.e_.anti_ideal)
+print("Closeness:", dec.e_.closeness)
+# %%
+
+
+    
 
 # %%
 

@@ -13,12 +13,21 @@ import requests
 import yaml
 import random
 
+from skcriteria import Data, MIN, MAX
+from skcriteria.madm import closeness, simple
+
 # %%
 START_TIME = time.time()
 LIMIT_DATASET = False
 
 LOOK_AHEAD = 5  # Mins (factor of shape)
 EXPERIMENT_RUNS = 1
+
+FOLDER_REF = "trials_wpm"
+MCDA_METHOD = "WPM"
+if not os.path.exists("./results/{}".format(FOLDER_REF)):
+    os.makedirs("./results/{}/data".format(FOLDER_REF))
+    os.makedirs("./results/{}/graphs".format(FOLDER_REF))
 
 # DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_7_day_traffic.csv'
 DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv'
@@ -27,15 +36,15 @@ _SCORE_MIN, _SCORE_MAX = 1, 5
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
-        "cost": 10,
-        "over_provision": 10,
+        "cost": 9,
+        "over_provision": 9,
         "overhead": 1
     },
     "positive": {
         "support_deviation": 1,
-        "same_version": 1,
-        "support_max": 1,
-        "support_recent_history": 1
+        "same_version": 3,
+        "support_max": 0,
+        "support_recent_history": 0
     }
 }
 
@@ -197,8 +206,6 @@ def build_decision_matrix(prediction, meta, versions):
 '''
 Get policy decision given decision matrix and weights
 '''
-
-
 def get_policy_decision(decision_matrix, weights):
 
     # Negative
@@ -229,11 +236,52 @@ def get_policy_decision(decision_matrix, weights):
     return _version
 
 
+def get_policy_decision_mcda(decision_matrix, weights, mcda_method="WPM"):
+    # Negative
+    cost = weights["negative"]["cost"]
+    over_provision = weights["negative"]["over_provision"]
+    overhead = weights["negative"]["overhead"]
+    support_deviation = weights["positive"]['support_deviation']
+    same_version = weights["positive"]['same_version']
+    support_max = weights["positive"]['support_max']
+    support_recent_history = weights["positive"]['support_recent_history']
+
+    c_cost = MIN
+    c_over_provision = MIN
+    c_overhead = MIN
+    c_support_deviation = MAX
+    c_same_version = MAX
+    c_support_max = MAX
+    c_support_recent_history = MAX
+
+    _weights = [cost, support_deviation, over_provision,
+                    same_version, overhead, support_max, support_recent_history]
+
+    criteria = [c_cost, c_support_deviation, c_over_provision,
+                    c_same_version, c_overhead, c_support_max, c_support_recent_history]
+
+    data = Data(decision_matrix.values, criteria,
+            weights=_weights,
+            anames=decision_matrix.index,
+            cnames=list(decision_matrix.columns))
+
+    if mcda_method == "WPM":
+        dm = simple.WeightedProduct()
+    elif mcda_method == "WSM":
+        dm = simple.WeightedSum()
+    elif mcda_method == "TOPSIS":
+        dm = closeness.TOPSIS(mnorm="sum")
+
+    dec = dm.decide(data)
+
+    # print(dec.e_.points)
+    return data.anames[dec.best_alternative_]
+
+
+
 '''
 Find the version with least cost
 '''
-
-
 def find_cheapest_version(versions):
     _cost = None
 
@@ -413,8 +461,11 @@ def get_decision_dataset(traffic_grouped, traffic_history):
                 decision_matrix_df = build_decision_matrix(
                     prediction=row_series, meta=meta, versions=supported_versions)
 
+                # _selected_version = ":".join(
+                #     get_policy_decision(decision_matrix_df, WEIGHTS))
                 _selected_version = ":".join(
-                    get_policy_decision(decision_matrix_df, WEIGHTS))
+                    get_policy_decision_mcda(decision_matrix_df, WEIGHTS, mcda_method=MCDA_METHOD))
+
                 _results[_acc_pc].at[index_label, 'policy'] = _selected_version
 
                 if not _selected_version.split(":")[1] == meta["current_version"]:
@@ -819,11 +870,11 @@ qos_sum_df = pd.DataFrame.from_records(_run_results["qos_sum"])
 prices_df = pd.DataFrame.from_records(_run_results["prices"])
 
 switch_counter_df.to_csv(
-    './data/{}_runs_experiment_switch_counter_df.csv'.format(EXPERIMENT_RUNS))
+    './results/{}/data/{}_runs_experiment_switch_counter_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS))
 qos_sum_df.to_csv(
-    './data/{}_runs_experiment_qos_sum_df.csv'.format(EXPERIMENT_RUNS))
+    './results/{}/data/{}_runs_experiment_qos_sum_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS))
 prices_df.to_csv(
-    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS))
+    './results/{}/data/{}_runs_experiment_prices_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS))
 
 
 switch_counter_df.head()
@@ -850,11 +901,11 @@ decision_results["final_decision_dataset"]['pc_100'].hist()
 #####################################################
 
 switch_counter_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_switch_counter_df.csv'.format(EXPERIMENT_RUNS), index_col=0)
+    './results/{}/data/{}_runs_experiment_switch_counter_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS), index_col=0)
 qos_sum_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_qos_sum_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
+    './results/{}/data/{}_runs_experiment_qos_sum_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS), index_col=0, header=[0, 1])
 prices_df_complete = pd.read_csv(
-    './data/{}_runs_experiment_prices_df.csv'.format(EXPERIMENT_RUNS), index_col=0, header=[0, 1])
+    './results/{}/data/{}_runs_experiment_prices_df.csv'.format(FOLDER_REF, EXPERIMENT_RUNS), index_col=0, header=[0, 1])
 
 # switch_counter_df = switch_counter_df_complete.agg(
 #     ['mean', 'std', 'min', 'max', 'median']).transpose()
@@ -903,7 +954,7 @@ bplot.set_ylabel("# Switches",
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/1_no_switches.png"
+plot_file_name = "./results/{}/graphs/1_no_switches.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
@@ -972,7 +1023,7 @@ bplot.set_ylabel("Time taken (s)",
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/2a_qos_times.png"
+plot_file_name = "./results/{}/graphs/2a_qos_times.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
@@ -1035,7 +1086,7 @@ bplot.set_ylabel("Time taken (s)",
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/2b_switch_times.png"
+plot_file_name = "./results/{}/graphs/2b_switch_times.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
@@ -1100,7 +1151,7 @@ bplot.set_ylabel("# Wrong Deployments",
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/2c_wrong_versions.png"
+plot_file_name = "./results/{}/graphs/2c_wrong_versions.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
@@ -1165,7 +1216,7 @@ bplot.set_ylabel("Price ($)",
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/3_prices.png"
+plot_file_name = "./results/{}/graphs/3_prices.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
