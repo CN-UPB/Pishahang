@@ -1,0 +1,71 @@
+---
+descriptor_version: vnfd-schema-01
+description: Trasncoder VNF with multiple versions
+name: ipsec-image-1-mv
+vendor: ashwin
+version: '1.0'
+author: ashwin
+
+ipsec-image-1-vm:
+- id: ipsec-image-1
+  description: ipsec-image-1
+  vm_image: "ipsec-image-1"
+  vm_image_format: qcow2
+  resource_requirements:
+    cpu:
+      vcpus: 8
+    memory:
+      size: 16
+      size_unit: GB
+    storage:
+      size: 10
+      size_unit: GB
+  connection_points:
+  - id: eth0
+    interface: ipv4
+    type: external
+  monitoring_parameters:
+    - net
+
+ipsec-image-1-gpu:
+- id: "ipsec-image-1"
+  name: "ipsec-image-1"
+  service_image: "ashwinupb/ipsec-gpu:0.9.poc"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "http"
+    protocol: "TCP"
+    port: 80
+    target_port: 80
+  environment:
+    - name: runtime
+      value: nvidia
+  resource_requirements:
+    memory:
+      size: 4096
+      size_unit: "Mi"
+    gpu:
+      gpus: 1
+      type: "nvidia.com/gpu"
+  monitoring_parameters:
+    - net
+
+ipsec-image-1-con:
+- id: "ipsec-image-1"
+  name: "ipsec-image-1"
+  service_image: "ashwinupb/ipsec-cpu:0.9.poc"
+  service_type: "LoadBalancer"
+  service_ports:
+  - name: "http"
+    protocol: "TCP"
+    port: 80
+    target_port: 80
+  resource_requirements:
+    memory:
+      size: 4096
+      size_unit: "Mi"
+  monitoring_parameters:
+    - net
+
+
+# Image name on openstack should be "ashwin_ipsec-image-1-mv_1.0_ipsec-image-1"

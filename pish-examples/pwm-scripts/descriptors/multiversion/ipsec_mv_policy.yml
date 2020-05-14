@@ -1,7 +1,7 @@
 ---
 descriptor_version: policy-schema-01
 description: A policy descriptor for multi-version switching
-name: transcoder_mv
+name: ipsec_mv
 version: '1.0'
 author: ashwin
 
@@ -16,7 +16,7 @@ minimum_accuracy:
 
 # Default version to deploy on init
 default_deployment_version: "CON"
-default_deployment_version_image: transcoder-image-1-con
+default_deployment_version_image: ipsec-image-1-con
 
 #################################
 # TRAINING PARAMETERS
@@ -65,19 +65,19 @@ weights:
 # Version parameters
 versions:
   virtual_deployment_units_vm:
-    transcoder-image-1-vm: 
+    ipsec-image-1-vm: 
       cost_per_min: 0.0003
       max_data_rate: 600
       management_overhead: 60
 
   virtual_deployment_units_gpu:
-    transcoder-image-1-gpu: 
+    ipsec-image-1-gpu: 
       cost_per_min: 0.0087
       max_data_rate: 3000
       management_overhead: 6
 
   virtual_deployment_units_con:
-    transcoder-image-1-con: 
+    ipsec-image-1-con: 
       cost_per_min: 0.00045
       max_data_rate: 1200
       management_overhead: 6

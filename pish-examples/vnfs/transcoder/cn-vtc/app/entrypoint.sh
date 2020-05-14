@@ -11,7 +11,7 @@ ffmpeg -f lavfi -re -i "aevalsrc=if(eq(floor(t)\,ld(2))\,st(0\,random(4)*3000+10
     -map a:0 -map a:0 -c:a aac -b:a 128k -ac 2 \
     -f hls \
     -hls_time 1 \
-    -hls_list_size 3 \
+    -hls_list_size 1 \
     -hls_flags delete_segments \
     -master_pl_name master.m3u8 \
     -var_stream_map "v:0,a:0 v:1,a:1" /tmp/stream_%v.m3u8
