@@ -272,6 +272,26 @@ checkqa-mypy = ["mypy (v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
+category = "dev"
+description = "Make multi-threaded pytest test cases fail when they should"
+name = "pytest-reraise"
+optional = false
+python-versions = ">=3.5,<4.0"
+version = "1.0.1"
+
+[[package]]
+category = "dev"
+description = "Pytest plugin for asserting data against voluptuous schema."
+name = "pytest-voluptuous"
+optional = false
+python-versions = "*"
+version = "1.1.0"
+
+[package.dependencies]
+pytest = "*"
+voluptuous = ">=0.9.0"
+
+[[package]]
 category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
@@ -344,6 +364,14 @@ socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [[package]]
 category = "dev"
+description = "# Voluptuous is a Python data validation library"
+name = "voluptuous"
+optional = false
+python-versions = "*"
+version = "0.11.7"
+
+[[package]]
+category = "dev"
 description = "Measures number of Terminal column cells of wide-character codes"
 name = "wcwidth"
 optional = false
@@ -364,8 +392,8 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "24e1cf2241f0aef9109ece178ceaa50d967f3f27f7dd327f33fe4f54b71a95e0"
-python-versions = "^3.6"
+content-hash = "5bafaa87858c5d4e75ad0bd0e7c242ec9d9216c7673c89dcec80acbe206a2903"
+python-versions = "^3.7"
 
 [metadata.files]
 amqpstorm = [
@@ -479,6 +507,13 @@ pytest = [
     {file = "pytest-5.4.1-py3-none-any.whl", hash = "sha256:0e5b30f5cb04e887b91b1ee519fa3d89049595f428c1db76e73bd7f17b09b172"},
     {file = "pytest-5.4.1.tar.gz", hash = "sha256:84dde37075b8805f3d1f392cc47e38a0e59518fb46a431cfdaf7cf1ce805f970"},
 ]
+pytest-reraise = [
+    {file = "pytest-reraise-1.0.1.tar.gz", hash = "sha256:08fb65a96bbe713dee2c20ad457ff4f4908a3fa979adeda2ae6809f33b7d0a18"},
+    {file = "pytest_reraise-1.0.1-py3-none-any.whl", hash = "sha256:8291481e5c9b1581f48390b4f18bc6540d0ca0ffb5f813a4b187159d7c9b16d4"},
+]
+pytest-voluptuous = [
+    {file = "pytest_voluptuous-1.1.0-py2.py3-none-any.whl", hash = "sha256:65e6c66f0d28f4ead0fc5903cca9892328df4fe73a45751fd1089498e36cd9d7"},
+]
 pyyaml = [
     {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
     {file = "PyYAML-5.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:240097ff019d7c70a4922b6869d8a86407758333f02203e0fc6ff79c5dcede76"},
@@ -554,6 +589,9 @@ typed-ast = [
 urllib3 = [
     {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},
     {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
+]
+voluptuous = [
+    {file = "voluptuous-0.11.7.tar.gz", hash = "sha256:2abc341dbc740c5e2302c7f9b8e2e243194fb4772585b991931cb5b22e9bf456"},
 ]
 wcwidth = [
     {file = "wcwidth-0.1.9-py2.py3-none-any.whl", hash = "sha256:cafe2186b3c009a04067022ce1dcd79cb38d8d65ee4f4791b8888d6599d1bbe1"},
