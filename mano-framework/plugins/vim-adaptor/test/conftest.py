@@ -1,6 +1,18 @@
+import os
+
 import pytest
-from vim_adaptor.main import VimAdaptor
+
 from manobase.messaging import ManoBrokerRequestResponseConnection
+from vim_adaptor.main import VimAdaptor
+
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
+
+
+@pytest.fixture
+def fixture_fs(fs):
+    fs.add_real_directory(FIXTURE_DIR)
+    fs.fixture_dir = FIXTURE_DIR
+    yield fs
 
 
 @pytest.fixture(scope="module")

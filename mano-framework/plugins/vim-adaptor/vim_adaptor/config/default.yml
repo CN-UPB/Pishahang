@@ -1,1 +1,3 @@
 mongo: mongodb://localhost:27017/gatekeeper
+
+terraform_workdir: ./functions # The directory to store compiled templates in and run Terraform
