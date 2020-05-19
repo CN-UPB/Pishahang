@@ -28,7 +28,6 @@ partner consortium (www.sonata-nfv.eu).
 
 import logging
 import os
-import time
 import unittest
 import uuid
 from copy import copy, deepcopy
