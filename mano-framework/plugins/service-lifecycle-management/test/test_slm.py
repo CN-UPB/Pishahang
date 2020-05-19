@@ -28,424 +28,271 @@ partner consortium (www.sonata-nfv.eu).
 
 import logging
 import os
-import threading
 import time
 import unittest
 import uuid
-from multiprocessing import Process
+from copy import copy, deepcopy
+from threading import Event
+from uuid import uuid4
 
+import pytest
 import yaml
+from pytest_voluptuous import S
+from voluptuous import Equal
 
-from manobase.messaging import ManoBrokerRequestResponseConnection, Message
+from manobase.messaging import Message
 from slm.slm import ServiceLifecycleManager
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("amqp-storm").setLevel(logging.INFO)
 LOG = logging.getLogger("mano-plugins:slm_test")
+LOG.setLevel(logging.INFO)
 logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-LOG.setLevel(logging.INFO)
 
 TEST_DIR = os.path.dirname(__file__)
 
 
-class testSlmFunctionality(unittest.TestCase):
+@pytest.fixture
+def corr_id():
+    return str(uuid4())
+
+
+@pytest.fixture
+def service_id():
+    return str(uuid4())
+
+
+# Test the tasks that the SLM should perform in the service life cycle of the network
+# services.
+
+########################
+# GENERAL
+########################
+@pytest.fixture
+def gk_new_service_request_message():
     """
-    Tests the tasks that the SLM should perform in the service
-    life cycle of the network services.
+    This method helps creating messages for the service request packets.
+    If it needs to be wrongly formatted, the nsd part of the request is
+    removed.
     """
 
-    slm_proc: ServiceLifecycleManager = None
-    uuid = "1"
-    corr_id = "1ba347d6-6210-4de7-9ca3-a383e50d0330"
+    descriptors_path = TEST_DIR + "/test_descriptors/"
 
-    ########################
-    # SETUP
-    ########################
-    def setUp(self):
-        def on_register_trigger(message: Message):
-            return {"status": "OK", "uuid": self.uuid}
+    def load_descriptor(filename: str):
+        with open(descriptors_path + filename) as descriptor_file:
+            return yaml.safe_load(descriptor_file)
 
-        # vnfcounter for when needed
-        self.vnfcounter = 0
+    # import the nsd and vnfds that form the service
+    nsd_descriptor = load_descriptor("sonata-demo.yml")
 
-        # Generate a new corr_id for every test
-        self.corr_id = str(uuid.uuid4())
+    service_request = {
+        "NSD": nsd_descriptor,
+        "VNFD1": load_descriptor("firewall-vnfd.yml"),
+        "VNFD2": load_descriptor("iperf-vnfd.yml"),
+        "VNFD3": load_descriptor("tcpdump-vnfd.yml"),
+    }
 
-        # a new SLM in another process for each test
-        self.slm_proc = ServiceLifecycleManager(
-            auto_register=False, start_running=False
-        )
+    return service_request
 
-        # We make a spy connection to listen to the different topics on the broker
-        self.manoconn_spy = ManoBrokerRequestResponseConnection("son-plugin.SonSpy")
-        # we need a connection to simulate messages from the gatekeeper
-        self.manoconn_gk = ManoBrokerRequestResponseConnection(
-            "son-plugin.SonGateKeeper"
-        )
-        # we need a connection to simulate messages from the infrastructure adaptor
-        self.manoconn_ia = ManoBrokerRequestResponseConnection(
-            "son-plugin.SonInfrastructureAdapter"
-        )
 
-        # Some threading events that can be used during the tests
-        self.wait_for_first_event = threading.Event()
-        self.wait_for_first_event.clear()
+# Method that starts a timer, waiting for an event
+def wait_for_event(event, timeout=5, msg="Event timed out."):
+    if not event.wait(timeout):
+        pytest.fail(msg=msg)
 
-        # The uuid that can be assigned to the plugin
-        self.uuid = "1"
 
-    def tearDown(self):
-        # Killing the slm
-        self.slm_proc.manoconn.stop_connection()
-        self.slm_proc.manoconn.stop_threads()
+def dummy(message: Message):
+    """
+    Sometimes, we need a cbf for an async_call, without actually using it.
+    """
+    pass
 
-        try:
-            del self.slm_proc
-        except:
-            pass
 
-        # Killing the connection with the broker
-        self.manoconn_spy.stop_connection()
-        self.manoconn_gk.stop_connection()
-        self.manoconn_ia.stop_connection()
+#############################################################
+# TEST1: test validate_deploy_request
+#############################################################
+def test_validate_deploy_request(
+    slm: ServiceLifecycleManager, gk_new_service_request_message, corr_id
+):
+    """
+    The method validate_deploy_request is used to check whether the
+    received message that requests the deployment of a new service is
+    correctly formatted.
+    """
 
-        self.manoconn_spy.stop_threads()
-        self.manoconn_gk.stop_threads()
-        self.manoconn_ia.stop_threads()
+    service_id = str(uuid.uuid4())
 
-        del self.manoconn_spy
-        del self.manoconn_gk
-        del self.manoconn_ia
+    def validate_deploy_request(service):
+        slm.set_services({service_id: service})
+        slm.validate_deploy_request(service_id)
+        return slm.get_services()[service_id]
 
-        del self.wait_for_first_event
+    # SUBTEST1: Check a correctly formatted message
+    result = validate_deploy_request(
+        {"original_corr_id": corr_id, "payload": gk_new_service_request_message}
+    )
+    assert "INSTANTIATING" == result["status"]
+    assert result["error"] is None
 
-    ########################
-    # GENERAL
-    ########################
-    def createGkNewServiceRequestMessage(self, correctlyFormatted=True):
-        """
-        This method helps creating messages for the service request packets.
-        If it needs to be wrongly formatted, the nsd part of the request is
-        removed.
-        """
+    # SUBTEST2: Check a message that is not a dictionary
+    result = validate_deploy_request(
+        {"original_corr_id": corr_id, "payload": "test message"}
+    )
+    assert "ERROR" == result["status"]
+    assert "Request " + corr_id + ": payload is not a dict." == result["error"]
 
-        descriptors_path = TEST_DIR + "/test_descriptors/"
+    # SUBTEST3: Check a message that contains no NSD
+    message = copy(gk_new_service_request_message)
+    message.pop("NSD")
+    result = validate_deploy_request({"original_corr_id": corr_id, "payload": message})
+    assert "ERROR" == result["status"]
+    assert "Request " + corr_id + ": NSD/COSD is not a dict." == result["error"]
 
-        def load_descriptor(filename: str):
-            with open(descriptors_path + filename) as descriptor_file:
-                return yaml.safe_load(descriptor_file)
+    # SUBTEST4: The number of VNFDs must be the same as listed in the NSD
+    message = deepcopy(gk_new_service_request_message)
+    message["NSD"]["network_functions"].append({})
+    result = validate_deploy_request({"original_corr_id": corr_id, "payload": message})
+    assert "ERROR" == result["status"]
+    assert "Request " + corr_id + ": # of VNFDs doesn't match NSD." == result["error"]
 
-        # import the nsd and vnfds that form the service
-        nsd_descriptor = load_descriptor("sonata-demo.yml")
-        vnfd1_descriptor = load_descriptor("firewall-vnfd.yml")
-        vnfd2_descriptor = load_descriptor("iperf-vnfd.yml")
-        vnfd3_descriptor = load_descriptor("tcpdump-vnfd.yml")
+    # SUBTEST5: VNFDs can not be empty
+    message = deepcopy(gk_new_service_request_message)
+    message["VNFD1"] = None
+    result = validate_deploy_request({"original_corr_id": corr_id, "payload": message})
+    assert "ERROR" == result["status"]
+    assert "Request " + corr_id + ": empty VNFD." == result["error"]
 
-        service_request = {
-            "VNFD1": vnfd1_descriptor,
-            "VNFD2": vnfd2_descriptor,
-            "VNFD3": vnfd3_descriptor,
-        }
 
-        if correctlyFormatted:
-            service_request["NSD"] = nsd_descriptor
-
-        return service_request
-
-    # Method that terminates the timer that waits for an event
-    def firstEventFinished(self):
-        self.wait_for_first_event.set()
-
-    # Method that starts a timer, waiting for an event
-    def waitForFirstEvent(self, timeout=5, msg="Event timed out."):
-        if not self.wait_for_first_event.wait(timeout):
-            self.assertEqual(True, False, msg=msg)
-
-    def dummy(self, message: Message):
-        """
-        Sometimes, we need a cbf for a async_call, without actually using it.
-        """
-
-        return
-
-    #############################################################
-    # TEST1: test validate_deploy_request
-    #############################################################
-    def test_validate_deploy_request(self):
-        """
-        The method validate_deploy_request is used to check whether the
-        received message that requests the deployment of a new service is
-        correctly formatted.
-        """
-
-        # Setup
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {"original_corr_id": corr_id}
-
-        # SUBTEST1: Check a correctly formatted message
-        message = self.createGkNewServiceRequestMessage()
-        service_dict[service_id]["payload"] = message
-
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.validate_deploy_request(service_id)
-        result = self.slm_proc.get_services()
-
-        self.assertEqual(
-            {
-                "status": result[service_id]["status"],
-                "error": result[service_id]["error"],
-            },
-            {"status": "INSTANTIATING", "error": None},
-            msg="outcome and expected result not equal SUBTEST1.",
-        )
-
-        # SUBTEST2: Check a message that is not a dictionary
-        service_dict[service_id]["payload"] = "test message"
-
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.validate_deploy_request(service_id)
-        result = self.slm_proc.get_services()
-
-        expected_message = "Request " + corr_id + ": payload is not a dict."
-        expected_response = {"status": "ERROR", "error": expected_message}
-
-        self.assertEqual(
-            {
-                "status": result[service_id]["status"],
-                "error": result[service_id]["error"],
-            },
-            expected_response,
-            msg="outcome and expected result not equal SUBTEST2.",
-        )
-
-        # SUBTEST3: Check a message that contains no NSD
-        message = self.createGkNewServiceRequestMessage()
-        del message["NSD"]
-        service_dict[service_id]["payload"] = message
-
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.validate_deploy_request(service_id)
-        result = self.slm_proc.get_services()
-
-        expected_message = "Request " + corr_id + ": NSD/COSD is not a dict."
-        expected_response = {"status": "ERROR", "error": expected_message}
-
-        self.assertEqual(
-            {
-                "status": result[service_id]["status"],
-                "error": result[service_id]["error"],
-            },
-            expected_response,
-            msg="outcome and expected result not equal SUBTEST3.",
-        )
-
-        # SUBTEST4: The number of VNFDs must be the same as listed in the NSD
-        message = self.createGkNewServiceRequestMessage()
-        message["NSD"]["network_functions"].append({})
-        service_dict[service_id]["payload"] = message
-
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.validate_deploy_request(service_id)
-        result = self.slm_proc.get_services()
-
-        expected_message = "Request " + corr_id + ": # of VNFDs doesn't match NSD."
-        expected_response = {"status": "ERROR", "error": expected_message}
-
-        self.assertEqual(
-            {
-                "status": result[service_id]["status"],
-                "error": result[service_id]["error"],
-            },
-            expected_response,
-            msg="outcome and expected result not equal SUBTEST4.",
-        )
-
-        # SUBTEST5: VNFDs can not be empty
-        message = self.createGkNewServiceRequestMessage()
-        message["VNFD1"] = None
-        service_dict[service_id]["payload"] = message
-
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.validate_deploy_request(service_id)
-        result = self.slm_proc.get_services()
-
-        expected_message = "Request " + corr_id + ": empty VNFD."
-        expected_response = {"status": "ERROR", "error": expected_message}
-
-        self.assertEqual(
-            {
-                "status": result[service_id]["status"],
-                "error": result[service_id]["error"],
-            },
-            expected_response,
-            msg="outcome and expected result not equal SUBTEST5.",
-        )
-
-    ###########################################################
-    # TEST2: Test start_next_task
-    ###########################################################
-    def test_start_next_task(self):
-        """
-        This method tests the start_next_task method
-        """
-
-        # Setup
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        orig_corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
+###########################################################
+# TEST2: Test start_next_task
+###########################################################
+def test_start_next_task(
+    slm: ServiceLifecycleManager, gk_new_service_request_message, corr_id
+):
+    # Setup
+    service_id = str(uuid.uuid4())
+    orig_corr_id = str(uuid.uuid4())
+    service_dict = {
+        service_id: {
             "corr_id": corr_id,
             "original_corr_id": orig_corr_id,
             "pause_chain": True,
             "kill_chain": False,
+            "schedule": ["validate_deploy_request"],
+            "payload": gk_new_service_request_message,
         }
+    }
 
-        # SUBTEST1: Check if next task is correctly called
-        message = self.createGkNewServiceRequestMessage()
+    # SUBTEST1: Check if next task is correctly called
 
-        # Add a task to the list
-        task_list = ["validate_deploy_request"]
+    # Run the method
+    slm.set_services(service_dict)
+    slm.start_next_task(service_id)
+    result = slm.get_services()
 
-        # Create the ledger
-        service_dict[service_id]["schedule"] = task_list
-        service_dict[service_id]["payload"] = message
+    assert S({"status": "INSTANTIATING", "error": None}) <= result[service_id]
 
-        # Run the method
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.start_next_task(service_id)
+    # Setup
+    service_dict = {}
+    service_id = str(uuid.uuid4())
+    orig_corr_id = str(uuid.uuid4())
+    service_dict[service_id] = {
+        "corr_id": corr_id,
+        "original_corr_id": orig_corr_id,
+        "pause_chain": False,
+        "kill_chain": False,
+        "schedule": [],
+        "payload": gk_new_service_request_message,
+    }
 
-        # wait for the task to finish
-        time.sleep(0.1)
-        result = self.slm_proc.get_services()
+    # SUBTEST2: Check behavior if there is no next task
 
-        # Check result
-        generated_response = {
-            "status": result[service_id]["status"],
-            "error": result[service_id]["error"],
-        }
-        expected_response = {"status": "INSTANTIATING", "error": None}
+    # Run the method
+    slm.set_services(service_dict)
+    slm.start_next_task(service_id)
+    result = slm.get_services()
 
-        self.assertEqual(
-            generated_response,
-            expected_response,
-            msg="outcome and expected result not equal SUBTEST1.",
-        )
+    # Check result: if successful, service_id will not be a key in result
+    assert service_id not in result
 
-        # Setup
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        orig_corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
-            "corr_id": corr_id,
-            "original_corr_id": orig_corr_id,
-            "pause_chain": False,
-            "kill_chain": False,
-        }
 
-        # SUBTEST2: Check behavior if there is no next task
-        message = self.createGkNewServiceRequestMessage()
+# ###############################################################
+# #TEST3: Test service_instance_create
+# ###############################################################
+#     def test_service_instance_create(self):
+#         """
+#         This method tests the service_instance_create method of the SLM
+#         """
 
-        # Add a task to the list
-        task_list = []
+#         #Setup
+#         message = self.createGkNewServiceRequestMessage()
+#         corr_id = str(uuid.uuid4())
+#         topic = "service.instances.create"
+#         prop_dict = {'reply_to': topic,
+#                      'correlation_id': corr_id,
+#                      'app_id': "Gatekeeper"}
 
-        # Create the ledger
-        service_dict[service_id]["schedule"] = task_list
-        service_dict[service_id]["payload"] = message
+#         properties = namedtuple('properties', prop_dict.keys())(*prop_dict.values())
 
-        # Run the method
-        self.slm_proc.set_services(service_dict)
-        self.slm_proc.start_next_task(service_id)
+#         schedule = self.slm_proc.service_instance_create('foo',
+#                                                          'bar',
+#                                                          properties,
+#                                                          message)
 
-        # wait for the task to finish
-        time.sleep(0.1)
-        result = self.slm_proc.get_services()
+#         #Check result: since we don't know how many of the tasks
+#         #were completed by the time we got the result, we only check
+#         #the final elements in the tasklist
 
-        # Check result: if successful, service_id will not be a key in result
+#         #The last 7 elements from the generated result
+#         generated_result = schedule[-7:]
 
-        self.assertFalse(service_id in result, msg="key is part of ledger in SUBTEST2.")
+#         #The expected last 7 elements in the list
+#         expected_result = ['SLM_mapping', 'ia_prepare', 'vnf_deploy',
+#                            'vnf_chain', 'wan_configure',
+#                            'instruct_monitoring', 'inform_gk']
 
-    # ###############################################################
-    # #TEST3: Test service_instance_create
-    # ###############################################################
-    #     def test_service_instance_create(self):
-    #         """
-    #         This method tests the service_instance_create method of the SLM
-    #         """
+#         self.assertEqual(generated_result,
+#                          expected_result,
+#                          msg='lists are not equal')
 
-    #         #Setup
-    #         message = self.createGkNewServiceRequestMessage()
-    #         corr_id = str(uuid.uuid4())
-    #         topic = "service.instances.create"
-    #         prop_dict = {'reply_to': topic,
-    #                      'correlation_id': corr_id,
-    #                      'app_id': "Gatekeeper"}
+###############################################################
+# TEST4: Test resp_topo
+###############################################################
+def test_resp_topo(slm, corr_id):
+    """
+    This method tests the resp_topo method.
+    """
 
-    #         properties = namedtuple('properties', prop_dict.keys())(*prop_dict.values())
-
-    #         schedule = self.slm_proc.service_instance_create('foo',
-    #                                                          'bar',
-    #                                                          properties,
-    #                                                          message)
-
-    #         #Check result: since we don't know how many of the tasks
-    #         #were completed by the time we got the result, we only check
-    #         #the final elements in the tasklist
-
-    #         #The last 7 elements from the generated result
-    #         generated_result = schedule[-7:]
-
-    #         #The expected last 7 elements in the list
-    #         expected_result = ['SLM_mapping', 'ia_prepare', 'vnf_deploy',
-    #                            'vnf_chain', 'wan_configure',
-    #                            'instruct_monitoring', 'inform_gk']
-
-    #         self.assertEqual(generated_result,
-    #                          expected_result,
-    #                          msg='lists are not equal')
-
-    ###############################################################
-    # TEST4: Test resp_topo
-    ###############################################################
-    def test_resp_topo(self):
-        """
-        This method tests the resp_topo method.
-        """
-
-        # Setup
-        # Create topology message
-        first = {
-            "vim_uuid": str(uuid.uuid4()),
+    # Setup
+    # Create topology message
+    topology_message = [
+        {
+            "vim_uuid": str(uuid4()),
             "memory_used": 5,
             "memory_total": 12,
             "core_used": 4,
             "core_total": 6,
-        }
-        second = {
-            "vim_uuid": str(uuid.uuid4()),
+        },
+        {
+            "vim_uuid": str(uuid4()),
             "memory_used": 3,
             "memory_total": 5,
             "core_used": 4,
             "core_total": 5,
-        }
-        third = {
-            "vim_uuid": str(uuid.uuid4()),
+        },
+        {
+            "vim_uuid": str(uuid4()),
             "memory_used": 6,
             "memory_total": 7,
             "core_used": 2,
             "core_total": 12,
-        }
-        topology_message = [first, second, third]
+        },
+    ]
 
-        # Create ledger
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
+    # Create ledger
+    service_id = str(uuid.uuid4())
+    service_dict = {
+        service_id: {
             "act_corr_id": corr_id,
             "infrastructure": {"topology": None},
             "schedule": ["get_ledger"],
@@ -453,165 +300,110 @@ class testSlmFunctionality(unittest.TestCase):
             "pause_chain": True,
             "kill_chain": False,
         }
+    }
 
-        self.slm_proc.set_services(service_dict)
+    slm.set_services(service_dict)
 
-        # Create Message
-        topic = "infrastructure.management.compute.list"
+    # Create Message
+    topic = "infrastructure.management.compute.list"
 
-        # Run method
-        self.slm_proc.resp_topo(
-            Message(
-                topic=topic,
-                payload=topology_message,
-                reply_to=topic,
-                correlation_id=corr_id,
-                app_id="InfrastructureAdaptor",
-            )
+    # Run method
+    slm.resp_topo(
+        Message(
+            topic=topic,
+            payload=topology_message,
+            reply_to=topic,
+            correlation_id=corr_id,
+            app_id="InfrastructureAdaptor",
         )
+    )
 
-        # Check result
-        result = self.slm_proc.get_services()
+    # Check result
+    result = slm.get_services()
 
-        self.assertEqual(
-            topology_message,
-            result[service_id]["infrastructure"]["topology"],
-            msg="Dictionaries are not equal",
-        )
+    assert topology_message == result[service_id]["infrastructure"]["topology"]
 
-    ###############################################################
-    # TEST5: Test resp_vnf_depl
-    ###############################################################
-    def test_resp_vnf_depl(self):
-        """
-        This method tests the resp_vnf_depl method.
-        """
 
-        # SUBTEST1: Only one VNFD in the service
-        # Setup
-        # Create the message
-        with open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml") as file:
-            vnfr = yaml.safe_load(file)
-        message = {"status": "DEPLOYED", "error": None, "vnfr": vnfr}
+###############################################################
+# TEST5: Test resp_vnf_depl
+###############################################################
+@pytest.mark.parametrize("vnfs_to_resp", [1, 2])
+def test_resp_vnf_depl(slm, service_id, corr_id, vnfs_to_resp):
+    """
+    This method tests the resp_vnf_depl method.
 
-        # Create ledger
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
-            "act_corr_id": corr_id,
-            "function": [{"id": vnfr["id"]}],
-            "vnfs_to_resp": 1,
-            "schedule": ["get_ledger"],
-            "original_corr_id": corr_id,
-            "pause_chain": True,
-            "kill_chain": False,
+    Args:
+        vnfs_to_resp: Number of VNFDs in the service
+    """
+    TOPIC = "mano.function.deploy"
+
+    # Create the message
+    with open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml") as file:
+        vnfr = yaml.safe_load(file)
+    message = {"status": "DEPLOYED", "error": None, "vnfr": vnfr}
+
+    # Create ledger
+    slm.set_services(
+        {
+            service_id: {
+                "act_corr_id": corr_id,
+                "function": [{"id": vnfr["id"]}],
+                "vnfs_to_resp": vnfs_to_resp,
+                "schedule": ["get_ledger"],
+                "original_corr_id": corr_id,
+                "pause_chain": True,
+                "kill_chain": False,
+            }
         }
+    )
 
-        self.slm_proc.set_services(service_dict)
-
-        topic = "mano.function.deploy"
-
-        # Run method
-        self.slm_proc.resp_vnf_depl(
-            Message(
-                topic=topic,
-                reply_to=topic,
-                payload=message,
-                correlation_id=corr_id,
-                app_id="FunctionLifecycleManager",
-            )
+    # Run method
+    slm.resp_vnf_depl(
+        Message(
+            topic=TOPIC,
+            reply_to=TOPIC,
+            payload=message,
+            correlation_id=corr_id,
+            app_id="FunctionLifecycleManager",
         )
+    )
 
-        # Check result
-        result = self.slm_proc.get_services()
-
-        self.assertEqual(
-            vnfr,
-            result[service_id]["function"][0]["vnfr"],
-            msg="Dictionaries are not equal SUBTEST 1",
+    # Check result
+    assert (
+        S(
+            {
+                service_id: {
+                    "function": [{"vnfr": Equal(vnfr)}],
+                    "vnfs_to_resp": Equal(vnfs_to_resp - 1),
+                    "schedule": ["get_ledger"],
+                }
+            }
         )
+        <= slm.get_services()
+    )
 
-        self.assertEqual(
-            result[service_id]["vnfs_to_resp"], 0, msg="Values not equal SUBTEST 1"
-        )
 
-        # SUBTEST2: Two VNFDs in the service
-        # Setup
-        # Create the message
-        with open(TEST_DIR + "/test_records/expected_vnfr_iperf.yml") as file:
-            vnfr = yaml.safe_load(file)
-        message = {"status": "DEPLOYED", "error": None, "vnfr": vnfr}
+###############################################################
+# TEST6: Test resp_prepare
+###############################################################
+def test_resp_prepare(slm, corr_id):
+    """
+    This method tests the resp_prepare method.
+    """
+    TOPIC = "infrastructure.service.prepare"
 
-        # Create ledger
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
-            "act_corr_id": corr_id,
-            "function": [{"id": vnfr["id"]}],
-            "vnfs_to_resp": 2,
-            "schedule": ["get_ledger"],
-            "original_corr_id": corr_id,
-            "pause_chain": True,
-            "kill_chain": False,
-        }
+    # SUBTEST 1: Successful response message
+    # Setup
+    # Create the message
+    message = {
+        "request_status": "COMPLETED",
+        "error": None,
+    }
 
-        self.slm_proc.set_services(service_dict)
-
-        topic = "mano.function.deploy"
-
-        # Run method
-        self.slm_proc.resp_vnf_depl(
-            Message(
-                topic=topic,
-                reply_to=topic,
-                payload=message,
-                correlation_id=corr_id,
-                app_id="FunctionLifecycleManager",
-            )
-        )
-
-        # Check result
-        result = self.slm_proc.get_services()
-
-        self.assertEqual(
-            vnfr,
-            result[service_id]["function"][0]["vnfr"],
-            msg="Dictionaries are not equal SUBTEST 2",
-        )
-
-        self.assertEqual(
-            result[service_id]["vnfs_to_resp"], 1, msg="Values not equal SUBTEST 2"
-        )
-
-        self.assertEqual(
-            result[service_id]["schedule"],
-            ["get_ledger"],
-            msg="Lists not equal SUBTEST 2",
-        )
-
-    ###############################################################
-    # TEST6: Test resp_prepare
-    ###############################################################
-    def test_resp_prepare(self):
-        """
-        This method tests the resp_prepare method.
-        """
-
-        # SUBTEST 1: Successful response message
-        # Setup
-        # Create the message
-        message = {
-            "request_status": "COMPLETED",
-            "error": None,
-        }
-
-        # Create ledger
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
+    # Create ledger
+    service_id = str(uuid.uuid4())
+    service_dict = {
+        service_id: {
             "act_corr_id": corr_id,
             "schedule": ["get_ledger"],
             "original_corr_id": corr_id,
@@ -619,253 +411,172 @@ class testSlmFunctionality(unittest.TestCase):
             "current_workflow": "instantiation",
             "kill_chain": False,
         }
+    }
 
-        self.slm_proc.set_services(service_dict)
+    slm.set_services(service_dict)
 
-        # Create properties
-        topic = "infrastructure.service.prepare"
-
-        # Run method
-        self.slm_proc.resp_prepare(
-            Message(
-                topic=topic,
-                reply_to=topic,
-                payload=message,
-                correlation_id=corr_id,
-                app_id="InfrastructureAdaptor",
-            )
+    # Run method
+    slm.resp_prepare(
+        Message(
+            topic=TOPIC,
+            reply_to=TOPIC,
+            payload=message,
+            correlation_id=corr_id,
+            app_id="InfrastructureAdaptor",
         )
+    )
 
-        # Check result
-        result = self.slm_proc.get_services()
+    # Check result
+    result = slm.get_services()
+    assert "status" not in result[service_id]
+    assert "error" not in result[service_id]
 
-        self.assertFalse(
-            "status" in result[service_id], msg="Key in dictionary SUBTEST 1"
-        )
+    # #SUBTEST 2: Failed response message
 
-        self.assertFalse(
-            "error" in result[service_id], msg="Key in dictionary SUBTEST 1"
-        )
+    # def on_test_resp_prepare_subtest2(ch, mthd, prop, payload):
 
-        # #SUBTEST 2: Failed response message
+    #     message = yaml.load(payload)
 
-        # def on_test_resp_prepare_subtest2(ch, mthd, prop, payload):
+    #     self.assertEqual(message['status'],
+    #                      'ERROR',
+    #                      msg="Status not correct in SUBTEST 1")
 
-        #     message = yaml.load(payload)
+    #     self.assertEqual(message['error'],
+    #                      'BAR',
+    #                      msg="Error not correct in SUBTEST 1")
 
-        #     self.assertEqual(message['status'],
-        #                      'ERROR',
-        #                      msg="Status not correct in SUBTEST 1")
+    #     self.assertTrue('timestamp' in message.keys(),
+    #                      msg="Timestamp missing in SUBTEST 1")
 
-        #     self.assertEqual(message['error'],
-        #                      'BAR',
-        #                      msg="Error not correct in SUBTEST 1")
+    #     self.assertEqual(len(message.keys()),
+    #                      3,
+    #                     msg="Number of keys not correct in SUBTEST1")
+    #     self.firstEventFinished()
 
-        #     self.assertTrue('timestamp' in message.keys(),
-        #                      msg="Timestamp missing in SUBTEST 1")
+    # #Setup
+    # #Create the message
 
-        #     self.assertEqual(len(message.keys()),
-        #                      3,
-        #                     msg="Number of keys not correct in SUBTEST1")
-        #     self.firstEventFinished()
+    # message = {'request_status': 'FOO',
+    #            'message': 'BAR',
+    #            }
 
-        # #Setup
-        # #Create the message
+    # payload = yaml.dump(message)
 
-        # message = {'request_status': 'FOO',
-        #            'message': 'BAR',
-        #            }
+    # #Listen on feedback topic
+    # self.manoconn_gk.subscribe(on_test_resp_prepare_subtest2,'service.instances.create')
 
-        # payload = yaml.dump(message)
+    # #Create ledger
+    # service_dict = {}
+    # service_id = str(uuid.uuid4())
+    # corr_id = str(uuid.uuid4())
+    # service_dict[service_id] = {'act_corr_id':corr_id,
+    #                             'schedule': ['get_ledger'],
+    #                             'original_corr_id':corr_id,
+    #                             'pause_chain': True,
+    #                             'current_workflow': 'instantiation',
+    #                             'kill_chain': False}
 
-        # #Listen on feedback topic
-        # self.manoconn_gk.subscribe(on_test_resp_prepare_subtest2,'service.instances.create')
+    # self.slm_proc.set_services(service_dict)
 
-        # #Create ledger
-        # service_dict = {}
-        # service_id = str(uuid.uuid4())
-        # corr_id = str(uuid.uuid4())
-        # service_dict[service_id] = {'act_corr_id':corr_id,
-        #                             'schedule': ['get_ledger'],
-        #                             'original_corr_id':corr_id,
-        #                             'pause_chain': True,
-        #                             'current_workflow': 'instantiation',
-        #                             'kill_chain': False}
+    # #Create properties
+    # topic = "infrastructure.service.prepare"
+    # prop_dict = {'reply_to': topic,
+    #              'correlation_id': corr_id,
+    #              'app_id': 'InfrastructureAdaptor'}
 
-        # self.slm_proc.set_services(service_dict)
+    # properties = namedtuple('props', prop_dict.keys())(*prop_dict.values())
 
-        # #Create properties
-        # topic = "infrastructure.service.prepare"
-        # prop_dict = {'reply_to': topic,
-        #              'correlation_id': corr_id,
-        #              'app_id': 'InfrastructureAdaptor'}
+    # #Run method
+    # self.slm_proc.resp_prepare('foo', 'bar', properties, payload)
 
-        # properties = namedtuple('props', prop_dict.keys())(*prop_dict.values())
+    # #Wait for the test to finish
+    # self.waitForFirstEvent(timeout=5)
 
-        # #Run method
-        # self.slm_proc.resp_prepare('foo', 'bar', properties, payload)
 
-        # #Wait for the test to finish
-        # self.waitForFirstEvent(timeout=5)
+###############################################################
+# TEST7: test contact_gk
+###############################################################
+@pytest.mark.parametrize("add_content", [{}, {"FOO": "BAR"}])
+def test_contact_gk(slm, connection, corr_id, reraise, add_content):
+    """
+    This method tests the contact_gk method.
+    """
 
-    ###############################################################
-    # TEST7: test contact_gk
-    ###############################################################
-    def test_contact_gk(self):
-        """
-        This method tests the contact_gk method.
-        """
+    gk_message_received_event = Event()
 
-        # Check result SUBTEST 1
-        def on_contact_gk_subtest1(message: Message):
-            payload = message.payload
-
-            self.assertEqual(
-                payload["status"], "FOO", msg="Status not correct in SUBTEST 1"
+    def on_contact_gk(message: Message):
+        with reraise(catch=True):
+            assert (
+                S({"status": "FOO", "error": "BAR", "timestamp": float, **add_content})
+                == message.payload
             )
+        gk_message_received_event.set()
 
-            self.assertEqual(
-                payload["error"], "BAR", msg="Error not correct in SUBTEST 1"
-            )
-
-            self.assertTrue(
-                "timestamp" in payload, msg="Timestamp missing in SUBTEST 1"
-            )
-
-            self.assertEqual(
-                len(payload), 3, msg="Number of keys not correct in SUBTEST1"
-            )
-            self.firstEventFinished()
-
-        # Check result SUBTEST2
-        def on_contact_gk_subtest2(message: Message):
-            self.firstEventFinished()
-
-            payload = message.payload
-
-            self.assertEqual(
-                payload["status"], "FOO", msg="Status not correct in SUBTEST 2"
-            )
-
-            self.assertEqual(
-                payload["error"], "BAR", msg="Error not correct in SUBTEST 2"
-            )
-
-            self.assertEqual(
-                payload["FOO"], "BAR", msg="Error not correct in SUBTEST 2"
-            )
-
-            self.assertTrue(
-                "timestamp" in payload, msg="Timestamp missing in SUBTEST 2"
-            )
-
-            self.assertEqual(
-                len(payload), 4, msg="Number of keys not correct in SUBTEST2"
-            )
-
-        # SUBTEST1: Without additional content
-        # Setup
-        # Create the ledger
-        self.wait_for_first_event.clear()
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
-            "schedule": ["get_ledger"],
-            "original_corr_id": corr_id,
-            "pause_chain": True,
-            "status": "FOO",
-            "error": "BAR",
-            "kill_chain": False,
-            "topic": "service.instances.create",
+    # Create the ledger
+    service_id = str(uuid.uuid4())
+    slm.set_services(
+        {
+            service_id: {
+                "schedule": ["get_ledger"],
+                "original_corr_id": corr_id,
+                "pause_chain": True,
+                "status": "FOO",
+                "error": "BAR",
+                "kill_chain": False,
+                "add_content": add_content,
+                "topic": "service.instances.create",
+            }
         }
+    )
 
-        # Set the ledger
-        self.slm_proc.set_services(service_dict)
+    # Spy the message bus
+    connection.subscribe(on_contact_gk, "service.instances.create")
 
-        # Spy the message bus
-        self.manoconn_spy.subscribe(on_contact_gk_subtest1, "service.instances.create")
+    # Run the method
+    slm.contact_gk(service_id)
 
-        # Run the method
-        self.slm_proc.contact_gk(service_id)
+    # Wait for the test to finish
+    wait_for_event(gk_message_received_event)
 
-        # Wait for the test to finish
-        self.waitForFirstEvent(timeout=5)
 
-        # SUBTEST2: With additional content
-        # Setup
-        self.wait_for_first_event.clear()
-        # Create the ledger
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        add_content = {"FOO": "BAR"}
-        service_dict[service_id] = {
-            "schedule": ["get_ledger"],
-            "original_corr_id": corr_id,
-            "pause_chain": True,
-            "status": "FOO",
-            "error": "BAR",
-            "add_content": add_content,
-            "topic": "service.instances.create",
+###############################################################
+# TEST8: test request_topology
+###############################################################
+def test_request_topology(slm, connection, corr_id, service_id, reraise):
+    """
+    This method tests the request_topology method.
+    """
+
+    request_received_event = Event()
+
+    def on_request_topology(message: Message):
+        with reraise:
+            assert {} == message.payload
+        request_received_event.set()
+
+    # Set the ledger
+    slm.set_services(
+        {
+            service_id: {
+                "schedule": ["get_ledger"],
+                "original_corr_id": corr_id,
+                "pause_chain": True,
+                "kill_chain": False,
+                "status": "FOO",
+                "error": "BAR",
+                "infrastructure": {},
+            }
         }
+    )
 
-        self.slm_proc.set_services(service_dict)
+    # Spy the message bus
+    connection.subscribe(on_request_topology, "infrastructure.management.compute.list")
 
-        # Spy the message bus
-        self.manoconn_gk.subscribe(on_contact_gk_subtest2, "service.instances.create")
+    # Run the method
+    slm.request_topology(service_id)
 
-        # Run the method
-        self.slm_proc.contact_gk(service_id)
-
-        # Wait for the test to finish
-        self.waitForFirstEvent(timeout=5)
-
-    ###############################################################
-    # TEST8: test request_topology
-    ###############################################################
-    def test_request_topology(self):
-        """
-        This method tests the request_topology method.
-        """
-
-        # Check result SUBTEST 1
-        def on_request_topology_subtest1(message: Message):
-
-            self.assertEqual(message.payload, {}, msg="Payload is not empty")
-
-            self.firstEventFinished()
-
-        # SUBTEST1: Trigger request_topology
-        # Setup
-        # Create the ledger
-        self.wait_for_first_event.clear()
-        service_dict = {}
-        service_id = str(uuid.uuid4())
-        corr_id = str(uuid.uuid4())
-        service_dict[service_id] = {
-            "schedule": ["get_ledger"],
-            "original_corr_id": corr_id,
-            "pause_chain": True,
-            "kill_chain": False,
-            "status": "FOO",
-            "error": "BAR",
-            "infrastructure": {},
-        }
-
-        # Set the ledger
-        self.slm_proc.set_services(service_dict)
-
-        # Spy the message bus
-        self.manoconn_spy.subscribe(
-            on_request_topology_subtest1, "infrastructure.management.compute.list"
-        )
-
-        # Run the method
-        self.slm_proc.request_topology(service_id)
-
-        # Wait for the test to finish
-        self.waitForFirstEvent(timeout=5)
+    # Wait for the test to finish
+    wait_for_event(request_received_event)
 
 
 ###############################################################
