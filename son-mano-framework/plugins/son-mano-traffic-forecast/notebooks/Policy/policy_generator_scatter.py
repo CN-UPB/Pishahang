@@ -33,8 +33,8 @@ _SCORE_MIN, _SCORE_MAX = 1, 5
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
-        "cost": 8,
-        "over_provision": 8,
+        "cost": 1,
+        "over_provision": 1,
         "overhead": 1
     },
     "positive": {
@@ -825,6 +825,7 @@ for _traffic_file in traffic_files:
 markers = ["v" , "^" , "v" , ">" , "^" , "<", ">"]
 colors = ['r','g','b','c','m', 'y', 'k']
 
+sns.reset_orig()
 fig, ax = plt.subplots(5, figsize=(8,8))
 _counter = 0
 for _traffic_file in traffic_files:
@@ -836,11 +837,24 @@ for _traffic_file in traffic_files:
     if LIMIT_DATASET:
         traffic_training_complete = traffic_training_complete[:LIMIT_DATASET]
 
-    _res = _traffic_results[_traffic_file_name]
+    _res = _traffic_results[_traffic_file_name].copy()
+
+    # Replace strings for graph
+    _res["final_decision_dataset"] = _res["final_decision_dataset"].replace("virtual_deployment_units_vm:transcoder-image-1-vm", "VM") 
+
+    _res["final_decision_dataset"] = _res["final_decision_dataset"].replace("virtual_deployment_units_con:transcoder-image-1-con", "CON") 
+
+    _res["final_decision_dataset"] = _res["final_decision_dataset"].replace("virtual_deployment_units_gpu:transcoder-image-1-gpu", "GPU") 
+
+    # Order the y axis
+    order = ['VM', 'CON', 'GPU']
+
+    _res["final_decision_dataset"]['history'] = [order.index(x) for x in _res["final_decision_dataset"]['history']]
+    _res["final_decision_dataset"]['pc_100'] = [order.index(x) for x in _res["final_decision_dataset"]['pc_100']]
 
     x = _res["final_decision_dataset"].index
     y = [_res["final_decision_dataset"].history, _res["final_decision_dataset"].pc_100]
-    labels = ['history', 'pc_100']
+    labels = ['history', 'Policy']
 
     # traffic_policy_test.reset_index().plot.scatter(figsize=(20,10), fontsize=20, x=x, y=y, marker="v")
 
@@ -854,11 +868,11 @@ for _traffic_file in traffic_files:
         ax[_counter].scatter(xi,yi, marker=mi, color=ci, s=49, label=labels[i])
 
         # ax[_counter].set_title(_traffic_file_name)
-        ax[_counter].set_title("{} | Policy:{} | History:{}".format(_traffic_file_name, _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
-
-
+        ax[_counter].set_title("Jitter:{} | Policy:{} | History:{}".format(_traffic_file_name.split("_")[0], _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
+    
         ax[_counter].set_yticks(np.arange(3))
         ax[_counter].set_yticks(np.arange(3+1)-0.5, minor=True)
+        ax[_counter].set_yticklabels(order)
 
         ax[_counter].set_xticks(np.arange(len(y[0])))
         ax[_counter].set_xticks(np.arange(len(y[0])+1)-0.5, minor=True)
@@ -871,7 +885,13 @@ for _traffic_file in traffic_files:
 
     _counter += 1
 
-plt.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+plt.xlabel("Time Block", fontsize=12)
+ax[2].set_ylabel('Version', fontsize=12)
+
+# ax[0].legend(loc="upper right")
+ax[0].legend(bbox_to_anchor=(0,1.08,1,0.2), loc="lower right",
+                borderaxespad=0, ncol=1)
+# fig.tight_layout()
 plt.show()
 
 fig.savefig("./results/manual_variation_decision_scatter.png",
@@ -879,6 +899,7 @@ fig.savefig("./results/manual_variation_decision_scatter.png",
             dpi=300)
 
 # %%
+sns.set_style("darkgrid")
 fig, ax = plt.subplots(5, figsize=(8,8))
 _counter = 0
 for _traffic_file in traffic_files:
@@ -900,14 +921,23 @@ for _traffic_file in traffic_files:
     ax[_counter].plot(traffic_training_complete["sent"],drawstyle='steps-pre')
 
         # ax[_counter].set_title(_traffic_file_name)
-    ax[_counter].set_title("{} | Policy:{} | History:{}".format(_traffic_file_name, _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
+    ax[_counter].set_title("Jitter - {}".format(_traffic_file_name.split("_")[0]))
+
+    ax[_counter].get_xaxis().set_minor_locator(plticker.AutoMinorLocator())
+    ax[_counter].get_yaxis().set_minor_locator(plticker.AutoMinorLocator())
+    ax[_counter].grid(b=False)
+    ax[_counter].grid(b=True, axis="x", which='minor', color='w', linewidth=1.0)
+    ax[_counter].grid(b=True, axis="x", which='major', color='w', linewidth=1.0)
 
     _counter += 1
 
-plt.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+plt.xlabel("Time Block", fontsize=12)
+ax[2].set_ylabel('Traffic (Kb/s)\n', fontsize=12)
+
+fig.tight_layout()
 plt.show()
 
-fig.savefig("./results/manual_variation_decision_plot.png",
+fig.savefig("./results/manual_variation_decision_dataset.png",
             format='png',
             dpi=300)
 
