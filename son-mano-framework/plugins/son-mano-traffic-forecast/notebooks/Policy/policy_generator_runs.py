@@ -12,18 +12,19 @@ import time
 import requests
 import yaml
 import random
+from matplotlib.ticker import MaxNLocator
 
 from skcriteria import Data, MIN, MAX
 from skcriteria.madm import closeness, simple
 
 # %%
 START_TIME = time.time()
-LIMIT_DATASET = False
+LIMIT_DATASET = 720
 
 LOOK_AHEAD = 5  # Mins (factor of shape)
-EXPERIMENT_RUNS = 1
+EXPERIMENT_RUNS = 5
 
-FOLDER_REF = "trials_wpm"
+FOLDER_REF = "draft_1"
 MCDA_METHOD = "WPM"
 if not os.path.exists("./results/{}".format(FOLDER_REF)):
     os.makedirs("./results/{}/data".format(FOLDER_REF))
@@ -31,7 +32,7 @@ if not os.path.exists("./results/{}".format(FOLDER_REF)):
 
 # DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_7_day_traffic.csv'
 DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv'
-_SCORE_MIN, _SCORE_MAX = 1, 5
+_SCORE_MIN, _SCORE_MAX = 1, 9
 
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
@@ -41,15 +42,15 @@ WEIGHTS = {
         "overhead": 1
     },
     "positive": {
-        "support_deviation": 1,
-        "same_version": 3,
-        "support_max": 0,
+        "support_deviation": 5,
+        "same_version": 1,
+        "support_max": 2,
         "support_recent_history": 0
     }
 }
 
 # accuracy_list = [1.0]
-accuracy_list = [1.0, 0.98, 0.96, 0.94, 0.92, 0.90]
+accuracy_list = [1.0, 0.90, 0.80, 0.70, 0.60]
 # accuracy_list = [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]
 
 # %%
@@ -920,7 +921,49 @@ prices_df_complete = pd.read_csv(
 
 #############################################
 #############################################
-# 1. Switches (Box Plot)
+# 1a. Switches (Bar)
+#############################################
+#############################################
+
+sns.set_style("darkgrid")
+plt.figure(figsize=(8, 5))
+
+# make boxplot with Seaborn
+# bplot = sns.boxplot(
+#     data=switch_counter_df_complete,
+#     width=0.5,
+#     palette="colorblind"
+# )
+bplot = sns.barplot(order=["pc_100", "history"],
+                    palette="colorblind",
+                    data=switch_counter_df_complete)
+
+
+bplot.set_xticklabels(["Policy", "History"])
+
+# bplot.axes.set_title("# Switches vs Model",
+#                      fontsize=16)
+
+bplot.set_xlabel("Model",
+                 fontsize=12)
+
+bplot.set_ylabel("# Switches",
+                 fontsize=12)
+
+bplot.tick_params(labelsize=10)
+
+# output file name
+plot_file_name = "./results/{}/graphs/1a_no_switches_pvh.png".format(FOLDER_REF)
+
+# save as png
+bplot.figure.savefig(plot_file_name,
+                     format='png',
+                     dpi=300)
+
+# %%
+#############################################
+#############################################
+# 1b. Switches (Box)
 #############################################
 #############################################
 
@@ -931,32 +974,39 @@ plt.figure(figsize=(8, 5))
 bplot = sns.boxplot(
     data=switch_counter_df_complete,
     width=0.5,
-    palette="colorblind"
+    palette="colorblind",
+    order=['pc_100', 'pc_90', 'pc_80', 'pc_70', 'pc_60']
 )
 
 # add stripplot to boxplot with Seaborn
 bplot = sns.stripplot(
     data=switch_counter_df_complete,
-    jitter=True,
+    jitter=False,
     marker='o',
     alpha=0.5,
-    color='black')
+    color='black',
+    order=['pc_100', 'pc_90', 'pc_80', 'pc_70', 'pc_60']
+    )
 
-bplot.axes.set_title("# Switches vs Model",
-                     fontsize=16)
+bplot.set_xticklabels(['100%', '90%', '80%', '70%', '60%'])
+
+# bplot.axes.set_title("# Switches vs Model",
+#                      fontsize=16)
+
+bplot.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 bplot.set_xlabel("Model",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.set_ylabel("# Switches",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/{}/graphs/1_no_switches.png".format(FOLDER_REF)
+plot_file_name = "./results/{}/graphs/1b_no_switches_accuracy.png".format(FOLDER_REF)
 
-# save as jpeg
+# save as png
 bplot.figure.savefig(plot_file_name,
                      format='png',
                      dpi=300)
@@ -965,7 +1015,60 @@ bplot.figure.savefig(plot_file_name,
 
 #############################################
 #############################################
-# 2a. QoS Times (Box Plot)
+# 2a.1 QoS Times (Bar)
+#############################################
+#############################################
+
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
+plt.figure(figsize=(8, 5))
+
+# qos_sum_df_complete.xs('downtime', axis=1, level=1).boxplot(figsize=(10, 5))
+
+qos_data = {
+        'model': ["Policy", "History"],
+        'buffertime': [qos_sum_df_complete["pc_100"]["buffertime"][0], qos_sum_df_complete["history"]["buffertime"][0]],
+        'downtime': [qos_sum_df_complete["pc_100"]["downtime"][0], qos_sum_df_complete["history"]["downtime"][0]]
+        }
+
+# qos_df = pd.DataFrame(qos_data, columns = ["buffertime", "downtime"], index=qos_data['model'])
+
+qos_df = pd.DataFrame(qos_data, columns = ["downtime", "buffertime", "model"])
+
+qos_df = qos_df.melt(id_vars='model').rename(columns=str.title)
+
+bplot = sns.barplot(x='Model', y='Value', hue='Variable', data=qos_df)
+
+# bplot.axes.set_title("QoS Time vs Model",
+#                      fontsize=16)
+
+bplot.set_xlabel("Model",
+                 fontsize=12)
+
+bplot.set_ylabel("Time (s)",
+                 fontsize=12)
+
+bplot.tick_params(labelsize=10)
+
+handles, labels = bplot.get_legend_handles_labels()
+
+_HANDLES = 2
+l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES], loc=2, borderaxespad=0.)
+
+# output file name
+plot_file_name = "./results/{}/graphs/2a1_qos_times_bar.png".format(FOLDER_REF)
+
+# save as jpeg
+bplot.figure.savefig(plot_file_name,
+                     format='png',
+                     dpi=300)
+# -
+
+# %%
+#############################################
+#############################################
+# 2a.2 QoS Times (Box Plot)
 #############################################
 #############################################
 
@@ -992,6 +1095,7 @@ bplot = sns.boxplot(
     hue="level_1",
     data=qos_times,
     width=0.5,
+    order=['pc_100', 'pc_90', 'pc_80', 'pc_70', 'pc_60'],
     palette="colorblind")
 
 # add stripplot to boxplot with Seaborn
@@ -1000,30 +1104,33 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=qos_times,
-    jitter=True,
+    jitter=False,
     marker='o',
     alpha=0.5,
+    order=['pc_100', 'pc_90', 'pc_80', 'pc_70', 'pc_60'],
     color='black')
+
+bplot.set_xticklabels(['100%', '90%', '80%', '70%', '60%'])
 
 handles, labels = bplot.get_legend_handles_labels()
 
 _HANDLES = 2
-l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES],
-               bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+l = plt.legend(handles[0:_HANDLES], labels[0:_HANDLES], 
+                    loc=2, borderaxespad=0.)
 
-bplot.axes.set_title("QoS Time vs Model",
-                     fontsize=16)
+# bplot.axes.set_title("QoS Time vs Model",
+#                      fontsize=16)
 
 bplot.set_xlabel("Model",
-                 fontsize=14)
+                 fontsize=12)
 
-bplot.set_ylabel("Time taken (s)",
-                 fontsize=14)
+bplot.set_ylabel("Time (s)",
+                 fontsize=12)
 
 bplot.tick_params(labelsize=10)
 
 # output file name
-plot_file_name = "./results/{}/graphs/2a_qos_times.png".format(FOLDER_REF)
+plot_file_name = "./results/{}/graphs/2a2_qos_times_box.png".format(FOLDER_REF)
 
 # save as jpeg
 bplot.figure.savefig(plot_file_name,
@@ -1063,7 +1170,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=switch_times,
-    jitter=True,
+    jitter=False,
     marker='o',
     alpha=0.5,
     color='black')
@@ -1078,10 +1185,10 @@ bplot.axes.set_title("Switch Time vs Model",
                      fontsize=16)
 
 bplot.set_xlabel("Model",
-                 fontsize=14)
+                 fontsize=12)
 
-bplot.set_ylabel("Time taken (s)",
-                 fontsize=14)
+bplot.set_ylabel("Time (s)",
+                 fontsize=12)
 
 bplot.tick_params(labelsize=10)
 
@@ -1128,7 +1235,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=wrong_versions,
-    jitter=True,
+    jitter=False,
     marker='o',
     alpha=0.5,
     color='black')
@@ -1143,10 +1250,10 @@ bplot.axes.set_title("Wrong Versions vs Model",
                      fontsize=16)
 
 bplot.set_xlabel("Model",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.set_ylabel("# Wrong Deployments",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.tick_params(labelsize=10)
 
@@ -1193,7 +1300,7 @@ bplot = sns.stripplot(
     y='data',
     hue="level_1",
     data=prices_result,
-    jitter=True,
+    jitter=False,
     marker='o',
     alpha=0.5,
     color='black')
@@ -1208,10 +1315,10 @@ bplot.axes.set_title("Prices vs Model",
                      fontsize=16)
 
 bplot.set_xlabel("Model",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.set_ylabel("Price ($)",
-                 fontsize=14)
+                 fontsize=12)
 
 bplot.tick_params(labelsize=10)
 
