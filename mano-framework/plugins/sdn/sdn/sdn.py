@@ -1,39 +1,41 @@
 """
-Copyright (c) 2015 SONATA-NFV
+Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
 ALL RIGHTS RESERVED.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+
+Neither the name of the SONATA-NFV, Pishahang,
 nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written
 permission.
-This work has been performed in the framework of the SONATA project,
+
+Parts of this work have been performed in the framework of the SONATA project,
 funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
-partner consortium (www.sonata-nfv.eu).a
+partner consortium (www.sonata-nfv.eu).
 """
 
-import logging
-import yaml
-import os
-import json
-from manobase.plugin import ManoBasePlugin
-from manobase import messaging
-
-import zmq
-from time import sleep
-import json
 import hashlib
+import logging
+import os
+
 import psycopg2
 import requests
+import zmq
+
+from manobase.messaging import Message
+from manobase.plugin import ManoBasePlugin
 
 SDN_CONTROLLER_ADDRESS = "131.234.250.207"
 
@@ -52,7 +54,7 @@ class SDN(ManoBasePlugin):
     This class implements the SDN plugin.
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         # call super class (will automatically connect to
         # broker and register the SDN plugin to the plugin manger)
@@ -86,57 +88,40 @@ class SDN(ManoBasePlugin):
             self.db_name = "vimregistry"
 
         LOG.info("son-plugin.SDN initializing.")
-        # register in the plugin manager
-        super(self.__class__, self).__init__(
-            version=self.version, description=self.description
-        )
-
-    def __del__(self):
-        """
-        Destroy SDN plugin instance. De-register. Disconnect.
-        :return:
-        """
-        super(self.__class__, self).__del__()
+        super().__init__(version=self.version, description=self.description, **kwargs)
 
     def declare_subscriptions(self):
         """
         Declare topics to which we want to listen and define callback methods.
         """
-        # We have to call our super class here
-        super(self.__class__, self).declare_subscriptions()
+        super().declare_subscriptions()
 
         self.manoconn.subscribe(self.on_sdn_chain_dploy, "chain.dploy.sdnplugin")
         LOG.info("son-plugin.SDN subscribing to topic chain.dploy.sdnplugin")
 
-    def on_sdn_chain_dploy(self, ch, method, properties, payload):
+    def on_sdn_chain_dploy(self, message: Message):
         """
         Send IPs involved in chain to RYU controller via ZeroMQ.
         """
-        LOG.info("son-plugin.SDN received chain chain.dploy.sdnplugin message")
-        LOG.info(payload)
+        LOG.info(
+            "son-plugin.SDN received chain chain.dploy.sdnplugin message: %s",
+            message.payload,
+        )
         fg_labels = []
         ip_list = []
-        message = yaml.load(payload)
-        for i in range(
-            len(
-                message["cosd"]["forwarding_graphs"][0]["network_forwarding_paths"][0][
-                    "connection_points"
-                ]
-            )
-        ):
-            fg_labels.append(
-                message["cosd"]["forwarding_graphs"][0]["network_forwarding_paths"][0][
-                    "connection_points"
-                ][i]["connection_point_ref"]
-            )
+        payload = message.payload
+        for connection_point in payload["cosd"]["forwarding_graphs"][0][
+            "network_forwarding_paths"
+        ][0]["connection_points"]:
+            fg_labels.append(connection_point["connection_point_ref"])
 
-        for j in range(len(fg_labels)):
-            if fg_labels[j] == "input" or fg_labels[j] == "output":
-                ip = self.ip_nap_retriever(fg_labels[j], message)
+        for label in fg_labels:
+            if label == "input" or label == "output":
+                ip = self.ip_nap_retriever(label, payload)
                 if ip != "None":
                     ip_list.append(ip)
             else:
-                ip_list.append(self.ip_vnf_retriever(fg_labels[j], message))
+                ip_list.append(self.ip_vnf_retriever(label, payload))
 
         # vim_uuid = "9ead2b5a-424b-4301-94ef-9f923e09d028"
 
@@ -149,15 +134,14 @@ class SDN(ManoBasePlugin):
 
         # generate VLAN ID
         # use hashing to assign same VLAN ID for the same chain
-        hash_val = hashlib.sha224(str(message).encode("utf-8")).hexdigest()
+        hash_val = hashlib.sha224(str(payload).encode("utf-8")).hexdigest()
         try:
             vlan_id = max(vlan.values()) + 1
         except:
             vlan_id = 1
         self.vlan[hash_val] = vlan_id
 
-        forwarding_graph = []
-        forwarding_graph.append({"vlan": vlan_id})
+        forwarding_graph = [{"vlan": vlan_id}]
         for ip in range(len(ip_list)):
             forwarding_graph.append({"ip": ip_list[ip]})
         LOG.info("Service chain => {0}".format(forwarding_graph))
@@ -176,53 +160,36 @@ class SDN(ManoBasePlugin):
 
     def ip_vnf_retriever(self, label, message):
         name, nic = label.split(":")
-        for i in range(len(message["vnfds"])):
-            if message["vnfds"][i]["name"] == name:
-                uuid = message["vnfds"][i]["instance_uuid"]
-                for j in range(len(message["vnfrs"])):
-                    if message["vnfrs"][j]["id"] == uuid:
-                        for k in range(
-                            len(
-                                message["vnfrs"][j]["virtual_deployment_units"][0][
-                                    "vnfc_instance"
-                                ][0]["connection_points"]
-                            )
-                        ):
-                            if (
-                                message["vnfrs"][j]["virtual_deployment_units"][0][
-                                    "vnfc_instance"
-                                ][0]["connection_points"][k]["id"]
-                                == nic
-                            ):
-                                vnf_ip = message["vnfrs"][j][
-                                    "virtual_deployment_units"
-                                ][0]["vnfc_instance"][0]["connection_points"][k][
-                                    "interface"
-                                ][
-                                    "address"
-                                ]
+        for vnfd in message["vnfds"]:
+            if vnfd["name"] != name:
+                return self.ip_cnf_retriever(name, message)
+            else:
+                uuid = vnfd["instance_uuid"]
+                for vnfr in message["vnfrs"]:
+                    if vnfr["id"] == uuid:
+                        for connection_point in vnfr["virtual_deployment_units"][0][
+                            "vnfc_instance"
+                        ][0]["connection_points"]:
+                            if connection_point["id"] == nic:
+                                vnf_ip = connection_point["interface"]["address"]
                                 LOG.info("{0} IP address = {1}".format(name, vnf_ip))
                                 return vnf_ip
-            else:
-                return self.ip_cnf_retriever(name, message)
 
     def ip_cnf_retriever(self, name, message):
-        for i in range(len(message["csds"])):
-            if message["csds"][i]["name"] == name:
-                uuid = message["csds"][i]["instance_uuid"]
-                for j in range(len(message["csrs"])):
-                    if message["csrs"][j]["id"] == uuid:
+        for csd in message["csds"]:
+            if csd["name"] != name:
+                LOG.error("IP address not found!")
+                return
+            else:
+                uuid = csd["instance_uuid"]
+                for csr in message["csrs"]:
+                    if csr["id"] == uuid:
                         service_id = "{0}-{1}".format(
-                            message["csrs"][j]["virtual_deployment_units"][0]["id"],
-                            uuid,
+                            csr["virtual_deployment_units"][0]["id"], uuid,
                         )
-                        vim_uuid = message["csrs"][j]["virtual_deployment_units"][0][
-                            "vim_id"
-                        ]
+                        vim_uuid = csr["virtual_deployment_units"][0]["vim_id"]
                         vim_ip, vim_token = self.k8_ip_token_retriever(vim_uuid)
                         return self.service_ip_retriever(service_id, vim_ip, vim_token)
-            else:
-                LOG.error("IP address not found!")
 
     def k8_ip_token_retriever(self, vim_uuid):
 
@@ -263,38 +230,14 @@ class SDN(ManoBasePlugin):
         except Exception as error:
             LOG.error("CN-VNF IP not found! =>".format(error))
 
-    def deregister(self):
-        """
-        Send a deregister request to the plugin manager.
-        """
-        LOG.info("Deregistering SLM with uuid " + str(self.uuid))
-        message = {"uuid": self.uuid}
-        self.manoconn.notify(
-            "platform.management.plugin.deregister", json.dumps(message)
-        )
-        LOG.info("son-plugin.SDN deregistered")
-        os._exit(0)
-
-    def on_registration_ok(self):
-        """
-        This method is called when the SLM is registered to the plugin mananger
-        """
-        super(self.__class__, self).on_registration_ok()
-        LOG.info("son-plugin.SDN registration ok event.")
-
 
 def main():
     """
     Entry point to start plugin.
     :return:
     """
-    # reduce messaging log level to have a nicer output for this plugin
-    logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-    logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-    #    logging.getLogger("amqp-storm").setLevel(logging.DEBUG)
-    # create our service lifecycle manager
     LOG.info("son-plugin.SDN starting...")
-    sdn = SDN()
+    SDN()
 
 
 if __name__ == "__main__":
