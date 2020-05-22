@@ -2931,7 +2931,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # Kill the stack
         corr_id = str(uuid.uuid4())
         self.manoconn.notify(
-            t.IA_REMOVE, {"instance_uuid": serv_id}, reply_to=t.IA_REMOVE, correlation_id=corr_id
+            t.IA_REMOVE,
+            {"instance_uuid": serv_id},
+            reply_to=t.IA_REMOVE,
+            correlation_id=corr_id,
         )
 
         # Kill the SSMs and FSMs
