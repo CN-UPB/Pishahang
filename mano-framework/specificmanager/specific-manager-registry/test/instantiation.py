@@ -41,9 +41,9 @@ logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 class fakeslm_instantiation(object):
     def __init__(self):
 
-        self.name = 'fake-slm'
-        self.version = '0.1-dev'
-        self.description = 'description'
+        self.name = "fake-slm"
+        self.version = "0.1-dev"
+        self.description = "description"
 
         LOG.info("Starting SLM1:...")
 
@@ -66,23 +66,38 @@ class fakeslm_instantiation(object):
     def publish_sid(self):
 
         LOG.info("Sending instantiate request")
-        nsd = open('test/test_descriptors/nsd.yml', 'r')
-        message = {'NSD': yaml.load(nsd), 'UUID': '937213ae-890b-413c-a11e-45c62c4eee3f'}
-        self.manoconn.call_async(self._on_publish_sid_response,
-                                 'specific.manager.registry.ssm.instantiate',
-                                 yaml.dump(message))
+        nsd = open("test/test_descriptors/nsd.yml", "r")
+        message = {
+            "NSD": yaml.load(nsd),
+            "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
+        }
+        self.manoconn.call_async(
+            self._on_publish_sid_response,
+            "specific.manager.registry.ssm.instantiate",
+            yaml.dump(message),
+        )
 
-        vnfd1 = open('test/test_descriptors/vnfd1.yml', 'r')
-        message = {'VNFD': yaml.load(vnfd1), 'UUID': 'c32b731f-7eea-4afd-9c60-0b0d0ea37eed'}
-        self.manoconn.call_async(self._on_publish_sid_response,
-                                 'specific.manager.registry.fsm.instantiate',
-                                 yaml.dump(message))
+        vnfd1 = open("test/test_descriptors/vnfd1.yml", "r")
+        message = {
+            "VNFD": yaml.load(vnfd1),
+            "UUID": "c32b731f-7eea-4afd-9c60-0b0d0ea37eed",
+        }
+        self.manoconn.call_async(
+            self._on_publish_sid_response,
+            "specific.manager.registry.fsm.instantiate",
+            yaml.dump(message),
+        )
 
-        vnfd2 = open('test/test_descriptors/vnfd2.yml', 'r')
-        message = {'VNFD': yaml.load(vnfd2), 'UUID': '754fe4fe-96c9-484d-9683-1a1e8b9a31a3'}
-        self.manoconn.call_async(self._on_publish_sid_response,
-                                 'specific.manager.registry.fsm.instantiate',
-                                 yaml.dump(message))
+        vnfd2 = open("test/test_descriptors/vnfd2.yml", "r")
+        message = {
+            "VNFD": yaml.load(vnfd2),
+            "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
+        }
+        self.manoconn.call_async(
+            self._on_publish_sid_response,
+            "specific.manager.registry.fsm.instantiate",
+            yaml.dump(message),
+        )
         nsd.close()
         vnfd1.close()
         vnfd2.close()
@@ -96,9 +111,10 @@ class fakeslm_instantiation(object):
             except BaseException as error:
                 print(error)
 
+
 def main():
     fakeslm_instantiation()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -40,12 +40,11 @@ logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class fakeslm_updating(object):
-
     def __init__(self):
 
-        self.name = 'fake-slm'
-        self.version = '0.1-dev'
-        self.description = 'description'
+        self.name = "fake-slm"
+        self.version = "0.1-dev"
+        self.description = "description"
 
         LOG.info("Starting SLM1:...")
 
@@ -68,18 +67,27 @@ class fakeslm_updating(object):
     def publish_updating(self):
 
         LOG.info("Sending updating request")
-        nsd = open('test/test_descriptors/nsdu.yml', 'r')
-        message = {'NSD': yaml.load(nsd), 'UUID':'937213ae-890b-413c-a11e-45c62c4eee3f'}
-        self.manoconn.call_async(self._on_publish_ins_response,
-                                 'specific.manager.registry.ssm.update',
-                                 yaml.dump(message))
+        nsd = open("test/test_descriptors/nsdu.yml", "r")
+        message = {
+            "NSD": yaml.load(nsd),
+            "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
+        }
+        self.manoconn.call_async(
+            self._on_publish_ins_response,
+            "specific.manager.registry.ssm.update",
+            yaml.dump(message),
+        )
 
-
-        vnfd1 = open('test/test_descriptors/vnfdu.yml', 'r')
-        message = {'VNFD': yaml.load(vnfd1), 'UUID':'754fe4fe-96c9-484d-9683-1a1e8b9a31a3'}
-        self.manoconn.call_async(self._on_publish_ins_response,
-                                 'specific.manager.registry.fsm.update',
-                                 yaml.dump(message))
+        vnfd1 = open("test/test_descriptors/vnfdu.yml", "r")
+        message = {
+            "VNFD": yaml.load(vnfd1),
+            "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
+        }
+        self.manoconn.call_async(
+            self._on_publish_ins_response,
+            "specific.manager.registry.fsm.update",
+            yaml.dump(message),
+        )
         nsd.close()
         vnfd1.close()
 
@@ -92,9 +100,10 @@ class fakeslm_updating(object):
             except BaseException as error:
                 print(error)
 
+
 def main():
     fakeslm_updating()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

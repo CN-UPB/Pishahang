@@ -41,9 +41,9 @@ logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 class fakeslm_onboarding(object):
     def __init__(self):
 
-        self.name = 'fake-slm'
-        self.version = '0.1-dev'
-        self.description = 'description'
+        self.name = "fake-slm"
+        self.version = "0.1-dev"
+        self.description = "description"
 
         LOG.info("Starting SLM1:...")
 
@@ -66,23 +66,29 @@ class fakeslm_onboarding(object):
     def publish_nsd(self):
 
         LOG.info("Sending onboard request")
-        nsd = open('test/test_descriptors/nsd.yml', 'r')
-        message = {'NSD': yaml.load(nsd)}
-        self.manoconn.call_async(self._on_publish_nsd_response,
-                                 'specific.manager.registry.ssm.on-board',
-                                 yaml.dump(message))
+        nsd = open("test/test_descriptors/nsd.yml", "r")
+        message = {"NSD": yaml.load(nsd)}
+        self.manoconn.call_async(
+            self._on_publish_nsd_response,
+            "specific.manager.registry.ssm.on-board",
+            yaml.dump(message),
+        )
 
-        vnfd1 = open('test/test_descriptors/vnfd1.yml', 'r')
-        message = {'VNFD': yaml.load(vnfd1)}
-        self.manoconn.call_async(self._on_publish_nsd_response,
-                                 'specific.manager.registry.fsm.on-board',
-                                 yaml.dump(message))
+        vnfd1 = open("test/test_descriptors/vnfd1.yml", "r")
+        message = {"VNFD": yaml.load(vnfd1)}
+        self.manoconn.call_async(
+            self._on_publish_nsd_response,
+            "specific.manager.registry.fsm.on-board",
+            yaml.dump(message),
+        )
 
-        vnfd2 = open('test/test_descriptors/vnfd2.yml', 'r')
-        message = {'VNFD': yaml.load(vnfd2)}
-        self.manoconn.call_async(self._on_publish_nsd_response,
-                                 'specific.manager.registry.fsm.on-board',
-                                 yaml.dump(message))
+        vnfd2 = open("test/test_descriptors/vnfd2.yml", "r")
+        message = {"VNFD": yaml.load(vnfd2)}
+        self.manoconn.call_async(
+            self._on_publish_nsd_response,
+            "specific.manager.registry.fsm.on-board",
+            yaml.dump(message),
+        )
 
         nsd.close()
         vnfd1.close()
@@ -99,5 +105,5 @@ def main():
     fakeslm_onboarding()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

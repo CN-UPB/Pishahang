@@ -29,14 +29,14 @@ from specific_manager_registry.specificmanagerregistry import SpecificManagerReg
 
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger('amqp-storm').setLevel(logging.INFO)
+logging.getLogger("amqp-storm").setLevel(logging.INFO)
 LOG = logging.getLogger("mano-plugins:smr_test")
 logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
 LOG.setLevel(logging.INFO)
 
-class test_SMR_functionalities(unittest.TestCase):
 
+class test_SMR_functionalities(unittest.TestCase):
     @classmethod
     def setUpClass(self):
 
@@ -44,8 +44,9 @@ class test_SMR_functionalities(unittest.TestCase):
 
         self.smr_proc.daemon = True
 
-        self.manoconn = ManoBrokerRequestResponseConnection('son-plugin.SpecificManagerRegistry')
-
+        self.manoconn = ManoBrokerRequestResponseConnection(
+            "son-plugin.SpecificManagerRegistry"
+        )
 
         self.wait_for_ssm_event = threading.Event()
         self.wait_for_ssm_event.clear()
@@ -77,15 +78,12 @@ class test_SMR_functionalities(unittest.TestCase):
     def ssm_eventFinished(self):
         self.wait_for_ssm_event.set()
 
-
     def waitForSSMEvent(self, timeout=5, msg="Event timed out."):
         if not self.wait_for_ssm_event.wait(timeout):
             self.assertEqual(True, False, msg=msg)
 
-
     def fsm_eventFinished(self):
         self.wait_for_fsm_event.set()
-
 
     def waitForFSMEvent(self, timeout=5, msg="Event timed out."):
         if not self.wait_for_fsm_event.wait(timeout):
@@ -98,87 +96,126 @@ class test_SMR_functionalities(unittest.TestCase):
 
         def on_ssm_onboarding_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
                 result = yaml.load(message)
 
-                self.assertTrue(list(result.keys()) == ['sonssmservice1dumb1','sonssmservice1placement1'] or
-                                list(result.keys()) == ['sonssmservice1placement1', 'sonssmservice1dumb1'],
-                                msg='not all SSMs results received')
+                self.assertTrue(
+                    list(result.keys())
+                    == ["sonssmservice1dumb1", "sonssmservice1placement1"]
+                    or list(result.keys())
+                    == ["sonssmservice1placement1", "sonssmservice1dumb1"],
+                    msg="not all SSMs results received",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['status'] == 'On-boarded',
-                                msg='error in onbording sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["status"] == "On-boarded",
+                    msg="error in onbording sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['error'] == 'None',
-                                msg='error in onbording sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["error"] == "None",
+                    msg="error in onbording sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['status'] == 'On-boarded',
-                                msg='error in onbording sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["status"] == "On-boarded",
+                    msg="error in onbording sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['error'] == 'None',
-                                msg='error in onbording sonssmservice1placement1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["error"] == "None",
+                    msg="error in onbording sonssmservice1placement1",
+                )
 
                 self.ssm_eventFinished()
 
         def on_fsm_onboarding_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
 
                 result = yaml.load(message)
-                if list(result.keys()) == ['sonfsmservice1function1dumb1']:
+                if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 
-                    self.assertTrue(list(result.keys()) == ['sonfsmservice1function1dumb1'],
-                                    msg='not all FSMs results in VNFD1 received')
+                    self.assertTrue(
+                        list(result.keys()) == ["sonfsmservice1function1dumb1"],
+                        msg="not all FSMs results in VNFD1 received",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['status'] == 'On-boarded',
-                                    msg='error in onbording sonssmservice1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["status"]
+                        == "On-boarded",
+                        msg="error in onbording sonssmservice1dumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['error'] == 'None',
-                                    msg='error in onbording sonfsmservice1function1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["error"] == "None",
+                        msg="error in onbording sonfsmservice1function1dumb1",
+                    )
 
                     self.event1 = True
                 else:
-                    self.assertTrue(list(result.keys()) ==
-                                    ['sonfsmservice1function1monitoring1', 'sonfsmservice1firewallconfiguration1']or
-                                    list(result.keys()) ==
-                                    ['sonfsmservice1firewallconfiguration1','sonfsmservice1function1monitoring1']
-                                    , msg='not all FSMs results in VNFD2 received')
+                    self.assertTrue(
+                        list(result.keys())
+                        == [
+                            "sonfsmservice1function1monitoring1",
+                            "sonfsmservice1firewallconfiguration1",
+                        ]
+                        or list(result.keys())
+                        == [
+                            "sonfsmservice1firewallconfiguration1",
+                            "sonfsmservice1function1monitoring1",
+                        ],
+                        msg="not all FSMs results in VNFD2 received",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['status'] == 'On-boarded',
-                                    msg='error in onbording sonssmservice1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["status"]
+                        == "On-boarded",
+                        msg="error in onbording sonssmservice1dumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['error'] == 'None',
-                                    msg='error in onbording sonfsmservice1function1monitoring1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["error"] == "None",
+                        msg="error in onbording sonfsmservice1function1monitoring1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1firewallconfiguration1']['status'] == 'On-boarded',
-                                    msg='error in onbording sonssmservice1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1firewallconfiguration1"]["status"]
+                        == "On-boarded",
+                        msg="error in onbording sonssmservice1dumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1firewallconfiguration1']['error'] == 'None',
-                                    msg='error in onbording sonfsmservice1firewallconfiguration1')
+                    self.assertTrue(
+                        result["sonfsmservice1firewallconfiguration1"]["error"]
+                        == "None",
+                        msg="error in onbording sonfsmservice1firewallconfiguration1",
+                    )
 
                     self.event2 = True
 
                 if self.event1 and self.event2 == True:
                     self.fsm_eventFinished()
 
-
-
-        self.manoconn.subscribe(on_ssm_onboarding_result, 'specific.manager.registry.ssm.on-board')
-        self.manoconn.subscribe(on_fsm_onboarding_result, 'specific.manager.registry.fsm.on-board')
+        self.manoconn.subscribe(
+            on_ssm_onboarding_result, "specific.manager.registry.ssm.on-board"
+        )
+        self.manoconn.subscribe(
+            on_fsm_onboarding_result, "specific.manager.registry.fsm.on-board"
+        )
 
         onboaring_proc = Process(target=fakeslm_onboarding)
         onboaring_proc.daemon = True
 
         onboaring_proc.start()
 
-        self.waitForSSMEvent(timeout=70 , msg='SSM Onboarding request not received.')
-        self.waitForFSMEvent(timeout=70, msg='FSM Onboarding request not received.')
+        self.waitForSSMEvent(timeout=70, msg="SSM Onboarding request not received.")
+        self.waitForFSMEvent(timeout=70, msg="FSM Onboarding request not received.")
 
         self.wait_for_fsm_event.clear()
         self.wait_for_ssm_event.clear()
 
         onboaring_proc.terminate()
         del onboaring_proc
-
 
     def test_2_SMR_instantiation(self):
 
@@ -187,77 +224,119 @@ class test_SMR_functionalities(unittest.TestCase):
 
         def on_ssm_instantiation_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
                 result = yaml.load(message)
-                self.assertTrue(list(result.keys()) == ['sonssmservice1dumb1', 'sonssmservice1placement1'] or
-                                list(result.keys()) == ['sonssmservice1placement1', 'sonssmservice1dumb1'],
-                                msg='not all SSMs results received')
+                self.assertTrue(
+                    list(result.keys())
+                    == ["sonssmservice1dumb1", "sonssmservice1placement1"]
+                    or list(result.keys())
+                    == ["sonssmservice1placement1", "sonssmservice1dumb1"],
+                    msg="not all SSMs results received",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['status'] == 'Instantiated',
-                                msg='error in instantiation sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["status"] == "Instantiated",
+                    msg="error in instantiation sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['error'] == 'None',
-                                msg='error in instantiation sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["error"] == "None",
+                    msg="error in instantiation sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['status'] == 'Instantiated',
-                                msg='error in instantiation sonssmservice1placement1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["status"] == "Instantiated",
+                    msg="error in instantiation sonssmservice1placement1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['error'] == 'None',
-                                msg='error in instantiation sonssmservice1placement1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["error"] == "None",
+                    msg="error in instantiation sonssmservice1placement1",
+                )
 
                 self.ssm_eventFinished()
 
         def on_fsm_instantiation_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
 
                 result = yaml.load(message)
-                if list(result.keys()) == ['sonfsmservice1function1dumb1']:
+                if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 
-                    self.assertTrue(list(result.keys()) == ['sonfsmservice1function1dumb1'],
-                                    msg='not all FSMs instantiation results in VNFD1 received')
+                    self.assertTrue(
+                        list(result.keys()) == ["sonfsmservice1function1dumb1"],
+                        msg="not all FSMs instantiation results in VNFD1 received",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['status'] == 'Instantiated',
-                                    msg='error in instantiation sonfsmservice1function1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["status"]
+                        == "Instantiated",
+                        msg="error in instantiation sonfsmservice1function1dumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['error'] == 'None',
-                                    msg='error in instantiation sonfsmservice1function1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["error"] == "None",
+                        msg="error in instantiation sonfsmservice1function1dumb1",
+                    )
 
                     self.event1 = True
                 else:
-                    self.assertTrue(list(result.keys()) ==
-                                    ['sonfsmservice1function1monitoring1', 'sonfsmservice1firewallconfiguration1'] or
-                                    list(result.keys()) ==
-                                    ['sonfsmservice1firewallconfiguration1', 'sonfsmservice1function1monitoring1']
-                                    , msg='not all FSMs instantiation results in VNFD2 received')
+                    self.assertTrue(
+                        list(result.keys())
+                        == [
+                            "sonfsmservice1function1monitoring1",
+                            "sonfsmservice1firewallconfiguration1",
+                        ]
+                        or list(result.keys())
+                        == [
+                            "sonfsmservice1firewallconfiguration1",
+                            "sonfsmservice1function1monitoring1",
+                        ],
+                        msg="not all FSMs instantiation results in VNFD2 received",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['status'] == 'Instantiated',
-                                    msg='error in instantiation sonfsmservice1function1monitoring1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["status"]
+                        == "Instantiated",
+                        msg="error in instantiation sonfsmservice1function1monitoring1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['error'] == 'None',
-                                    msg='error in instantiation sonfsmservice1function1monitoring1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["error"] == "None",
+                        msg="error in instantiation sonfsmservice1function1monitoring1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1firewallconfiguration1']['status'] == 'Instantiated',
-                                    msg='error in instantiation sonfsmservice1firewallconfiguration1')
+                    self.assertTrue(
+                        result["sonfsmservice1firewallconfiguration1"]["status"]
+                        == "Instantiated",
+                        msg="error in instantiation sonfsmservice1firewallconfiguration1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1firewallconfiguration1']['error'] == 'None',
-                                    msg='error in instantiation sonfsmservice1firewallconfiguration1')
+                    self.assertTrue(
+                        result["sonfsmservice1firewallconfiguration1"]["error"]
+                        == "None",
+                        msg="error in instantiation sonfsmservice1firewallconfiguration1",
+                    )
 
                     self.event2 = True
 
                 if self.event1 and self.event2:
                     self.fsm_eventFinished()
 
-        self.manoconn.subscribe(on_ssm_instantiation_result, 'specific.manager.registry.ssm.instantiate')
-        self.manoconn.subscribe(on_fsm_instantiation_result, 'specific.manager.registry.fsm.instantiate')
+        self.manoconn.subscribe(
+            on_ssm_instantiation_result, "specific.manager.registry.ssm.instantiate"
+        )
+        self.manoconn.subscribe(
+            on_fsm_instantiation_result, "specific.manager.registry.fsm.instantiate"
+        )
 
         instantiation_proc = Process(target=fakeslm_instantiation)
         instantiation_proc.daemon = True
 
         instantiation_proc.start()
 
-        self.waitForSSMEvent(timeout=70, msg='SSM instantiation request not received.')
-        self.waitForFSMEvent(timeout=70, msg='FSM instantiation request not received.')
+        self.waitForSSMEvent(timeout=70, msg="SSM instantiation request not received.")
+        self.waitForFSMEvent(timeout=70, msg="FSM instantiation request not received.")
 
         self.wait_for_ssm_event.clear()
         self.wait_for_fsm_event.clear()
@@ -265,50 +344,64 @@ class test_SMR_functionalities(unittest.TestCase):
         instantiation_proc.terminate()
         del instantiation_proc
 
-
     def test_3_SMR_update(self):
-
         def on_ssm_updating_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
                 result = yaml.load(message)
-                self.assertTrue(list(result.keys()) == ['sonssmservice1dumb1'],
-                                msg='not all SSMs results received')
+                self.assertTrue(
+                    list(result.keys()) == ["sonssmservice1dumb1"],
+                    msg="not all SSMs results received",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['status'] == 'Updated',
-                                msg='error in updating status filed sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["status"] == "Updated",
+                    msg="error in updating status filed sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['error'] == 'None',
-                                msg='error in updating error filed sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["error"] == "None",
+                    msg="error in updating error filed sonssmservice1dumb1",
+                )
 
                 self.ssm_eventFinished()
 
         def on_fsm_updating_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
 
                 result = yaml.load(message)
-                self.assertTrue(list(result.keys()) ==
-                                ['sonfsmservice1function1updateddumb1']
-                                , msg='not all FSMs updating results in VNFD2 received')
+                self.assertTrue(
+                    list(result.keys()) == ["sonfsmservice1function1updateddumb1"],
+                    msg="not all FSMs updating results in VNFD2 received",
+                )
 
-                self.assertTrue(result['sonfsmservice1function1updateddumb1']['status'] == 'Updated',
-                                msg='error in updating sonfsmservice1function1monitoring1')
+                self.assertTrue(
+                    result["sonfsmservice1function1updateddumb1"]["status"]
+                    == "Updated",
+                    msg="error in updating sonfsmservice1function1monitoring1",
+                )
 
-                self.assertTrue(result['sonfsmservice1function1updateddumb1']['error'] == 'None',
-                                msg='error in updating sonfsmservice1function1monitoring1')
+                self.assertTrue(
+                    result["sonfsmservice1function1updateddumb1"]["error"] == "None",
+                    msg="error in updating sonfsmservice1function1monitoring1",
+                )
 
                 self.fsm_eventFinished()
 
-        self.manoconn.subscribe(on_ssm_updating_result, 'specific.manager.registry.ssm.update')
-        self.manoconn.subscribe(on_fsm_updating_result, 'specific.manager.registry.fsm.update')
+        self.manoconn.subscribe(
+            on_ssm_updating_result, "specific.manager.registry.ssm.update"
+        )
+        self.manoconn.subscribe(
+            on_fsm_updating_result, "specific.manager.registry.fsm.update"
+        )
 
         updating_proc = Process(target=fakeslm_updating)
         updating_proc.daemon = True
         updating_proc.start()
 
-        self.waitForSSMEvent(timeout=70, msg='SSM updating request not received.')
-        self.waitForFSMEvent(timeout=70, msg='FSM updating request not received.')
+        self.waitForSSMEvent(timeout=70, msg="SSM updating request not received.")
+        self.waitForFSMEvent(timeout=70, msg="FSM updating request not received.")
 
         self.wait_for_fsm_event.clear()
         self.wait_for_ssm_event.clear()
@@ -323,60 +416,95 @@ class test_SMR_functionalities(unittest.TestCase):
 
         def on_ssm_termination_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
                 result = yaml.load(message)
-                self.assertTrue(list(result.keys()) == ['sonssmservice1dumb1','sonssmservice1placement1'] or
-                                ['sonssmservice1placement1','sonssmservice1dumb1'],
-                                msg='not all SSMs results received')
+                self.assertTrue(
+                    list(result.keys())
+                    == ["sonssmservice1dumb1", "sonssmservice1placement1"]
+                    or ["sonssmservice1placement1", "sonssmservice1dumb1"],
+                    msg="not all SSMs results received",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['status'] == 'Terminated',
-                                msg='error in termination status field sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["status"] == "Terminated",
+                    msg="error in termination status field sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1dumb1']['error'] == 'None',
-                                msg='error in termination error field sonssmservice1dumb1')
+                self.assertTrue(
+                    result["sonssmservice1dumb1"]["error"] == "None",
+                    msg="error in termination error field sonssmservice1dumb1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['status'] == 'Terminated',
-                                msg='error in termination status field sonssmservice1placement1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["status"] == "Terminated",
+                    msg="error in termination status field sonssmservice1placement1",
+                )
 
-                self.assertTrue(result['sonssmservice1placement1']['error'] == 'None',
-                            msg='error in termination error field sonssmservice1placement1')
+                self.assertTrue(
+                    result["sonssmservice1placement1"]["error"] == "None",
+                    msg="error in termination error field sonssmservice1placement1",
+                )
 
                 self.ssm_eventFinished()
 
         def on_fsm_termination_result(ch, method, properties, message):
 
-            if properties.app_id == 'son-plugin.SpecificManagerRegistry':
+            if properties.app_id == "son-plugin.SpecificManagerRegistry":
 
                 result = yaml.load(message)
 
-                if list(result.keys()) == ['sonfsmservice1function1dumb1']:
+                if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['status'] == 'Terminated',
-                                    msg='error in termination status field sonfsmservice1function1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["status"]
+                        == "Terminated",
+                        msg="error in termination status field sonfsmservice1function1dumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1dumb1']['error'] == 'None',
-                                msg='error in termination error field sonfsmservice1function1dumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1dumb1"]["error"] == "None",
+                        msg="error in termination error field sonfsmservice1function1dumb1",
+                    )
 
                     self.event1 = True
 
                 else:
-                    self.assertTrue(list(result.keys()) ==
-                                    ['sonfsmservice1function1monitoring1', 'sonfsmservice1function1updateddumb1'] or
-                                    list(result.keys()) ==
-                                    ['sonfsmservice1function1updateddumb1', 'sonfsmservice1function1monitoring1']
-                                    , msg='not all FSMs Termination results in vnfdt2 received')
+                    self.assertTrue(
+                        list(result.keys())
+                        == [
+                            "sonfsmservice1function1monitoring1",
+                            "sonfsmservice1function1updateddumb1",
+                        ]
+                        or list(result.keys())
+                        == [
+                            "sonfsmservice1function1updateddumb1",
+                            "sonfsmservice1function1monitoring1",
+                        ],
+                        msg="not all FSMs Termination results in vnfdt2 received",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['status'] == 'Terminated',
-                                    msg='error in termination status field sonfsmservice1function1monitoring1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["status"]
+                        == "Terminated",
+                        msg="error in termination status field sonfsmservice1function1monitoring1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1monitoring1']['error'] == 'None',
-                                msg='error in termination error field sonfsmservice1function1monitoring1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1monitoring1"]["error"] == "None",
+                        msg="error in termination error field sonfsmservice1function1monitoring1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1updateddumb1']['status'] == 'Terminated',
-                                    msg='error in termination status field sonfsmservice1function1updateddumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1updateddumb1"]["status"]
+                        == "Terminated",
+                        msg="error in termination status field sonfsmservice1function1updateddumb1",
+                    )
 
-                    self.assertTrue(result['sonfsmservice1function1updateddumb1']['error'] == 'None',
-                                msg='error in termination error field sonfsmservice1function1updateddumb1')
+                    self.assertTrue(
+                        result["sonfsmservice1function1updateddumb1"]["error"]
+                        == "None",
+                        msg="error in termination error field sonfsmservice1function1updateddumb1",
+                    )
 
                     self.event2 = True
 
@@ -385,21 +513,26 @@ class test_SMR_functionalities(unittest.TestCase):
             if self.event1 and self.event2:
                 self.fsm_eventFinished()
 
-        self.manoconn.subscribe(on_ssm_termination_result, 'specific.manager.registry.ssm.terminate')
-        self.manoconn.subscribe(on_fsm_termination_result, 'specific.manager.registry.fsm.terminate')
+        self.manoconn.subscribe(
+            on_ssm_termination_result, "specific.manager.registry.ssm.terminate"
+        )
+        self.manoconn.subscribe(
+            on_fsm_termination_result, "specific.manager.registry.fsm.terminate"
+        )
 
         termination_proc = Process(target=fakeslm_termination)
         termination_proc.daemon = True
         termination_proc.start()
 
-        self.waitForSSMEvent(timeout=70, msg='SSM termination request not received.')
-        self.waitForFSMEvent(timeout=70, msg='FSM termination request not received.')
+        self.waitForSSMEvent(timeout=70, msg="SSM termination request not received.")
+        self.waitForFSMEvent(timeout=70, msg="FSM termination request not received.")
 
         self.wait_for_fsm_event.clear()
         self.wait_for_ssm_event.clear()
 
         termination_proc.terminate()
         del termination_proc
+
 
 if __name__ == "__main__":
     unittest.main()
