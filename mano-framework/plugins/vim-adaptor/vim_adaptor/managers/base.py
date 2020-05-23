@@ -76,7 +76,7 @@ class TerraformFunctionManager:
         """
         pass
 
-    def descroy(self):
+    def destroy(self):
         """
         Destroys the network function managed by this TerraformFunctionManager
         """
