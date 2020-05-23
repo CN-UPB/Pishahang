@@ -30,13 +30,11 @@ import logging
 import yaml
 import time
 import os
-from manobase import messaging
+from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("fakeslm")
-
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class fakeslm_termination(object):
@@ -48,64 +46,45 @@ class fakeslm_termination(object):
 
         LOG.info("Starting SLM1:...")
 
-        # create and initialize broker connection
-        self.manoconn = messaging.ManoBrokerRequestResponseConnection(self.name)
-
-        self.end = False
+        self.manoconn = ManoBrokerRequestResponseConnection(self.name)
 
         self.publish_terminating()
 
-        self.run()
-
-    def run(self):
-
-        # go into infinity loop
-
-        while self.end == False:
-            time.sleep(1)
-
     def publish_terminating(self):
 
-        nsd = open("test/test_descriptors/nsdt.yml", "r")
-        message = {
-            "NSD": yaml.load(nsd),
-            "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
-        }
-        self.manoconn.call_async(
-            self._on_publish_ins_response,
-            "specific.manager.registry.ssm.terminate",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/nsdt.yml") as nsd:
+            self.manoconn.call_async(
+                self._on_publish_ins_response,
+                "specific.manager.registry.ssm.terminate",
+                {
+                    "NSD": yaml.load(nsd),
+                    "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
+                },
+            )
 
-        vnfd1 = open("test/test_descriptors/vnfdt1.yml", "r")
-        message = {
-            "VNFD": yaml.load(vnfd1),
-            "UUID": "c32b731f-7eea-4afd-9c60-0b0d0ea37eed",
-        }
-        self.manoconn.call_async(
-            self._on_publish_ins_response,
-            "specific.manager.registry.fsm.terminate",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/vnfdt1.yml") as vnfd1:
+            self.manoconn.call_async(
+                self._on_publish_ins_response,
+                "specific.manager.registry.fsm.terminate",
+                {
+                    "VNFD": yaml.load(vnfd1),
+                    "UUID": "c32b731f-7eea-4afd-9c60-0b0d0ea37eed",
+                },
+            )
 
-        vnfd2 = open("test/test_descriptors/vnfdt2.yml", "r")
-        message = {
-            "VNFD": yaml.load(vnfd2),
-            "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
-        }
-        self.manoconn.call_async(
-            self._on_publish_ins_response,
-            "specific.manager.registry.fsm.terminate",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/vnfdt2.yml") as vnfd2:
+            self.manoconn.call_async(
+                self._on_publish_ins_response,
+                "specific.manager.registry.fsm.terminate",
+                {
+                    "VNFD": yaml.load(vnfd2),
+                    "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
+                },
+            )
 
-        nsd.close()
-        vnfd1.close()
-        vnfd2.close()
+    def _on_publish_ins_response(self, message: Message):
 
-    def _on_publish_ins_response(self, ch, method, props, response):
-
-        response = yaml.load(str(response))
+        response = message.payload
         if type(response) == dict:
             try:
                 print(response)

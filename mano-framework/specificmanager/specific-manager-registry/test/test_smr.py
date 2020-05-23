@@ -1,79 +1,61 @@
-import unittest
+import logging
 import threading
 import time
-import yaml
-import logging
+import unittest
 from multiprocessing import Process
+from test.instantiation import fakeslm_instantiation
+from test.onboarding import fakeslm_onboarding
+from test.terminating import fakeslm_termination
+from test.updating import fakeslm_updating
 
-try:
-    from test.onboarding import fakeslm_onboarding
-except:
-    from onboarding import fakeslm_onboarding
+import yaml
 
-try:
-    from test.instantiation import fakeslm_instantiation
-except:
-    from instantiation import fakeslm_instantiation
-
-try:
-    from test.updating import fakeslm_updating
-except:
-    from updating import fakeslm_updating
-
-try:
-    from test.terminating import fakeslm_termination
-except:
-    from terminating import fakeslm_termination
-from manobase.messaging import ManoBrokerRequestResponseConnection
+from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 from specific_manager_registry.specificmanagerregistry import SpecificManagerRegistry
 
-
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("amqp-storm").setLevel(logging.INFO)
 LOG = logging.getLogger("mano-plugins:smr_test")
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-logging.getLogger("manobase:plugin").setLevel(logging.INFO)
 LOG.setLevel(logging.INFO)
 
 
 class test_SMR_functionalities(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
 
-        self.smr_proc = Process(target=SpecificManagerRegistry)
+        cls.smr_proc = Process(target=SpecificManagerRegistry)
 
-        self.smr_proc.daemon = True
+        cls.smr_proc.daemon = True
 
-        self.manoconn = ManoBrokerRequestResponseConnection(
+        cls.manoconn = ManoBrokerRequestResponseConnection(
             "son-plugin.SpecificManagerRegistry"
         )
 
-        self.wait_for_ssm_event = threading.Event()
-        self.wait_for_ssm_event.clear()
+        cls.wait_for_ssm_event = threading.Event()
+        cls.wait_for_ssm_event.clear()
 
-        self.wait_for_fsm_event = threading.Event()
-        self.wait_for_fsm_event.clear()
+        cls.wait_for_fsm_event = threading.Event()
+        cls.wait_for_fsm_event.clear()
 
-        self.event1 = False
-        self.event2 = False
+        cls.event1 = False
+        cls.event2 = False
 
-        self.smr_proc.start()
+        cls.smr_proc.start()
         time.sleep(4)
 
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
 
-        if self.smr_proc is not None:
-            self.smr_proc.terminate()
-        del self.smr_proc
+        if cls.smr_proc is not None:
+            cls.smr_proc.terminate()
+        del cls.smr_proc
 
         try:
-            self.manoconn.stop_connection()
+            cls.manoconn.stop_connection()
         except Exception as e:
             LOG.exception("Stop connection exception.")
 
-        del self.wait_for_fsm_event
-        del self.wait_for_ssm_event
+        del cls.wait_for_fsm_event
+        del cls.wait_for_ssm_event
 
     def ssm_eventFinished(self):
         self.wait_for_ssm_event.set()
@@ -94,10 +76,10 @@ class test_SMR_functionalities(unittest.TestCase):
         self.event1 = False
         self.event2 = False
 
-        def on_ssm_onboarding_result(ch, method, properties, message):
+        def on_ssm_onboarding_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
-                result = yaml.load(message)
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
+                result = message.payload
 
                 self.assertTrue(
                     list(result.keys())
@@ -129,11 +111,11 @@ class test_SMR_functionalities(unittest.TestCase):
 
                 self.ssm_eventFinished()
 
-        def on_fsm_onboarding_result(ch, method, properties, message):
+        def on_fsm_onboarding_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
 
-                result = yaml.load(message)
+                result = message.payload
                 if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 
                     self.assertTrue(
@@ -222,10 +204,10 @@ class test_SMR_functionalities(unittest.TestCase):
         self.event1 = False
         self.event2 = False
 
-        def on_ssm_instantiation_result(ch, method, properties, message):
+        def on_ssm_instantiation_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
-                result = yaml.load(message)
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
+                result = message.payload
                 self.assertTrue(
                     list(result.keys())
                     == ["sonssmservice1dumb1", "sonssmservice1placement1"]
@@ -256,11 +238,11 @@ class test_SMR_functionalities(unittest.TestCase):
 
                 self.ssm_eventFinished()
 
-        def on_fsm_instantiation_result(ch, method, properties, message):
+        def on_fsm_instantiation_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
 
-                result = yaml.load(message)
+                result = message.payload
                 if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 
                     self.assertTrue(
@@ -345,10 +327,10 @@ class test_SMR_functionalities(unittest.TestCase):
         del instantiation_proc
 
     def test_3_SMR_update(self):
-        def on_ssm_updating_result(ch, method, properties, message):
+        def on_ssm_updating_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
-                result = yaml.load(message)
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
+                result = message.payload
                 self.assertTrue(
                     list(result.keys()) == ["sonssmservice1dumb1"],
                     msg="not all SSMs results received",
@@ -366,11 +348,11 @@ class test_SMR_functionalities(unittest.TestCase):
 
                 self.ssm_eventFinished()
 
-        def on_fsm_updating_result(ch, method, properties, message):
+        def on_fsm_updating_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
 
-                result = yaml.load(message)
+                result = message.payload
                 self.assertTrue(
                     list(result.keys()) == ["sonfsmservice1function1updateddumb1"],
                     msg="not all FSMs updating results in VNFD2 received",
@@ -414,10 +396,10 @@ class test_SMR_functionalities(unittest.TestCase):
         self.event1 = False
         self.event2 = False
 
-        def on_ssm_termination_result(ch, method, properties, message):
+        def on_ssm_termination_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
-                result = yaml.load(message)
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
+                result = message.payload
                 self.assertTrue(
                     list(result.keys())
                     == ["sonssmservice1dumb1", "sonssmservice1placement1"]
@@ -447,11 +429,11 @@ class test_SMR_functionalities(unittest.TestCase):
 
                 self.ssm_eventFinished()
 
-        def on_fsm_termination_result(ch, method, properties, message):
+        def on_fsm_termination_result(message: Message):
 
-            if properties.app_id == "son-plugin.SpecificManagerRegistry":
+            if message.app_id == "son-plugin.SpecificManagerRegistry":
 
-                result = yaml.load(message)
+                result = message.payload
 
                 if list(result.keys()) == ["sonfsmservice1function1dumb1"]:
 

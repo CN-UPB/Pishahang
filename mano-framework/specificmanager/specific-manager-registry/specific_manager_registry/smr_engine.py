@@ -30,6 +30,7 @@ This is the engine module of SONATA's Specific Manager Registry.
 
 import logging
 import os
+
 import docker
 import requests
 import yaml
@@ -37,7 +38,6 @@ import yaml
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("specific-manager-registry-engine")
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class SMREngine(object):

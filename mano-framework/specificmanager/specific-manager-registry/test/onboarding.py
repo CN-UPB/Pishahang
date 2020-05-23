@@ -27,15 +27,15 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
-import yaml
 import time
-from manobase import messaging
+
+import yaml
+
+from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("fakeslm")
-
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class fakeslm_onboarding(object):
@@ -48,55 +48,37 @@ class fakeslm_onboarding(object):
         LOG.info("Starting SLM1:...")
 
         # create and initialize broker connection
-        self.manoconn = messaging.ManoBrokerRequestResponseConnection(self.name)
-
-        self.end = False
+        self.manoconn = ManoBrokerRequestResponseConnection(self.name)
 
         self.publish_nsd()
-
-        self.run()
-
-    def run(self):
-
-        # go into infinity loop
-
-        while self.end == False:
-            time.sleep(1)
 
     def publish_nsd(self):
 
         LOG.info("Sending onboard request")
-        nsd = open("test/test_descriptors/nsd.yml", "r")
-        message = {"NSD": yaml.load(nsd)}
-        self.manoconn.call_async(
-            self._on_publish_nsd_response,
-            "specific.manager.registry.ssm.on-board",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/nsd.yml") as nsd:
+            self.manoconn.call_async(
+                self._on_publish_nsd_response,
+                "specific.manager.registry.ssm.on-board",
+                {"NSD": yaml.load(nsd)},
+            )
 
-        vnfd1 = open("test/test_descriptors/vnfd1.yml", "r")
-        message = {"VNFD": yaml.load(vnfd1)}
-        self.manoconn.call_async(
-            self._on_publish_nsd_response,
-            "specific.manager.registry.fsm.on-board",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/vnfd1.yml") as vnfd1:
+            self.manoconn.call_async(
+                self._on_publish_nsd_response,
+                "specific.manager.registry.fsm.on-board",
+                {"VNFD": yaml.load(vnfd1)},
+            )
 
-        vnfd2 = open("test/test_descriptors/vnfd2.yml", "r")
-        message = {"VNFD": yaml.load(vnfd2)}
-        self.manoconn.call_async(
-            self._on_publish_nsd_response,
-            "specific.manager.registry.fsm.on-board",
-            yaml.dump(message),
-        )
+        with open("test/test_descriptors/vnfd2.yml") as vnfd2:
+            self.manoconn.call_async(
+                self._on_publish_nsd_response,
+                "specific.manager.registry.fsm.on-board",
+                {"VNFD": yaml.load(vnfd2)},
+            )
 
-        nsd.close()
-        vnfd1.close()
-        vnfd2.close()
+    def _on_publish_nsd_response(self, message: Message):
 
-    def _on_publish_nsd_response(self, ch, method, props, response):
-
-        response = yaml.load(str(response))
+        response = message.payload
         if type(response) == dict:
             print(response)
 

@@ -39,6 +39,7 @@ import uuid
 import yaml
 
 from manobase import messaging
+from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 from specific_manager_registry import smr_engine as engine
 from specific_manager_registry import smr_topics as topic
@@ -50,7 +51,7 @@ logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class SpecificManagerRegistry(ManoBasePlugin):
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         self.version = "v0.02"
         self.description = "Specific Manager Registry"
@@ -61,35 +62,9 @@ class SpecificManagerRegistry(ManoBasePlugin):
         # connect to the docker daemon
         self.smrengine = engine.SMREngine()
 
-        # register smr into the plugin manager
         super(self.__class__, self).__init__(
-            version=self.version, description=self.description
+            version=self.version, description=self.description, **kwargs
         )
-
-    def __del__(self):
-        """
-        Destroy SMR instance. De-register. Disconnect.
-        :return:
-        """
-        super(self.__class__, self).__del__()
-
-    def deregister(self):
-        """
-        Send a deregister request to the plugin manager.
-        """
-        LOG.info("De-registering SMR with uuid " + str(self.uuid))
-        message = {"uuid": self.uuid}
-        self.manoconn.notify(
-            "platform.management.plugin.deregister", yaml.dump(message)
-        )
-        os._exit(0)
-
-    def on_registration_ok(self):
-        """
-        This method is called when the SMR is registered to the plugin manager
-        """
-        super(self.__class__, self).on_registration_ok()
-        LOG.debug("Received registration ok event.")
 
     def declare_subscriptions(self):
         """
@@ -113,136 +88,136 @@ class SpecificManagerRegistry(ManoBasePlugin):
         )
         self.manoconn.subscribe(self.on_ssm_status, topic.FSM_STATUS)
 
-    def on_ssm_onboard(self, ch, method, properties, message):
+    def on_ssm_onboard(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "NSD" in message:
-                result = self.onboard(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "NSD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.onboard(payload)
+                if "NSD" in payload
+                else {"status": "Failed", "error": "NSD not found"}
+            )
 
-    def on_fsm_onboard(self, ch, method, properties, message):
+    def on_fsm_onboard(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "VNFD" in message:
-                result = self.onboard(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "VNFD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.onboard(payload)
+                if "VNFD" in payload
+                else {"status": "Failed", "error": "VNFD not found"}
+            )
 
-    def on_ssm_instantiate(self, ch, method, properties, message):
+    def on_ssm_instantiate(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "NSD" in message:
-                result = self.instantiate(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "NSD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.instantiate(payload)
+                if "NSD" in payload
+                else {"status": "Failed", "error": "NSD not found"}
+            )
 
-    def on_fsm_instantiate(self, ch, method, properties, message):
+    def on_fsm_instantiate(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "VNFD" in message:
-                result = self.instantiate(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "VNFD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.instantiate(payload)
+                if "VNFD" in payload
+                else {"status": "Failed", "error": "VNFD not found"}
+            )
 
-    def on_ssm_update(self, ch, method, properties, message):
+    def on_ssm_update(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "NSD" in message:
-                result = self.update(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "NSD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.update(payload)
+                if "NSD" in payload
+                else {"status": "Failed", "error": "NSD not found"}
+            )
 
-    def on_fsm_update(self, ch, method, properties, message):
+    def on_fsm_update(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "VNFD" in message:
-                result = self.update(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "VNFD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.update(payload)
+                if "VNFD" in payload
+                else {"status": "Failed", "error": "VNFD not found"}
+            )
 
-    def on_ssm_terminate(self, ch, method, properties, message):
+    def on_ssm_terminate(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "NSD" in message:
-                result = self.terminate(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "NSD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.terminate(payload)
+                if "NSD" in payload
+                else {"status": "Failed", "error": "NSD not found"}
+            )
 
-    def on_fsm_terminate(self, ch, method, properties, message):
+    def on_fsm_terminate(self, message: Message):
 
-        if properties.app_id != self.name:
-            message = yaml.load(message)
-            if "VNFD" in message:
-                result = self.terminate(message)
-                return yaml.dump(result)
-            else:
-                return yaml.dump({"status": "Failed", "error": "VNFD not found"})
+        if message.app_id != self.name:
+            payload = message.payload
+            return (
+                self.terminate(payload)
+                if "VNFD" in payload
+                else {"status": "Failed", "error": "VNFD not found"}
+            )
 
-    def on_ssm_register(self, ch, method, properties, message):
+    def on_ssm_register(self, message: Message):
 
-        if properties.app_id != self.name:
+        if message.app_id != self.name:
             try:
-                message = yaml.load(message)
+                payload = message.payload
 
                 # check if the message format is correct
-                if "specific_manager_id" in message:
+                if "specific_manager_id" in payload:
                     LOG.debug(
                         "Registration request received for: {0}".format(
-                            message["specific_manager_id"]
+                            payload["specific_manager_id"]
                         )
                     )
                     sm_repo_id = "{0}{1}".format(
-                        message["specific_manager_id"], message["sf_uuid"]
+                        payload["specific_manager_id"], payload["sf_uuid"]
                     )
 
                     # check if the SM is already registered
                     if sm_repo_id in self.ssm_repo.keys():
                         # check if the sm is an updating version
-                        if message["update_version"] == "true":
+                        if payload["update_version"] == "true":
                             self.ssm_repo[sm_repo_id]["status"] = "registered"
-                            self.ssm_repo[sm_repo_id]["version"] = message["version"]
-                            self.ssm_repo[sm_repo_id]["description"] = message[
+                            self.ssm_repo[sm_repo_id]["version"] = payload["version"]
+                            self.ssm_repo[sm_repo_id]["description"] = payload[
                                 "description"
                             ]
                             result = self.ssm_repo[sm_repo_id]
                         else:
                             LOG.error(
                                 "Cannot register '{0}', already exists".format(
-                                    message["specific_manager_id"]
+                                    payload["specific_manager_id"]
                                 )
                             )
                             result = {
                                 "status": "Failed",
                                 "error": "Cannot register '{0}', "
-                                "already exists".format(message["specific_manager_id"]),
+                                "already exists".format(payload["specific_manager_id"]),
                             }
                     else:
                         pid = str(uuid.uuid4())
                         response = {
                             "status": "registered",
-                            "specific_manager_type": message["specific_manager_type"],
-                            "service_name": message["service_name"],
-                            "function_name": message["function_name"],
-                            "specific_manager_id": message["specific_manager_id"],
-                            "version": message["version"],
-                            "description": message["description"],
+                            "specific_manager_type": payload["specific_manager_type"],
+                            "service_name": payload["service_name"],
+                            "function_name": payload["function_name"],
+                            "specific_manager_id": payload["specific_manager_id"],
+                            "version": payload["version"],
+                            "description": payload["description"],
                             "uuid": pid,
-                            "sfuuid": message["sf_uuid"],
+                            "sfuuid": payload["sf_uuid"],
                             "error": None,
                         }
                         self.ssm_repo.update({sm_repo_id: response})
@@ -257,18 +232,18 @@ class SpecificManagerRegistry(ManoBasePlugin):
                     )
             except BaseException as err:
 
-                if "specific_manager_id" in message:
+                if "specific_manager_id" in payload:
                     result = {"status": "Failed", "error": str(err)}
                     LOG.error(
                         "{0} registration failed, Error: {1}".format(
-                            message["specific_manager_id"], str(err)
+                            payload["specific_manager_id"], str(err)
                         )
                     )
                 else:
                     result = {"status": "Failed", "error": str(err)}
                     LOG.error("registration failed, Error: {0}".format(str(err)))
 
-            return yaml.dump(result)
+            return result
 
     def onboard(self, message):
 
