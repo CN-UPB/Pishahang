@@ -1,5 +1,6 @@
 [![Build Status](http://pishahang-jenkins.cs.upb.de:8080/buildStatus/icon?job=pishahang)](http://pishahang-jenkins.cs.upb.de:8080/job/pishahang/)
 [![Documentation Status](https://readthedocs.org/projects/pishahang/badge/?version=latest)](https://pishahang.readthedocs.io)
+[![Slack](https://badgen.net/badge/slack/join%20chat/green?icon=slack)](https://join.slack.com/t/pishahang/shared_invite/zt-e5b6rwj5-PuM3WYIaQvRwHV4GC7pHCw)
 
 <p align="center">
     <img width="600" src="./figures/pishahang-logo.svg">
