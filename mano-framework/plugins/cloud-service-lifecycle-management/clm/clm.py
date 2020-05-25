@@ -1,47 +1,42 @@
 """
-Copyright (c) 2015 SONATA-NFV
+Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
 ALL RIGHTS RESERVED.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+
+Neither the name of the SONATA-NFV, Pishahang,
 nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written
 permission.
-This work has been performed in the framework of the SONATA project,
+
+Parts of this work have been performed in the framework of the SONATA project,
 funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-import logging
-import uuid
-import requests
-import yaml
-import time
-import os
-import json
 import concurrent.futures as pool
+import logging
+import time
+import uuid
 
+import requests
+
+from clm import clm_helpers as tools
+from clm import clm_topics as t
+from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-import manobase.messaging as Message
-
-try:
-    from clm import clm_helpers as tools
-except:
-    import clm_helpers as tools
-
-try:
-    from clm import clm_topics as t
-except:
-    import clm_topics as t
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:clm")
@@ -53,9 +48,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
     This class implements the cloud service lifecycle manager.
     """
 
-    def __init__(
-        self, auto_register=True, wait_for_registration=True, start_running=True
-    ):
+    def __init__(self, **kwargs):
         """
         Initialize class and manobase.plugin.BasePlugin class.
         This will automatically connect to the broker, contact the
@@ -72,32 +65,15 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         self.clm_ledger = {}
         self.thrd_pool = pool.ThreadPoolExecutor(max_workers=10)
 
-        # call super class (will automatically connect to
-        # broker and register the FLM to the plugin manger)
-        ver = "0.1-dev"
-        des = "This is the CLM plugin"
-
-        super(self.__class__, self).__init__(
-            version=ver,
-            description=des,
-            auto_register=auto_register,
-            wait_for_registration=wait_for_registration,
-            start_running=start_running,
+        super().__init__(
+            version="0.1-dev", description="This is the CLM plugin", **kwargs
         )
-
-    def __del__(self):
-        """
-        Destroy CLM instance. De-register. Disconnect.
-        :return:
-        """
-        super(self.__class__, self).__del__()
 
     def declare_subscriptions(self):
         """
         Declare topics that CLM subscribes on.
         """
-        # We have to call our super class here
-        super(self.__class__, self).declare_subscriptions()
+        super().declare_subscriptions()
 
         # The topic on which deploy requests are posted.
         self.manoconn.subscribe(self.cloud_service_instance_create, t.CS_DEPLOY)
@@ -110,26 +86,8 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         :return:
         """
-        super(self.__class__, self).on_lifecycle_start(message)
+        super().on_lifecycle_start(message)
         LOG.info("CLM started and operational.")
-
-    def deregister(self):
-        """
-        Send a deregister request to the plugin manager.
-        """
-        LOG.info("Deregistering CLM with uuid " + str(self.uuid))
-        message = {"uuid": self.uuid}
-        self.manoconn.notify(
-            "platform.management.plugin.deregister", json.dumps(message)
-        )
-        os._exit(0)
-
-    def on_registration_ok(self):
-        """
-        This method is called when the FLM is registered to the plugin mananger
-        """
-        super(self.__class__, self).on_registration_ok()
-        LOG.debug("Received registration ok event.")
 
     ##########################
     # CLM Threading management
@@ -143,8 +101,6 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
     def set_cloud_services(self, cloud_service_dict):
         self.cloud_services = cloud_service_dict
-
-        return
 
     def start_next_task(self, cservice_id):
         """
@@ -199,15 +155,12 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         LOG.info("Cloud Service " + cservice_id + ": error occured: " + error)
         LOG.info("Cloud Service " + cservice_id + ": informing SLM")
 
-        message = {}
-        message["status"] = "failed"
-        message["error"] = error
-        message["timestamp"] = time.time()
+        message = {"status": "failed", "error": error, "timestamp": time.time()}
 
         corr_id = self.cloud_services[cservice_id]["orig_corr_id"]
         topic = self.cloud_services[cservice_id]["topic"]
 
-        self.manoconn.notify(topic, yaml.dump(message), correlation_id=corr_id)
+        self.manoconn.notify(topic, message, correlation_id=corr_id)
 
         # Kill the current workflow
         self.cloud_services[cservice_id]["kill_chain"] = True
@@ -219,33 +172,28 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
 
         # Don't trigger on self created messages
-        if self.name == properties.app_id:
+        if self.name == message.app_id:
             return
 
         LOG.info("Cloud Service instance create request received.")
-        loc_message = message.payload
+        payload = message.payload
 
-        # Extract the correlation id
-        corr_id = properties.correlation_id
-
-        cservice_id = loc_message["id"]
+        cservice_id = payload["id"]
 
         # Add the function to the ledger
         self.add_cloud_service_to_ledger(
-            loc_message, message.corr_id, cservice_id, t.CS_DEPLOY
+            payload, message.correlation_id, cservice_id, t.CS_DEPLOY
         )
 
         # Schedule the tasks that the FLM should do for this request.
-        add_schedule = []
+        self.cloud_services[cservice_id]["schedule"].extend(
+            ["deploy_cs", "store_csr", "inform_slm_on_deployment"]
+        )
 
-        add_schedule.append("deploy_cs")
-        add_schedule.append("store_csr")
-        add_schedule.append("inform_slm_on_deployment")
-
-        self.cloud_services[cservice_id]["schedule"].extend(add_schedule)
-
-        msg = ": New instantiation request received. Instantiation started."
-        LOG.info("Cloud Service " + cservice_id + msg)
+        LOG.info(
+            "Cloud Service %s: New instantiation request received. Instantiation started.",
+            cservice_id,
+        )
         # Start the chain of tasks
         self.start_next_task(cservice_id)
 
@@ -258,22 +206,20 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         cloud_service = self.cloud_services[cservice_id]
 
-        outg_message = {}
-        outg_message["csd"] = cloud_service["csd"]
-        outg_message["csd"]["instance_uuid"] = cloud_service["id"]
-        outg_message["vim_uuid"] = cloud_service["vim_uuid"]
-        outg_message["service_instance_id"] = cloud_service["serv_id"]
-
-        payload = yaml.dump(outg_message)
+        outg_message = {
+            "csd": {**cloud_service["csd"], "instance_uuid": cloud_service["id"]},
+            "vim_uuid": cloud_service["vim_uuid"],
+            "service_instance_id": cloud_service["serv_id"],
+        }
 
         corr_id = str(uuid.uuid4())
         self.cloud_services[cservice_id]["act_corr_id"] = corr_id
 
         LOG.info("IA contacted for cloud service deployment.")
-        LOG.debug("Payload of request: " + payload)
+        LOG.debug("Payload of request: " + outg_message)
         # Contact the IA
         self.manoconn.call_async(
-            self.ia_deploy_response, t.IA_DEPLOY, payload, correlation_id=corr_id
+            self.ia_deploy_response, t.IA_DEPLOY, outg_message, correlation_id=corr_id
         )
 
         # Pause the chain of tasks to wait for response
@@ -286,24 +232,24 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
 
         LOG.info("Response from IA on cs deploy call received.")
-        LOG.debug("Payload of request: " + str(message.payload))
+        LOG.debug("Payload of request: %s" + message.payload)
 
-        inc_message = message.payload
+        payload = message.payload
 
         cservice_id = tools.cserviceid_from_corrid(
-            self.cloud_services, prop.correlation_id
+            self.cloud_services, message.correlation_id
         )
 
-        self.cloud_services[cservice_id]["status"] = inc_message["request_status"]
+        self.cloud_services[cservice_id]["status"] = payload["request_status"]
 
-        if inc_message["request_status"] == "COMPLETED":
+        if payload["request_status"] == "COMPLETED":
             LOG.info("Cs deployed correctly")
-            self.cloud_services[cservice_id]["ia_csr"] = inc_message["csr"]
+            self.cloud_services[cservice_id]["ia_csr"] = payload["csr"]
             self.cloud_services[cservice_id]["error"] = None
 
         else:
-            LOG.info("Deployment failed: " + inc_message["message"])
-            self.cloud_services[cservice_id]["error"] = inc_message["message"]
+            LOG.info("Deployment failed: " + payload["message"])
+            self.cloud_services[cservice_id]["error"] = payload["message"]
             topic = self.cloud_services[cservice_id]["topic"]
             self.clm_error(cservice_id, topic)
             return
@@ -320,16 +266,12 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # Build the record
         csr = tools.build_csr(cloud_service["ia_csr"], cloud_service["csd"])
         self.cloud_services[cservice_id]["csr"] = csr
-        LOG.info(yaml.dump(csr))
 
         # Store the record
         url = t.CSR_REPOSITORY_URL + "cs-instances"
-        header = {"Content-Type": "application/json"}
-        csr_response = requests.post(
-            url, data=json.dumps(csr), headers=header, timeout=1.0
-        )
+        csr_response = requests.post(url, json=csr, timeout=1.0)
         LOG.info("Storing CSR on " + url)
-        LOG.debug("CSR: " + str(csr))
+        LOG.debug("CSR: %s", csr)
 
         if csr_response.status_code == 200:
             LOG.info("CSR storage accepted.")
@@ -340,7 +282,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
                 "message": csr_response.json(),
             }
             self.cloud_services[cservice_id]["error"] = error
-            LOG.info("CSR to repo failed: " + str(error))
+            LOG.info("CSR to repo failed: %s", error)
 
         return
 
@@ -353,13 +295,15 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         cloud_service = self.cloud_services[cservice_id]
 
-        message = {}
-        message["csr"] = cloud_service["csr"]
-        message["status"] = cloud_service["status"]
-        message["error"] = cloud_service["error"]
-
-        corr_id = self.cloud_services[cservice_id]["orig_corr_id"]
-        self.manoconn.notify(t.CS_DEPLOY, yaml.dump(message), correlation_id=corr_id)
+        self.manoconn.notify(
+            t.CS_DEPLOY,
+            {
+                "csr": cloud_service["csr"],
+                "status": cloud_service["status"],
+                "error": cloud_service["error"],
+            },
+            correlation_id=cloud_service["orig_corr_id"],
+        )
 
     ###########
     # CLM tasks
@@ -376,37 +320,22 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
 
         # Add the cloud service to the ledger and add instance ids
-        self.cloud_services[cservice_id] = {}
-        self.cloud_services[cservice_id]["csd"] = payload["csd"]
-        self.cloud_services[cservice_id]["id"] = cservice_id
-
-        # Add the topic of the call
-        self.cloud_services[cservice_id]["topic"] = topic
-
-        # Add to correlation id to the ledger
-        self.cloud_services[cservice_id]["orig_corr_id"] = corr_id
-
-        # Add payload to the ledger
-        self.cloud_services[cservice_id]["payload"] = payload
-
-        # Add the service uuid that this cloud service belongs to
-        self.cloud_services[cservice_id]["serv_id"] = payload["serv_id"]
-
-        # Add the VIM uuid
-        self.cloud_services[cservice_id]["vim_uuid"] = payload["vim_uuid"]
-
-        # Create the cloud service schedule
-        self.cloud_services[cservice_id]["schedule"] = []
-
-        # Create the chain pause and kill flag
-        self.cloud_services[cservice_id]["pause_chain"] = False
-        self.cloud_services[cservice_id]["kill_chain"] = False
-
-        self.cloud_services[cservice_id]["act_corr_id"] = None
-        self.cloud_services[cservice_id]["message"] = None
-
-        # Add error field
-        self.cloud_services[cservice_id]["error"] = None
+        self.cloud_services[cservice_id] = {
+            "csd": payload["csd"],
+            "id": cservice_id,
+            "topic": topic,
+            "orig_corr_id": corr_id,
+            "payload": payload,
+            # The service uuid that this cloud service belongs to
+            "serv_id": payload["serv_id"],
+            "vim_uuid": payload["vim_uuid"],
+            "schedule": [],
+            "pause_chain": False,
+            "kill_chain": False,
+            "act_corr_id": None,
+            "message": None,
+            "error": None,
+        }
 
         return cservice_id
 
@@ -465,13 +394,8 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 def main():
     """
     Entry point to start plugin.
-    :return:
     """
-    # reduce messaging log level to have a nicer output for this plugin
-    logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-    logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-    # create our cloud service lifecycle manager
-    clm = CloudServiceLifecycleManager()
+    CloudServiceLifecycleManager()
 
 
 if __name__ == "__main__":
