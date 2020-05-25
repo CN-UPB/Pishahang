@@ -113,7 +113,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         # If the kill field is active, the chain is killed
         if self.cloud_services[cservice_id]["kill_chain"]:
-            LOG.info("Cloud Service " + cservice_id + ": Killing running workflow")
+            LOG.info("Cloud Service %s: Killing running workflow", cservice_id)
             del self.cloud_services[cservice_id]
             return
 
@@ -152,8 +152,8 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
         if error is None:
             error = self.cloud_services[cservice_id]["error"]
-        LOG.info("Cloud Service " + cservice_id + ": error occured: " + error)
-        LOG.info("Cloud Service " + cservice_id + ": informing SLM")
+        LOG.info("Cloud Service %s: error occured: %s", cservice_id, error)
+        LOG.info("Cloud Service %s: informing SLM", cservice_id)
 
         message = {"status": "failed", "error": error, "timestamp": time.time()}
 
@@ -216,7 +216,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         self.cloud_services[cservice_id]["act_corr_id"] = corr_id
 
         LOG.info("IA contacted for cloud service deployment.")
-        LOG.debug("Payload of request: " + outg_message)
+        LOG.debug("Payload of request: %s", outg_message)
         # Contact the IA
         self.manoconn.call_async(
             self.ia_deploy_response, t.IA_DEPLOY, outg_message, correlation_id=corr_id
@@ -232,7 +232,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         """
 
         LOG.info("Response from IA on cs deploy call received.")
-        LOG.debug("Payload of request: %s" + message.payload)
+        LOG.debug("Payload of request: %s", message.payload)
 
         payload = message.payload
 
@@ -248,7 +248,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
             self.cloud_services[cservice_id]["error"] = None
 
         else:
-            LOG.info("Deployment failed: " + payload["message"])
+            LOG.info("Deployment failed: %s", payload["message"])
             self.cloud_services[cservice_id]["error"] = payload["message"]
             topic = self.cloud_services[cservice_id]["topic"]
             self.clm_error(cservice_id, topic)
@@ -270,7 +270,7 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
         # Store the record
         url = t.CSR_REPOSITORY_URL + "cs-instances"
         csr_response = requests.post(url, json=csr, timeout=1.0)
-        LOG.info("Storing CSR on " + url)
+        LOG.info("Storing CSR on %s", url)
         LOG.debug("CSR: %s", csr)
 
         if csr_response.status_code == 200:
