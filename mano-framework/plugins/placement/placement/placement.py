@@ -32,7 +32,6 @@ import json
 import threading
 import sys
 import concurrent.futures as pool
-# import psutil
 
 from manobase.plugin import ManoBasePlugin
 from manobase.messaging import Message
@@ -47,10 +46,9 @@ class PlacementPlugin(ManoBasePlugin):
     This class implements the Function lifecycle manager.
     """
 
-    def __init__(self,
-                 auto_register=True,
-                 wait_for_registration=True,
-                 start_running=True):
+    def __init__(
+        self, auto_register=True, wait_for_registration=True, start_running=True
+    ):
         """
         Initialize class and manobase.plugin.BasePlugin class.
         This will automatically connect to the broker, contact the
@@ -59,7 +57,6 @@ class PlacementPlugin(ManoBasePlugin):
 
         After the connection and registration procedures are done, the
         'on_lifecycle_start' method is called.
-        :return:
         """
 
         # call super class (will automatically connect to
@@ -67,11 +64,13 @@ class PlacementPlugin(ManoBasePlugin):
         ver = "0.1-dev"
         des = "This is the Placement plugin"
 
-        super(self.__class__, self).__init__(version=ver,
-                                             description=des,
-                                             auto_register=auto_register,
-                                             wait_for_registration=wait_for_registration,
-                                             start_running=start_running)
+        super(self.__class__, self).__init__(
+            version=ver,
+            description=des,
+            auto_register=auto_register,
+            wait_for_registration=wait_for_registration,
+            start_running=start_running,
+        )
 
     def __del__(self):
         """
@@ -88,12 +87,12 @@ class PlacementPlugin(ManoBasePlugin):
         super(self.__class__, self).declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        topic = 'mano.service.place'
+        topic = "mano.service.place"
         self.manoconn.subscribe(self.placement_request, topic)
 
         LOG.info("Subscribed to topic: " + str(topic))
 
-    def on_lifecycle_start(message : Message):
+    def on_lifecycle_start(message: Message):
         """
         This event is called when the plugin has successfully registered itself
         to the plugin manager and received its lifecycle.start event from the
@@ -108,10 +107,11 @@ class PlacementPlugin(ManoBasePlugin):
         """
         Send a deregister request to the plugin manager.
         """
-        LOG.info('Deregistering Placement plugin with uuid ' + str(self.uuid))
+        LOG.info("Deregistering Placement plugin with uuid " + str(self.uuid))
         message = {"uuid": self.uuid}
-        self.manoconn.notify("platform.management.plugin.deregister",
-                             json.dumps(message))
+        self.manoconn.notify(
+            "platform.management.plugin.deregister", json.dumps(message)
+        )
         os._exit(0)
 
     def on_registration_ok(self):
@@ -122,11 +122,11 @@ class PlacementPlugin(ManoBasePlugin):
         super(self.__class__, self).on_registration_ok()
         LOG.debug("Received registration ok event.")
 
-##########################
-# Placement
-##########################
+    ##########################
+    # Placement
+    ##########################
 
-    def placement_request(message : Message):
+    def placement_request(message: Message):
         """
         This method handles a placement request
         """
@@ -135,22 +135,24 @@ class PlacementPlugin(ManoBasePlugin):
             return
 
         content = message.payload
-        LOG.info("Placement request for service: " + content['serv_id'])
-        topology = content['topology']
-        descriptor = content['nsd'] if 'nsd' in content else content['cosd']
-        functions = content['functions'] if 'functions' in content else []
-        cloud_services = content['cloud_services'] if 'cloud_services' in content else []
+        LOG.info("Placement request for service: " + content["serv_id"])
+        topology = content["topology"]
+        descriptor = content["nsd"] if "nsd" in content else content["cosd"]
+        functions = content["functions"] if "functions" in content else []
+        cloud_services = (
+            content["cloud_services"] if "cloud_services" in content else []
+        )
 
         placement = self.placement(descriptor, functions, cloud_services, topology)
 
-        response = {'mapping': placement}
-        topic = 'mano.service.place'
+        response = {"mapping": placement}
+        topic = "mano.service.place"
 
-        self.manoconn.notify(topic,
-                             yaml.dump(response),
-                             correlation_id=prop.correlation_id)
+        self.manoconn.notify(
+            topic, yaml.dump(response), correlation_id=prop.correlation_id
+        )
 
-        LOG.info("Placement response sent for service: " + content['serv_id'])
+        LOG.info("Placement response sent for service: " + content["serv_id"])
         LOG.info(response)
 
     def placement(self, descriptor, functions, cloud_services, topology):
@@ -163,41 +165,44 @@ class PlacementPlugin(ManoBasePlugin):
         mapping = {}
 
         for function in functions:
-            vnfd = function['vnfd']
-            vdu = vnfd['virtual_deployment_units']
-            needed_cpu = vdu[0]['resource_requirements']['cpu']['vcpus']
-            needed_mem = vdu[0]['resource_requirements']['memory']['size']
-            needed_sto = vdu[0]['resource_requirements']['storage']['size']
+            vnfd = function["vnfd"]
+            vdu = vnfd["virtual_deployment_units"]
+            needed_cpu = vdu[0]["resource_requirements"]["cpu"]["vcpus"]
+            needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
+            needed_sto = vdu[0]["resource_requirements"]["storage"]["size"]
 
             for vim in topology:
-                if vim['vim_type'] == 'Kubernetes':
+                if vim["vim_type"] == "Kubernetes":
                     continue
-                cpu_req = needed_cpu <= (vim['core_total'] - vim['core_used'])
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                cpu_req = needed_cpu <= (vim["core_total"] - vim["core_used"])
+                mem_req = needed_mem <= (vim["memory_total"] - vim["memory_used"])
 
                 if cpu_req and mem_req:
-                    mapping[function['id']] = {}
-                    mapping[function['id']]['vim'] = vim['vim_uuid']
-                    vim['core_used'] = vim['core_used'] + needed_cpu
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
+                    mapping[function["id"]] = {}
+                    mapping[function["id"]]["vim"] = vim["vim_uuid"]
+                    vim["core_used"] = vim["core_used"] + needed_cpu
+                    vim["memory_used"] = vim["memory_used"] + needed_mem
                     break
 
         for cloud_service in cloud_services:
-            csd = cloud_service['csd']
-            vdu = csd['virtual_deployment_units']
+            csd = cloud_service["csd"]
+            vdu = csd["virtual_deployment_units"]
             needed_mem = 0
-            if 'resource_requirements' in vdu[0] and 'memory' in vdu[0]['resource_requirements']:
-                needed_mem = vdu[0]['resource_requirements']['memory']['size']
+            if (
+                "resource_requirements" in vdu[0]
+                and "memory" in vdu[0]["resource_requirements"]
+            ):
+                needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
 
             for vim in topology:
-                if vim['vim_type'] != 'Kubernetes':
+                if vim["vim_type"] != "Kubernetes":
                     continue
-                mem_req = needed_mem <= (vim['memory_total'] - vim['memory_used'])
+                mem_req = needed_mem <= (vim["memory_total"] - vim["memory_used"])
 
                 if mem_req:
-                    mapping[cloud_service['id']] = {}
-                    mapping[cloud_service['id']]['vim'] = vim['vim_uuid']
-                    vim['memory_used'] = vim['memory_used'] + needed_mem
+                    mapping[cloud_service["id"]] = {}
+                    mapping[cloud_service["id"]]["vim"] = vim["vim_uuid"]
+                    vim["memory_used"] = vim["memory_used"] + needed_mem
                     break
 
         # Check if all VNFs and CSs have been mapped
@@ -216,9 +221,10 @@ def main():
     # reduce messaging log level to have a nicer output for this plugin
     logging.getLogger("manobase:messaging").setLevel(logging.INFO)
     logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-#    logging.getLogger("amqp-storm").setLevel(logging.DEBUG)
+    #    logging.getLogger("amqp-storm").setLevel(logging.DEBUG)
     # create our function lifecycle manager
     placement = PlacementPlugin()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
