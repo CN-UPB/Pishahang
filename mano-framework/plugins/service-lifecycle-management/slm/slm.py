@@ -2930,10 +2930,10 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         # Kill the stack
         corr_id = str(uuid.uuid4())
-        self.manoconn.notify(
+        self.manoconn.call_async(
+            self.IA_termination_response,
             t.IA_REMOVE,
             {"instance_uuid": serv_id},
-            reply_to=t.IA_REMOVE,
             correlation_id=corr_id,
         )
 
