@@ -1,40 +1,35 @@
 """
-Copyright (c) 2015 SONATA-NFV
+Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
 ALL RIGHTS RESERVED.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+
+Neither the name of the SONATA-NFV, Pishahang,
 nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written
 permission.
-This work has been performed in the framework of the SONATA project,
+
+Parts of this work have been performed in the framework of the SONATA project,
 funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
-partner consortium (www.sonata-nfv.eu).a
+partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
-import yaml
-import time
-import os
-import requests
-import copy
-import uuid
-import json
-import threading
-import sys
-import concurrent.futures as pool
 
-from manobase.plugin import ManoBasePlugin
 from manobase.messaging import Message
+from manobase.plugin import ManoBasePlugin
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:placement")
@@ -42,13 +37,7 @@ LOG.setLevel(logging.INFO)
 
 
 class PlacementPlugin(ManoBasePlugin):
-    """
-    This class implements the Function lifecycle manager.
-    """
-
-    def __init__(
-        self, auto_register=True, wait_for_registration=True, start_running=True
-    ):
+    def __init__(self, **kwargs):
         """
         Initialize class and manobase.plugin.BasePlugin class.
         This will automatically connect to the broker, contact the
@@ -59,40 +48,20 @@ class PlacementPlugin(ManoBasePlugin):
         'on_lifecycle_start' method is called.
         """
 
-        # call super class (will automatically connect to
-        # broker and register the Placement plugin to the plugin manger)
-        ver = "0.1-dev"
-        des = "This is the Placement plugin"
-
-        super(self.__class__, self).__init__(
-            version=ver,
-            description=des,
-            auto_register=auto_register,
-            wait_for_registration=wait_for_registration,
-            start_running=start_running,
+        super().__init__(
+            version="0.1-dev", description="This is the Placement plugin", **kwargs
         )
-
-    def __del__(self):
-        """
-        Destroy Placement plugin instance. De-register. Disconnect.
-        :return:
-        """
-        super(self.__class__, self).__del__()
 
     def declare_subscriptions(self):
         """
         Declare topics that Placement Plugin subscribes on.
         """
-        # We have to call our super class here
-        super(self.__class__, self).declare_subscriptions()
+        super().declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        topic = "mano.service.place"
-        self.manoconn.subscribe(self.placement_request, topic)
+        self.manoconn.subscribe(self.placement_request, "mano.service.place")
 
-        LOG.info("Subscribed to topic: " + str(topic))
-
-    def on_lifecycle_start(message: Message):
+    def on_lifecycle_start(self, message: Message):
         """
         This event is called when the plugin has successfully registered itself
         to the plugin manager and received its lifecycle.start event from the
@@ -100,59 +69,38 @@ class PlacementPlugin(ManoBasePlugin):
 
         :return:
         """
-        super(self.__class__, self).on_lifecycle_start(message)
+        super().on_lifecycle_start(message)
         LOG.info("Placement plugin started and operational.")
-
-    def deregister(self):
-        """
-        Send a deregister request to the plugin manager.
-        """
-        LOG.info("Deregistering Placement plugin with uuid " + str(self.uuid))
-        message = {"uuid": self.uuid}
-        self.manoconn.notify(
-            "platform.management.plugin.deregister", json.dumps(message)
-        )
-        os._exit(0)
-
-    def on_registration_ok(self):
-        """
-        This method is called when the Placement plugin
-        is registered to the plugin mananger
-        """
-        super(self.__class__, self).on_registration_ok()
-        LOG.debug("Received registration ok event.")
 
     ##########################
     # Placement
     ##########################
 
-    def placement_request(message: Message):
+    def placement_request(self, message: Message):
         """
         This method handles a placement request
         """
 
-        if prop.app_id == self.name:
+        if message.app_id == self.name:
             return
 
-        content = message.payload
-        LOG.info("Placement request for service: " + content["serv_id"])
-        topology = content["topology"]
-        descriptor = content["nsd"] if "nsd" in content else content["cosd"]
-        functions = content["functions"] if "functions" in content else []
+        payload = message.payload
+        LOG.info("Placement request for service: " + payload["serv_id"])
+        topology = payload["topology"]
+        descriptor = payload["nsd"] if "nsd" in payload else payload["cosd"]
+        functions = payload["functions"] if "functions" in payload else []
         cloud_services = (
-            content["cloud_services"] if "cloud_services" in content else []
+            payload["cloud_services"] if "cloud_services" in payload else []
         )
 
         placement = self.placement(descriptor, functions, cloud_services, topology)
 
         response = {"mapping": placement}
-        topic = "mano.service.place"
-
         self.manoconn.notify(
-            topic, yaml.dump(response), correlation_id=prop.correlation_id
+            "mano.service.place", response, correlation_id=message.correlation_id,
         )
 
-        LOG.info("Placement response sent for service: " + content["serv_id"])
+        LOG.info("Placement response sent for service: %s", payload["serv_id"])
         LOG.info(response)
 
     def placement(self, descriptor, functions, cloud_services, topology):
@@ -160,7 +108,7 @@ class PlacementPlugin(ManoBasePlugin):
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
         """
-        LOG.info("Embedding started on following topology: " + str(topology))
+        LOG.info("Embedding started on following topology: %s", topology)
 
         mapping = {}
 
@@ -214,16 +162,7 @@ class PlacementPlugin(ManoBasePlugin):
 
 
 def main():
-    """
-    Entry point to start plugin.
-    :return:
-    """
-    # reduce messaging log level to have a nicer output for this plugin
-    logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-    logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-    #    logging.getLogger("amqp-storm").setLevel(logging.DEBUG)
-    # create our function lifecycle manager
-    placement = PlacementPlugin()
+    PlacementPlugin()
 
 
 if __name__ == "__main__":
