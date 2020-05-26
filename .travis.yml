@@ -68,8 +68,6 @@ jobs:
         - COMPONENT_DIR=mano-framework/plugins/service-lifecycle-management
         - BUILD_SERVICES="mano-base servicelifecyclemanagement"
 
-  allow_failures:
-    # The tests have to be fixed yet
     - name: specific-manager-registry
       <<: *python_job_config
       env:
@@ -77,3 +75,7 @@ jobs:
         - COMPONENT_DIR=mano-framework/specificmanager/specific-manager-registry
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES="mano-base specificmanagerregistry"
+
+  fast_finish: true
+  allow_failures:
+    - name: specific-manager-registry # The tests have to be fixed yet
