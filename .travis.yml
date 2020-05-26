@@ -34,8 +34,8 @@ jobs:
       env:
         - SERVICE_NAME=pluginmanager
         - COMPONENT_DIR=mano-framework/pluginmanager
-        - REQUIRED_MICROSERVICES=broker mongo
-        - BUILD_SERVICES=mano-base pluginmanager
+        - REQUIRED_MICROSERVICES="broker mongo"
+        - BUILD_SERVICES="mano-base pluginmanager"
 
     - name: clm
       <<: *python_job_config
@@ -43,7 +43,7 @@ jobs:
       env:
         - SERVICE_NAME=cloudservicelifecyclemanagement
         - COMPONENT_DIR=mano-framework/plugins/cloud-service-lifecycle-management
-        - BUILD_SERVICES=mano-base cloudservicelifecyclemanagement
+        - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
 
     - name: flm
       <<: *python_job_config
@@ -51,7 +51,7 @@ jobs:
       env:
         - SERVICE_NAME=functionlifecyclemanagement
         - COMPONENT_DIR=mano-framework/plugins/function-lifecycle-management
-        - BUILD_SERVICES=mano-base functionlifecyclemanagement
+        - BUILD_SERVICES="mano-base functionlifecyclemanagement"
 
     - name: placement
       <<: *python_job_config
@@ -59,14 +59,14 @@ jobs:
       env:
         - SERVICE_NAME=placementplugin
         - COMPONENT_DIR=mano-framework/plugins/placement
-        - BUILD_SERVICES=mano-base placementplugin
+        - BUILD_SERVICES="mano-base placementplugin"
 
     - name: slm
       <<: *python_job_config
       env:
         - SERVICE_NAME=servicelifecyclemanagement
         - COMPONENT_DIR=mano-framework/plugins/service-lifecycle-management
-        - BUILD_SERVICES=mano-base servicelifecyclemanagement
+        - BUILD_SERVICES="mano-base servicelifecyclemanagement"
 
   allow_failures:
     # The tests have to be fixed yet
@@ -76,4 +76,4 @@ jobs:
         - SERVICE_NAME=specificmanagerregistry
         - COMPONENT_DIR=mano-framework/specificmanager/specific-manager-registry
         - REQUIRED_MICROSERVICES=broker
-        - BUILD_SERVICES=mano-base specificmanagerregistry
+        - BUILD_SERVICES="mano-base specificmanagerregistry"
