@@ -146,7 +146,7 @@ class SDN(ManoBasePlugin):
             forwarding_graph.append({"ip": ip_list[ip]})
         LOG.info("Service chain => {0}".format(forwarding_graph))
         socket.send_json({"forwarding_graph": forwarding_graph})
-        LOG.debug("Received " + socket.recv_json()["reply"] + " event.")
+        LOG.debug("Received %s event.", socket.recv_json()["reply"])
 
     def ip_nap_retriever(self, label, message):
         try:

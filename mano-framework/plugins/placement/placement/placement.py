@@ -85,7 +85,7 @@ class PlacementPlugin(ManoBasePlugin):
             return
 
         payload = message.payload
-        LOG.info("Placement request for service: " + payload["serv_id"])
+        LOG.info("Placement request for service: %s", payload["serv_id"])
         topology = payload["topology"]
         descriptor = payload["nsd"] if "nsd" in payload else payload["cosd"]
         functions = payload["functions"] if "functions" in payload else []

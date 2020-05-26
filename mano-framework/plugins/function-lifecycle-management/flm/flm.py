@@ -147,7 +147,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
         # If the kill field is active, the chain is killed
         if self.functions[func_id]["kill_chain"]:
-            LOG.info("Function " + func_id + ": Killing running workflow")
+            LOG.info("Function %s: Killing running workflow", func_id)
             # TODO: delete FSMs, records, stop
             # TODO: Or, jump into the kill workflow.
             del self.functions[func_id]
@@ -186,8 +186,8 @@ class FunctionLifecycleManager(ManoBasePlugin):
         """
         if error is None:
             error = self.functions[func_id]["error"]
-        LOG.info("Function " + func_id + ": error occured: " + error)
-        LOG.info("Function " + func_id + ": informing SLM")
+        LOG.info("Function %s: error occured: %s", func_id, error)
+        LOG.info("Function %s: informing SLM", func_id)
 
         self.manoconn.notify(
             self.functions[func_id]["topic"],
@@ -262,7 +262,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Check if VNFD defines a start FSM, if not, no action can be taken
         if "start" not in self.functions[func_id]["fsm"].keys():
             msg = ": No start FSM provided, start event ignored."
-            LOG.info("Function " + func_id + msg)
+            LOG.info("Function %s%s", func_id, msg)
 
             self.functions[func_id]["message"] = msg
             self.respond_to_request(func_id)
@@ -304,7 +304,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Check if VNFD defines a start FSM, if not, no action can be taken
         if "configure" not in self.functions[func_id]["fsm"].keys():
             msg = ": No config FSM provided, config event ignored."
-            LOG.info("Function " + func_id + msg)
+            LOG.info("Function %s%s", func_id, msg)
 
             self.functions[func_id]["message"] = msg
             self.respond_to_request(func_id)
@@ -321,7 +321,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         )
 
         msg = ": New config request received."
-        LOG.info("Function " + func_id + msg)
+        LOG.info("Function %s%s", func_id, msg)
         # Start the chain of tasks
         self.start_next_task(func_id)
 
@@ -346,7 +346,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Check if VNFD defines a stop FSM, if not, no action can be taken
         if "stop" not in self.functions[func_id]["fsm"].keys():
             msg = ": No stop FSM provided, start event ignored."
-            LOG.info("Function " + func_id + msg)
+            LOG.info("Function %s%s", func_id, msg)
 
             self.functions[func_id]["message"] = msg
             self.respond_to_request(func_id)
@@ -387,7 +387,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Check if VNFD defines a stop FSM, if not, no action can be taken
         if "scale" not in self.functions[func_id]["fsm"].keys():
             msg = ": No scale FSM provided, scale event ignored."
-            LOG.info("Function " + func_id + msg)
+            LOG.info("Function %s%s", func_id, msg)
 
             self.functions[func_id]["message"] = msg
             self.respond_to_request(func_id)
@@ -473,16 +473,16 @@ class FunctionLifecycleManager(ManoBasePlugin):
         """
 
         func_id = tools.funcid_from_corrid(self.functions, message.correlation_id)
-        LOG.info("Function " + func_id + ": Onboard resp received from SMR.")
+        LOG.info("Function %s: Onboard resp received from SMR.", func_id)
 
         payload = message.payload
 
         for key in payload.keys():
             if payload[key]["error"] == "None":
-                LOG.info("Function " + func_id + ": FSMs onboarding succesful")
+                LOG.info("Function %s: FSMs onboarding succesful", func_id)
             else:
                 msg = ": FSM onboarding failed: " + payload[key]["error"]
-                LOG.info("Function " + func_id + msg)
+                LOG.info("Function %s%s", func_id, msg)
                 self.fm_error(func_id, t.GK_CREATE, error=payload[key]["error"])
 
         # Continue with the scheduled tasks
@@ -531,7 +531,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Retrieve the function uuid
         func_id = tools.funcid_from_corrid(self.functions, message.correlation_id)
         msg = ": Instantiating response received from SMR."
-        LOG.info("Function " + func_id + msg)
+        LOG.info("Function %s%s", func_id, msg)
         LOG.debug(message.payload)
 
         for fsm_type in self.functions[func_id]["fsm"].keys():
@@ -539,11 +539,11 @@ class FunctionLifecycleManager(ManoBasePlugin):
             response = message.payload[fsm["id"]]
             fsm["instantiated"] = False
             if response["error"] == "None":
-                LOG.info("Function " + func_id + ": FSM instantiated correct.")
+                LOG.info("Function %s: FSM instantiated correctly.", func_id)
                 fsm["instantiated"] = True
             else:
                 msg = ": FSM instantiation failed: " + response["error"]
-                LOG.info("Function " + func_id + msg)
+                LOG.info("Function %s%s", func_id, msg)
                 self.flm_error(func_id, error=response["error"])
 
             fsm["uuid"] = response["uuid"]
@@ -607,7 +607,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
             self.functions[func_id]["error"] = None
 
         else:
-            LOG.info("Deployment failed: " + inc_message["message"])
+            LOG.info("Deployment failed: %s", inc_message["message"])
             self.functions[func_id]["error"] = inc_message["message"]
             topic = self.functions[func_id]["topic"]
             self.flm_error(func_id, topic)
@@ -630,7 +630,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Store the record
         url = t.VNFR_REPOSITORY_URL + "vnf-instances"
         vnfr_response = requests.post(url, json=vnfr, timeout=1.0)
-        LOG.info("Storing VNFR on " + url)
+        LOG.info("Storing VNFR on %s", url)
         LOG.debug("VNFR: %s", vnfr)
 
         if vnfr_response.status_code == 200:
@@ -642,7 +642,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
                 "message": vnfr_response.json(),
             }
             self.functions[func_id]["error"] = error
-            LOG.info("vnfr to repo failed: " + str(error))
+            LOG.info("vnfr to repo failed: %s", error)
         # except:
         #     error = {'http_code': '0',
         #              'message': 'Timeout contacting VNFR server'}
@@ -678,7 +678,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         # Put it
         url = t.VNFR_REPOSITORY_URL + "vnf-instances/" + vnfr_id
 
-        LOG.info("Service " + serv_id + ": VNFR update: " + url)
+        LOG.info("Service %s: VNFR update: %s", serv_id, url)
 
         try:
             vnfr_resp = requests.put(url, json=vnfr, timeout=1.0)
@@ -686,16 +686,16 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
             if vnfr_resp.status_code == 200:
                 msg = ": VNFR update accepted for " + vnfr_id
-                LOG.info("Service " + serv_id + msg)
+                LOG.info("Service %s%s", serv_id, msg)
             else:
                 msg = ": VNFR update not accepted: " + vnfr_resp_json
-                LOG.info("Service " + serv_id + msg)
+                LOG.info("Service %s%s", serv_id, msg)
                 error = {"http_code": vnfr_resp.status_code, "message": vnfr_resp_json}
         except:
             error = {"http_code": "0", "message": "Timeout when contacting VNFR repo"}
 
         if error is not None:
-            LOG.info("record update failed: " + str(error))
+            LOG.info("record update failed: %s", error)
             self.functions[func_id]["error"] = error
             self.flm_error(func_id)
 
@@ -761,7 +761,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
             self.functions[func_id]["schedule"] = response["schedule"]
 
         else:
-            LOG.info("task FSM failed: " + response["error"])
+            LOG.info("task FSM failed: %s", response["error"])
             self.functions[func_id]["error"] = response["error"]
             self.flm_error(func_id)
             return
@@ -796,7 +796,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         """
         This is a generic method for triggering start/stop/configure FSMs.
         """
-        LOG.info("Triggering " + fsm_type + " FSM.")
+        LOG.info("Triggering %s FSM.", fsm_type)
 
         # Generating the payload for the call
         payload = {"content": self.functions[func_id][fsm_type], "fsm_type": fsm_type}
@@ -826,13 +826,13 @@ class FunctionLifecycleManager(ManoBasePlugin):
         func_id = tools.funcid_from_corrid(self.functions, message.correlation_id)
         fsm_type = self.functions[func_id]["active_fsm"]
 
-        LOG.info("Response from " + fsm_type + " FSM received")
+        LOG.info("Response from %s FSM received", fsm_type)
 
         if response["status"] == "COMPLETED":
             LOG.info("FSM finished successfully")
 
         else:
-            LOG.info(fsm_type + " FSM failed: " + response["error"])
+            LOG.info("%s FSM failed: %s", fsm_type, response["error"])
             self.functions[func_id]["error"] = response["error"]
             self.flm_error(func_id)
             return
