@@ -22,7 +22,7 @@ jobs:
       <<: *python_job_config
       env:
         - SERVICE_NAME=mano-base
-        - COMPONENT_DIR=mano-framework/base
+        - COMPONENT_DIR=src/mano-framework/base
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES=mano-base
 
@@ -30,7 +30,7 @@ jobs:
       <<: *python_job_config
       env:
         - SERVICE_NAME=pluginmanager
-        - COMPONENT_DIR=mano-framework/pluginmanager
+        - COMPONENT_DIR=src/mano-framework/pluginmanager
         - REQUIRED_MICROSERVICES="broker mongo"
         - BUILD_SERVICES="mano-base pluginmanager"
 
@@ -39,7 +39,7 @@ jobs:
       script: *docker_compose_build_command # There are no tests :(
       env:
         - SERVICE_NAME=cloudservicelifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/cloud-service-lifecycle-management
+        - COMPONENT_DIR=src/mano-framework/plugins/cloud-service-lifecycle-management
         - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
 
     - name: flm
@@ -47,7 +47,7 @@ jobs:
       script: *docker_compose_build_command # There are no tests :(
       env:
         - SERVICE_NAME=functionlifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/function-lifecycle-management
+        - COMPONENT_DIR=src/mano-framework/plugins/function-lifecycle-management
         - BUILD_SERVICES="mano-base functionlifecyclemanagement"
 
     - name: placement
@@ -55,21 +55,21 @@ jobs:
       script: *docker_compose_build_command # There are no tests :(
       env:
         - SERVICE_NAME=placementplugin
-        - COMPONENT_DIR=mano-framework/plugins/placement
+        - COMPONENT_DIR=src/mano-framework/plugins/placement
         - BUILD_SERVICES="mano-base placementplugin"
 
     - name: slm
       <<: *python_job_config
       env:
         - SERVICE_NAME=servicelifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/service-lifecycle-management
+        - COMPONENT_DIR=src/mano-framework/plugins/service-lifecycle-management
         - BUILD_SERVICES="mano-base servicelifecyclemanagement"
 
     - name: specific-manager-registry
       <<: *python_job_config
       env:
         - SERVICE_NAME=specificmanagerregistry
-        - COMPONENT_DIR=mano-framework/specificmanager/specific-manager-registry
+        - COMPONENT_DIR=src/mano-framework/specificmanager/specific-manager-registry
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES="mano-base specificmanagerregistry"
 
