@@ -28,19 +28,19 @@ traffic_files = [y for x in os.walk(DATASET_PATH) for y in glob(os.path.join(x[0
 traffic_files.sort()
 
 # DATASET_PATH = r'/plugins/son-mano-traffic-forecast/notebooks/data/dataset_six_traffic.csv'
-_SCORE_MIN, _SCORE_MAX = 1, 5
+_SCORE_MIN, _SCORE_MAX = 1, 9
 
 # WEIGHTS --> [cost, over_provision, overhead, support_deviation, same_version]
 WEIGHTS = {
     "negative": {
-        "cost": 1,
-        "over_provision": 1,
+        "cost": 9,
+        "over_provision": 9,
         "overhead": 1
     },
     "positive": {
         "support_deviation": 10,
-        "same_version": 1,
-        "support_max": 10,
+        "same_version": 5,
+        "support_max": 8,
         "support_recent_history": 0
     }
 }
@@ -868,7 +868,7 @@ for _traffic_file in traffic_files:
         ax[_counter].scatter(xi,yi, marker=mi, color=ci, s=49, label=labels[i])
 
         # ax[_counter].set_title(_traffic_file_name)
-        ax[_counter].set_title("Jitter:{} | Policy:{} | History:{}".format(_traffic_file_name.split("_")[0], _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
+        ax[_counter].set_title("Variation:{} | Policy:{} | History:{}".format(_traffic_file_name.split("_")[0], _res["switch_counter"]["pc_100"], _res["switch_counter"]["history"]))
     
         ax[_counter].set_yticks(np.arange(3))
         ax[_counter].set_yticks(np.arange(3+1)-0.5, minor=True)
@@ -921,7 +921,7 @@ for _traffic_file in traffic_files:
     ax[_counter].plot(traffic_training_complete["sent"],drawstyle='steps-pre')
 
         # ax[_counter].set_title(_traffic_file_name)
-    ax[_counter].set_title("Jitter - {}".format(_traffic_file_name.split("_")[0]))
+    ax[_counter].set_title("Variation - {}".format(_traffic_file_name.split("_")[0]))
 
     ax[_counter].get_xaxis().set_minor_locator(plticker.AutoMinorLocator())
     ax[_counter].get_yaxis().set_minor_locator(plticker.AutoMinorLocator())
@@ -948,3 +948,7 @@ print("Took: {}".format((time.time() - START_TIME)/60))
 
 
 # %%
+
+# %%
+# TRIALS
+# /home/thesismano1/Pishahang-mvp/pish-examples/experiment-client/app/data/thesis_5m_GPU_VM.csv
