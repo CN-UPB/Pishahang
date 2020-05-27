@@ -1,0 +1,81 @@
+git:
+  submodules: false
+
+_docker_compose_setup_commands: &docker_compose_setup_commands
+  - ./generate-env.sh 127.0.0.1 localhost
+  - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi
+
+_docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && docker-compose build $BUILD_SERVICES
+
+_python_job_config: &python_job_config
+  language: python
+  python: "3.8"
+  cache:
+    pip: true
+  install:
+    - pip install poetry
+  before_script: *docker_compose_setup_commands
+  script:
+    - cd $COMPONENT_DIR && poetry install -v && poetry run pytest
+    - *docker_compose_build_command
+
+jobs:
+  include:
+    - name: manobase
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=mano-base
+        - COMPONENT_DIR=mano-framework/base
+        - REQUIRED_MICROSERVICES=broker
+        - BUILD_SERVICES=mano-base
+
+    - name: pluginmanager
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=pluginmanager
+        - COMPONENT_DIR=mano-framework/pluginmanager
+        - REQUIRED_MICROSERVICES="broker mongo"
+        - BUILD_SERVICES="mano-base pluginmanager"
+
+    - name: clm
+      <<: *python_job_config
+      script: *docker_compose_build_command # There are no tests :(
+      env:
+        - SERVICE_NAME=cloudservicelifecyclemanagement
+        - COMPONENT_DIR=mano-framework/plugins/cloud-service-lifecycle-management
+        - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
+
+    - name: flm
+      <<: *python_job_config
+      script: *docker_compose_build_command # There are no tests :(
+      env:
+        - SERVICE_NAME=functionlifecyclemanagement
+        - COMPONENT_DIR=mano-framework/plugins/function-lifecycle-management
+        - BUILD_SERVICES="mano-base functionlifecyclemanagement"
+
+    - name: placement
+      <<: *python_job_config
+      script: *docker_compose_build_command # There are no tests :(
+      env:
+        - SERVICE_NAME=placementplugin
+        - COMPONENT_DIR=mano-framework/plugins/placement
+        - BUILD_SERVICES="mano-base placementplugin"
+
+    - name: slm
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=servicelifecyclemanagement
+        - COMPONENT_DIR=mano-framework/plugins/service-lifecycle-management
+        - BUILD_SERVICES="mano-base servicelifecyclemanagement"
+
+    - name: specific-manager-registry
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=specificmanagerregistry
+        - COMPONENT_DIR=mano-framework/specificmanager/specific-manager-registry
+        - REQUIRED_MICROSERVICES=broker
+        - BUILD_SERVICES="mano-base specificmanagerregistry"
+
+  fast_finish: true
+  allow_failures:
+    - name: specific-manager-registry # The tests have to be fixed yet

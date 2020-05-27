@@ -48,9 +48,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
     This class implements the service lifecycle manager.
     """
 
-    def __init__(
-        self, auto_register=True, wait_for_registration=True, start_running=True
-    ):
+    def __init__(self, **kwargs):
         """
         Initialize class and manobase.plugin.BasePlugin class.
         This will automatically connect to the broker, contact the
@@ -59,7 +57,6 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
         After the connection and registration procedures are done, the
         'on_lifecycle_start' method is called.
-        :return:
         """
 
         # Create the ledger that saves state
@@ -111,20 +108,9 @@ class ServiceLifecycleManager(ManoBasePlugin):
         # call super class (will automatically connect to
         # broker and register the SLM to the plugin manger)
 
-        super(self.__class__, self).__init__(
-            version="0.9.1",
-            description="Service Lifecycle Manager",
-            auto_register=auto_register,
-            wait_for_registration=wait_for_registration,
-            start_running=start_running,
+        super().__init__(
+            version="0.9.1", description="Service Lifecycle Manager", **kwargs
         )
-
-    def __del__(self):
-        """
-        Destroy SLM instance. De-register. Disconnect.
-        :return:
-        """
-        super(self.__class__, self).__del__()
 
     def declare_subscriptions(self):
         """
