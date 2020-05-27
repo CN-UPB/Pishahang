@@ -339,8 +339,9 @@ class TFPlugin(ManoBasePlugin):
                 "min": float(np.min(_prediction))
             }
 
-            # LOG.info(_prediction[0])
+            # LOG.info("\n\n\n\n\n\nSending Prediction")
             # LOG.info(prediction_metrics)
+            # LOG.info("\n\n\n\n")
 
             # self.active_services[serv_id]['predicting'] = False
 
@@ -364,53 +365,30 @@ class TFPlugin(ManoBasePlugin):
                 try:
                     LOG.info("Monitoring Thread " + serv_id)
 
-                    # self.active_services[serv_id] = {}
-                    # self.active_services[serv_id]['policy'] = {}                    
-                    # self.active_services[serv_id]["MODEL_NAME"] = "{}_model.h5".format(serv_id)
-                    # self.active_services[serv_id]['policy']['look_ahead_time_block'] = 3
-                    # self.active_services[serv_id]['policy']['history_time_block'] = 30
-                    # self.active_services[serv_id]['policy']['time_block'] = 1
+                    training_config = {}
+                    training_config['MODEL_NAME'] = self.active_services[serv_id]["MODEL_NAME"]
+                    training_config['look_ahead_time_block'] = self.active_services[serv_id]['policy']['look_ahead_time_block']
+                    training_config['history_time_block'] = self.active_services[serv_id]['policy']['history_time_block']
+                    training_config['time_block'] = self.active_services[serv_id]['policy']['time_block']
+                    training_config['training_history_days'] = self.active_services[serv_id]['policy']['training_history_days']
+                    
+                    training_config['traffic_direction'] = 'sent'
+                    # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
 
-                    # training_config = {}
-                    # training_config['MODEL_NAME'] = "{}_model.h5".format(serv_id)
-                    # training_config['traffic_direction'] = 'received'
+                    # Fetch data from netdata
+                    # FIXME: need to fix how charts are fetched from netdata
+                    _instance_meta = self.active_services[serv_id]['ports']
+                    _mon_parameters = self.active_services[serv_id]['monitoring_parameters']
+                    vim_endpoint = self.active_services[serv_id]['vim_endpoint']
 
-                    # training_config['look_ahead_time_block'] = 3
-                    # training_config['history_time_block'] = 30
-                    # training_config['time_block'] = 1
-                    # # training_config['avg_sec'] = self.active_services[serv_id]["MODEL_NAME"]
+                    look_back_time = self.active_services[serv_id]["last_seen_until"]
 
-                    # # Fetch data from netdata
-                    # vim_endpoint = "vimdemo1.cs.upb.de"
-                    # charts = ["cgroup_qemu_qemu_127_instance_0000007f.net_tap0c32c278_4e"]
+                    _charts = tools.get_netdata_charts(_instance_meta['uid'], vim_endpoint, _mon_parameters)
+                    charts = _charts
 
-                    # self.active_services[serv_id]["vim_endpoint"] = vim_endpoint
-                    # self.active_services[serv_id]["charts"] = charts
-                    # # 7 days = 604800
-                    # avg_sec = 604800
-                    # time_block = 10
-                    # look_back_time = 300
+                    _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time=look_back_time)
 
-                    # # _data = tools.get_netdata_charts_instance(charts,
-                    # #                                             vim_endpoint)
-
-                    # start_time = time.time()
-
-                    # _data_frame = self.fetch_data(charts, vim_endpoint, training_config['time_block'], look_back_time)
-
-                    # X, Y = self.prepare_data(_data_frame, training_config)
-                    # self.lstm_training(X, Y, training_config)
-            
-                    # self.safely_rename_model(serv_id)
-
-                    # # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-                    # # self.predict_using_lstm(X)
-                    # LOG.info(time.time()-start_time)
-
-                    # LOG.info(json.dumps(_metrics, indent=4, sort_keys=True))
-
-                    # LOG.info("### net ###")
-                    # LOG.info(_metrics["net"])
+                    print(_data_frame)
 
                 except Exception as e:
                     LOG.error("Error")
@@ -418,17 +396,7 @@ class TFPlugin(ManoBasePlugin):
                     track = traceback.format_exc()
                     LOG.error(track)
 
-                time.sleep(10)
-                LOG.info("PREDICTING NOW")
-
-                # _data_frame_test = self.fetch_data(charts, vim_endpoint, training_config['time_block'])
-                # _data_frame_test = _data_frame_test.iloc[-100:]
-                # test_X, test_Y = self.prepare_data(_data_frame_test, training_config)
-
-                # self.predict_using_lstm(test_X, serv_id)
-                self.get_prediction_next_time_block(serv_id)
-
-                time.sleep(10)
+                time.sleep(self.active_services[serv_id]['policy']['forecast_training_frequency'])
 
         else:
             time.sleep(self.active_services[serv_id]['policy']['initial_observation_period'])

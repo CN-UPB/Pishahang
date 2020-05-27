@@ -4,3 +4,7 @@ son-mano-framework/plugins/son-mano-mv/son_mano_mv/multi_version/parameters/scen
 son-mano-framework/plugins/son-mano-service-lifecycle-management/core
 son-mano-framework/plugins/son-mano-traffic-forecast/models/*
 .vscode/settings.json
+son-mano-framework/plugins/son-mano-traffic-forecast/notebooks/results/*
+son-mano-framework/plugins/son-mano-mv-policy/server.logs
+son-mano-framework/plugins/son-mano-mv/server.logs
+son-mano-framework/plugins/son-mano-traffic-forecast/core

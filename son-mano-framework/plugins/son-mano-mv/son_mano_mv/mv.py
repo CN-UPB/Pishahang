@@ -43,6 +43,7 @@ except:
 
 from sonmanobase.plugin import ManoBasePlugin
 
+SWITCH_CLASSIFIER = False
 CLASSIFIER_IP="131.234.250.116"
 SWITCH_DEBUG = True
 SWITCH_DEBUG_IMAGE_VM = "transcoder-image-1-vm"
@@ -231,10 +232,11 @@ class MVPlugin(ManoBasePlugin):
                                     # Start Forecasting thread
                                     self.request_forecast_thread_start(serv_id)
 
-                                    tools.switch_classifier(
-                                        classifier_ip=CLASSIFIER_IP,
-                                        vnf_ip=self.active_services[serv_id]['ports']['ip'],
-                                        vnf_port=self.active_services[serv_id]['ports']['port'])
+                                    if SWITCH_CLASSIFIER:
+                                        tools.switch_classifier(
+                                            classifier_ip=CLASSIFIER_IP,
+                                            vnf_ip=self.active_services[serv_id]['ports']['ip'],
+                                            vnf_port=self.active_services[serv_id]['ports']['port'])
             else:
                 # LOG.info("Not OpenStack monitoting")
                 for _function in cloud_services:
@@ -257,8 +259,8 @@ class MVPlugin(ManoBasePlugin):
                                 # FIXME: _function['csd'][version_image][0]['monitoring_parameters'] need to change this bs!                                
                                 _instance_meta = tools.get_k8_pod_info(serv_id, _t)
                                 _charts = tools.get_netdata_charts(_instance_meta['uid'], _t, _function['csd'][version_image][0]['monitoring_parameters'])
-                                # LOG.info("K8 UUID")
-                                # LOG.info(_instance_meta)
+                                LOG.info("K8 UUID")
+                                LOG.info(_instance_meta)
                                 # LOG.info(_charts)
                                 self.active_services[serv_id]['charts'] = _charts
                                 self.active_services[serv_id]['vim_endpoint'] = _t['vim_endpoint']
@@ -276,10 +278,11 @@ class MVPlugin(ManoBasePlugin):
                                 # Start Forecasting thread
                                 self.request_forecast_thread_start(serv_id)
 
-                                tools.switch_classifier(
-                                    classifier_ip=CLASSIFIER_IP, 
-                                    vnf_ip=_instance_meta['ip'], 
-                                    vnf_port=_instance_meta['port'])
+                                if SWITCH_CLASSIFIER:
+                                    tools.switch_classifier(
+                                        classifier_ip=CLASSIFIER_IP, 
+                                        vnf_ip=_instance_meta['ip'], 
+                                        vnf_port=_instance_meta['port'])
 
         elif content['request_type'] == "STOP":
             self.request_forecast_thread_stop(serv_id)

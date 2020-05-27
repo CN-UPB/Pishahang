@@ -44,6 +44,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("plugin:mv-policy")
 LOG.setLevel(logging.INFO)
 
+DEBUG_MODE = False
 
 class PolicyPlugin(ManoBasePlugin):
     """
@@ -187,6 +188,9 @@ class PolicyPlugin(ManoBasePlugin):
 
         elif content['request_type'] == 'get_policy_version':
             LOG.info("Get prediction")
+            if DEBUG_MODE:
+                return
+                
             serv_id = content['serv_id']
 
             self.active_services[serv_id] = {}
