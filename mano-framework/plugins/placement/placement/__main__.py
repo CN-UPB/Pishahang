@@ -21,11 +21,8 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-from placement import placement
+from placement.placement import main
 
 
-def main():
-    placement.main()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

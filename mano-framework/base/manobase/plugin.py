@@ -38,7 +38,6 @@ from manobase.messaging import AsyncioBrokerConnection, Message
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("manobase:plugin")
-LOG.setLevel(logging.DEBUG)
 
 
 class ManoBasePlugin:

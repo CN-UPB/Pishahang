@@ -27,59 +27,49 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
+
 import yaml
-import time
+
 from manobase import messaging
+from manobase.messaging import Message
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("fakeslm")
 
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
-class fakeslm_onboarding(object):
+class fakeslm_onboarding:
     def __init__(self):
 
-        self.name = 'fake-slm'
-        self.version = '0.1-dev'
-        self.description = 'description'
+        self.name = "fake-slm"
+        self.version = "0.1-dev"
+        self.description = "description"
 
         LOG.info("Starting fake SLM:...")
 
         # create and initialize broker connection
         self.manoconn = messaging.ManoBrokerRequestResponseConnection(self.name)
 
-        self.end = False
-
         self.publish_nsd()
-
-        self.run()
-
-    def run(self):
-
-        # go into infinity loop
-
-        while self.end == False:
-            time.sleep(1)
 
     def publish_nsd(self):
         LOG.info("Sending forwarding graph")
-        forwarding_graph = open('payload.yml', 'r')
-        message = yaml.load(forwarding_graph)
-        self.manoconn.call_async(self._on_publish_nsd_response,'chain.dploy.sdnplugin',yaml.dump(message))
-        forwarding_graph.close()
+        with open("payload.yml", "r") as forwarding_graph:
+            message = yaml.safe_load(forwarding_graph)
+        self.manoconn.call_async(
+            self._on_publish_nsd_response, "chain.dploy.sdnplugin", message
+        )
 
-    def _on_publish_nsd_response(self, ch, method, props, response):
-
-        response = yaml.load(str(response))
-        if type(response) == dict:
-            print(response)
+    def _on_publish_nsd_response(self, message: Message):
+        if type(message.payload) == dict:
+            print(message.payload)
+        self.manoconn.close()
 
 
 def main():
     fakeslm_onboarding()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

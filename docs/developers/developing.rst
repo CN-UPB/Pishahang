@@ -75,12 +75,20 @@ Python Projects
 
 The majority of Pishahang microservices are written in Python.
 They all share the same setup which is described in this section.
+Note that Python version >= 3.7 is required.
 
 Poetry
 ------
 
 `Poetry <https://python-poetry.org>`_ is a dependency manager for Python projects that also helps managing virtual environments and separating production and test dependencies.
 In order to set up a microservice for local development, you will need to `install Poetry <https://python-poetry.org/docs/#installation>`_ first.
+An easy way to do so is using ``pipx``:
+
+.. code-block:: sh
+
+    python3 -m pip install --user pipx
+    pipx install poetry
+
 
 .. hint::
 

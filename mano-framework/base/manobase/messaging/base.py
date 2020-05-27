@@ -269,8 +269,8 @@ class ManoBrokerConnection:
         if app_id is None:
             app_id = self.app_id
 
-        # Serialize message as yaml
-        body = yaml.dump(payload)
+        # Serialize message as JSON
+        body = json.dumps(payload)
 
         if self._is_loopback:
             _publish_to_loopback_queues(
@@ -297,7 +297,7 @@ class ManoBrokerConnection:
                     exchange=self.rabbitmq_exchange,
                     properties={
                         "app_id": app_id,
-                        "content_type": "application/yaml",
+                        "content_type": "application/json",
                         "correlation_id": correlation_id
                         if correlation_id is not None
                         else "",

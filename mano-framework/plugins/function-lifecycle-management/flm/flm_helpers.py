@@ -40,11 +40,11 @@ def funcid_from_corrid(ledger, corr_id):
     """
 
     for func_id in ledger.keys():
-        if isinstance(ledger[func_id]['act_corr_id'], list):
-            if str(corr_id) in ledger[func_id]['act_corr_id']:
+        if isinstance(ledger[func_id]["act_corr_id"], list):
+            if str(corr_id) in ledger[func_id]["act_corr_id"]:
                 break
         else:
-            if ledger[func_id]['act_corr_id'] == str(corr_id):
+            if ledger[func_id]["act_corr_id"] == str(corr_id):
                 break
 
     return func_id
@@ -56,8 +56,8 @@ def generate_image_uuid(vdu, vnfd):
     vnfd
     """
 
-    new_string = vnfd['vendor'] + '_' + vnfd['name'] + '_' + vnfd['version']
-    new_string = new_string + '_' + vdu['id']
+    new_string = vnfd["vendor"] + "_" + vnfd["name"] + "_" + vnfd["version"]
+    new_string = new_string + "_" + vdu["id"]
 
     return new_string
 
@@ -77,14 +77,14 @@ def replace_old_corr_id_by_new(dictionary, old_correlation_id):
 
 def get_fsm_from_vnfd(vnfd):
 
-    if 'function_specific_managers' in vnfd:
+    if "function_specific_managers" in vnfd:
         fsm_dict = {}
-        for fsm in vnfd['function_specific_managers']:
-            for option in fsm['options']:
-                if option['key'] == 'type':
-                    fsm_dict[option['value']] = {}
-                    fsm_dict[option['value']]['id'] = fsm['id']
-                    fsm_dict[option['value']]['image'] = fsm['image']
+        for fsm in vnfd["function_specific_managers"]:
+            for option in fsm["options"]:
+                if option["key"] == "type":
+                    fsm_dict[option["value"]] = {}
+                    fsm_dict[option["value"]]["id"] = fsm["id"]
+                    fsm_dict[option["value"]]["image"] = fsm["image"]
 
     else:
         return {}
@@ -103,15 +103,15 @@ def getRestData(base, path, expected_code=200):
         content = get_response.json()
         code = get_response.status_code
 
-        if (code == expected_code):
+        if code == expected_code:
             print("GET for " + str(path) + " succeeded: " + str(content))
-            return {'error': None, "content": content}
+            return {"error": None, "content": content}
         else:
             print("GET returned with status_code: " + str(code))
-            return{'error': code, "content": content}
+            return {"error": code, "content": content}
     except:
         print("GET request timed out")
-        return{'error': '400', 'content': 'request timed out'}
+        return {"error": "400", "content": "request timed out"}
 
 
 def build_vnfr(ia_vnfr, vnfd):
@@ -123,72 +123,72 @@ def build_vnfr(ia_vnfr, vnfd):
 
     vnfr = {}
     # vnfd base fields
-    vnfr['descriptor_version'] = ia_vnfr['descriptor_version']
-    vnfr['id'] = ia_vnfr['id']
+    vnfr["descriptor_version"] = ia_vnfr["descriptor_version"]
+    vnfr["id"] = ia_vnfr["id"]
     # Building the vnfr makes it the first version of this vnfr.
-    vnfr['version'] = '1'
-    vnfr['status'] = ia_vnfr['status']
-    vnfr['descriptor_reference'] = ia_vnfr['descriptor_reference']
+    vnfr["version"] = "1"
+    vnfr["status"] = ia_vnfr["status"]
+    vnfr["descriptor_reference"] = ia_vnfr["descriptor_reference"]
 
     # deployment flavour
-    if 'deployment_flavour' in ia_vnfr:
-        vnfr['deployment_flavour'] = ia_vnfr['deployment_flavour']
+    if "deployment_flavour" in ia_vnfr:
+        vnfr["deployment_flavour"] = ia_vnfr["deployment_flavour"]
 
     # virtual_deployment_units
-    vnfr['virtual_deployment_units'] = []
-    for ia_vdu in ia_vnfr['virtual_deployment_units']:
-        vnfd_vdu = get_vnfd_vdu_by_reference(vnfd, ia_vdu['vdu_reference'])
+    vnfr["virtual_deployment_units"] = []
+    for ia_vdu in ia_vnfr["virtual_deployment_units"]:
+        vnfd_vdu = get_vnfd_vdu_by_reference(vnfd, ia_vdu["vdu_reference"])
 
         vdu = {}
         # vdu info returned by IA
         # mandatofy info
-        vdu['id'] = ia_vdu['id']
-        vdu['resource_requirements'] = vnfd_vdu['resource_requirements']
+        vdu["id"] = ia_vdu["id"]
+        vdu["resource_requirements"] = vnfd_vdu["resource_requirements"]
 
         # vdu optional info
-        if 'vm_image' in ia_vdu:
-            vdu['vm_image'] = ia_vdu['vm_image']
-        if 'vdu_reference' in ia_vdu:
-            vdu['vdu_reference'] = ia_vdu['vdu_reference']
-        if 'number_of_instances' in ia_vdu:
-            vdu['number_of_instances'] = ia_vdu['number_of_instances']
+        if "vm_image" in ia_vdu:
+            vdu["vm_image"] = ia_vdu["vm_image"]
+        if "vdu_reference" in ia_vdu:
+            vdu["vdu_reference"] = ia_vdu["vdu_reference"]
+        if "number_of_instances" in ia_vdu:
+            vdu["number_of_instances"] = ia_vdu["number_of_instances"]
         # vdu vnfc-instances (optional)
-        vdu['vnfc_instance'] = []
-        if 'vnfc_instance' in ia_vdu:
-            for ia_vnfc in ia_vdu['vnfc_instance']:
+        vdu["vnfc_instance"] = []
+        if "vnfc_instance" in ia_vdu:
+            for ia_vnfc in ia_vdu["vnfc_instance"]:
                 vnfc = {}
-                vnfc['id'] = ia_vnfc['id']
-                vnfc['vim_id'] = ia_vnfc['vim_id']
-                vnfc['vc_id'] = ia_vnfc['vc_id']
-                vnfc['connection_points'] = ia_vnfc['connection_points']
-                vdu['vnfc_instance'].append(vnfc)
+                vnfc["id"] = ia_vnfc["id"]
+                vnfc["vim_id"] = ia_vnfc["vim_id"]
+                vnfc["vc_id"] = ia_vnfc["vc_id"]
+                vnfc["connection_points"] = ia_vnfc["connection_points"]
+                vdu["vnfc_instance"].append(vnfc)
 
         # vdu monitoring-parameters (optional)
 
-        if vnfd_vdu is not None and 'monitoring_parameters' in vnfd_vdu:
-            vdu['monitoring_parameters'] = vnfd_vdu['monitoring_parameters']
+        if vnfd_vdu is not None and "monitoring_parameters" in vnfd_vdu:
+            vdu["monitoring_parameters"] = vnfd_vdu["monitoring_parameters"]
 
-        vnfr['virtual_deployment_units'].append(vdu)
+        vnfr["virtual_deployment_units"].append(vdu)
 
     # connection points && virtual links (optional)
-    if 'connection_points' in ia_vnfr:
-        vnfr['connection_points'] = ia_vnfr['connection_points']
-    if 'virtual_links' in vnfd:
-        vnfr['virtual_links'] = vnfd['virtual_links']
+    if "connection_points" in ia_vnfr:
+        vnfr["connection_points"] = ia_vnfr["connection_points"]
+    if "virtual_links" in vnfd:
+        vnfr["virtual_links"] = vnfd["virtual_links"]
 
     # TODO vnf_address ???
 
     # lifecycle_events (optional)
-    if 'lifecycle_events' in vnfd:
-        vnfr['lifecycle_events'] = vnfd['lifecycle_events']
+    if "lifecycle_events" in vnfd:
+        vnfr["lifecycle_events"] = vnfd["lifecycle_events"]
 
     return vnfr
 
 
 def get_vnfd_vdu_by_reference(vnfd, vdu_reference):
     # TODO can we do it with functional programming?
-    if 'virtual_deployment_units' in vnfd:
-        for vnfd_vdu in vnfd['virtual_deployment_units']:
-            if vnfd_vdu['id'] in vdu_reference:
+    if "virtual_deployment_units" in vnfd:
+        for vnfd_vdu in vnfd["virtual_deployment_units"]:
+            if vnfd_vdu["id"] in vdu_reference:
                 return vnfd_vdu
     return None

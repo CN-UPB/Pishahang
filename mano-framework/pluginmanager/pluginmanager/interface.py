@@ -49,16 +49,16 @@ class PluginsEndpoint(fr.Resource):
 
 class PluginEndpoint(fr.Resource):
     def get(self, plugin_uuid=None):
-        LOG.debug("GET plugin info for: %r" % plugin_uuid)
+        LOG.debug("GET plugin info for: %r", plugin_uuid)
         try:
             p = model.Plugin.objects.get(uuid=plugin_uuid)
             return p.to_dict(), 200
         except DoesNotExist:
-            LOG.error("Lookup error: %r" % plugin_uuid)
+            LOG.error("Lookup error: %r", plugin_uuid)
             return {}, 404
 
     def delete(self, plugin_uuid=None):
-        LOG.debug("DELETE plugin: %r" % plugin_uuid)
+        LOG.debug("DELETE plugin: %r", plugin_uuid)
         try:
             p = model.Plugin.objects.get(uuid=plugin_uuid)
             # send lifecycle stop event to plugin
@@ -66,19 +66,19 @@ class PluginEndpoint(fr.Resource):
             # TODO ensure that record is deleted even if plugin does not deregister itself (use a timeout?)
             return {}, 200
         except DoesNotExist:
-            LOG.error("Lookup error: %r" % plugin_uuid)
+            LOG.error("Lookup error: %r", plugin_uuid)
             return {}, 404
 
 
 class PluginLifecycleEndpoint(fr.Resource):
     def put(self, plugin_uuid=None):
-        LOG.debug("PUT plugin lifecycle: %r" % plugin_uuid)
+        LOG.debug("PUT plugin lifecycle: %r", plugin_uuid)
         try:
             p = model.Plugin.objects.get(uuid=plugin_uuid)
             # get target state from request body
             ts = request.get_json().get("target_state", None)
             if ts is None:
-                LOG.error("Malformed request: %r" % request.json)
+                LOG.error("Malformed request: %r", request.json)
                 return {"message": "malformed request"}, 500
             if ts == "start":
                 PM.send_start_notification(p)
@@ -90,7 +90,7 @@ class PluginLifecycleEndpoint(fr.Resource):
                 return {"message": "Malformed request"}, 500
             return {}, 200
         except DoesNotExist:
-            LOG.error("Lookup error: %r" % plugin_uuid)
+            LOG.error("Lookup error: %r", plugin_uuid)
             return {}, 404
 
 
@@ -121,4 +121,4 @@ def start(pm, host="0.0.0.0", port=8001):
     thread = threading.Thread(target=_start_flask, args=(host, port))
     thread.daemon = True
     thread.start()
-    LOG.info("Started management REST interface @ http://%s:%d" % (host, port))
+    LOG.info("Started management REST interface @ http://%s:%d", host, port)

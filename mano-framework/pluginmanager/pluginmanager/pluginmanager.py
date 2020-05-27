@@ -139,7 +139,7 @@ class SonPluginManager(ManoBasePlugin):
         )
 
         p.save()
-        LOG.info("REGISTERED: %r" % p)
+        LOG.info("REGISTERED: %r", p)
         # return result
         response = {
             "status": "OK",
