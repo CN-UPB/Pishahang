@@ -6,7 +6,7 @@ authors = ["Hadi Razzaghi Kouchaksaraei <hadi.razzaghi@upb.de>"]
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 mongoengine = "^0.19.1"
 Flask = "^1.1.2"
 flask-restful = "^0.3.8"

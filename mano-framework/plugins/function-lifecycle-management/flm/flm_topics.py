@@ -38,12 +38,12 @@ VNF_SCALE = "mano.function.scale"
 VNF_KILL = "mano.function.terminate"
 
 # With infrastructure adaptor
-IA_DEPLOY = 'infrastructure.function.deploy'
+IA_DEPLOY = "infrastructure.function.deploy"
 
 # With specific manager registry
-SRM_ONBOARD = 'specific.manager.registry.fsm.on-board'
-SRM_INSTANT = 'specific.manager.registry.fsm.instantiate'
-SRM_UPDATE = 'specific.manager.registry.fsm.update'
+SRM_ONBOARD = "specific.manager.registry.fsm.on-board"
+SRM_INSTANT = "specific.manager.registry.fsm.instantiate"
+SRM_UPDATE = "specific.manager.registry.fsm.update"
 
 # REST APIs
 temp = os.environ.get("url_gk_api")
@@ -54,8 +54,8 @@ GK_PORT = p.port
 BASE_URL = p.scheme + "://" + p.hostname + ":" + str(GK_PORT)
 
 # REST API with GK
-GK_SERVICES_URL = BASE_URL + '/api/v2/services/'
-GK_FUNCTIONS_URL = BASE_URL + '/api/v2/functions/'
+GK_SERVICES_URL = BASE_URL + "/api/v2/services/"
+GK_FUNCTIONS_URL = BASE_URL + "/api/v2/functions/"
 
 # With Repositories
 temp = os.environ.get("url_vnfr_repository")

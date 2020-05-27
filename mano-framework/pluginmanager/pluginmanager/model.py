@@ -29,7 +29,14 @@ partner consortium (www.sonata-nfv.eu).
 import logging
 import os
 from datetime import datetime
-from mongoengine import Document, connect, StringField, DateTimeField, BooleanField, signals
+from mongoengine import (
+    Document,
+    connect,
+    StringField,
+    DateTimeField,
+    BooleanField,
+    signals,
+)
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("pluginmanger:model")
@@ -41,6 +48,7 @@ class Plugin(Document):
     This model represents a plugin that is registered to the plugin manager.
     We use mongoengine as ORM to interact with MongoDB.
     """
+
     uuid = StringField(primary_key=True, required=True)
     name = StringField(required=True)
     version = StringField(required=True)
@@ -48,17 +56,21 @@ class Plugin(Document):
     state = StringField(required=True, max_length=16)
     registered_at = DateTimeField(default=datetime.now())
     last_heartbeat_at = DateTimeField()
-    #deregistered = BooleanField(default=False)
+    # deregistered = BooleanField(default=False)
 
     def __repr__(self):
-        return "Plugin(uuid=%r, name=%r, version=%r)" % (self.uuid, self.name, self.version)
+        return "Plugin(uuid=%r, name=%r, version=%r)" % (
+            self.uuid,
+            self.name,
+            self.version,
+        )
 
     def __str__(self):
         return self.__repr__()
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        LOG.debug("Saved: %s" % self)
+        LOG.debug("Saved: %s", self)
 
     def to_dict(self):
         """
@@ -77,13 +89,15 @@ class Plugin(Document):
         return res
 
 
-def initialize(db="sonata-plugin-manager",
-               host=os.environ.get("mongo_host", "127.0.0.1"),
-               port=int(os.environ.get("mongo_port", 27017)),
-               clear_db=True):
+def initialize(
+    db="sonata-plugin-manager",
+    host=os.environ.get("mongo_host", "127.0.0.1"),
+    port=int(os.environ.get("mongo_port", 27017)),
+    clear_db=True,
+):
     db_conn = connect(db, host=host, port=port)
-    LOG.info("Connected to MongoDB %r@%s:%d" % (db, host, port))
+    LOG.info("Connected to MongoDB %r@%s:%d", db, host, port)
     if clear_db:
         # remove all old data from DB
         db_conn.drop_database(db)
-        LOG.info("Cleared DB %r" % db)
+        LOG.info("Cleared DB %r", db)

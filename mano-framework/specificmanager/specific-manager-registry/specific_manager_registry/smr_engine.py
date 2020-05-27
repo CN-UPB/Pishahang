@@ -24,13 +24,13 @@ funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
-"""
-'''
+
 This is the engine module of SONATA's Specific Manager Registry.
-'''
+"""
 
 import logging
 import os
+
 import docker
 import requests
 import yaml
@@ -38,7 +38,6 @@ import yaml
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("specific-manager-registry-engine")
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class SMREngine(object):
@@ -47,24 +46,26 @@ class SMREngine(object):
         self.dc = self.connect()
 
         # create rabbitmq user that will be used for communication between FSMs/SSMs and MANO plugins
-        if 'broker_man_host' in os.environ:
-            self.host = os.environ['broker_man_host']
+        if "broker_man_host" in os.environ:
+            self.host = os.environ["broker_man_host"]
         else:
-            self.host = 'http://localhost:15672'
+            self.host = "http://localhost:15672"
         url_user = "{0}/api/users/specific-management".format(self.host)
-        self.headers = {'content-type': 'application/json'}
+        self.headers = {"content-type": "application/json"}
         data = '{"password":"sonata","tags":"son-sm"}'
-        response = requests.put(url=url_user, headers=self.headers, data=data, auth=('guest', 'guest'))
+        response = requests.put(
+            url=url_user, headers=self.headers, data=data, auth=("guest", "guest")
+        )
         if response.status_code == 201:
             LOG.info("RabbitMQ user: specific-management has been created!")
-        elif response.status_code==204:
+        elif response.status_code == 204:
             LOG.info("RabbitMQ user: specific-management already exists!")
         else:
             LOG.error("RabbitMQ user creation failed: {0}".format(response.content))
-        if 'sm_broker_host' in os.environ:
-            self.sm_broker_host = os.environ['sm_broker_host']
+        if "sm_broker_host" in os.environ:
+            self.sm_broker_host = os.environ["sm_broker_host"]
         else:
-            self.sm_broker_host = 'amqp://specific-management:sonata@son-broker:5672'
+            self.sm_broker_host = "amqp://specific-management:sonata@son-broker:5672"
 
     def connect(self):
         """
@@ -85,7 +86,11 @@ class SMREngine(object):
         # lets check if Docker ENV information is set and use local socket as fallback
         if os.environ.get("DOCKER_HOST") is None:
             os.environ["DOCKER_HOST"] = "unix://var/run/docker.sock"
-            LOG.warning("ENV variable 'DOCKER_HOST' not set. Using {0} as fallback.".format(os.environ["DOCKER_HOST"]))
+            LOG.warning(
+                "ENV variable 'DOCKER_HOST' not set. Using {0} as fallback.".format(
+                    os.environ["DOCKER_HOST"]
+                )
+            )
 
         # lets connect to the Docker instance specified in current ENV
         # cf.: http://docker-py.readthedocs.io/en/stable/machine/
@@ -95,7 +100,7 @@ class SMREngine(object):
         LOG.info("Connected to Docker host: {0}".format(dc.base_url))
         return dc
 
-    def pull(self, image):#, ssm_name):
+    def pull(self, image):  # , ssm_name):
 
         """
         Process of pulling / importing a SSM given as Docker image.
@@ -104,12 +109,12 @@ class SMREngine(object):
         - ssm_uri = "registry.sonata-nfv.eu:5000/my-ssm" -> Docker PULL (opt B)
         :return: ssm_image_name
         """
-        #repository pull
-        res= self.dc.pull(image) # image name and uri are the same
+        # repository pull
+        res = self.dc.pull(image)  # image name and uri are the same
         error_count = 1
         while error_count <= 3:
             response = yaml.load(res.split("\n")[1])
-            if 'error' in response.keys():
+            if "error" in response.keys():
                 error_count += 1
                 res = self.dc.pull(image)
             else:
@@ -118,86 +123,104 @@ class SMREngine(object):
 
     def start(self, id, image, sm_type, uuid, p_key):
 
-        if 'broker_host' in os.environ:
-            broker_host = os.environ['broker_host']
+        if "broker_host" in os.environ:
+            broker_host = os.environ["broker_host"]
         else:
-            broker_host = 'amqp://guest:guest@broker:5672/%2F'
+            broker_host = "amqp://guest:guest@broker:5672/%2F"
 
-        if 'network_id' in os.environ:
-            network_id = os.environ['network_id']
+        if "network_id" in os.environ:
+            network_id = os.environ["network_id"]
         else:
-            network_id = 'sonata'
+            network_id = "sonata"
 
-        if 'broker_name' in os.environ:
-            broker = self.retrieve_broker_name(os.environ['broker_name'])
+        if "broker_name" in os.environ:
+            broker = self.retrieve_broker_name(os.environ["broker_name"])
         else:
-            broker = {'name': 'broker', 'alias': 'broker'}
+            broker = {"name": "broker", "alias": "broker"}
 
-        vh_name = '{0}-{1}'.format(sm_type,uuid)
+        vh_name = "{0}-{1}".format(sm_type, uuid)
         broker_host = "{0}/{1}".format(self.sm_broker_host, vh_name)
 
-        cn_name = "{0}{1}".format(id,uuid)
+        cn_name = "{0}{1}".format(id, uuid)
 
-        container = self.dc.create_container(image=image,
-                                             detach=True,
-                                             name=cn_name,
-                                             environment={'broker_host':broker_host, 'sf_uuid':uuid, 'PRIVATE_KEY':p_key})
+        container = self.dc.create_container(
+            image=image,
+            detach=True,
+            name=cn_name,
+            environment={
+                "broker_host": broker_host,
+                "sf_uuid": uuid,
+                "PRIVATE_KEY": p_key,
+            },
+        )
         networks = self.dc.networks()
         net_found = False
         for i in range(len(networks)):
-            if networks[i]['Name'] == network_id:
+            if networks[i]["Name"] == network_id:
                 net_found = True
                 break
 
-        if (net_found):
-                LOG.info('Docker network is used!')
-                self.dc.connect_container_to_network(container=container, net_id=network_id, aliases=[id])
-                self.dc.start(container=container.get('Id'))
+        if net_found:
+            LOG.info("Docker network is used!")
+            self.dc.connect_container_to_network(
+                container=container, net_id=network_id, aliases=[id]
+            )
+            self.dc.start(container=container.get("Id"))
         else:
-            LOG.warning('Network ID: {0} Not Found!, deprecated Docker --link is used instead'.format(network_id))
-            self.dc.start(container=container.get('Id'), links=[(broker['name'], broker['alias'])])
-
+            LOG.warning(
+                "Network ID: {0} Not Found!, deprecated Docker --link is used instead".format(
+                    network_id
+                )
+            )
+            self.dc.start(
+                container=container.get("Id"), links=[(broker["name"], broker["alias"])]
+            )
 
     def stop(self, ssm_name):
         self.dc.kill(ssm_name)
 
-    def rm (self, id, image, uuid):
+    def rm(self, id, image, uuid):
 
-        cn_name = "{0}{1}".format(id,uuid)
-        LOG.info("{0} Logs: {1}".format(id,self.dc.logs(container=cn_name)))
+        cn_name = "{0}{1}".format(id, uuid)
+        LOG.info("{0} Logs: {1}".format(id, self.dc.logs(container=cn_name)))
         self.dc.stop(container=cn_name)
         self.dc.remove_container(container=cn_name, force=True)
-        self.dc.remove_image(image= image, force=True)
+        self.dc.remove_image(image=image, force=True)
 
     def retrieve_broker_name(self, broker):
-        mid = broker.find(',')
+        mid = broker.find(",")
         name = broker[:mid]
-        alias = broker[mid+1:]
-        return {'name':name, 'alias':alias}
+        alias = broker[mid + 1 :]
+        return {"name": name, "alias": alias}
 
     def rename(self, current_name, new_name):
-        self.dc.rename(current_name,new_name)
+        self.dc.rename(current_name, new_name)
 
     def create_vh(self, sm_type, uuid):
         exists = False
-        vh_name = '{0}-{1}'.format(sm_type,uuid)
-        api = '/api/vhosts/'
-        url_list = '{0}{1}'.format(self.host,api)
-        url_create = '{0}{1}{2}'.format(self.host,api,vh_name)
-        url_permission = '{0}/api/permissions/{1}/specific-management'.format(self.host,vh_name)
+        vh_name = "{0}-{1}".format(sm_type, uuid)
+        api = "/api/vhosts/"
+        url_list = "{0}{1}".format(self.host, api)
+        url_create = "{0}{1}{2}".format(self.host, api, vh_name)
+        url_permission = "{0}/api/permissions/{1}/specific-management".format(
+            self.host, vh_name
+        )
         data = '{"configure":".*","write":".*","read":".*"}'
-        list = requests.get(url=url_list, auth= ('guest','guest')).json()
+        list = requests.get(url=url_list, auth=("guest", "guest")).json()
         for i in range(len(list)):
-            if list[i]['name'] == vh_name:
+            if list[i]["name"] == vh_name:
                 exists = True
                 break
         if not exists:
-            response = requests.put(url=url_create, headers=self.headers, auth=('guest', 'guest'))
-            permission = requests.put(url=url_permission, headers=self.headers, data=data, auth=('guest', 'guest'))
+            response = requests.put(
+                url=url_create, headers=self.headers, auth=("guest", "guest")
+            )
+            permission = requests.put(
+                url=url_permission,
+                headers=self.headers,
+                data=data,
+                auth=("guest", "guest"),
+            )
             return response.status_code, permission.status_code
         else:
-            return 0,0
-
-
-
-
+            return 0, 0

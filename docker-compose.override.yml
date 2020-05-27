@@ -11,40 +11,36 @@ services:
     build: ./son-catalogue-repos
 
   # MANO framework -------------------------------------------------------------
-  # MANO base
+  # Base
   mano-base:
     image: pishahang/mano-base:${PISHAHANG_VERSION}
     build: ./mano-framework/base
 
-  # MANO Plugin Manager
+  # Plugin Manager
   pluginmanager:
     build: ./mano-framework/pluginmanager
 
-  # MANO Service Life-cycle Management
+  # Service Lifecycle Management Plugin
   servicelifecyclemanagement:
     build: ./mano-framework/plugins/service-lifecycle-management
 
-  # MANO Function Lifecycle Management Plugin
+  # Function Lifecycle Management Plugin
   functionlifecyclemanagement:
     build: ./mano-framework/plugins/function-lifecycle-management
 
-  # MANO Specific Manager Registry (SMR)
+  # Specific Manager Registry (SMR)
   specificmanagerregistry:
     build: ./mano-framework/specificmanager/specific-manager-registry
 
-  # MANO Placement Executive Plugin
-  placementexecutive:
-    build: ./mano-framework/plugins/placement-executive
-
-  # MANO Placement Plugin
+  # Placement Plugin
   placementplugin:
     build: ./mano-framework/plugins/placement
 
-  # MANO Cloud Service Life-cycle Management (CLM)
+  # Cloud Service Life-cycle Management Plugin
   cloudservicelifecyclemanagement:
     build: ./mano-framework/plugins/cloud-service-lifecycle-management
 
-  # MANO SDN
+  # SDN Plugin
   sdn-plugin:
     build: ./mano-framework/plugins/sdn
 
