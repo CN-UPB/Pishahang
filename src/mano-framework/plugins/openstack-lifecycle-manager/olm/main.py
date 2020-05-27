@@ -35,21 +35,17 @@ import requests
 import yaml
 
 import manobase.messaging as messaging
-from flm import flm_helpers as tools
-from flm import flm_topics as t
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
+from olm import helpers as tools
+from olm import topics as t
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("plugin:flm")
+LOG = logging.getLogger("olm")
 LOG.setLevel(logging.INFO)
 
 
-class FunctionLifecycleManager(ManoBasePlugin):
-    """
-    This class implements the Function lifecycle manager.
-    """
-
+class OpenStackLifecycleManager(ManoBasePlugin):
     def __init__(self, **kwargs):
         """
         Initialize class and manobase.plugin.BasePlugin class.
@@ -67,16 +63,16 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
         self.thrd_pool = pool.ThreadPoolExecutor(max_workers=10)
 
-        self.flm_ledger = {}
+        self.ledger = {}
 
-        self.fsm_connections = {}
-        self.fsm_user = "specific-management"
-        self.fsm_pass = "sonata"
-        base = "amqp://" + self.fsm_user + ":" + self.fsm_pass
-        self.fsm_url_base = base + "@son-broker:5672/"
+        self.connections = {}
+        self.osm_user = "specific-management"
+        self.osm_pass = "sonata"
+        base = "amqp://" + self.osm_user + ":" + self.osm_pass
+        self.osm_url_base = base + "@son-broker:5672/"
 
         super().__init__(
-            version="0.1-dev", description="This is the FLM plugin", **kwargs
+            version="0.1-dev", description="OpenStack Lifecycle Manager", **kwargs
         )
 
     def declare_subscriptions(self):
@@ -86,37 +82,22 @@ class FunctionLifecycleManager(ManoBasePlugin):
         super().declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        self.manoconn.subscribe(self.function_instance_create, t.VNF_DEPLOY)
+        self.conn.subscribe(self.function_instance_create, t.VNF_DEPLOY)
 
         # The topic on which start requests are posted.
-        self.manoconn.subscribe(self.function_instance_start, t.VNF_START)
+        self.conn.subscribe(self.function_instance_start, t.VNF_START)
 
         # The topic on which configurre requests are posted.
-        self.manoconn.subscribe(self.function_instance_config, t.VNF_CONFIG)
+        self.conn.subscribe(self.function_instance_config, t.VNF_CONFIG)
 
         # The topic on which stop requests are posted.
-        self.manoconn.subscribe(self.function_instance_stop, t.VNF_STOP)
+        self.conn.subscribe(self.function_instance_stop, t.VNF_STOP)
 
         # The topic on which stop requests are posted.
-        self.manoconn.subscribe(self.function_instance_scale, t.VNF_SCALE)
+        self.conn.subscribe(self.function_instance_scale, t.VNF_SCALE)
 
         # The topic on which terminate requests are posted.
-        self.manoconn.subscribe(self.function_instance_kill, t.VNF_KILL)
-
-    def on_lifecycle_start(self, message: Message):
-        """
-        This event is called when the plugin has successfully registered itself
-        to the plugin manager and received its lifecycle.start event from the
-        plugin manager. The plugin is expected to do its work after this event.
-
-        :param ch: RabbitMQ channel
-        :param method: RabbitMQ method
-        :param properties: RabbitMQ properties
-        :param message: RabbitMQ message content
-        :return:
-        """
-        super(self.__class__, self).on_lifecycle_start(message)
-        LOG.info("FLM started and operational.")
+        self.conn.subscribe(self.function_instance_kill, t.VNF_KILL)
 
     ##########################
     # FLM Threading management
@@ -189,7 +170,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         LOG.info("Function %s: error occured: %s", func_id, error)
         LOG.info("Function %s: informing SLM", func_id)
 
-        self.manoconn.notify(
+        self.conn.notify(
             self.functions[func_id]["topic"],
             {"status": "failed", "error": error, "timestamp": time.time()},
             correlation_id=self.functions[func_id]["orig_corr_id"],
@@ -452,7 +433,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
 
         corr_id = str(uuid.uuid4())
         # Sending the vnfd to the SRM triggers it to onboard the fsms
-        self.manoconn.call_async(
+        self.conn.call_async(
             self.resp_onboard,
             t.SRM_ONBOARD,
             {"VNFD": self.functions[func_id]["vnfd"]},
@@ -510,7 +491,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
             msg_for_smr.keys(),
         )
 
-        self.manoconn.call_async(
+        self.conn.call_async(
             self.resp_instant, t.SRM_INSTANT, msg_for_smr, correlation_id=corr_id
         )
 
@@ -549,7 +530,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
             fsm["uuid"] = response["uuid"]
 
         # Setup broker connection with the SSMs of this service.
-        url = self.fsm_url_base + "fsm-" + func_id
+        url = self.osm_url_base + "fsm-" + func_id
         fsm_conn = messaging.ManoBrokerRequestResponseConnection(self.name, url=url)
 
         self.fsm_connections[func_id] = fsm_conn
@@ -579,7 +560,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         LOG.info("IA contacted for function deployment.")
         LOG.debug("Payload of request: %s", outg_message)
         # Contact the IA
-        self.manoconn.call_async(
+        self.conn.call_async(
             self.IA_deploy_response, t.IA_DEPLOY, outg_message, correlation_id=corr_id
         )
 
@@ -709,7 +690,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         function = self.functions[func_id]
 
         corr_id = self.functions[func_id]["orig_corr_id"]
-        self.manoconn.notify(
+        self.conn.notify(
             t.VNF_DEPLOY,
             {
                 "vnfr": function["vnfr"],
@@ -736,7 +717,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         corr_id = str(uuid.uuid4())
         self.functions[func_id]["act_corr_id"] = corr_id
 
-        fsm_conn = self.fsm_connections[func_id]
+        fsm_conn = self.connections[func_id]
 
         # Making the call
         fsm_conn.call_async(
@@ -810,7 +791,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
         self.functions[func_id]["active_fsm"] = fsm_type
 
         # Making the call
-        self.fsm_connections[func_id].call_async(
+        self.connections[func_id].call_async(
             self.fsm_generic_response, topic, payload, correlation_id=corr_id
         )
 
@@ -859,7 +840,7 @@ class FunctionLifecycleManager(ManoBasePlugin):
             message["message"] = self.functions[func_id]["message"]
 
         LOG.info("Generating response to the workflow request")
-        self.manoconn.notify(
+        self.conn.notify(
             self.functions[func_id]["topic"],
             message,
             correlation_id=self.functions[func_id]["orig_corr_id"],
@@ -976,7 +957,7 @@ def main():
     Entry point to start plugin.
     :return:
     """
-    FunctionLifecycleManager()
+    OpenStackLifecycleManager()
 
 
 if __name__ == "__main__":

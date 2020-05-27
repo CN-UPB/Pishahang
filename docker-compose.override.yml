@@ -25,8 +25,8 @@ services:
     build: ./src/mano-framework/plugins/service-lifecycle-management
 
   # Function Lifecycle Management Plugin
-  functionlifecyclemanagement:
-    build: ./src/mano-framework/plugins/function-lifecycle-management
+  openstack-lifecycle-manager:
+    build: ./src/mano-framework/plugins/openstack-lifecycle-manager
 
   # Specific Manager Registry (SMR)
   specificmanagerregistry:

@@ -406,8 +406,8 @@ services:
       - pishanet
 
   # Function Lifecycle Management Plugin
-  functionlifecyclemanagement:
-    image: pishahang/mano-plugin-function-lifecycle-management:${PISHAHANG_VERSION}
+  openstack-lifecycle-manager:
+    image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi

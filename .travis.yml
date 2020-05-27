@@ -42,13 +42,13 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/plugins/cloud-service-lifecycle-management
         - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
 
-    - name: flm
+    - name: olm
       <<: *python_job_config
       script: *docker_compose_build_command # There are no tests :(
       env:
-        - SERVICE_NAME=functionlifecyclemanagement
-        - COMPONENT_DIR=src/mano-framework/plugins/function-lifecycle-management
-        - BUILD_SERVICES="mano-base functionlifecyclemanagement"
+        - SERVICE_NAME=openstack-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/openstack-lifecycle-manager
+        - BUILD_SERVICES="mano-base openstack-lifecycle-manager"
 
     - name: placement
       <<: *python_job_config
