@@ -1,6 +1,3 @@
-git:
-  submodules: false
-
 _docker_compose_setup_commands: &docker_compose_setup_commands
   - ./generate-env.sh 127.0.0.1 localhost
   - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi

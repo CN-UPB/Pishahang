@@ -1,5 +1,0 @@
-#!/bin/bash
-ulimit -c 0 
-#yum install -y python-tornado
-python /opt/rift/ping_pong_ns/start_pong.py 2>&1 | logger
-
