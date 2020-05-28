@@ -29,7 +29,6 @@ This is the main module of SONATA's Specific Manager Registry plugin.
 """
 
 import logging
-import os
 import random
 import string
 import threading
@@ -41,13 +40,12 @@ import yaml
 from manobase import messaging
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-from specific_manager_registry import smr_engine as engine
-from specific_manager_registry import smr_topics as topic
+from smr import engine
+from smr import topics as topic
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("specific-manager-registry")
+LOG = logging.getLogger("smr")
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
 
 
 class SpecificManagerRegistry(ManoBasePlugin):
@@ -70,23 +68,19 @@ class SpecificManagerRegistry(ManoBasePlugin):
         """
         Declare topics to which we want to listen and define callback methods.
         """
-        self.manoconn.register_async_endpoint(self.on_ssm_onboard, topic.SSM_ONBOARD)
-        self.manoconn.register_async_endpoint(self.on_fsm_onboard, topic.FSM_ONBOARD)
-        self.manoconn.register_async_endpoint(
+        self.conn.register_async_endpoint(self.on_ssm_onboard, topic.SSM_ONBOARD)
+        self.conn.register_async_endpoint(self.on_fsm_onboard, topic.FSM_ONBOARD)
+        self.conn.register_async_endpoint(
             self.on_ssm_instantiate, topic.SSM_INSTANTIATE
         )
-        self.manoconn.register_async_endpoint(
+        self.conn.register_async_endpoint(
             self.on_fsm_instantiate, topic.FSM_INSTANTIATE
         )
-        self.manoconn.register_async_endpoint(self.on_ssm_update, topic.SSM_UPDATE)
-        self.manoconn.register_async_endpoint(self.on_fsm_update, topic.FSM_UPDATE)
-        self.manoconn.register_async_endpoint(
-            self.on_ssm_terminate, topic.SSM_TERMINATE
-        )
-        self.manoconn.register_async_endpoint(
-            self.on_fsm_terminate, topic.FSM_TERMINATE
-        )
-        self.manoconn.subscribe(self.on_ssm_status, topic.FSM_STATUS)
+        self.conn.register_async_endpoint(self.on_ssm_update, topic.SSM_UPDATE)
+        self.conn.register_async_endpoint(self.on_fsm_update, topic.FSM_UPDATE)
+        self.conn.register_async_endpoint(self.on_ssm_terminate, topic.SSM_TERMINATE)
+        self.conn.register_async_endpoint(self.on_fsm_terminate, topic.FSM_TERMINATE)
+        self.conn.subscribe(self.on_ssm_status, topic.FSM_STATUS)
 
     def on_ssm_onboard(self, message: Message):
 
@@ -444,7 +438,7 @@ class SpecificManagerRegistry(ManoBasePlugin):
                 self.on_ssm_register, topic.SSM_REGISTRATION
             )
             time.sleep(1)
-            if (201, 201):
+            if response == (201, 201):
                 LOG.info(
                     "Virtual Host: {0}-{1} has been created!".format(
                         sm_type, message["UUID"]
@@ -862,9 +856,9 @@ class SpecificManagerRegistry(ManoBasePlugin):
         if c >= 60:
             LOG.error("Updating failed for: {0}, timeout error".format(name))
 
-    def on_ssm_status(self, ch, method, properties, message):
-        message = yaml.load(message)
-        LOG.info("{0} status: {1}".format(message["name"], message["status"]))
+    def on_ssm_status(self, message: Message):
+        payload = message.payload
+        LOG.info("{0} status: {1}".format(payload["name"], payload["status"]))
 
     def id_generator(self):
         size = 10

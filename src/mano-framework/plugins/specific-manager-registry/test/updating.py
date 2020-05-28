@@ -27,9 +27,9 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
+
 import yaml
-import time
-import os
+
 from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +37,7 @@ LOG = logging.getLogger("fakeslm")
 LOG.setLevel(logging.DEBUG)
 
 
-class fakeslm_termination(object):
+class fakeslm_updating(object):
     def __init__(self):
 
         self.name = "fake-slm"
@@ -46,38 +46,30 @@ class fakeslm_termination(object):
 
         LOG.info("Starting SLM1:...")
 
+        # create and initialize broker connection
         self.manoconn = ManoBrokerRequestResponseConnection(self.name)
 
-        self.publish_terminating()
+        self.publish_updating()
 
-    def publish_terminating(self):
+    def publish_updating(self):
 
-        with open("test/test_descriptors/nsdt.yml") as nsd:
+        LOG.info("Sending updating request")
+        with open("test/test_descriptors/nsdu.yml") as nsd:
             self.manoconn.call_async(
                 self._on_publish_ins_response,
-                "specific.manager.registry.ssm.terminate",
+                "specific.manager.registry.ssm.update",
                 {
                     "NSD": yaml.load(nsd),
                     "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
                 },
             )
 
-        with open("test/test_descriptors/vnfdt1.yml") as vnfd1:
+        with open("test/test_descriptors/vnfdu.yml") as vnfd1:
             self.manoconn.call_async(
                 self._on_publish_ins_response,
-                "specific.manager.registry.fsm.terminate",
+                "specific.manager.registry.fsm.update",
                 {
                     "VNFD": yaml.load(vnfd1),
-                    "UUID": "c32b731f-7eea-4afd-9c60-0b0d0ea37eed",
-                },
-            )
-
-        with open("test/test_descriptors/vnfdt2.yml") as vnfd2:
-            self.manoconn.call_async(
-                self._on_publish_ins_response,
-                "specific.manager.registry.fsm.terminate",
-                {
-                    "VNFD": yaml.load(vnfd2),
                     "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
                 },
             )
@@ -93,7 +85,7 @@ class fakeslm_termination(object):
 
 
 def main():
-    fakeslm_termination()
+    fakeslm_updating()
 
 
 if __name__ == "__main__":

@@ -8,10 +8,9 @@ from test.onboarding import fakeslm_onboarding
 from test.terminating import fakeslm_termination
 from test.updating import fakeslm_updating
 
-import yaml
 
 from manobase.messaging import ManoBrokerRequestResponseConnection, Message
-from specific_manager_registry.specificmanagerregistry import SpecificManagerRegistry
+from smr.main import SpecificManagerRegistry
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("mano-plugins:smr_test")

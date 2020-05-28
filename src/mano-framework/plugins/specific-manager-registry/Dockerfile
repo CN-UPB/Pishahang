@@ -21,7 +21,7 @@ ENV broker_exchange son-kernel
 ENV DOCKER_HOST unix://var/run/docker.sock
 
 
-WORKDIR /mano-framework/specificmanager/specific-manager-registry
+WORKDIR /mano-framework/plugins/specific-manager-registry
 
 # Install dependencies first to speed up successive builds
 COPY poetry.lock pyproject.toml ./

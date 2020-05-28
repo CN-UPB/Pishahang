@@ -1,5 +1,5 @@
 """
-Copyright (c) 2015 SONATA-NFV
+Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
 ALL RIGHTS RESERVED.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,28 +14,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Neither the name of the SONATA-NFV [, ANY ADDITIONAL AFFILIATION]
+Neither the name of the SONATA-NFV, Pishahang,
 nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written
 permission.
 
-This work has been performed in the framework of the SONATA project,
+Parts of this work have been performed in the framework of the SONATA project,
 funded by the European Commission under Grant number 671517 through
 the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
-"""
-This contains topics that are used by SONATA's Specific Manager Registry plugin.
-"""
 
-SSM_ONBOARD = "specific.manager.registry.ssm.on-board"
-FSM_ONBOARD = "specific.manager.registry.fsm.on-board"
-SSM_INSTANTIATE = "specific.manager.registry.ssm.instantiate"
-FSM_INSTANTIATE = "specific.manager.registry.fsm.instantiate"
-SSM_REGISTRATION = "specific.manager.registry.ssm.registration"
-SSM_UPDATE = "specific.manager.registry.ssm.update"
-FSM_UPDATE = "specific.manager.registry.fsm.update"
-SSM_TERMINATE = "specific.manager.registry.ssm.terminate"
-FSM_TERMINATE = "specific.manager.registry.fsm.terminate"
-FSM_STATUS = "specific.manager.registry.ssm.status"
+from smr.main import main
+
+
+if __name__ == "__main__":
+    main()

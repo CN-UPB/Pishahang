@@ -65,14 +65,14 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/plugins/service-lifecycle-management
         - BUILD_SERVICES="mano-base servicelifecyclemanagement"
 
-    - name: specific-manager-registry
+    - name: smr
       <<: *python_job_config
       env:
-        - SERVICE_NAME=specificmanagerregistry
-        - COMPONENT_DIR=src/mano-framework/specificmanager/specific-manager-registry
-        - REQUIRED_MICROSERVICES=broker
-        - BUILD_SERVICES="mano-base specificmanagerregistry"
+        - SERVICE_NAME=specific-manager-registry
+        - COMPONENT_DIR=src/mano-framework/plugins/specific-manager-registry
+        - REQUIRED_MICROSERVICES="broker mongo pluginmanager"
+        - BUILD_SERVICES="mano-base specific-manager-registry"
 
   fast_finish: true
   allow_failures:
-    - name: specific-manager-registry # The tests have to be fixed yet
+    - name: smr # The tests have to be fixed yet

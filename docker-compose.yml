@@ -424,8 +424,8 @@ services:
       - pishanet
 
   # Specific Manager Registry (SMR)
-  specificmanagerregistry:
-    image: pishahang/mano-specificmanagerregistry:${PISHAHANG_VERSION}
+  specific-manager-registry:
+    image: pishahang/mano-plugin-specific-manager-registry:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - broker

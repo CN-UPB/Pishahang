@@ -27,7 +27,6 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 import logging
-import time
 
 import yaml
 
@@ -38,7 +37,7 @@ LOG = logging.getLogger("fakeslm")
 LOG.setLevel(logging.DEBUG)
 
 
-class fakeslm_onboarding(object):
+class fakeslm_instantiation(object):
     def __init__(self):
 
         self.name = "fake-slm"
@@ -50,41 +49,55 @@ class fakeslm_onboarding(object):
         # create and initialize broker connection
         self.manoconn = ManoBrokerRequestResponseConnection(self.name)
 
-        self.publish_nsd()
+        self.end = False
 
-    def publish_nsd(self):
+        self.publish_sid()
 
-        LOG.info("Sending onboard request")
+    def publish_sid(self):
+
+        LOG.info("Sending instantiate request")
         with open("test/test_descriptors/nsd.yml") as nsd:
             self.manoconn.call_async(
-                self._on_publish_nsd_response,
-                "specific.manager.registry.ssm.on-board",
-                {"NSD": yaml.load(nsd)},
+                self._on_publish_sid_response,
+                "specific.manager.registry.ssm.instantiate",
+                {
+                    "NSD": yaml.load(nsd),
+                    "UUID": "937213ae-890b-413c-a11e-45c62c4eee3f",
+                },
             )
 
         with open("test/test_descriptors/vnfd1.yml") as vnfd1:
             self.manoconn.call_async(
-                self._on_publish_nsd_response,
-                "specific.manager.registry.fsm.on-board",
-                {"VNFD": yaml.load(vnfd1)},
+                self._on_publish_sid_response,
+                "specific.manager.registry.fsm.instantiate",
+                {
+                    "VNFD": yaml.load(vnfd1),
+                    "UUID": "c32b731f-7eea-4afd-9c60-0b0d0ea37eed",
+                },
             )
 
         with open("test/test_descriptors/vnfd2.yml") as vnfd2:
             self.manoconn.call_async(
-                self._on_publish_nsd_response,
-                "specific.manager.registry.fsm.on-board",
-                {"VNFD": yaml.load(vnfd2)},
+                self._on_publish_sid_response,
+                "specific.manager.registry.fsm.instantiate",
+                {
+                    "VNFD": yaml.load(vnfd2),
+                    "UUID": "754fe4fe-96c9-484d-9683-1a1e8b9a31a3",
+                },
             )
 
-    def _on_publish_nsd_response(self, message: Message):
+    def _on_publish_sid_response(self, message: Message):
 
         response = message.payload
         if type(response) == dict:
-            print(response)
+            try:
+                print(response)
+            except BaseException as error:
+                print(error)
 
 
 def main():
-    fakeslm_onboarding()
+    fakeslm_instantiation()
 
 
 if __name__ == "__main__":

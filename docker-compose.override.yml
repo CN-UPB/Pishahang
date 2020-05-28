@@ -29,8 +29,8 @@ services:
     build: ./src/mano-framework/plugins/openstack-lifecycle-manager
 
   # Specific Manager Registry (SMR)
-  specificmanagerregistry:
-    build: ./src/mano-framework/specificmanager/specific-manager-registry
+  specific-manager-registry:
+    build: ./src/mano-framework/plugins/specific-manager-registry
 
   # Placement Plugin
   placementplugin:
