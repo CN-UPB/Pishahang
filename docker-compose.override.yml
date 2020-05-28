@@ -4,7 +4,7 @@ version: "3.3"
 services:
   # Influxdb for monitoring
   monitor-influxdb:
-    build: ./monitor/influxDB
+    build: ./src/monitor/influxDB
 
   # Repositories
   catalogue-repos:
@@ -14,35 +14,35 @@ services:
   # Base
   mano-base:
     image: pishahang/mano-base:${PISHAHANG_VERSION}
-    build: ./mano-framework/base
+    build: ./src/mano-framework/base
 
   # Plugin Manager
   pluginmanager:
-    build: ./mano-framework/pluginmanager
+    build: ./src/mano-framework/pluginmanager
 
   # Service Lifecycle Management Plugin
-  servicelifecyclemanagement:
-    build: ./mano-framework/plugins/service-lifecycle-management
+  service-lifecycle-manager:
+    build: ./src/mano-framework/plugins/service-lifecycle-manager
 
-  # Function Lifecycle Management Plugin
-  functionlifecyclemanagement:
-    build: ./mano-framework/plugins/function-lifecycle-management
+  # OpenStack Lifecycle Manager
+  openstack-lifecycle-manager:
+    build: ./src/mano-framework/plugins/openstack-lifecycle-manager
 
   # Specific Manager Registry (SMR)
-  specificmanagerregistry:
-    build: ./mano-framework/specificmanager/specific-manager-registry
+  specific-manager-registry:
+    build: ./src/mano-framework/plugins/specific-manager-registry
 
   # Placement Plugin
   placementplugin:
-    build: ./mano-framework/plugins/placement
+    build: ./src/mano-framework/plugins/placement
 
-  # Cloud Service Life-cycle Management Plugin
-  cloudservicelifecyclemanagement:
-    build: ./mano-framework/plugins/cloud-service-lifecycle-management
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
   # SDN Plugin
   sdn-plugin:
-    build: ./mano-framework/plugins/sdn
+    build: ./src/mano-framework/plugins/sdn
 
   # VIM Adaptor
   vim-adaptor:
@@ -51,15 +51,15 @@ services:
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
-    build: ./monitor/pushgateway
+    build: ./src/monitor/pushgateway
 
   # Monitoring – Prometheus
   monitor-prometheus:
-    build: ./monitor/prometheus
+    build: ./src/monitor/prometheus
 
   # Monitoring Manager
   monitor-manager:
-    build: ./monitor/manager
+    build: ./src/monitor/manager
 
   # Monitoring – Probe
   monitor-probe:

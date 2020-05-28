@@ -1,6 +1,3 @@
-git:
-  submodules: false
-
 _docker_compose_setup_commands: &docker_compose_setup_commands
   - ./generate-env.sh 127.0.0.1 localhost
   - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi
@@ -25,7 +22,7 @@ jobs:
       <<: *python_job_config
       env:
         - SERVICE_NAME=mano-base
-        - COMPONENT_DIR=mano-framework/base
+        - COMPONENT_DIR=src/mano-framework/base
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES=mano-base
 
@@ -33,49 +30,49 @@ jobs:
       <<: *python_job_config
       env:
         - SERVICE_NAME=pluginmanager
-        - COMPONENT_DIR=mano-framework/pluginmanager
+        - COMPONENT_DIR=src/mano-framework/pluginmanager
         - REQUIRED_MICROSERVICES="broker mongo"
         - BUILD_SERVICES="mano-base pluginmanager"
 
-    - name: clm
+    - name: klm
       <<: *python_job_config
       script: *docker_compose_build_command # There are no tests :(
       env:
-        - SERVICE_NAME=cloudservicelifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/cloud-service-lifecycle-management
-        - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
+        - SERVICE_NAME=kubernetes-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/kubernetes-lifecycle-manager
+        - BUILD_SERVICES="mano-base kubernetes-lifecycle-manager"
 
-    - name: flm
+    - name: olm
       <<: *python_job_config
       script: *docker_compose_build_command # There are no tests :(
       env:
-        - SERVICE_NAME=functionlifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/function-lifecycle-management
-        - BUILD_SERVICES="mano-base functionlifecyclemanagement"
+        - SERVICE_NAME=openstack-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/openstack-lifecycle-manager
+        - BUILD_SERVICES="mano-base openstack-lifecycle-manager"
 
     - name: placement
       <<: *python_job_config
       script: *docker_compose_build_command # There are no tests :(
       env:
         - SERVICE_NAME=placementplugin
-        - COMPONENT_DIR=mano-framework/plugins/placement
+        - COMPONENT_DIR=src/mano-framework/plugins/placement
         - BUILD_SERVICES="mano-base placementplugin"
 
     - name: slm
       <<: *python_job_config
       env:
-        - SERVICE_NAME=servicelifecyclemanagement
-        - COMPONENT_DIR=mano-framework/plugins/service-lifecycle-management
-        - BUILD_SERVICES="mano-base servicelifecyclemanagement"
+        - SERVICE_NAME=service-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/service-lifecycle-manager
+        - BUILD_SERVICES="mano-base service-lifecycle-manager"
 
-    - name: specific-manager-registry
+    - name: smr
       <<: *python_job_config
       env:
-        - SERVICE_NAME=specificmanagerregistry
-        - COMPONENT_DIR=mano-framework/specificmanager/specific-manager-registry
-        - REQUIRED_MICROSERVICES=broker
-        - BUILD_SERVICES="mano-base specificmanagerregistry"
+        - SERVICE_NAME=specific-manager-registry
+        - COMPONENT_DIR=src/mano-framework/plugins/specific-manager-registry
+        - REQUIRED_MICROSERVICES="broker mongo pluginmanager"
+        - BUILD_SERVICES="mano-base specific-manager-registry"
 
   fast_finish: true
   allow_failures:
-    - name: specific-manager-registry # The tests have to be fixed yet
+    - name: smr # The tests have to be fixed yet

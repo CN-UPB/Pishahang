@@ -388,8 +388,8 @@ services:
       - "8001:8001"
 
   # Service Lifecycle Management Plugin
-  servicelifecyclemanagement:
-    image: pishahang/mano-plugin-service-lifecycle-management:${PISHAHANG_VERSION}
+  service-lifecycle-manager:
+    image: pishahang/mano-plugin-service-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -405,9 +405,9 @@ services:
     networks:
       - pishanet
 
-  # Function Lifecycle Management Plugin
-  functionlifecyclemanagement:
-    image: pishahang/mano-plugin-function-lifecycle-management:${PISHAHANG_VERSION}
+  # OpenStack Lifecycle Manager
+  openstack-lifecycle-manager:
+    image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -424,8 +424,8 @@ services:
       - pishanet
 
   # Specific Manager Registry (SMR)
-  specificmanagerregistry:
-    image: pishahang/mano-specificmanagerregistry:${PISHAHANG_VERSION}
+  specific-manager-registry:
+    image: pishahang/mano-plugin-specific-manager-registry:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - broker
@@ -448,9 +448,9 @@ services:
     networks:
       - pishanet
 
-  # Cloud Service Lifecycle Management Plugin
-  cloudservicelifecyclemanagement:
-    image: pishahang/mano-plugin-cloud-service-lifecycle-management:${PISHAHANG_VERSION}
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    image: pishahang/mano-plugin-kubernetes-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi

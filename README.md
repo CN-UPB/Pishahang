@@ -3,7 +3,7 @@
 [![Slack](https://badgen.net/badge/slack/join%20chat/green?icon=slack)](https://join.slack.com/t/pishahang/shared_invite/zt-e5b6rwj5-PuM3WYIaQvRwHV4GC7pHCw)
 
 <p align="center">
-    <img width="600" src="./figures/pishahang-logo.svg">
+    <img width="600" src="./docs/figures/pishahang-logo.svg">
 </p>
 
 # Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
