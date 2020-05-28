@@ -61,9 +61,9 @@ jobs:
     - name: slm
       <<: *python_job_config
       env:
-        - SERVICE_NAME=servicelifecyclemanagement
-        - COMPONENT_DIR=src/mano-framework/plugins/service-lifecycle-management
-        - BUILD_SERVICES="mano-base servicelifecyclemanagement"
+        - SERVICE_NAME=service-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/service-lifecycle-manager
+        - BUILD_SERVICES="mano-base service-lifecycle-manager"
 
     - name: smr
       <<: *python_job_config

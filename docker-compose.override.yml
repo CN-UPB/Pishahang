@@ -21,8 +21,8 @@ services:
     build: ./src/mano-framework/pluginmanager
 
   # Service Lifecycle Management Plugin
-  servicelifecyclemanagement:
-    build: ./src/mano-framework/plugins/service-lifecycle-management
+  service-lifecycle-manager:
+    build: ./src/mano-framework/plugins/service-lifecycle-manager
 
   # OpenStack Lifecycle Manager
   openstack-lifecycle-manager:

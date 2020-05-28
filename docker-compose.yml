@@ -388,8 +388,8 @@ services:
       - "8001:8001"
 
   # Service Lifecycle Management Plugin
-  servicelifecyclemanagement:
-    image: pishahang/mano-plugin-service-lifecycle-management:${PISHAHANG_VERSION}
+  service-lifecycle-manager:
+    image: pishahang/mano-plugin-service-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
