@@ -14,42 +14,51 @@ resource "kubernetes_replication_controller" "{{ vdu.getId() }}-{{ serviceId }}"
       vdu = "{{ vdu.getId() }}"
     }
     template {
-      container {
-        image = "{{ vdu.getServiceImage() }}"
-        name  = "{{ vdu.getId() }}-{{ serviceInstanceId }}"
-
-        {% for port in vdu.getServicePorts() %}
-        port {
-            {% if port.getName() != null %}
-            name = "{{ port.getName() }}"
-            {% endif %}
-            {% if port.getProtocol() != null %}
-            protocol = "{{ port.getProtocol() }}"
-            {% endif %}
-            container_port = {{ port.getTargetPort() }}
+      metadata {
+        name = "{{ vdu.getId() }}-{{ serviceId }}"
+        labels {
+          service = "{{ serviceInstanceId }}"
+          vdu = "{{ vdu.getId() }}"
         }
-        {% endfor %}
+      }  
+      spec {
+        container {
+            image = "{{ vdu.getServiceImage() }}"
+            name  = "{{ vdu.getId() }}-{{ serviceInstanceId }}"
 
-        {% if vdu.getResourceRequirements() != null %}
-            resources {
-              requests {
-                {% if vdu.getResourceRequirements().getCpu() != null %}
-                cpu = {{ vdu.getResourceRequirements().getCpu().getvCpus() }}
+            {% for port in vdu.getServicePorts() %}
+            port {
+                {% if port.getName() != null %}
+                name = "{{ port.getName() }}"
                 {% endif %}
-
-                {% if vdu.getResourceRequirements().getMemory() != null %}
-                memory = "{{ vdu.getResourceRequirements().getMemory().getSize() }}{{ vdu.getResourceRequirements().getMemory().getSizeUnit() }}"
+                {% if port.getProtocol() != null %}
+                protocol = "{{ port.getProtocol() }}"
                 {% endif %}
-              }
+                container_port = {{ port.getTargetPort() }}
             }
-        {% endif %}
+            {% endfor %}
 
-        {% for env in vdu.getEnvironmentVariables() %}
-          env {
-            name = "{{ env.getName() }}"
-            value = "{{ env.getValue() }}"
-          }
-        {% endfor %}
+            {% if vdu.getResourceRequirements() != null %}
+                resources {
+                requests {
+                    {% if vdu.getResourceRequirements().getCpu() != null %}
+                    cpu = {{ vdu.getResourceRequirements().getCpu().getvCpus() }}
+                    {% endif %}
+
+                    {% if vdu.getResourceRequirements().getMemory() != null %}
+                    memory = "{{ vdu.getResourceRequirements().getMemory().getSize() }}{{ vdu.getResourceRequirements().getMemory().getSizeUnit() }}"
+                    {% endif %}
+                }
+                }
+            {% endif %}
+
+            {% for env in vdu.getEnvironmentVariables() %}
+            env {
+                name = "{{ env.getName() }}"
+                value = "{{ env.getValue() }}"
+            }
+            {% endfor %}
+        }
       }
     }
   }

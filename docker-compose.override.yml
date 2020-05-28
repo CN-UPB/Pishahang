@@ -4,49 +4,45 @@ version: "3.3"
 services:
   # Influxdb for monitoring
   monitor-influxdb:
-    build: ./monitor/influxDB
+    build: ./src/monitor/influxDB
 
   # Repositories
   catalogue-repos:
     build: ./son-catalogue-repos
 
   # MANO framework -------------------------------------------------------------
-  # MANO base
+  # Base
   mano-base:
     image: pishahang/mano-base:${PISHAHANG_VERSION}
-    build: ./mano-framework/base
+    build: ./src/mano-framework/base
 
-  # MANO Plugin Manager
+  # Plugin Manager
   pluginmanager:
-    build: ./mano-framework/pluginmanager
+    build: ./src/mano-framework/pluginmanager
 
-  # MANO Service Life-cycle Management
-  servicelifecyclemanagement:
-    build: ./mano-framework/plugins/service-lifecycle-management
+  # Service Lifecycle Management Plugin
+  service-lifecycle-manager:
+    build: ./src/mano-framework/plugins/service-lifecycle-manager
 
-  # MANO Function Lifecycle Management Plugin
-  functionlifecyclemanagement:
-    build: ./mano-framework/plugins/function-lifecycle-management
+  # OpenStack Lifecycle Manager
+  openstack-lifecycle-manager:
+    build: ./src/mano-framework/plugins/openstack-lifecycle-manager
 
-  # MANO Specific Manager Registry (SMR)
-  specificmanagerregistry:
-    build: ./mano-framework/specificmanager/specific-manager-registry
+  # Specific Manager Registry (SMR)
+  specific-manager-registry:
+    build: ./src/mano-framework/plugins/specific-manager-registry
 
-  # MANO Placement Executive Plugin
-  placementexecutive:
-    build: ./mano-framework/plugins/placement-executive
-
-  # MANO Placement Plugin
+  # Placement Plugin
   placementplugin:
-    build: ./mano-framework/plugins/placement
+    build: ./src/mano-framework/plugins/placement
 
-  # MANO Cloud Service Life-cycle Management (CLM)
-  cloudservicelifecyclemanagement:
-    build: ./mano-framework/plugins/cloud-service-lifecycle-management
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
-  # MANO SDN
+  # SDN Plugin
   sdn-plugin:
-    build: ./mano-framework/plugins/sdn
+    build: ./src/mano-framework/plugins/sdn
 
   # VIM Adaptor
   vim-adaptor:
@@ -55,15 +51,15 @@ services:
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
-    build: ./monitor/pushgateway
+    build: ./src/monitor/pushgateway
 
   # Monitoring – Prometheus
   monitor-prometheus:
-    build: ./monitor/prometheus
+    build: ./src/monitor/prometheus
 
   # Monitoring Manager
   monitor-manager:
-    build: ./monitor/manager
+    build: ./src/monitor/manager
 
   # Monitoring – Probe
   monitor-probe:

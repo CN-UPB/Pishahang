@@ -372,8 +372,7 @@ services:
       - "4002:4011"
 
   # MANO framework -------------------------------------------------------------
-  # MANO Plug-in Manager
-  # mano/pluginmgr.yml
+  # Plugin Manager
   pluginmanager:
     image: pishahang/mano-pluginmanager:${PISHAHANG_VERSION}
     restart: always
@@ -388,10 +387,9 @@ services:
     ports:
       - "8001:8001"
 
-  # MANO Service Life-cycle Management
-  # mano/slm.yml
-  servicelifecyclemanagement:
-    image: pishahang/mano-plugin-service-lifecycle-management:${PISHAHANG_VERSION}
+  # Service Lifecycle Management Plugin
+  service-lifecycle-manager:
+    image: pishahang/mano-plugin-service-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -407,10 +405,9 @@ services:
     networks:
       - pishanet
 
-  # MANO Function Lifecycle Management Plugin
-  # mano/flm.yml
-  functionlifecyclemanagement:
-    image: pishahang/mano-plugin-function-lifecycle-management:${PISHAHANG_VERSION}
+  # OpenStack Lifecycle Manager
+  openstack-lifecycle-manager:
+    image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -426,10 +423,9 @@ services:
     networks:
       - pishanet
 
-  # MANO Specific Manager Registry (SMR)
-  # mano/smr.yml
-  specificmanagerregistry:
-    image: pishahang/mano-specificmanagerregistry:${PISHAHANG_VERSION}
+  # Specific Manager Registry (SMR)
+  specific-manager-registry:
+    image: pishahang/mano-plugin-specific-manager-registry:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - broker
@@ -441,20 +437,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  # MANO Placement Executive Plugin
-  # mano/placement.yml
-  placementexecutive:
-    image: pishahang/mano-plugin-placement-executive:${PISHAHANG_VERSION}
-    restart: always
-    depends_on:
-      - broker
-    environment:
-      broker_host: amqp://guest:guest@broker:5672/%2F
-    networks:
-      - pishanet
-
-  # MANO Placement Plugin
-  # mano/placementplugin.yml
+  # Placement Plugin
   placementplugin:
     image: pishahang/mano-plugin-placement:${PISHAHANG_VERSION}
     restart: always
@@ -465,10 +448,9 @@ services:
     networks:
       - pishanet
 
-  # MANO Cloud Service Life-cycle Management (CLM)
-  # mano/clm.yml
-  cloudservicelifecyclemanagement:
-    image: pishahang/mano-plugin-cloud-service-lifecycle-management:${PISHAHANG_VERSION}
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    image: pishahang/mano-plugin-kubernetes-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi
@@ -484,8 +466,7 @@ services:
     networks:
       - pishanet
 
-  # MANO SDN
-  # mano/sdn.yml
+  # SDN Plugin
   sdn-plugin:
     image: pishahang/mano-plugin-sdn:${PISHAHANG_VERSION}
     restart: always
@@ -510,7 +491,6 @@ services:
 
   # Infastructure Adaptor ------------------------------------------------------
   # Infrastructure Abstractor VIM Adaptor
-  # ifta/vim-adaptor.yml
   vim-adaptor:
     image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
     restart: always
@@ -532,8 +512,7 @@ services:
     volumes:
       - /root/terraform_data
 
-  # Infrastructure Abstractor WIM Adaptor
-  # ifta/wim-adaptor.yml
+  # Infrastructure Abstractor WIM Adaptor (to be removed)
   wim-adaptor:
     image: sonatanfv/wim-adaptor:${SONATA_VERSION}
     restart: always
@@ -552,7 +531,6 @@ services:
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
-  # monit/pushgw.yml
   monitor-pushgateway:
     image: pishahang/monitor-pushgateway:${PISHAHANG_VERSION}
     restart: always
@@ -565,7 +543,6 @@ services:
       - "9091:9091"
 
   # Monitoring – Prometheus
-  # monit/prometheus.yml
   monitor-prometheus:
     image: pishahang/monitor-prometheus:${PISHAHANG_VERSION}
     restart: always
@@ -585,7 +562,6 @@ services:
       - "8002:8001"
 
   # Monitoring Manager
-  # monit/monitmgr.yml
   monitor-manager:
     image: pishahang/monitor-manager:${PISHAHANG_VERSION}
     restart: always
@@ -598,7 +574,6 @@ services:
       - "8888:8888"
 
   # Monitoring – Probe
-  # monit/probe.yml
   monitor-probe:
     image: sonatanfv/son-monitor-probe:${SONATA_VERSION}
     restart: always

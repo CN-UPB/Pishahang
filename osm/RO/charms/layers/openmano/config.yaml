@@ -1,9 +1,0 @@
-options:
-  repository:
-    type: string
-    default: "https://osm.etsi.org/gerrit/osm/RO.git"
-    description: "The Git repository to install OpenMano from."
-  branch:
-    type: string
-    default: "master"
-    description: "The Git branch to install."

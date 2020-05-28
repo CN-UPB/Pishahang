@@ -1,7 +1,0 @@
-#include MANIFEST.in
-#include requirements.txt
-include README.rst
-include openmano
-include openmanod
-recursive-include osm_ro *
-
