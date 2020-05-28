@@ -34,13 +34,13 @@ jobs:
         - REQUIRED_MICROSERVICES="broker mongo"
         - BUILD_SERVICES="mano-base pluginmanager"
 
-    - name: clm
+    - name: klm
       <<: *python_job_config
       script: *docker_compose_build_command # There are no tests :(
       env:
-        - SERVICE_NAME=cloudservicelifecyclemanagement
-        - COMPONENT_DIR=src/mano-framework/plugins/cloud-service-lifecycle-management
-        - BUILD_SERVICES="mano-base cloudservicelifecyclemanagement"
+        - SERVICE_NAME=kubernetes-lifecycle-manager
+        - COMPONENT_DIR=src/mano-framework/plugins/kubernetes-lifecycle-manager
+        - BUILD_SERVICES="mano-base kubernetes-lifecycle-manager"
 
     - name: olm
       <<: *python_job_config

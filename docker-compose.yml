@@ -405,7 +405,7 @@ services:
     networks:
       - pishanet
 
-  # Function Lifecycle Management Plugin
+  # OpenStack Lifecycle Manager
   openstack-lifecycle-manager:
     image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
@@ -448,9 +448,9 @@ services:
     networks:
       - pishanet
 
-  # Cloud Service Lifecycle Management Plugin
-  cloudservicelifecyclemanagement:
-    image: pishahang/mano-plugin-cloud-service-lifecycle-management:${PISHAHANG_VERSION}
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    image: pishahang/mano-plugin-kubernetes-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - son-gtkapi

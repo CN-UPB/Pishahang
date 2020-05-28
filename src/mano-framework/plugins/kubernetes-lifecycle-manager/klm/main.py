@@ -33,17 +33,17 @@ import uuid
 
 import requests
 
-from clm import clm_helpers as tools
-from clm import clm_topics as t
+from klm import helpers as tools
+from klm import topics as t
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("plugin:clm")
+LOG = logging.getLogger("klm")
 LOG.setLevel(logging.INFO)
 
 
-class CloudServiceLifecycleManager(ManoBasePlugin):
+class KubernetesLifecycleManager(ManoBasePlugin):
     """
     This class implements the cloud service lifecycle manager.
     """
@@ -62,11 +62,11 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         # Create the ledger that saves state
         self.cloud_services = {}
-        self.clm_ledger = {}
+        self.ledger = {}
         self.thrd_pool = pool.ThreadPoolExecutor(max_workers=10)
 
         super().__init__(
-            version="0.1-dev", description="This is the CLM plugin", **kwargs
+            version="0.1-dev", description="Kubernetes Lifecycle Manager", **kwargs
         )
 
     def declare_subscriptions(self):
@@ -77,17 +77,6 @@ class CloudServiceLifecycleManager(ManoBasePlugin):
 
         # The topic on which deploy requests are posted.
         self.manoconn.subscribe(self.cloud_service_instance_create, t.CS_DEPLOY)
-
-    def on_lifecycle_start(self, message: Message):
-        """
-        This event is called when the plugin has successfully registered itself
-        to the plugin manager and received its lifecycle.start event from the
-        plugin manager. The plugin is expected to do its work after this event.
-
-        :return:
-        """
-        super().on_lifecycle_start(message)
-        LOG.info("CLM started and operational.")
 
     ##########################
     # CLM Threading management
@@ -395,7 +384,7 @@ def main():
     """
     Entry point to start plugin.
     """
-    CloudServiceLifecycleManager()
+    KubernetesLifecycleManager()
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ services:
   servicelifecyclemanagement:
     build: ./src/mano-framework/plugins/service-lifecycle-management
 
-  # Function Lifecycle Management Plugin
+  # OpenStack Lifecycle Manager
   openstack-lifecycle-manager:
     build: ./src/mano-framework/plugins/openstack-lifecycle-manager
 
@@ -36,9 +36,9 @@ services:
   placementplugin:
     build: ./src/mano-framework/plugins/placement
 
-  # Cloud Service Life-cycle Management Plugin
-  cloudservicelifecyclemanagement:
-    build: ./src/mano-framework/plugins/cloud-service-lifecycle-management
+  # Kubernetes Lifecycle Manager
+  kubernetes-lifecycle-manager:
+    build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
   # SDN Plugin
   sdn-plugin:
