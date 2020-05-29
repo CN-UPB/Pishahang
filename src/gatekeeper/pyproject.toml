@@ -18,7 +18,7 @@ flask-jwt-extended = "^3.24.1"
 fakeredis = "^1.4.0"
 jsonschema = "^3.2.0"
 wheel = "^0.34.2"
-manobase = { path = "../../mano-framework/base" }
+manobase = { path = "../mano-framework/base" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
