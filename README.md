@@ -1,11 +1,14 @@
-[![Build Status](http://pishahang-jenkins.cs.upb.de:8080/buildStatus/icon?job=pishahang)](http://pishahang-jenkins.cs.upb.de:8080/job/pishahang/)
-[![Documentation Status](https://readthedocs.org/projects/pishahang/badge/?version=latest)](https://pishahang.readthedocs.io)
+<div align="center">
+  <img alt="Pishahang logo" width="500" src="./docs/figures/pishahang-logo.svg">
+    
+  **Joint Orchestration of Network Function Chains and Distributed Cloud Applications**
+  
+  [![Build Status](https://travis-ci.com/CN-UPB/Pishahang.svg?branch=master)](https://travis-ci.com/CN-UPB/Pishahang) [![Documentation Status](https://readthedocs.org/projects/pishahang/badge/?version=latest)](https://pishahang.readthedocs.io) [![Slack](https://badgen.net/badge/slack/join%20chat/green?icon=slack)](https://join.slack.com/t/pishahang/shared_invite/zt-e5b6rwj5-PuM3WYIaQvRwHV4GC7pHCw)
 
-<p align="center">
-    <img width="600" src="./figures/pishahang-logo.svg">
-</p>
+</div>
 
-# Pishahang: Joint Orchestration of Network Function Chains and Distributed Cloud Applications
+
+
 
 Pishahang is a framework consolidated from state-of-the-art NFV and Cloud management and orchestration tools and
 technologies to provide orchestration for services deployed across multiple technological domains.

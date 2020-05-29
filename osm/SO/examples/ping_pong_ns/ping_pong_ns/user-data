@@ -1,8 +1,0 @@
-#cloud-config
-password: fedora
-chpasswd: { expire: False }
-ssh_pwauth: True
-runcmd:
-  - [ systemctl, daemon-reload ]
-  - [ systemctl, enable, ping.service ]
-  - [ systemctl, start, --no-block, ping.service ]

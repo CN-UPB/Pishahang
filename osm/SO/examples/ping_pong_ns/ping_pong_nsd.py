@@ -1,1 +1,0 @@
-rift/mano/examples/ping_pong_nsd.py

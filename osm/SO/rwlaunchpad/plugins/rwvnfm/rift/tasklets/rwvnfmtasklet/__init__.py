@@ -1,1 +1,0 @@
-from .rwvnfmtasklet import VnfmTasklet
