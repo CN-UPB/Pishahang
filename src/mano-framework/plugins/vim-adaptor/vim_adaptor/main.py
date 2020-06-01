@@ -20,13 +20,15 @@ without specific prior written permission.
 """
 
 import logging
-import time
-
-from config2.config import config
+import json
 from mongoengine import connect
+from config2.config import config
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
+from vim_adaptor.models.vims import Vim, Aws, Kubernetes, OpenStack
+from vim_adaptor.util.mongoengine_custom_json import to_custom_dict
+from vim_adaptor.util.mongoengine_custom_json import to_custom_json
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -50,24 +52,77 @@ class VimAdaptor(ManoBasePlugin):
         kwargs.update({"version": "0.1.0", "start_running": False})
         super().__init__(*args, **kwargs)
 
-    def run(self):
-        """
-        To be overwritten by subclass
-        """
-        # go into infinity loop (we could do anything here)
-        while True:
-            time.sleep(1)
-            print("lol")
-
     def declare_subscriptions(self):
         super().declare_subscriptions()
+        self.manoconn.register_async_endpoint(
+            self.add_vim, "infrastructure.management.compute.add"
+        )
+        self.manoconn.register_async_endpoint(
+            self.delete_vim, "infrastructure.management.compute.remove"
+        )
+        self.manoconn.register_async_endpoint(
+            self.get_vim, "infrastructure.management.compute.list"
+        )
 
     def on_lifecycle_start(self, message: Message):
         super().on_lifecycle_start(message)
         LOG.info("VIM Adaptor started.")
 
+    def add_vim(self, message: Message):
+        vim_type = message.payload["type"]
+        if vim_type == "aws":
+            vim = Aws(
+                vimCity=message.payload["city"],
+                vimName=message.payload["name"],
+                country=message.payload["country"],
+                accessKey=message.payload["accessKey"],
+                secretKey=message.payload["secretKey"],
+                type=message.payload["type"],
+            )
+        elif vim_type == "kubernetes":
+            vim = Kubernetes(
+                vimName=message.payload["name"],
+                country=message.payload["country"],
+                vimCity=message.payload["city"],
+                type=message.payload["type"],
+                vimAddress=message.payload["vimAddress"],
+                serviceToken=message.payload["serviceToken"],
+                ccc=message.payload["ccc"],
+            )
+        elif vim_type == "openStack":
+            vim = OpenStack(
+                vimName=message.payload["name"],
+                country=message.payload["country"],
+                vimCity=message.payload["vimCity"],
+                vimAddress=message.payload["vimAddress"],
+                tenantId=message.payload["tenantId"],
+                tenantExternalNetworkId=message.payload["tenantExternalNetworkId"],
+                tenantExternalRouterId=message.payload["tenantExternalRouterId"],
+                username=message.payload["username"],
+                password=message.payload["password"],
+                type=message.payload["type"],
+            )
+        LOG.debug("Add vim: %s", message.payload)
+        vim.save()
+
+    def get_vim(self, message: Message):
+        vims = Vim.objects
+        LOG.debug("List of vim: %s", message.payload)
+        return vims
+
+    def delete_vim(self, message: Message):
+        id = Message.payload["uuid"]
+        vim = Vim.objects(id=id).get()
+        LOG.debug("Vim Delete: %s", message.payload)
+        vim.delete()
+
 
 def main():
+    # Connect to MongoDB
+    LOG.debug("Connecting to MongoDB at %s", config.mongo)
+    connect(host=config.mongo)
+    LOG.info("Connected to MongoDB")
+
     VimAdaptor()
 
 

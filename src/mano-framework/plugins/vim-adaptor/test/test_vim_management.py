@@ -24,4 +24,7 @@ from vim_adaptor.main import VimAdaptor
 
 
 def test_add_vim(adaptor: VimAdaptor, connection: Connection):
-    pass
+    response = connection.call_sync(
+        "infrastructure.management.compute.add", {"type": "AWS"}
+    )
+    assert response.payload == "OK"
