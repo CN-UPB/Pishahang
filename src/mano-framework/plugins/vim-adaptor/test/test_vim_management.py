@@ -21,8 +21,10 @@ without specific prior written permission.
 
 from manobase.messaging import ManoBrokerRequestResponseConnection as Connection
 from vim_adaptor.main import VimAdaptor
+import pytest
 
 
+@pytest.mark.skip
 def test_add_vim(adaptor: VimAdaptor, connection: Connection):
     response = connection.call_sync(
         "infrastructure.management.compute.add", {"type": "AWS"}
