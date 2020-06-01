@@ -1,4 +1,5 @@
-import os
+
+from pathlib import Path
 from typing import List
 
 from appcfg import get_config
@@ -18,16 +19,16 @@ class TerraformFunctionManager:
         self.function_id = function_id
         self.descriptor = descriptor
         self.vars = vars
-        self._template_dir = os.path.join(config["terraform_workdir"], self.function_id)
+        self._template_dir: Path = Path(config["terraform_workdir"]) / self.function_id
 
         self._terraform = Terraform(
             working_dir=self._template_dir, terraform_bin_path="./terraform"
         )
 
-        # Create a directory for compiled templates
-        os.makedirs(self._template_dir, exist_ok=True)
+        # Create self._template_dir
+        self._template_dir.mkdir(parents=True, exist_ok=True)
 
-    def _compile_templates(self, templates: List[str], context={}):
+    def _compile_templates(self, templates: List[Path], context={}):
         """
         Compile the templates from the file paths specified in `templates` and store
         them in `self._template_dir`.
@@ -41,11 +42,11 @@ class TerraformFunctionManager:
         context.setdefault("descriptor", self.descriptor)
 
         for file_path in templates:
-            target_path = os.path.join(self._template_dir, os.path.basename(file_path))
+            target_path = self._template_dir / Path(file_path).name
 
-            with open(file_path) as input_file:
+            with file_path.open() as input_file:
                 template = Template(input_file.read())
-                with open(target_path, "w") as output_file:
+                with target_path.open("w") as output_file:
                     output_file.write(template.render(context))
 
     def _tf_init(self):

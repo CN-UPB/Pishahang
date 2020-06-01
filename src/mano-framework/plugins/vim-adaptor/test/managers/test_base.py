@@ -1,16 +1,14 @@
-import os
+from pathlib import Path
 
 from vim_adaptor.managers.base import TerraformFunctionManager
 
 
 def test_template_compilation(fixture_fs):
     manager = TerraformFunctionManager("my-function-id", {"id": "my-descriptor-id"})
-    assert os.path.exists(manager._template_dir)
+    assert manager._template_dir.exists()
 
-    manager._compile_templates(
-        [os.path.join(fixture_fs.fixture_dir, "simple_template.tmpl")]
-    )
-    target_file = os.path.join(manager._template_dir, "simple_template.tmpl")
-    assert os.path.exists(target_file)
-    with open(target_file) as f:
+    manager._compile_templates([fixture_fs.fixture_dir / "simple_template.tmpl"])
+    target_file: Path = manager._template_dir / "simple_template.tmpl"
+    assert target_file.exists()
+    with target_file.open() as f:
         assert "Descriptor Id: my-descriptor-id" == f.read()

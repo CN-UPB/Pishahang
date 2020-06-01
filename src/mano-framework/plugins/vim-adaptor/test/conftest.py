@@ -1,15 +1,16 @@
-import os
+from pathlib import Path
 
 import pytest
+from pyfakefs.fake_filesystem import FakeFilesystem
 
 from manobase.messaging import ManoBrokerRequestResponseConnection
 from vim_adaptor.main import VimAdaptor
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
+FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture
-def fixture_fs(fs):
+def fixture_fs(fs: FakeFilesystem):
     fs.add_real_directory(FIXTURE_DIR)
     fs.fixture_dir = FIXTURE_DIR
     yield fs
