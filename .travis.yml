@@ -73,6 +73,13 @@ jobs:
         - REQUIRED_MICROSERVICES="broker mongo pluginmanager"
         - BUILD_SERVICES="mano-base specific-manager-registry"
 
+    - name: vim-adaptor
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=vim-adaptor
+        - COMPONENT_DIR=src/mano-framework/plugins/vim-adaptor
+        - BUILD_SERVICES="mano-base vim-adaptor"
+
   fast_finish: true
   allow_failures:
     - name: smr # The tests have to be fixed yet
