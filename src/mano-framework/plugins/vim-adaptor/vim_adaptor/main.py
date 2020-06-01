@@ -20,15 +20,13 @@ without specific prior written permission.
 """
 
 import logging
-import json
+
+from appcfg import get_config
 from mongoengine import connect
-from config2.config import config
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-from vim_adaptor.models.vims import Vim, Aws, Kubernetes, OpenStack
-from vim_adaptor.util.mongoengine_custom_json import to_custom_dict
-from vim_adaptor.util.mongoengine_custom_json import to_custom_json
+from vim_adaptor.models.vims import Aws, Kubernetes, OpenStack, Vim
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -36,6 +34,8 @@ logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
 
 LOG = logging.getLogger("plugin:vim-adaptor")
 LOG.setLevel(logging.DEBUG)
+
+config = get_config(__name__)
 
 
 class VimAdaptor(ManoBasePlugin):
@@ -45,8 +45,8 @@ class VimAdaptor(ManoBasePlugin):
 
     def __init__(self, *args, **kwargs):
         # Connect to MongoDB
-        LOG.debug("Connecting to MongoDB at %s", config.mongo)
-        connect(host=config.mongo)
+        LOG.debug("Connecting to MongoDB at %s", config["mongo"])
+        connect(host=config["mongo"])
         LOG.info("Connected to MongoDB")
 
         kwargs.update({"version": "0.1.0", "start_running": False})
@@ -54,13 +54,13 @@ class VimAdaptor(ManoBasePlugin):
 
     def declare_subscriptions(self):
         super().declare_subscriptions()
-        self.manoconn.register_async_endpoint(
+        self.conn.register_async_endpoint(
             self.add_vim, "infrastructure.management.compute.add"
         )
-        self.manoconn.register_async_endpoint(
+        self.conn.register_async_endpoint(
             self.delete_vim, "infrastructure.management.compute.remove"
         )
-        self.manoconn.register_async_endpoint(
+        self.conn.register_async_endpoint(
             self.get_vim, "infrastructure.management.compute.list"
         )
 
@@ -118,11 +118,6 @@ class VimAdaptor(ManoBasePlugin):
 
 
 def main():
-    # Connect to MongoDB
-    LOG.debug("Connecting to MongoDB at %s", config.mongo)
-    connect(host=config.mongo)
-    LOG.info("Connected to MongoDB")
-
     VimAdaptor()
 
 

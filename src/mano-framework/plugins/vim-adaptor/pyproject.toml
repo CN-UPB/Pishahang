@@ -9,9 +9,9 @@ license = "apache-2.0"
 python = "^3.7"
 manobase = { path = "../../base" }
 mongoengine = "^0.20.0"
-config2 = "^0.3.2"
 python_terraform = "^0.10.1"
 jinja2 = "^2.11.2"
+appcfg = {extras = ["yaml"], version = "^1.0.0"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"

@@ -1,9 +1,11 @@
 import os
 from typing import List
 
-from config2.config import config
+from appcfg import get_config
 from jinja2 import Template
 from python_terraform import Terraform
+
+config = get_config(__name__)
 
 
 class TerraformFunctionManager:
@@ -16,7 +18,7 @@ class TerraformFunctionManager:
         self.function_id = function_id
         self.descriptor = descriptor
         self.vars = vars
-        self._template_dir = os.path.join(config.terraform_workdir, self.function_id)
+        self._template_dir = os.path.join(config["terraform_workdir"], self.function_id)
 
         self._terraform = Terraform(
             working_dir=self._template_dir, terraform_bin_path="./terraform"
