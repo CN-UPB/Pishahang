@@ -491,7 +491,7 @@ services:
 
   # Vim Adaptor
   vim-adaptor:
-    image: pishahang/vim-adaptor-new:${PISHAHANG_VERSION}
+    image: pishahang/mano-plugin-vim-adaptor:${PISHAHANG_VERSION}
     restart: always
     depends_on:
       - pluginmanager
