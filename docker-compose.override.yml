@@ -46,7 +46,7 @@ services:
 
   # VIM Adaptor
   vim-adaptor:
-    build: ./mano-framework/plugins/vim-adaptor
+    build: ./src/mano-framework/plugins/vim-adaptor
 
   # Old VIM Adaptor
   old-vim-adaptor:
