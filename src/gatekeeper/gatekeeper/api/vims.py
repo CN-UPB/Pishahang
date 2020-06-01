@@ -1,5 +1,7 @@
 from gatekeeper.app import broker
 
+# from gatekeeper.models.vims import Vim
+
 
 def getAllVims():
     """
@@ -8,66 +10,73 @@ def getAllVims():
     # return Vim.objects()
     vim = broker.call_sync("infrastructure.management.compute.list")
     # return vim
-    renameKey = {
-        "core_total": "coreTotal",
-        "core_used": "coreUsed",
-        "memory_total": "memoryTotal",
-        "memory_used": "memoryUsed",
-        "vim_city": "vimCity",
-        "vim_domain": "vimDomain",
-        "vim_endpoint": "vimEndpoint",
-        "vim_name": "vimName",
-        "vim_type": "vimType",
-        "vim_uuid": "vimUuid",
-    }
-    getVim = []
-    for x in range(len(vim)):
-        a = dict([(renameKey.get(k), v) for k, v in vim[x].items()])
-        getVim.append(a)
-    return getVim
+    # renameKey = {
+    #     "core_total": "coreTotal",
+    #     "core_used": "coreUsed",
+    #     "memory_total": "memoryTotal",
+    #     "memory_used": "memoryUsed",
+    #     "vim_city": "vimCity",
+    #     "vim_domain": "vimDomain",
+    #     "vim_endpoint": "vimEndpoint",
+    #     "vim_name": "vimName",
+    #     "vim_type": "vimType",
+    #     "vim_uuid": "vimUuid",
+    # }
+    # getVim = []
+    # for x in range(len(vim)):
+    #     a = dict([(renameKey.get(k), v) for k, v in vim[x].items()])
+    #     getVim.append(a)
+    return vim
 
 
 def deleteVim(id):
     """
     Delete A VIM by giving its uuid.
     """
-    return broker.call_sync(
-        "infrastructure.management.compute.remove", msg={"uuid": id}
-    )
+    return broker.call_sync("infrastructure.management.compute.remove", {"uuid": id})
 
 
 def addVim(body):
 
-    if body["type"] == "kubernetes":
+    if body["type"] == "openStack":
         broker.call_sync(
             "infrastructure.management.compute.add",
             {
-                "vim_type": "Kubernetes",
-                "configuration": {"cluster_ca_cert": body["ccc"]},
-                "city": body["vimCity"],
                 "name": body["vimName"],
                 "country": body["country"],
-                "vim_address": body["vimAddress"],
-                "pass": body["serviceToken"],
+                "vimCity": body["vimCity"],
+                "vimAddress": body["vimAddress"],
+                "tenantId": body["tenantId"],
+                "tenantExternalNetworkId": body["tenantExternalNetworkId"],
+                "tenantExternalRouterId": body["tenantExternalRouterId"],
+                "username": body["username"],
+                "password": body["password"],
+                "type": body["type"],
             },
         )
 
-    elif body["type"] == "openStack":
+    elif body["type"] == "kubernetes":
         broker.call_sync(
             "infrastructure.management.compute.add",
             {
-                "vim_type": "heat",
-                "configuration": {
-                    "tenant_ext_router": body["tenantExternalRouterId"],
-                    "tenant_ext_net": body["tenantExternalNetworkId"],
-                    "tenant": body["tenantId"],
-                },
-                "city": body["city"],
+                "type": body["type"],
+                "city": body["vimCity"],
                 "name": body["vimName"],
                 "country": body["country"],
-                "vim_address": body["vimAddress"],
-                "username": body["username"],
-                "pass": body["password"],
-                "domain": "Default",
+                "vimAddress": body["vimAddress"],
+                "serviceToken": body["serviceToken"],
+                "ccc": body["ccc"],
+            },
+        )
+    elif body["type"] == "aws":
+        broker.call_sync(
+            "infrastructure.management.compute.add",
+            {
+                "type": body["type"],
+                "city": body["vimCity"],
+                "name": body["vimName"],
+                "country": body["country"],
+                "accessKey": body["accessKey"],
+                "secretKey": body["secretKey"],
             },
         )
