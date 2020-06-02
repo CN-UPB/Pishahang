@@ -3,15 +3,17 @@ import sys
 from functools import wraps
 from inspect import Parameter, signature
 
-import connexion
-from config2.config import config
+from appcfg import get_config
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from mongoengine import DoesNotExist
 
+import connexion
 from gatekeeper.app import jwt
 from gatekeeper.models.users import User
 
 logger = logging.getLogger("gatekeeper.api.auth")
+
+config = get_config(__name__)
 
 
 @jwt.user_claims_loader
@@ -44,8 +46,8 @@ def createTokenFromCredentials(body):
     return {
         "accessToken": create_access_token(identity=user),
         "refreshToken": create_refresh_token(identity=user),
-        "accessTokenExpiresIn": config.jwt.accessTokenLifetime,
-        "refreshTokenExpiresIn": config.jwt.refreshTokenLifetime,
+        "accessTokenExpiresIn": config["jwt"]["accessTokenLifetime"],
+        "refreshTokenExpiresIn": config["jwt"]["refreshTokenLifetime"],
     }
 
 
@@ -65,7 +67,7 @@ def refreshToken(body):
         user = User.objects(username=token["identity"]).get()
         return {
             "accessToken": create_access_token(identity=user),
-            "tokenExpires": config.jwt.accessTokenLifetime,
+            "tokenExpires": config["jwt"]["accessTokenLifetime"],
         }
     except Exception:
         return connexion.problem(401, "Unauthorized", "The provided token is invalid.")

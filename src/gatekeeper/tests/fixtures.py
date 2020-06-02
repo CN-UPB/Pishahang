@@ -2,6 +2,7 @@ import os
 
 import pytest
 import yaml
+from appcfg import get_config
 from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.datastructures import Headers
@@ -12,12 +13,9 @@ from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
 from gatekeeper.models.vims import Vim
 
-from config2.config import (
-    config,
-)  # Has to be imported after app to get the right config path
-
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures/")
-MONGO_DATABASE_NAME = os.path.basename(config.databases.mongo)
+
+config = get_config("gatekeeper")
 
 
 class AuthorizedFlaskClient(FlaskClient):
@@ -38,12 +36,12 @@ class AuthorizedFlaskClient(FlaskClient):
 
 @pytest.fixture(scope="session")
 def adminUser():
-    return User.objects(username=config.initialUserData.username).get()
+    return User.objects(username=config["initialUserData"]["username"]).get()
 
 
 @pytest.fixture(scope="session")
 def adminPassword():
-    return config.initialUserData.password
+    return config["initialUserData"]["password"]
 
 
 @pytest.fixture(scope="session")

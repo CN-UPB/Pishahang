@@ -1,9 +1,11 @@
 import requests
-from config2.config import config
+from appcfg import get_config
 
 from gatekeeper.exceptions import InternalServerError, PluginNotFoundError
 
-PLUGINMANAGER_API_URL = config.internalApis.pluginmanager
+config = get_config(__name__)
+
+PLUGINMANAGER_API_URL = config["internalApis"]["pluginmanager"]
 
 
 def _getPluginById(id):

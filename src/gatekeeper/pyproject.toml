@@ -12,13 +12,13 @@ connexion = { extras = ["swagger-ui"], version = "^2.7.0" }
 requests = "^2.23.0"
 mongoengine = "^0.20.0"
 flask-mongoengine = "^0.9.5"
-config2 = "^0.3.2"
 flask-redis = "^0.4.0"
 flask-jwt-extended = "^3.24.1"
 fakeredis = "^1.4.0"
 jsonschema = "^3.2.0"
 wheel = "^0.34.2"
 manobase = { path = "../mano-framework/base" }
+appcfg = {extras = ["yaml"], version = "^1.1.0"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
