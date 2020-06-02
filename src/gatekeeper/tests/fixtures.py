@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pytest
 import yaml
@@ -13,7 +13,7 @@ from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
 from gatekeeper.models.vims import Vim
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures/")
+FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 config = get_config("gatekeeper")
 
@@ -95,7 +95,7 @@ def dropMongoDbCollections():
 @pytest.fixture(scope="session")
 def getDescriptorFixture():
     def _getDescriptorFileContents(filename):
-        with open(FIXTURE_DIR + "/" + filename) as descriptor:
+        with (FIXTURE_DIR / filename).open() as descriptor:
             return yaml.safe_load(descriptor)
 
     return _getDescriptorFileContents
