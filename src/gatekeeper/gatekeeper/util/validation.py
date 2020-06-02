@@ -9,10 +9,10 @@ import yaml
 
 SPEC_DIR = Path(__file__).parent / "../../specification"
 
-with (SPEC_DIR / "/schemas/csd.yml").open as schema:
+with (SPEC_DIR / "schemas/csd.yml").open() as schema:
     csdSchema = yaml.safe_load(schema)
 
-with (SPEC_DIR / "/schemas/vnfd.yml").open as schema:
+with (SPEC_DIR / "schemas/vnfd.yml").open() as schema:
     vnfdSchema = yaml.safe_load(schema)
 
 
