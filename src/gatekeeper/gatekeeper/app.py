@@ -13,6 +13,7 @@ import connexion
 from gatekeeper.models.users import User
 from gatekeeper.util.flask import MongoEngineJSONEncoder
 from gatekeeper.util.messaging import ConnexionBrokerConnection
+from manobase.messaging.request_response import ManoBrokerRequestResponseConnection
 
 logger = logging.getLogger("gatekeeper.app")
 
@@ -32,18 +33,18 @@ if appcfg.get_env() is not None:
     if appcfg.get_env() == "test":
         app.app.config["TESTING"] = True
 
-# Set up RabbitMQ connection (except for tests, `broker` needs to be mocked there)
-if appcfg.get_env() == "test":
-    broker = None
-else:
-    while True:
-        try:
-            broker = ConnexionBrokerConnection("gatekeeper")
-            logger.info("Connection to RabbitMQ successfully established")
-            break
-        except AMQPConnectionError:
-            logger.warning("Failed to connect to RabbitMQ. Retrying in 5 seconds.")
-            time.sleep(5)
+# Set up RabbitMQ connection
+
+while True:
+    try:
+        broker = ConnexionBrokerConnection(
+            "gatekeeper", is_loopback=(appcfg.get_env() == "test")
+        )
+        logger.info("Connection to message broker successfully established")
+        break
+    except AMQPConnectionError:
+        logger.warning("Failed to connect to message broker. Retrying in 5 seconds.")
+        time.sleep(5)
 
 # Setup mongoengine
 app.app.config["MONGODB_SETTINGS"] = {"host": config["databases"]["mongo"]}
