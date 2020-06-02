@@ -20,13 +20,21 @@ without specific prior written permission.
 """
 
 import logging
+from uuid import UUID
 
 from appcfg import get_config
-from mongoengine import connect
+from mongoengine import DoesNotExist, connect
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-from vim_adaptor.models.vims import Aws, Kubernetes, OpenStack, Vim
+from vim_adaptor.models.vims import (
+    AwsVimSchema,
+    BaseVim,
+    KubernetesVimSchema,
+    OpenStackVimSchema,
+    VimType,
+)
+from vim_adaptor.util import create_completed_response, create_error_response
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -61,7 +69,7 @@ class VimAdaptor(ManoBasePlugin):
             self.delete_vim, "infrastructure.management.compute.remove"
         )
         self.conn.register_async_endpoint(
-            self.get_vim, "infrastructure.management.compute.list"
+            self.list_vims, "infrastructure.management.compute.list"
         )
 
     def on_lifecycle_start(self, message: Message):
@@ -69,52 +77,67 @@ class VimAdaptor(ManoBasePlugin):
         LOG.info("VIM Adaptor started.")
 
     def add_vim(self, message: Message):
-        vim_type = message.payload["type"]
-        if vim_type == "aws":
-            vim = Aws(
-                vimCity=message.payload["city"],
-                vimName=message.payload["name"],
-                country=message.payload["country"],
-                accessKey=message.payload["accessKey"],
-                secretKey=message.payload["secretKey"],
-                type=message.payload["type"],
-            )
-        elif vim_type == "kubernetes":
-            vim = Kubernetes(
-                vimName=message.payload["name"],
-                country=message.payload["country"],
-                vimCity=message.payload["city"],
-                type=message.payload["type"],
-                vimAddress=message.payload["vimAddress"],
-                serviceToken=message.payload["serviceToken"],
-                ccc=message.payload["ccc"],
-            )
-        elif vim_type == "openStack":
-            vim = OpenStack(
-                vimName=message.payload["name"],
-                country=message.payload["country"],
-                vimCity=message.payload["vimCity"],
-                vimAddress=message.payload["vimAddress"],
-                tenantId=message.payload["tenantId"],
-                tenantExternalNetworkId=message.payload["tenantExternalNetworkId"],
-                tenantExternalRouterId=message.payload["tenantExternalRouterId"],
-                username=message.payload["username"],
-                password=message.payload["password"],
-                type=message.payload["type"],
-            )
-        LOG.debug("Add vim: %s", message.payload)
-        vim.save()
+        payload = message.payload
+        if "type" not in payload:
+            return create_error_response('No "type" field was provided.')
 
-    def get_vim(self, message: Message):
-        vims = Vim.objects
-        LOG.debug("List of vim: %s", message.payload)
-        return vims
+        vim_type = payload["type"]
+        if vim_type not in [t.value for t in VimType]:
+            return create_error_response(
+                'The "type" field must be one of {}. Got {}'.format(VimType, type)
+            )
+
+        if vim_type == "openStack":
+            schema = OpenStackVimSchema()
+        elif vim_type == "kubernetes":
+            schema = KubernetesVimSchema()
+        elif vim_type == "aws":
+            schema = AwsVimSchema()
+
+        vim, errors = schema.load(payload)
+        if len(errors) > 0:
+            return create_error_response(str(errors))
+
+        vim.save()
+        return create_completed_response({"uuid": str(vim.id)})
+
+    def list_vims(self, message: Message):
+        return [
+            {
+                "vim_uuid": str(vim.id),
+                "vim_name": vim.name,
+                "vim_country": vim.country,
+                "vim_city": vim.city,
+                "type": vim.type,
+                "memory_total": 32000,
+                "memory_used": 0,
+                "core_total": 4,
+                "core_used": 0,
+            }
+            for vim in BaseVim.objects
+        ]
 
     def delete_vim(self, message: Message):
-        id = Message.payload["uuid"]
-        vim = Vim.objects(id=id).get()
-        LOG.debug("Vim Delete: %s", message.payload)
+        payload = message.payload
+        if "uuid" not in payload:
+            return create_error_response(
+                'The request message does not contain a "uuid" field.'
+            )
+
+        id = payload["uuid"]
+
+        try:
+            UUID(id)
+        except ValueError:
+            return create_error_response('Invalid UUID "{}"'.format(id))
+
+        try:
+            vim = BaseVim.objects(id=id).get()
+        except DoesNotExist:
+            return create_error_response("No VIM with id {} exists".format(id))
+
         vim.delete()
+        return create_completed_response()
 
 
 def main():

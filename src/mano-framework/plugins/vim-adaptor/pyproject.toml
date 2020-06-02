@@ -12,6 +12,8 @@ mongoengine = "^0.20.0"
 python_terraform = "^0.10.1"
 jinja2 = "^2.11.2"
 appcfg = {extras = ["yaml"], version = "^1.0.0"}
+marshmallow-mongoengine = "^0.11.0"
+marshmallow = "2.x.x"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
@@ -21,6 +23,8 @@ mongomock = "^3.19.0"
 pytest-env = "^0.6.2"
 pytest-mock = "^3.1.0"
 pyfakefs = "^4.0.2"
+pytest-voluptuous = "^1.1.0"
+pytest-watch = "^4.2.0"
 
 [tool.poetry.scripts]
 start = "vim_adaptor.main:main"
