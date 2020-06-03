@@ -82,8 +82,8 @@ const reducer = createReducer(initialState)
   .handleAction(resetInfoDialog, (state, action) => ({
     ...state,
     infoDialog: {
-      title: "",
-      message: "",
+      // Leaving the title and message in place so they do not disappear prior to dialog fadeout
+      ...state.infoDialog,
       isVisible: false,
     },
   }))
@@ -142,10 +142,10 @@ const reducer = createReducer(initialState)
         ["Country", vim.country],
         ["City", vim.city],
         ["Type", vim.type],
-        ["Cores total", vim.coresTotal],
-        ["Cores used", vim.coresUsed],
-        ["Memory total", vim.memoryTotal],
-        ["Memory used", vim.memoryUsed],
+        ["Cores total", vim.coresTotal.toString()],
+        ["Cores used", vim.coresUsed.toString()],
+        ["Memory total", vim.memoryTotal.toString()],
+        ["Memory used", vim.memoryUsed.toString()],
       ],
       isVisible: true,
     },
