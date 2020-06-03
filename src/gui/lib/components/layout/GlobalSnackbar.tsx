@@ -15,7 +15,7 @@ export const GlobalSnackbar: React.FunctionComponent = () => {
     <Snackbar
       anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       open={isVisible}
-      autoHideDuration={8000}
+      autoHideDuration={5000}
       onClose={() => dispatch(resetSnackbar())}
       ContentProps={{
         "aria-describedby": "global-snackbar-message",

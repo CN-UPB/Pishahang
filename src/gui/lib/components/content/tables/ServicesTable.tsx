@@ -14,10 +14,13 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
+import { instantiateService } from "../../../api/services";
 import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
-import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
-import { Service } from "../../../models/Service";
-import { showServiceInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
+import {
+  showInfoDialog,
+  showServiceInfoDialog,
+  showSnackbar,
+} from "../../../store/actions/dialogs";
 import { formatDate } from "../../../util/time";
 import { Table } from "../../layout/tables/Table";
 
@@ -27,9 +30,14 @@ const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services,
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  function instantiateService() {
-    dispatch(showSnackbar("Service instantiation not implemented"));
-  }
+  const instantiate = async (id: string) => {
+    const reply = await instantiateService(id);
+    if (reply.success) {
+      dispatch(showSnackbar("Service successfully instantiated"));
+    } else {
+      dispatch(showInfoDialog({ title: "Instantiation Error", message: reply.message }));
+    }
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -64,7 +72,7 @@ const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services,
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={"Instantiate " + service.name} arrow>
-                  <IconButton onClick={() => instantiateService()}>
+                  <IconButton onClick={() => instantiate(service.id)}>
                     <PlayCircleOutline htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
