@@ -1,4 +1,4 @@
-import { Fab } from "@material-ui/core";
+import { Fab, Tooltip } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import yaml from "js-yaml";
 import * as React from "react";
@@ -14,10 +14,10 @@ type Props = {
   onUploaded: () => Promise<any>;
 };
 
-export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
-  descriptorType,
-  onUploaded,
-}) => {
+export const DescriptorUploadButton: React.FunctionComponent<Props> = (
+  { descriptorType, onUploaded },
+  ref
+) => {
   const dispatch = useDispatch();
 
   const upload = async (
@@ -37,17 +37,24 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
   };
 
   return (
-    //@ts-ignore https://github.com/DefinitelyTyped/DefinitelyTyped/pull/45268
+    // @ts-ignore https://github.com/DefinitelyTyped/DefinitelyTyped/pull/45268
     <FileReaderInput as="text" accept=".yml,.yaml" onChange={upload}>
-      <Fab
-        color="primary"
-        size="small"
-        style={{ float: "right" }}
-        aria-label="Upload"
-        component="label"
+      <Tooltip
+        title={`Upload a ${
+          descriptorType == DescriptorType.Service ? "service" : "function"
+        } descriptor`}
+        arrow
       >
-        <CloudUpload />
-      </Fab>
+        <Fab
+          color="primary"
+          size="small"
+          style={{ float: "right" }}
+          aria-label="Upload"
+          component="label"
+        >
+          <CloudUpload />
+        </Fab>
+      </Tooltip>
     </FileReaderInput>
   );
 };

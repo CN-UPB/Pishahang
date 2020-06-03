@@ -40,9 +40,7 @@ const InternalFunctionDescriptorTable: React.FunctionComponent<Props> = ({
 
   return (
     <>
-      <Tooltip title="Upload a function descriptor" arrow>
-        <DescriptorUploadButton descriptorType={descriptorType} onUploaded={revalidate} />
-      </Tooltip>
+      <DescriptorUploadButton descriptorType={descriptorType} onUploaded={revalidate} />
       <TableContainer component={Paper}>
         <Table aria-label="function descriptor table">
           <TableHead>

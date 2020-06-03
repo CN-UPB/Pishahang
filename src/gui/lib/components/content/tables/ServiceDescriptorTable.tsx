@@ -39,9 +39,7 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
 
   return (
     <>
-      <Tooltip title="Upload a service descriptor" arrow>
-        <DescriptorUploadButton descriptorType={DescriptorType.Service} onUploaded={revalidate} />
-      </Tooltip>
+      <DescriptorUploadButton descriptorType={DescriptorType.Service} onUploaded={revalidate} />
       <TableContainer component={Paper}>
         <Table aria-label="service descriptor table">
           <TableHead>
