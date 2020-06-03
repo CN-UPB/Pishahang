@@ -1,5 +1,6 @@
 import { createAction } from "typesafe-actions";
 
+import { Vim } from "./../../models/Vims";
 import { Descriptor } from "../../models/Descriptor";
 import { Plugin } from "../../models/Plugins";
 import { Service } from "../../models/Service";
@@ -20,3 +21,4 @@ export const showDescriptorInfoDialog = createAction("Dialogs:TableDialog:showDe
 export const showServiceInfoDialog = createAction("Dialogs:TableDialog:showServiceInfo")<Service>();
 
 export const showPluginInfoDialog = createAction("Dialogs:TableDialog:showPluginInfo")<Plugin>();
+export const showVimInfoDialog = createAction("Dialogs:TableDialog:showVimInfo")<Vim>();

@@ -11,7 +11,6 @@ import {
   Dashboard,
   Dns,
   Dvr,
-  MoneyRounded,
   ScatterPlotRounded,
   Settings,
   WebAsset,
@@ -44,16 +43,12 @@ export const DrawerContent: React.FunctionComponent = () => {
     <>
       <Divider />
       <List>
-        <LinkedListItem
-          text={"Dashboard"}
-          icon={Dashboard}
-          href={"/"} //Unable to add link to Page.tsx for use as Dashboard
-        ></LinkedListItem>
+        <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"}></LinkedListItem>
       </List>
       <Divider />
 
       <List>
-        <LinkedListItem text={"VIM Settings"} icon={Settings} href={"/vims"}></LinkedListItem>
+        <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
       </List>
       <Divider />
       <List>
@@ -63,7 +58,6 @@ export const DrawerContent: React.FunctionComponent = () => {
           href={"/descriptors/services"}
         ></LinkedListItem>
       </List>
-      <Divider />
       <List>
         <ListItem button onClick={toggleDescriptorsExpanded}>
           <ListItemIcon>

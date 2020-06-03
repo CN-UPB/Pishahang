@@ -8,6 +8,7 @@ import {
   showInfoDialog,
   showPluginInfoDialog,
   showServiceInfoDialog,
+  showVimInfoDialog,
 } from "../actions/dialogs";
 import { resetSnackbar, showSnackbar } from "../actions/dialogs";
 
@@ -52,7 +53,7 @@ const initialState: GlobalState = {
   },
 };
 
-const globalReducer = createReducer(initialState)
+const reducer = createReducer(initialState)
   // Snackbar
   .handleAction(showSnackbar, (state, action) => ({
     ...state,
@@ -131,6 +132,24 @@ const globalReducer = createReducer(initialState)
       isVisible: true,
     },
   }))
+  .handleAction(showVimInfoDialog, (state, { payload: vim }) => ({
+    ...state,
+    tableDialog: {
+      title: vim.name,
+      content: [
+        ["Name", vim.name],
+        ["Id", vim.id],
+        ["Country", vim.country],
+        ["City", vim.city],
+        ["Type", vim.type],
+        ["Cores total", vim.coresTotal],
+        ["Cores used", vim.coresUsed],
+        ["Memory total", vim.memoryTotal],
+        ["Memory used", vim.memoryUsed],
+      ],
+      isVisible: true,
+    },
+  }))
   .handleAction(resetTableDialog, (state, action) => ({
     ...state,
     tableDialog: {
@@ -140,4 +159,4 @@ const globalReducer = createReducer(initialState)
     },
   }));
 
-export default globalReducer;
+export default reducer;

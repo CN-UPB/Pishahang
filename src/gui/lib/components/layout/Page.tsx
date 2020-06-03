@@ -13,7 +13,7 @@ import * as React from "react";
 import { DrawerContent } from "../content/drawer/DrawerContent";
 import { RightToolBarContent } from "../content/toolbar/RightToolBarContent";
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({

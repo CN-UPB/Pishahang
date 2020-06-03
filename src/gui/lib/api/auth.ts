@@ -117,7 +117,6 @@ export async function fetchApiDataAuthorized<E extends ApiDataEndpoint>(
   token: string,
   onAuthError: () => any
 ): Promise<ApiDataEndpointReturnType<E>> {
-  console.log("fetchApiDataAuthorized");
   const reply = await sendAuthorizedRequest("GET", getApiUrl(endpoint), token, onAuthError, true);
   return reply.data;
 }
