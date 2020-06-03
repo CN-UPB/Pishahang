@@ -90,10 +90,7 @@
     }
   },
   "lint-staged": {
-    "**/*.ts(x)": [
-      "prettier --write",
-      "git add"
-    ]
+    "**/*.ts(x)": "prettier --write"
   },
   "eslint": {
     "parserOptions": {
