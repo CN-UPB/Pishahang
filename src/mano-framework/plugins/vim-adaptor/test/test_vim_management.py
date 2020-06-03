@@ -49,7 +49,7 @@ def test_add_vim(adaptor: VimAdaptor, connection: Connection):
         }
     ) == add_vim({"type": "aws"})
 
-    assert S({"request_status": "COMPLETED", "uuid": str}) == add_vim(
+    assert S({"request_status": "COMPLETED", "id": str}) == add_vim(
         {
             "type": "aws",
             "name": "aws",
@@ -117,11 +117,11 @@ def test_delete_vim(adaptor: VimAdaptor, connection: Connection, example_vim: Aw
 
     assert error_schema == delete_vim({})
 
-    assert error_schema == delete_vim({"uuid": "1234"})
+    assert error_schema == delete_vim({"id": "1234"})
 
-    assert error_schema == delete_vim({"uuid": str(uuid4())})
+    assert error_schema == delete_vim({"id": str(uuid4())})
 
     example_vim.save()
-    assert {"request_status": "COMPLETED"} == delete_vim({"uuid": str(example_vim.id)})
+    assert {"request_status": "COMPLETED"} == delete_vim({"id": str(example_vim.id)})
 
     assert 0 == len(BaseVim.objects)

@@ -99,7 +99,7 @@ class VimAdaptor(ManoBasePlugin):
             return create_error_response(str(errors))
 
         vim.save()
-        return create_completed_response({"uuid": str(vim.id)})
+        return create_completed_response({"id": str(vim.id)})
 
     def list_vims(self, message: Message):
         return [
@@ -119,12 +119,12 @@ class VimAdaptor(ManoBasePlugin):
 
     def delete_vim(self, message: Message):
         payload = message.payload
-        if "uuid" not in payload:
+        if "id" not in payload:
             return create_error_response(
-                'The request message does not contain a "uuid" field.'
+                'The request message does not contain an "id" field.'
             )
 
-        id = payload["uuid"]
+        id = payload["id"]
 
         try:
             UUID(id)
