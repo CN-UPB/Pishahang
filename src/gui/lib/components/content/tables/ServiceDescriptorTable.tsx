@@ -29,7 +29,7 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
   const theme = useTheme();
   const dispatch = useDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
-  const showDescriptorDeleteDialog = useDescriptorDeleteDialog();
+  const showDescriptorDeleteDialog = useDescriptorDeleteDialog(revalidate);
 
   async function onboard(descriptor: Descriptor) {
     console.log(descriptor.id);
