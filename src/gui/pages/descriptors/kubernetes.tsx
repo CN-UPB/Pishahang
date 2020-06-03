@@ -1,13 +1,13 @@
 import { NextPage } from "next";
 
-import { DescriptorPageContent } from "../../lib/components/content/DescriptorPageContent";
+import { FunctionDescriptorTable } from "../../lib/components/content/tables/FunctionDescriptorTable";
 import { Page } from "../../lib/components/layout/Page";
 import { DescriptorType } from "../../lib/models/Descriptor";
 
 const ContainersPage: NextPage = () => {
   return (
-    <Page title="Kubernetes Descriptors">
-      <DescriptorPageContent type={DescriptorType.KUBERNETES}></DescriptorPageContent>
+    <Page title="Kubernetes Function Descriptors">
+      <FunctionDescriptorTable descriptorType={DescriptorType.KUBERNETES} />
     </Page>
   );
 };

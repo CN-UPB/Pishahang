@@ -20,8 +20,8 @@ import ExpandMore from "@material-ui/icons/ExpandMore";
 import { useRouter } from "next/router";
 import * as React from "react";
 
-import { useToggle } from "../../../hooks/useToggle";
-import { LinkedListItem } from "../../layout/LinkedListItem";
+import { useToggle } from "../../hooks/useToggle";
+import { LinkedListItem } from "../layout/LinkedListItem";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export const DrawerContent: React.FunctionComponent = () => {
-  const classes = useStyles({});
+  const classes = useStyles();
   const router = useRouter();
 
   const [descriptorsExpanded, toggleDescriptorsExpanded] = useToggle(
@@ -42,20 +42,24 @@ export const DrawerContent: React.FunctionComponent = () => {
   return (
     <>
       <Divider />
+
       <List>
         <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"}></LinkedListItem>
       </List>
+
       <Divider />
 
       <List>
         <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
       </List>
+
       <Divider />
+
       <List>
         <LinkedListItem
           text={"Service Descriptors"}
           icon={AccountTreeRounded}
-          href={"/descriptors/services"}
+          href={"/descriptors/service"}
         ></LinkedListItem>
       </List>
       <List>
@@ -72,25 +76,19 @@ export const DrawerContent: React.FunctionComponent = () => {
           <LinkedListItem
             text={"OpenStack"}
             icon={Computer}
-            href={"/descriptors/vms"}
+            href={"/descriptors/openstack"}
           ></LinkedListItem>
           <LinkedListItem
             text={"Kubernetes"}
             icon={WebAsset}
-            href={"/descriptors/cns"}
+            href={"/descriptors/kubernetes"}
           ></LinkedListItem>
-          <LinkedListItem text={"AWS"} icon={WebAsset} href={"/descriptors/fpga"}></LinkedListItem>
+          <LinkedListItem text={"AWS"} icon={WebAsset} href={"/descriptors/aws"}></LinkedListItem>
         </List>
       </Collapse>
+
       <Divider />
-      {/* <List>
-        <LinkedListItem
-          text={"Version Descriptors"}
-          icon={MoneyRounded}
-          href={"/versiondescriptor"}
-        ></LinkedListItem>
-      </List>
-      <Divider /> */}
+
       <List>
         <LinkedListItem
           text={"Services"}
@@ -98,10 +96,13 @@ export const DrawerContent: React.FunctionComponent = () => {
           href={"/services"}
         ></LinkedListItem>
       </List>
+
       <Divider />
+
       <List>
         <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
+
       <Divider />
     </>
   );

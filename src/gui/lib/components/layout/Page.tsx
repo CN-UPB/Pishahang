@@ -10,7 +10,7 @@ import {
 import Head from "next/head";
 import * as React from "react";
 
-import { DrawerContent } from "../content/drawer/DrawerContent";
+import { DrawerContent } from "../content/DrawerContent";
 import { RightToolBarContent } from "../content/toolbar/RightToolBarContent";
 
 const drawerWidth = 280;
