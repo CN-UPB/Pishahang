@@ -598,7 +598,7 @@ paths:
       tags:
         - VIMs
       summary: Get a list of VIMs
-      operationId: gatekeeper.api.vims.getAllVims
+      operationId: gatekeeper.api.vims.getVims
       responses:
         "200":
           description: The list of VIMs was successfully returned.
@@ -619,15 +619,12 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: "#/components/schemas/AwsVim"
-                - $ref: "#/components/schemas/OpenStackVim"
-                - $ref: "#/components/schemas/KubernetesVim"
+              $ref: "#/components/schemas/AnyVim"
       responses:
-        "200":
-          description: The vim is successfully added.
-        "404":
-          $ref: "#/components/responses/Error404"
+        "201":
+          description: The VIM was successfully added.
+        "400":
+          $ref: "#/components/responses/Error400"
         "500":
           $ref: "#/components/responses/Error500"
   /vims/{id}:
@@ -850,42 +847,44 @@ components:
         $ref: "#/components/schemas/ServiceInstance"
 
     BaseVim:
-      allOf:
-        - $ref: "#/components/schemas/BaseEntity"
-        - type: object
-          required:
-            - vimName
-            - country
-            - vimCity
-            - coreTotal
-            - coreUsed
-            - memoryTotal
-            - memoryUsed
-          properties:
-            vimName:
-              type: string
-            country:
-              type: string
-            vimCity:
-              type: string
-            coreTotal:
-              type: string
-              readOnly: true
-            coreUsed:
-              type: string
-              readOnly: true
-            memoryUsed:
-              type: string
-              readOnly: true
-            memoryTotal:
-              type: string
-              readOnly: true
+      required:
+        - id
+        - name
+        - country
+        - city
+        - coresTotal
+        - coresUsed
+        - memoryTotal
+        - memoryUsed
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        coresTotal:
+          type: number
+          readOnly: true
+        coresUsed:
+          type: number
+          readOnly: true
+        memoryTotal:
+          type: number
+          readOnly: true
+        memoryUsed:
+          type: number
+          readOnly: true
     OpenStackVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"
         - type: object
           required:
-            - vimAddress
+            - address
             - tenantId
             - tenantExternalNetworkId
             - tenantExternalRouterId
@@ -895,8 +894,8 @@ components:
           properties:
             type:
               type: string
-              enum: ["openStack"]
-            vimAddress:
+              enum: ["openstack"]
+            address:
               type: string
             tenantId:
               type: string
@@ -913,7 +912,7 @@ components:
         - $ref: "#/components/schemas/BaseVim"
         - type: object
           required:
-            - vimAddress
+            - address
             - serviceToken
             - ccc
             - type
@@ -921,7 +920,7 @@ components:
             type:
               type: string
               enum: ["kubernetes"]
-            vimAddress:
+            address:
               type: string
             serviceToken:
               type: string
@@ -943,6 +942,17 @@ components:
               type: string
             secretKey:
               type: string
+    AnyVim:
+      oneOf:
+        - $ref: "#/components/schemas/OpenStackVim"
+        - $ref: "#/components/schemas/KubernetesVim"
+        - $ref: "#/components/schemas/AwsVim"
+      discriminator:
+        propertyName: type
+        mapping:
+          openstack: "#/components/schemas/OpenStackVim"
+          kubernetes: "#/components/schemas/KubernetesVim"
+          aws: "#/components/schemas/AwsVim"
     Vims:
       type: "array"
       items:

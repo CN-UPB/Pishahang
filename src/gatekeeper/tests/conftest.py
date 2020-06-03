@@ -11,7 +11,6 @@ from gatekeeper.app import app
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
 from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
-from gatekeeper.models.vims import Vim
 from manobase.messaging.request_response import ManoBrokerRequestResponseConnection
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
@@ -87,7 +86,6 @@ def dropMongoDbCollections():
     with app.app.app_context():
         Descriptor.objects.delete()
         Service.objects.delete()
-        Vim.objects.delete()
 
 
 # Data fixtures
@@ -141,7 +139,7 @@ def exampleService(api, getDescriptorFixture):
 
 
 @pytest.fixture(scope="module")
-def brokerConnection():
+def broker():
     """
     A loopback broker connection
     """

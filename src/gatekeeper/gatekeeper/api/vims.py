@@ -1,82 +1,46 @@
+import stringcase
+
+from connexion.exceptions import ProblemException
 from gatekeeper.app import broker
 
-# from gatekeeper.models.vims import Vim
 
-
-def getAllVims():
+def getVims():
     """
-    Returns the list of added Vims.
+    Return the list of VIMs
     """
-    # return Vim.objects()
-    vim = broker.call_sync("infrastructure.management.compute.list")
-    # return vim
-    # renameKey = {
-    #     "core_total": "coreTotal",
-    #     "core_used": "coreUsed",
-    #     "memory_total": "memoryTotal",
-    #     "memory_used": "memoryUsed",
-    #     "vim_city": "vimCity",
-    #     "vim_domain": "vimDomain",
-    #     "vim_endpoint": "vimEndpoint",
-    #     "vim_name": "vimName",
-    #     "vim_type": "vimType",
-    #     "vim_uuid": "vimUuid",
-    # }
-    # getVim = []
-    # for x in range(len(vim)):
-    #     a = dict([(renameKey.get(k), v) for k, v in vim[x].items()])
-    #     getVim.append(a)
-    return vim
+    return [
+        {
+            "id": vim["vim_uuid"],
+            "name": vim["vim_name"],
+            "country": vim["vim_country"],
+            "city": vim["vim_city"],
+            "type": vim["type"],
+            "coresTotal": vim["core_total"],
+            "coresUsed": vim["core_used"],
+            "memoryTotal": vim["memory_total"],
+            "memoryUsed": vim["memory_used"],
+        }
+        for vim in broker.call_sync("infrastructure.management.compute.list").payload
+    ]
 
 
-def deleteVim(id):
+def deleteVim(id: str):
     """
-    Delete A VIM by giving its uuid.
+    Delete a VIM by id
     """
-    return broker.call_sync("infrastructure.management.compute.remove", {"uuid": id})
+    response = broker.call_sync(
+        "infrastructure.management.compute.remove", {"id": id}
+    ).payload
+    if response["request_status"] == "ERROR":
+        raise ProblemException(title="Invalid request", detail=response["message"])
 
 
-def addVim(body):
+def addVim(body: dict):
+    response = broker.call_sync(
+        "infrastructure.management.compute.add",
+        {stringcase.snakecase(key): value for key, value in body.items()},
+    ).payload
 
-    if body["type"] == "openStack":
-        broker.call_sync(
-            "infrastructure.management.compute.add",
-            {
-                "name": body["vimName"],
-                "country": body["country"],
-                "vimCity": body["vimCity"],
-                "vimAddress": body["vimAddress"],
-                "tenantId": body["tenantId"],
-                "tenantExternalNetworkId": body["tenantExternalNetworkId"],
-                "tenantExternalRouterId": body["tenantExternalRouterId"],
-                "username": body["username"],
-                "password": body["password"],
-                "type": body["type"],
-            },
-        )
-
-    elif body["type"] == "kubernetes":
-        broker.call_sync(
-            "infrastructure.management.compute.add",
-            {
-                "type": body["type"],
-                "city": body["vimCity"],
-                "name": body["vimName"],
-                "country": body["country"],
-                "vimAddress": body["vimAddress"],
-                "serviceToken": body["serviceToken"],
-                "ccc": body["ccc"],
-            },
-        )
-    elif body["type"] == "aws":
-        broker.call_sync(
-            "infrastructure.management.compute.add",
-            {
-                "type": body["type"],
-                "city": body["vimCity"],
-                "name": body["vimName"],
-                "country": body["country"],
-                "accessKey": body["accessKey"],
-                "secretKey": body["secretKey"],
-            },
-        )
+    if response["request_status"] == "ERROR":
+        raise ProblemException(title="Invalid request", detail=response["message"])
+    return {"id": response["id"]}, 201
