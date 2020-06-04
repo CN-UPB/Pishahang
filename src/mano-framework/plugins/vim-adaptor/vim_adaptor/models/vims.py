@@ -2,7 +2,9 @@ from enum import Enum
 
 from marshmallow_mongoengine import ModelSchema
 from mongoengine import StringField
+from mongoengine.errors import DoesNotExist
 
+from vim_adaptor.exceptions import VimNotFoundException
 from vim_adaptor.models.base import BaseDocument
 
 
@@ -23,6 +25,13 @@ class BaseVim(BaseDocument):
     country = StringField(required=True)
     city = StringField(required=True)
     type = StringField(required=True, choices=[t.value for t in VimType])
+
+    @classmethod
+    def get_by_id(cls, vim_id: str) -> "BaseVim":
+        try:
+            return cls.objects.get(id=vim_id)
+        except DoesNotExist:
+            raise VimNotFoundException(cls.__class__.name, vim_id)
 
 
 class OpenStackVim(BaseVim):

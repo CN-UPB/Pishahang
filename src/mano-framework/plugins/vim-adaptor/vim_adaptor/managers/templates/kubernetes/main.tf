@@ -1,6 +1,5 @@
 provider "kubernetes" {
-  host = "{{ endpoint }}"
-
-  token = "{{ token }}"
+  host = "${var.host}"
+  token = "${var.token}"
   insecure = true
 }

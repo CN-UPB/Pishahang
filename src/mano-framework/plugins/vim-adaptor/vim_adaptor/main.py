@@ -27,6 +27,7 @@ from mongoengine import DoesNotExist, connect
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
+from vim_adaptor.managers.kubernetes import KubernetesFunctionManager
 from vim_adaptor.models.vims import (
     AwsVimSchema,
     BaseVim,
@@ -35,6 +36,7 @@ from vim_adaptor.models.vims import (
     VimType,
 )
 from vim_adaptor.util import create_completed_response, create_error_response
+from vim_adaptor.exceptions import TerraformException, VimNotFoundException
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -62,6 +64,7 @@ class VimAdaptor(ManoBasePlugin):
 
     def declare_subscriptions(self):
         super().declare_subscriptions()
+        # VIM Management
         self.conn.register_async_endpoint(
             self.add_vim, "infrastructure.management.compute.add"
         )
@@ -70,6 +73,13 @@ class VimAdaptor(ManoBasePlugin):
         )
         self.conn.register_async_endpoint(
             self.list_vims, "infrastructure.management.compute.list"
+        )
+        # Instantiation
+        self.conn.register_async_endpoint(
+            self.prepare_infrastructure, "infrastructure.service.prepare"
+        )
+        self.conn.register_async_endpoint(
+            self.deploy_kubernetes_function, "infrastructure.cloud_service.deploy"
         )
 
     def on_lifecycle_start(self, message: Message):
@@ -108,7 +118,7 @@ class VimAdaptor(ManoBasePlugin):
                 "vim_name": vim.name,
                 "vim_country": vim.country,
                 "vim_city": vim.city,
-                "type": vim.type,
+                "vim_type": "Kubernetes" if vim.type == "kubernetes" else vim.type,
                 "memory_total": 32000,
                 "memory_used": 0,
                 "core_total": 4,
@@ -138,6 +148,26 @@ class VimAdaptor(ManoBasePlugin):
 
         vim.delete()
         return create_completed_response()
+
+    def prepare_infrastructure(self, message: Message):
+        # TODO What exactly should this do?
+        return create_completed_response()
+
+    def deploy_kubernetes_function(self, message: Message):
+        payload = message.payload
+
+        try:
+            manager = KubernetesFunctionManager(
+                service_id=payload["csd"]["uuid"],
+                service_instance_id=payload["service_instance_id"],
+                function_instance_id=payload["csd"]["instance_uuid"],
+                descriptor=payload["csd"],
+                vim_id=payload["vim_uuid"],
+            )
+            manager.deploy()
+            return create_completed_response()
+        except VimNotFoundException | TerraformException as e:
+            return create_error_response(str(e))
 
 
 def main():

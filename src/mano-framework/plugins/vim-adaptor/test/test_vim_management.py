@@ -94,7 +94,7 @@ def test_list_vims(adaptor: VimAdaptor, connection: Connection, example_vim: Aws
                         "vim_name": example_vim.name,
                         "vim_country": example_vim.country,
                         "vim_city": example_vim.city,
-                        "type": example_vim.type,
+                        "vim_type": example_vim.type,
                     }
                 )
             ]
