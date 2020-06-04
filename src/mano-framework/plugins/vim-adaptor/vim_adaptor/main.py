@@ -97,11 +97,11 @@ class VimAdaptor(ManoBasePlugin):
                 'The "type" field must be one of {}. Got {}'.format(VimType, type)
             )
 
-        if vim_type == "openStack":
+        if vim_type == VimType.OPENSTACK.value:
             schema = OpenStackVimSchema()
-        elif vim_type == "kubernetes":
+        elif vim_type == VimType.KUBERNETES.value:
             schema = KubernetesVimSchema()
-        elif vim_type == "aws":
+        elif vim_type == VimType.AWS.value:
             schema = AwsVimSchema()
 
         vim, errors = schema.load(payload)

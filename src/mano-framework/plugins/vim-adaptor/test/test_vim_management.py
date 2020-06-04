@@ -49,6 +49,27 @@ def test_add_vim(adaptor: VimAdaptor, connection: Connection):
         }
     ) == add_vim({"type": "aws"})
 
+    # Add OpenStack with missing tenant.external_network_id and
+    # tenant.internal_router_id
+    assert S(
+        {
+            "request_status": "ERROR",
+            "message": All(
+                str, Contains("external_network_id"), Contains("internal_router_id")
+            ),
+        }
+    ) == add_vim(
+        {
+            "type": "openstack",
+            "name": "OpenStack",
+            "country": "my country",
+            "city": "my city",
+            "username": "my username",
+            "password": "my password",
+            "tenant": {"id": "tenant id"},
+        }
+    )
+
     assert S({"request_status": "COMPLETED", "id": str}) == add_vim(
         {
             "type": "aws",

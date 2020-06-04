@@ -1,7 +1,7 @@
 from enum import Enum
 
 from marshmallow_mongoengine import ModelSchema
-from mongoengine import StringField
+from mongoengine import StringField, EmbeddedDocumentField, EmbeddedDocument
 from mongoengine.errors import DoesNotExist
 
 from vim_adaptor.exceptions import VimNotFoundException
@@ -34,13 +34,17 @@ class BaseVim(BaseDocument):
             raise VimNotFoundException(cls.__class__.name, vim_id)
 
 
+class OpenStackTenant(EmbeddedDocument):
+    id = StringField(required=True)
+    external_network_id = StringField(required=True)
+    internal_router_id = StringField(required=True)
+
+
 class OpenStackVim(BaseVim):
     address = StringField(required=True)
-    tenant_id = StringField(required=True)
-    tenant_external_network_id = StringField(required=True)
-    tenant_external_router_id = StringField(required=True)
     username = StringField(required=True)
     password = StringField(required=True)
+    tenant = EmbeddedDocumentField(OpenStackTenant, required=True)
 
 
 class OpenStackVimSchema(ModelSchema):
