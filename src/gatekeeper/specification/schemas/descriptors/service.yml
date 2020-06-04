@@ -31,11 +31,11 @@ properties:
     description: "The vendor id allows to identify a VNF descriptor uniquely across all function descriptor vendors."
     type: "string"
     pattern: "^[a-z0-9\\-_.]+$"
-  name: 
+  name:
     description: "The name of the network service description."
     type: "string"
     pattern: "^[a-z0-9\\-_.]+$"
-  version: 
+  version:
     description: "The version of the service descriptor."
     type: "string"
     pattern: "^[0-9\\-_.]+$"
@@ -56,7 +56,7 @@ properties:
               description: "The type of licence, 'public' in this case."
               type: "string"
               enum:
-              - "public"
+                - "public"
           required:
             - "type"
           additionalProperties: false
@@ -66,7 +66,7 @@ properties:
               description: "The type of licence, 'private' in this case."
               type: "string"
               enum:
-              - "private"
+                - "private"
             url:
               description: "The URL to the licence file."
               type: "string"
@@ -79,7 +79,7 @@ properties:
   service_specific_managers:
     description: "A list of SSMs used to manage this network service."
     type: "array"
-    items: 
+    items:
       description: "An SSM object of this VNF. FSMs are always Docker containers."
       type: "object"
       properties:
@@ -126,10 +126,10 @@ properties:
       additionalProperties: false
     uniqueItems: true
     minItems: 0
-  network_functions: 
+  network_functions:
     description: "The VNFs (their descriptors), that are part of this network service."
     type: "array"
-    items: 
+    items:
       type: "object"
       properties:
         vnf_id:
@@ -161,7 +161,7 @@ properties:
   network_services:
     description: "The recursive NSs (their descriptors), that are part of this network service."
     type: "array"
-    items: 
+    items:
       type: "string"
     minItems: 0
     uniqueItems: true
@@ -222,7 +222,7 @@ properties:
       additionalProperties: false
     minItems: 1
     uniqueItems: true
-  virtual_links: 
+  virtual_links:
     type: "array"
     items:
       type: "object"
@@ -248,11 +248,11 @@ properties:
           properties:
             id:
               type: "string"
-            connectivity_type: 
+            connectivity_type:
               enum:
                 - "E-Line" # Point-to-point
                 - "E-Tree" # Point-to-multipoint
-                - "E-LAN"  # Multipoint-to-multipoint
+                - "E-LAN" # Multipoint-to-multipoint
             connection_points_reference:
               type: "array"
               items:
@@ -286,7 +286,7 @@ properties:
         - description: "A reference to an external forwarding graph descriptor (VNFFGD)."
           type: "object"
           properties:
-            fg_group: 
+            fg_group:
               type: "string"
             fg_name:
               type: "string"
@@ -305,34 +305,34 @@ properties:
             fg_id:
               description: "A unique identifier of this forwarding graph within the scope of this NS descriptor."
               type: "string"
-            number_of_endpoints: 
+            number_of_endpoints:
               type: "integer"
-            number_of_virtual_links: 
+            number_of_virtual_links:
               type: "integer"
-            constituent_virtual_links: 
+            constituent_virtual_links:
               type: "array"
-              items: 
+              items:
                 - type: "string"
-            constituent_vnfs: 
+            constituent_vnfs:
               type: "array"
-              items: 
+              items:
                 - type: "string"
-            constituent_services: 
+            constituent_services:
               type: "array"
-              items: 
+              items:
                 - type: "string"
-            network_forwarding_paths: 
+            network_forwarding_paths:
               type: "array"
-              items: 
+              items:
                 type: "object"
-                properties: 
-                  fp_id: 
+                properties:
+                  fp_id:
                     type: "string"
                   policy:
                     type: "string"
-                  connection_points: 
+                  connection_points:
                     type: "array"
-                    items: 
+                    items:
                       type: "object"
                       properties:
                         connection_point_ref:
@@ -343,74 +343,74 @@ properties:
                           type: "integer"
           required:
             - fg_id
-  lifecycle_events: 
+  lifecycle_events:
     type: "object"
-    properties: 
-      start: 
+    properties:
+      start:
         type: "array"
-        items: 
+        items:
           type: "object"
-          properties: 
-            vnf_id: 
+          properties:
+            vnf_id:
               type: "string"
-            vnf_event: 
+            vnf_event:
               type: "string"
-      stop: 
+      stop:
         type: "array"
-        items: 
+        items:
           type: "object"
-          properties: 
-            vnf_id: 
+          properties:
+            vnf_id:
               type: "string"
-            vnf_event: 
+            vnf_event:
               type: "string"
-      scale_out: 
+      scale_out:
         type: "array"
-        items: 
+        items:
           type: "object"
-          properties: 
-            vnf_id: 
+          properties:
+            vnf_id:
               type: "string"
-            vnf_event: 
+            vnf_event:
               type: "string"
-  vnf_depedency: 
+  vnf_depedency:
     type: "array"
-    items: 
+    items:
       type: "string"
     minItems: 0
     uniqueItems: true
-  services_depedency: 
+  services_depedency:
     type: "array"
-    items: 
+    items:
       type: "string"
     minItems: 0
     uniqueItems: true
-  monitoring_parameters: 
+  monitoring_parameters:
     type: "array"
-    items: 
+    items:
       - type: "object"
-        properties: 
-          desc: 
+        properties:
+          desc:
             type: "string"
-          metric: 
+          metric:
             type: "string"
-          unit: 
+          unit:
             type: "string"
-  auto_scale_policy: 
+  auto_scale_policy:
     type: "object"
-    properties: 
-      criteria: 
+    properties:
+      criteria:
         type: "array"
-        items: 
+        items:
           - type: "object"
-            properties: 
-              end-to-end bandwidth: 
+            properties:
+              end-to-end bandwidth:
                 type: "string"
-      action: 
+      action:
         type: "string"
-required: 
+required:
   - descriptor_version
-  - vendor 
+  - vendor
   - name
   - version
 additionalProperties: false

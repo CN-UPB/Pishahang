@@ -12,39 +12,39 @@ definitions:
       - "Percentage"
   time_units:
     enum:
-      - "ns"  # nano seconds
-      - "ms"  # milli seconds
-      - "s"   # seconds
-      - "m"   # minutes
-      - "h"   # hours
-      - "d"   # days
+      - "ns" # nano seconds
+      - "ms" # milli seconds
+      - "s" # seconds
+      - "m" # minutes
+      - "h" # hours
+      - "d" # days
   memory_units:
     enum:
-      - "B"   # Byte
-      - "kB"  # Kilobyte
+      - "B" # Byte
+      - "kB" # Kilobyte
       - "KiB" # Kibityte
-      - "MB"  # Megabyte
+      - "MB" # Megabyte
       - "MiB" # Mebibyte
-      - "GB"  # Gigabyte
+      - "GB" # Gigabyte
       - "GiB" # Gibibyte
-      - "TB"  # Terabyte
+      - "TB" # Terabyte
       - "TiB" # Tebibyte
-      - "PT"  # Petabyte
+      - "PT" # Petabyte
       - "PiT" # Pebibyte
   bandwidth_units:
     enum:
-      - "bps"  # Bit per second
+      - "bps" # Bit per second
       - "kbps" # Kilobit per second
       - "Mbps" # Megabit per second
       - "Gbps" # Gigabit per second
       - "Tbps" # Terabit per second
   frequency_units:
     enum:
-      - "Hz"   # Hertz, 1/sec
-      - "kHz"  # Kilohertz
-      - "MHz"  # Megahertz
-      - "GHz"  # Gigahertz
-      - "THz"  # Terahertz
+      - "Hz" # Hertz, 1/sec
+      - "kHz" # Kilohertz
+      - "MHz" # Megahertz
+      - "GHz" # Gigahertz
+      - "THz" # Terahertz
   images_formats:
     enum:
       - "raw"
@@ -71,16 +71,16 @@ definitions:
     type: "object"
     properties:
       name:
-       description: "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM."
-       type: "string"
-       pattern: "^[A-Za-z-_]+$"
+        description: "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM."
+        type: "string"
+        pattern: "^[A-Za-z-_]+$"
       unit:
-       description: "The unit used to monitor (or represent) the parameter."
-       oneOf:
-         - $ref: "#/definitions/general_units"
-         - $ref: "#/definitions/memory_units"
-         - $ref: "#/definitions/bandwidth_units"
-         - $ref: "#/definitions/frequency_units"
+        description: "The unit used to monitor (or represent) the parameter."
+        oneOf:
+          - $ref: "#/definitions/general_units"
+          - $ref: "#/definitions/memory_units"
+          - $ref: "#/definitions/bandwidth_units"
+          - $ref: "#/definitions/frequency_units"
       frequency:
         description: "The sample rate of the monitoring parameter."
         type: "number"
@@ -136,7 +136,7 @@ properties:
               description: "The type of license, 'public' in this case."
               type: "string"
               enum:
-              - "public"
+                - "public"
           required:
             - "type"
           additionalProperties: false
@@ -146,7 +146,7 @@ properties:
               description: "The type of license, 'private' in this case."
               type: "string"
               enum:
-              - "private"
+                - "private"
             url:
               description: "The URL to the license file."
               type: "string"
@@ -206,7 +206,7 @@ properties:
       additionalProperties: false
     uniqueItems: true
     minItems: 0
-  virtual_deployment_units: 
+  virtual_deployment_units:
     description: "The virtual deployment units (VDUs) of the virtual network function."
     type: "array"
     items:
@@ -320,7 +320,7 @@ properties:
                 network_interface_bandwidth_unit:
                   description: "The unit of the network interface bandwidth. Default is bps (bit per second)."
                   $ref: "#/definitions/bandwidth_units"
-                network_interface_card_capabilities: 
+                network_interface_card_capabilities:
                   description: "Additional NIC capabilities:"
                   type: "object"
                   properties:
@@ -437,12 +437,12 @@ properties:
         id:
           description: "A VNF-unique id of the virtual link. Can be used for references."
           type: "string"
-        connectivity_type: 
+        connectivity_type:
           description: "The connectivity type, such as point-to-point, point-to-multipoint, and multipoint-to-multipoint."
           enum:
             - "E-Line" # Point-to-point
             - "E-Tree" # Point-to-multipoint
-            - "E-LAN"  # Multipoint-to-multipoint
+            - "E-LAN" # Multipoint-to-multipoint
         connection_points_reference:
           description: "The references to the connection points connected to this virtual link."
           type: "array"
@@ -640,8 +640,8 @@ properties:
         - notification
 required:
   - descriptor_version
-  - vendor 
+  - vendor
   - name
   - version
-  - virtual_deployment_units 
+  - virtual_deployment_units
 additionalProperties: false

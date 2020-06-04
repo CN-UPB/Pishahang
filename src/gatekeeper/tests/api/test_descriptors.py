@@ -6,13 +6,15 @@ from gatekeeper.models.descriptors import DescriptorType
 
 descriptorKeys = {"id", "createdAt", "updatedAt", "type", "content"}
 
-descriptorTypeValues = [t.value for t in DescriptorType]
 
-
-@pytest.mark.parametrize("type", descriptorTypeValues)
-def testCrud(api, type, exampleCsd, exampleVnfd):
+@pytest.mark.parametrize(
+    "type", [DescriptorType.SERVICE.value, DescriptorType.OPENSTACK.value]
+)
+def testCrud(api, type, exampleServiceDescriptor, exampleOpenStackDescriptor):
     descriptorContent = copy.deepcopy(
-        exampleCsd if type == DescriptorType.SERVICE.value else exampleVnfd
+        exampleServiceDescriptor
+        if type == DescriptorType.SERVICE.value
+        else exampleOpenStackDescriptor
     )
 
     # GET all descriptors
@@ -55,7 +57,14 @@ def testCrud(api, type, exampleCsd, exampleVnfd):
     assert [] == getDescriptors()
 
 
-@pytest.mark.parametrize("type", descriptorTypeValues)
+@pytest.mark.parametrize(
+    "type",
+    [
+        DescriptorType.SERVICE.value,
+        DescriptorType.OPENSTACK.value,
+        DescriptorType.KUBERNETES.value,
+    ],
+)
 def testDescriptorValidation(api, type):
     assert (
         400
@@ -73,30 +82,29 @@ def testDescriptorValidation(api, type):
     )
 
 
-def testDuplicateNames(api, exampleCsd, exampleVnfd):
-    exampleCsd, exampleVnfd = copy.deepcopy((exampleCsd, exampleVnfd))
+def testDuplicateNames(api, exampleServiceDescriptor, exampleOpenStackDescriptor):
+    exampleServiceDescriptor, exampleOpenStackDescriptor = copy.deepcopy(
+        (exampleServiceDescriptor, exampleOpenStackDescriptor)
+    )
 
     def addDescriptor(type, descriptor: dict):
         return api.post(
             "/api/v3/descriptors", json={"type": type, "content": descriptor}
         ).status_code
 
-    assert 201 == addDescriptor("service", exampleCsd)
+    assert 201 == addDescriptor("service", exampleServiceDescriptor)
 
     # Adding another descriptor with the same vendor, version, and name should not work
-    assert 400 == addDescriptor("service", exampleCsd)
+    assert 400 == addDescriptor("service", exampleServiceDescriptor)
 
     # Whereas with a different version...
-    exampleCsd["version"] = "0.0.0"
-    assert 201 == addDescriptor("service", exampleCsd)
+    exampleServiceDescriptor["version"] = "0.0.0"
+    assert 201 == addDescriptor("service", exampleServiceDescriptor)
 
     # (vendor, version, name) should be unique across descriptor types
-    exampleVnfd["vendor"] = exampleCsd["vendor"]
-    exampleVnfd["name"] = exampleCsd["name"]
-    exampleVnfd["version"] = exampleCsd["version"]
-    for type in (
-        DescriptorType.OPENSTACK.value,
-        DescriptorType.KUBERNETES.value,
-        DescriptorType.AWS.value,
-    ):
-        assert 400 == addDescriptor(type, exampleVnfd)
+    for key in ["vendor", "name", "version"]:
+        exampleOpenStackDescriptor[key] = exampleServiceDescriptor[key]
+
+    assert 400 == addDescriptor(
+        DescriptorType.OPENSTACK.value, exampleOpenStackDescriptor
+    )

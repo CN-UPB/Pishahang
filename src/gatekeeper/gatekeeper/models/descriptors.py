@@ -16,10 +16,6 @@ from mongoengine import (
 from gatekeeper.exceptions import InvalidDescriptorContentError
 from gatekeeper.models.base import TimestampsDocument, UuidDocument, UuidMixin
 from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
-from gatekeeper.util.validation import (
-    validateFunctionDescriptor,
-    validateServiceDescriptor,
-)
 
 
 class DescriptorType(Enum):
@@ -85,10 +81,10 @@ class Descriptor(BaseDescriptorMixin, UuidDocument, TimestampsDocument):
             self.content if isinstance(self.content, dict) else self.content.to_mongo()
         )
         try:
-            if self.type == DescriptorType.SERVICE.value:
-                validateServiceDescriptor(descriptorDict)
-            else:
-                validateFunctionDescriptor(descriptorDict)
+            # Import not at top level to prevent circular imports
+            from gatekeeper.util.validation import validateDescriptor
+
+            validateDescriptor(self.type, descriptorDict)
         except ValidationError as error:
             raise InvalidDescriptorContentError(error.message)
 

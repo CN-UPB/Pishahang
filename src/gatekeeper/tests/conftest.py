@@ -101,13 +101,13 @@ def getDescriptorFixture():
 
 
 @pytest.fixture(scope="session")
-def exampleCsd(getDescriptorFixture):
-    return getDescriptorFixture("example-csd.yml")
+def exampleServiceDescriptor(getDescriptorFixture):
+    return getDescriptorFixture("service-descriptor.yml")
 
 
 @pytest.fixture(scope="session")
-def exampleVnfd(getDescriptorFixture):
-    return getDescriptorFixture("example-vnfd.yml")
+def exampleOpenStackDescriptor(getDescriptorFixture):
+    return getDescriptorFixture("openstack-descriptor.yml")
 
 
 @pytest.fixture(scope="function")
