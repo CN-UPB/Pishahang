@@ -8,8 +8,7 @@ from gatekeeper.app import broker
 from gatekeeper.exceptions import DescriptorNotFoundError, ServiceNotFoundError
 from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
 from gatekeeper.models.services import Service
-from gatekeeper.util.mongoengine_custom_json import to_custom_json
-import json
+from gatekeeper.util.mongoengine_custom_json import to_custom_dict
 
 
 def getServices():
@@ -36,7 +35,10 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
     referencedDescriptors = []
     referencedDescriptorIds = set()
 
-    if "network_functions" not in descriptor.content:
+    if (
+        "network_functions" not in descriptor.content
+        and "cloud_services" not in descriptor.content
+    ):
         raise ProblemException(
             status=400,
             title="Faulty Descriptor",
@@ -45,29 +47,61 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             ),
         )
 
-    for function in descriptor.content.network_functions:
-        try:
-            vendor = function["vnf_vendor"]
-            name = function["vnf_name"]
-            version = function["vnf_version"]
-            referencedDescriptor = Descriptor.objects(
-                content__vendor=vendor, content__name=name, content__version=version,
-            ).get()
+    if "network_functions" in descriptor.content:
+        for function in descriptor.content.network_functions:
+            try:
+                vendor = function["vnf_vendor"]
+                name = function["vnf_name"]
+                version = function["vnf_version"]
+                referencedDescriptor = Descriptor.objects(
+                    content__vendor=vendor,
+                    content__name=name,
+                    content__version=version,
+                ).get()
 
-            if referencedDescriptor.id not in referencedDescriptorIds:
-                referencedDescriptors.append(referencedDescriptor)
-                referencedDescriptorIds.add(referencedDescriptor.id)
+                if referencedDescriptor.id not in referencedDescriptorIds:
+                    referencedDescriptors.append(referencedDescriptor)
+                    referencedDescriptorIds.add(referencedDescriptor.id)
 
-        except DoesNotExist:
-            raise ProblemException(
-                status=400,
-                title="Missing Dependency",
-                detail=(
-                    "{} contains reference to missing "
-                    'Descriptor(vendor="{}",name="{}",version="{}"). '
-                    "Please upload that descriptor and try again."
-                ).format(descriptor.content, vendor, name, version),
-            )
+            except DoesNotExist:
+                raise ProblemException(
+                    status=400,
+                    title="Missing Dependency",
+                    detail=(
+                        "{} contains reference to missing "
+                        'Descriptor(vendor="{}",name="{}",version="{}"). '
+                        "Please upload that descriptor and try again."
+                    ).format(descriptor.content, vendor, name, version),
+                )
+
+    else:
+        # This is a quick copy-paste cheat due to the different schema for "cloud services"
+        # (kubernetes descriptors). It can be removed one lucky day.
+        for function in descriptor.content.cloud_services:
+            try:
+                vendor = function["service_vendor"]
+                name = function["service_name"]
+                version = function["service_version"]
+                referencedDescriptor = Descriptor.objects(
+                    content__vendor=vendor,
+                    content__name=name,
+                    content__version=version,
+                ).get()
+
+                if referencedDescriptor.id not in referencedDescriptorIds:
+                    referencedDescriptors.append(referencedDescriptor)
+                    referencedDescriptorIds.add(referencedDescriptor.id)
+
+            except DoesNotExist:
+                raise ProblemException(
+                    status=400,
+                    title="Missing Dependency",
+                    detail=(
+                        "{} contains reference to missing "
+                        'Descriptor(vendor="{}",name="{}",version="{}"). '
+                        "Please upload that descriptor and try again."
+                    ).format(descriptor.content, vendor, name, version),
+                )
 
     return referencedDescriptors
 
@@ -86,8 +120,10 @@ def addService(body):
             return connexion.problem(
                 400,
                 "Service Descriptor Required",
-                "You are trying to onboard a non-service descriptor. "
-                + "Only service descriptors can be onboarded.",
+                (
+                    "You are trying to onboard a non-service descriptor. "
+                    "Only service descriptors can be onboarded."
+                ),
             )
 
         # Get referenced descriptors
@@ -137,7 +173,7 @@ def instantiateService(serviceId):
     service = _getServiceByIdOrFail(serviceId)
 
     # Generate payload for instantiation message
-    payload = {
+    message = {
         "ingresses": [],
         "egresses": [],
         "user_data": {
@@ -151,20 +187,20 @@ def instantiateService(serviceId):
     }
     vnfdCounter = 0
     for descriptor in service.descriptorSnapshots:
-        descriptorContent = json.loads(to_custom_json(descriptor.content))
-        descriptorContent[
-            "uuid"
-        ] = descriptor.id  # For backwards compatibility with SLM
+        descriptorContent = to_custom_dict(descriptor.content)
+        descriptorContent["uuid"] = str(
+            descriptor.id
+        )  # For backwards compatibility with SLM
         if descriptor.type == DescriptorType.SERVICE.value:
-            payload["COSD"] = descriptorContent
+            message["COSD"] = descriptorContent
         if descriptor.type == DescriptorType.OPENSTACK.value:
-            payload["VNFD{:d}".format(vnfdCounter)] = descriptorContent
+            message["VNFD{:d}".format(vnfdCounter)] = descriptorContent
         elif descriptor.type == DescriptorType.KUBERNETES.value:
-            payload["CSD{:d}".format(vnfdCounter)] = descriptorContent
+            message["CSD{:d}".format(vnfdCounter)] = descriptorContent
         vnfdCounter += 1
 
     # Send instantiation message
-    validationReply = broker.call_sync_simple("service.instances.create", msg=payload)
+    validationReply = broker.call_sync("service.instances.create", message).payload
     if validationReply["status"] == "ERROR":
         raise ProblemException(
             status=500, title="Instantiation Failed", detail=validationReply["error"]

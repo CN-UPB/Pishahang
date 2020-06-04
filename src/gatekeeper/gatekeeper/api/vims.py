@@ -14,7 +14,7 @@ def getVims():
             "name": vim["vim_name"],
             "country": vim["vim_country"],
             "city": vim["vim_city"],
-            "type": vim["type"],
+            "type": vim["vim_type"],
             "coresTotal": vim["core_total"],
             "coresUsed": vim["core_used"],
             "memoryTotal": vim["memory_total"],

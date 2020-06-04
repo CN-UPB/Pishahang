@@ -103,7 +103,7 @@ def testGetVims(api, broker: Connection):
                 "vim_name": "name",
                 "vim_country": "country",
                 "vim_city": "city",
-                "type": "type",
+                "vim_type": "type",
                 "core_total": 4,
                 "core_used": 3,
                 "memory_total": 2,
