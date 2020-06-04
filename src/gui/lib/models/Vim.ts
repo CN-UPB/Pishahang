@@ -31,7 +31,7 @@ export interface OpenStackSpecificVimFields {
   tenant: {
     id: string;
     externalNetworkId: string;
-    internalRouterId: string;
+    externalRouterId: string;
   };
   username: string;
   password: string;

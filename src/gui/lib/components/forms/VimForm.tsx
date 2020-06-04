@@ -29,8 +29,8 @@ const OpenStackFields: React.FunctionComponent = () => (
     <Grid item xs={6}>
       <Field
         component={TextField}
-        name="openstack.tenant.internalRouterId"
-        label="Tenant Internal Router ID"
+        name="openstack.tenant.externalRouterId"
+        label="Tenant External Router ID"
       />
     </Grid>
     <Grid item xs={6}>
@@ -115,7 +115,7 @@ const validationSchema = Yup.object().shape({
       tenant: Yup.object().shape({
         id: Yup.string().required("Required"),
         externalNetworkId: Yup.string().required("Required"),
-        internalRouterId: Yup.string().required("Required"),
+        externalRouterId: Yup.string().required("Required"),
       }),
     }),
   }),
@@ -141,7 +141,7 @@ const initialFormValues: VimFormValues = {
     tenant: {
       id: "",
       externalNetworkId: "",
-      internalRouterId: "",
+      externalRouterId: "",
     },
   },
   type: "",
