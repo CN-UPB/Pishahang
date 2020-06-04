@@ -37,7 +37,7 @@ class BaseVim(BaseDocument):
 class OpenStackTenant(EmbeddedDocument):
     id = StringField(required=True)
     external_network_id = StringField(required=True)
-    internal_router_id = StringField(required=True)
+    external_router_id = StringField(required=True)
 
 
 class OpenStackVim(BaseVim):
@@ -50,17 +50,6 @@ class OpenStackVim(BaseVim):
 class OpenStackVimSchema(ModelSchema):
     class Meta:
         model = OpenStackVim
-        model_fields_kwargs = {
-            field: {"load_only": True}
-            for field in [
-                "address",
-                "tenant_id",
-                "tenant_external_network_id",
-                "tenant_external_router_id",
-                "username",
-                "password",
-            ]
-        }
 
 
 class KubernetesVim(BaseVim):
@@ -72,9 +61,6 @@ class KubernetesVim(BaseVim):
 class KubernetesVimSchema(ModelSchema):
     class Meta:
         model = KubernetesVim
-        model_fields_kwargs = {
-            field: {"load_only": True} for field in ["address", "service_token", "ccc"]
-        }
 
 
 class AwsVim(BaseVim):
@@ -85,6 +71,3 @@ class AwsVim(BaseVim):
 class AwsVimSchema(ModelSchema):
     class Meta:
         model = AwsVim
-        model_fields_kwargs = {
-            field: {"load_only": True} for field in ["access_key", "secret_key"]
-        }
