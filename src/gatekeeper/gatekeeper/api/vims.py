@@ -1,7 +1,6 @@
-import stringcase
-
 from connexion.exceptions import ProblemException
 from gatekeeper.app import broker
+from gatekeeper.util.casing import snakecaseDictKeys
 
 
 def getVims():
@@ -37,8 +36,7 @@ def deleteVim(id: str):
 
 def addVim(body: dict):
     response = broker.call_sync(
-        "infrastructure.management.compute.add",
-        {stringcase.snakecase(key): value for key, value in body.items()},
+        "infrastructure.management.compute.add", snakecaseDictKeys(body)
     ).payload
 
     if response["request_status"] == "ERROR":

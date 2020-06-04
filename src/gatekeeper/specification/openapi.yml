@@ -885,9 +885,7 @@ components:
         - type: object
           required:
             - address
-            - tenantId
-            - tenantExternalNetworkId
-            - tenantExternalRouterId
+            - tenant
             - username
             - password
             - type
@@ -897,12 +895,19 @@ components:
               enum: ["openstack"]
             address:
               type: string
-            tenantId:
-              type: string
-            tenantExternalNetworkId:
-              type: string
-            tenantExternalRouterId:
-              type: string
+            tenant:
+              type: object
+              required:
+                - id
+                - externalNetworkId
+                - externalRouterId
+              properties:
+                id:
+                  type: string
+                externalNetworkId:
+                  type: string
+                externalRouterId:
+                  type: string
             username:
               type: string
             password:
