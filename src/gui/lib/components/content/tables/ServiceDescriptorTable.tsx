@@ -19,7 +19,7 @@ import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/wit
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { Descriptor, DescriptorType } from "../../../models/Descriptor";
-import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
+import { showDescriptorInfoDialog, showInfoDialog } from "../../../store/actions/dialogs";
 import { Table } from "../../layout/tables/Table";
 import { DescriptorUploadButton } from "../DescriptorUploadButton";
 
@@ -31,10 +31,25 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog(revalidate);
 
-  async function onboard(descriptor: Descriptor) {
-    console.log(descriptor.id);
-    const reply = await onboardServiceDescriptor(descriptor.id);
-    alert(JSON.stringify(reply));
+  async function onboard(descriptorId: string) {
+    const reply = await onboardServiceDescriptor(descriptorId);
+    if (reply.success) {
+      dispatch(
+        showInfoDialog({
+          title: "Success",
+          message:
+            "The descriptor was successfully onboarded. " +
+            'You can find it in the "Services" section now.',
+        })
+      );
+    } else {
+      dispatch(
+        showInfoDialog({
+          title: "Onboarding Error",
+          message: reply.message,
+        })
+      );
+    }
   }
 
   return (
@@ -62,7 +77,7 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
                 <TableCell>{descriptor.content.version}</TableCell>
                 <TableCell align="center" style={{ width: "300px" }}>
                   <Tooltip title={"Onboard " + descriptor.content.name} arrow>
-                    <IconButton color="secondary" onClick={() => onboard(descriptor)}>
+                    <IconButton color="secondary" onClick={() => onboard(descriptor.id)}>
                       <QueueRounded />
                     </IconButton>
                   </Tooltip>
