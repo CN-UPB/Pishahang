@@ -188,7 +188,20 @@ class PolicyPlugin(ManoBasePlugin):
 
         elif content['request_type'] == 'get_policy_version':
             LOG.info("Get prediction")
+            MV_POLICY = "mano.service.policy"
+
             if DEBUG_MODE:
+                LOG.info("Prediction Debug")
+                
+                response = {
+                    "serv_id": content['serv_id'],
+                    "deployment": None,
+                }
+                
+                self.manoconn.notify(MV_POLICY,
+                                    yaml.dump(response),
+                                    correlation_id=prop.correlation_id)
+
                 return
                 
             serv_id = content['serv_id']

@@ -56,8 +56,8 @@ def get_supported_versions(prediction, versions):
 Interpolate data points to a certain range
 '''
 def interpolate_array(values, min=_SCORE_MIN, max=_SCORE_MAX):
-    return np.interp(values, (values.min(), values.max()), (min, max))
-
+    _arr = np.interp(values, (values.min(), values.max()), (min, max))    
+    return np.ceil(_arr)
 
 '''
 Build the decision matrix for a given traffic prediction values 

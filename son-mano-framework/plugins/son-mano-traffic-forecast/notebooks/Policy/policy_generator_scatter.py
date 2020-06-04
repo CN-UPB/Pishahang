@@ -38,9 +38,9 @@ WEIGHTS = {
         "overhead": 1
     },
     "positive": {
-        "support_deviation": 10,
-        "same_version": 5,
-        "support_max": 8,
+        "support_deviation": 1,
+        "same_version": 2,
+        "support_max": 1,
         "support_recent_history": 0
     }
 }
@@ -135,8 +135,8 @@ Interpolate data points to a certain range
 
 
 def interpolate_array(values, min=_SCORE_MIN, max=_SCORE_MAX):
-    return np.interp(values, (values.min(), values.max()), (min, max))
-
+    _arr = np.interp(values, (values.min(), values.max()), (min, max))    
+    return np.ceil(_arr)
 
 '''
 Build the decision matrix for a given traffic prediction values 
@@ -823,9 +823,20 @@ for _traffic_file in traffic_files:
 # https://stackoverflow.com/questions/53766397/how-to-center-the-grid-of-a-plot-on-scatter-points
 # https://stackoverflow.com/questions/47684652/how-to-customize-marker-colors-and-shapes-in-scatter-plot
 markers = ["v" , "^" , "v" , ">" , "^" , "<", ">"]
-colors = ['r','g','b','c','m', 'y', 'k']
+colors = ['#0173b2',
+ '#de8f05',
+ '#029e73',
+ '#d55e00',
+ '#cc78bc',
+ '#ca9161',
+ '#fbafe4',
+ '#949494',
+ '#ece133',
+ '#56b4e9']
 
 sns.reset_orig()
+sns.set_palette("colorblind")
+
 fig, ax = plt.subplots(5, figsize=(8,8))
 _counter = 0
 for _traffic_file in traffic_files:
@@ -899,7 +910,7 @@ fig.savefig("./results/manual_variation_decision_scatter.png",
             dpi=300)
 
 # %%
-sns.set_style("darkgrid")
+sns.set_style("whitegrid")
 fig, ax = plt.subplots(5, figsize=(8,8))
 _counter = 0
 for _traffic_file in traffic_files:
@@ -926,8 +937,8 @@ for _traffic_file in traffic_files:
     ax[_counter].get_xaxis().set_minor_locator(plticker.AutoMinorLocator())
     ax[_counter].get_yaxis().set_minor_locator(plticker.AutoMinorLocator())
     ax[_counter].grid(b=False)
-    ax[_counter].grid(b=True, axis="x", which='minor', color='w', linewidth=1.0)
-    ax[_counter].grid(b=True, axis="x", which='major', color='w', linewidth=1.0)
+    ax[_counter].grid(b=True, axis="x", which='minor', color='lightgrey', linewidth=1.0)
+    ax[_counter].grid(b=True, axis="x", which='major', color='lightgrey', linewidth=1.0)
 
     _counter += 1
 

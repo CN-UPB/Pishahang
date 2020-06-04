@@ -24,7 +24,7 @@ LIMIT_DATASET = False
 LOOK_AHEAD = 5  # Mins (factor of shape)
 EXPERIMENT_RUNS = 30
 
-FOLDER_REF = "report-price-fix-extended-30runs-2"
+FOLDER_REF = "report-topsis-extended-30runs-1"
 MCDA_METHOD = "TOPSIS"
 if not os.path.exists("./results/{}".format(FOLDER_REF)):
     os.makedirs("./results/{}/data".format(FOLDER_REF))
@@ -139,7 +139,8 @@ Interpolate data points to a certain range
 
 
 def interpolate_array(values, min=_SCORE_MIN, max=_SCORE_MAX):
-    return np.interp(values, (values.min(), values.max()), (min, max))
+    _arr = np.interp(values, (values.min(), values.max()), (min, max))    
+    return np.ceil(_arr)
 
 
 '''

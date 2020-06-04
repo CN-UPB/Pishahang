@@ -138,7 +138,8 @@ Interpolate data points to a certain range
 
 
 def interpolate_array(values, min=_SCORE_MIN, max=_SCORE_MAX):
-    return np.interp(values, (values.min(), values.max()), (min, max))
+    _arr = np.interp(values, (values.min(), values.max()), (min, max))    
+    return np.ceil(_arr)
 
 
 '''
@@ -160,9 +161,9 @@ def build_decision_matrix(prediction, meta, versions):
 
             # Support deviation
             if _vm_version_value['max_data_rate'] > (prediction['mean'] + prediction['std']):
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_deviation"] = 5
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_deviation"] = _SCORE_MAX
             else:
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_deviation"] = 1
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_deviation"] = _SCORE_MIN
 
             # Over Provision
             _decision_matrix[_vm_type_key][_vm_version_key]["over_provision"] = int(
@@ -170,24 +171,24 @@ def build_decision_matrix(prediction, meta, versions):
 
             # Same Version
             if meta["current_version"] == _vm_version_key:
-                _decision_matrix[_vm_type_key][_vm_version_key]["same_version"] = 5
+                _decision_matrix[_vm_type_key][_vm_version_key]["same_version"] = _SCORE_MAX
             else:
-                _decision_matrix[_vm_type_key][_vm_version_key]["same_version"] = 1
+                _decision_matrix[_vm_type_key][_vm_version_key]["same_version"] = _SCORE_MIN
 
             # Overhead
             _decision_matrix[_vm_type_key][_vm_version_key]["overhead"] = _vm_version_value['management_overhead']
 
             # Support max datarate
             if _vm_version_value['max_data_rate'] >= (prediction['max']):
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_max"] = 5
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_max"] = _SCORE_MAX
             else:
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_max"] = 1
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_max"] = _SCORE_MIN
 
             # Support recent history
             if _vm_version_value['max_data_rate'] >= (meta["recent_history"]["mean"]):
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_recent_history"] = 5
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_recent_history"] = _SCORE_MAX
             else:
-                _decision_matrix[_vm_type_key][_vm_version_key]["support_recent_history"] = 1
+                _decision_matrix[_vm_type_key][_vm_version_key]["support_recent_history"] = _SCORE_MIN
 
     decision_matrix_df = pd.DataFrame.from_dict({(i, j): _decision_matrix[i][j]
                                                  for i in _decision_matrix.keys()
@@ -956,17 +957,17 @@ fig.savefig("./results/manual_variation_decision_plot.png",
 
 
 # %%
-
+_SCORE_MIN, _SCORE_MAX = 1, 9
 _acc_pc = "pc_100"
 _results = traffic_grouped[_acc_pc].copy()
 
 # iterate over the dataframe row by row and set version
-prediction = { "mean": 350, "std": 0, "min": 350, "max": 350 }
+prediction = { "mean": 350, "std": 150, "min": 350, "max": 650 }
 prediction_history = { "mean": 1000, "std": 0, "min": 1000, "max": 1000 }
 
 meta = {
-    "current_version": "transcoder-image-1-con",
-    "current_version_history_grouped": "transcoder-image-1-con",
+    "current_version": "transcoder-image-1-gpu",
+    "current_version_history_grouped": "transcoder-image-1-gpu",
     "recent_history": prediction_history
 }
 
@@ -980,15 +981,15 @@ decision_matrix_df = build_decision_matrix(
 # weights = WEIGHTS
 weights = {
     "negative": {
-        "cost": 9,
-        "over_provision": 9,
-        "overhead": 5
+        "cost": 5,
+        "over_provision": 5,
+        "overhead": 7
     },
     "positive": {
-        "support_deviation": 4,
-        "same_version": 5,
-        "support_max": 1,
-        "support_recent_history": 1
+        "support_deviation": 7,
+        "same_version": 7,
+        "support_max": 7,
+        "support_recent_history": 0
     }
 }
 
@@ -1019,8 +1020,9 @@ criteria = [c_cost, c_support_deviation, c_over_provision,
 
 list(decision_matrix_df.index)
 
-get_policy_decision_mcda
+# get_policy_decision_mcda
 
+# %%
 print("WSM")
 data = Data(decision_matrix_df.values, criteria,
             weights=weights,
@@ -1031,6 +1033,7 @@ dm = simple.WeightedSum()
 dec = dm.decide(data)
 print(data.anames[dec.best_alternative_])
 
+# %%
 print("WPM")
 data = Data(decision_matrix_df.values, criteria,
             weights=weights,
@@ -1041,6 +1044,7 @@ dm = simple.WeightedProduct()
 dec = dm.decide(data)
 print(data.anames[dec.best_alternative_])
 
+# %%
 print("TOPSIS")
 data = Data(decision_matrix_df.values, criteria,
             weights=weights,
