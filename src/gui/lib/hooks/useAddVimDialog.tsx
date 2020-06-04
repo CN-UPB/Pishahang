@@ -1,4 +1,4 @@
-import { Box, Button, Container } from "@material-ui/core";
+import { Box, Button } from "@material-ui/core";
 import { FormikValues } from "formik";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { addVim } from "../api/vims";
 import { VimForm, VimFormValues } from "../components/forms/VimForm";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { BaseVim, NewVim, VimType } from "../models/Vim";
+import { NewVim, VimType } from "../models/Vim";
 import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
 
 export function useAddVimDialog(onVimAdded: () => Promise<any>) {
@@ -57,20 +57,18 @@ export function useAddVimDialog(onVimAdded: () => Promise<any>) {
       disableBackdropClick
       buttons={
         <>
-          <Button variant="contained" onClick={submit} color="primary">
-            Add
-          </Button>
           <Button variant="contained" onClick={hideDialog} color="secondary">
             Cancel
+          </Button>
+          <Button variant="contained" onClick={submit} color="primary">
+            Add
           </Button>
         </>
       }
     >
-      <Container maxWidth="md">
-        <Box marginBottom={2}>
-          <VimForm formikRef={formikRef} onSubmit={onSubmit}></VimForm>
-        </Box>
-      </Container>
+      <Box marginBottom={2}>
+        <VimForm formikRef={formikRef} onSubmit={onSubmit}></VimForm>
+      </Box>
     </GenericDialog>
   ));
 
