@@ -33,7 +33,7 @@ const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services,
   const instantiate = async (id: string) => {
     const reply = await instantiateService(id);
     if (reply.success) {
-      dispatch(showSnackbar("Service successfully instantiated"));
+      dispatch(showSnackbar("Instantiation request made"));
     } else {
       dispatch(showInfoDialog({ title: "Instantiation Error", message: reply.message }));
     }
