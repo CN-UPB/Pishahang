@@ -2,7 +2,7 @@ import { Service } from "./../models/Service";
 import { Descriptor } from "../models/Descriptor";
 import { Plugin } from "../models/Plugins";
 import { User } from "../models/User";
-import { Vim } from "../models/Vims";
+import { RetrievedVim } from "../models/Vim";
 
 /**
  * An enumeration of API-root-relative endpoint URIs that support GET requests and return data.
@@ -33,7 +33,7 @@ type ApiDataEndpointReturnTypes = {
   [ApiDataEndpoint.KubernetesFunctionDescriptors]: Descriptor[];
   [ApiDataEndpoint.AwsFunctionDescriptors]: Descriptor[];
   [ApiDataEndpoint.Plugins]: Plugin[];
-  [ApiDataEndpoint.Vims]: Vim[];
+  [ApiDataEndpoint.Vims]: RetrievedVim[];
 };
 
 /**

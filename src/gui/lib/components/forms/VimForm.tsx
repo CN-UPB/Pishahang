@@ -1,18 +1,15 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  makeStyles,
-} from "@material-ui/core";
+import { FormControl, Grid, InputLabel, MenuItem, makeStyles } from "@material-ui/core";
 import { Field, Form, Formik, FormikProps, FormikValues } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
 import * as Yup from "yup";
 
-import { VimType } from "../../models/Vims";
+import {
+  AwsSpecificVimFields,
+  KubernetesSpecificVimFields,
+  OpenStackSpecificVimFields,
+  VimType,
+} from "../../models/Vim";
 
 const OpenStackFields: React.FunctionComponent = () => (
   <>
@@ -20,19 +17,19 @@ const OpenStackFields: React.FunctionComponent = () => (
       <Field component={TextField} name="openstack.address" label="Address" />
     </Grid>
     <Grid item xs={6}>
-      <Field component={TextField} name="openstack.tenantId" label="Tenant ID" />
+      <Field component={TextField} name="openstack.tenant.id" label="Tenant ID" />
     </Grid>
-    <Grid item xs={12}>
+    <Grid item xs={6}>
       <Field
         component={TextField}
-        name="openstack.tenantExternalId"
+        name="openstack.tenant.externalNetworkId"
         label="Tenant External Network ID"
       />
     </Grid>
-    <Grid item xs={12}>
+    <Grid item xs={6}>
       <Field
         component={TextField}
-        name="openstack.tenantInternalId"
+        name="openstack.tenant.internalRouterId"
         label="Tenant Internal Router ID"
       />
     </Grid>
@@ -80,25 +77,9 @@ export type VimFormValues = {
   name: string;
   country: string;
   city: string;
-  kubernetes: {
-    address: string;
-    serviceToken: string;
-    ccc: string;
-  };
-  aws: {
-    accessKey: string;
-    secretKey: string;
-  };
-  openstack: {
-    address: string;
-    tenantId: string;
-    tenantExternalId: string;
-    tenantInternalId: string;
-    domain: string;
-    username: string;
-    password: string;
-  };
-
+  openstack: OpenStackSpecificVimFields;
+  kubernetes: KubernetesSpecificVimFields;
+  aws: AwsSpecificVimFields;
   type: VimType | "";
 };
 
@@ -129,11 +110,13 @@ const validationSchema = Yup.object().shape({
     is: VimType.OpenStack,
     then: Yup.object({
       address: Yup.string().required("Required"),
-      tenantId: Yup.string().required("Required"),
-      tenantExternalId: Yup.string().required("Required"),
-      tenantInternalId: Yup.string().required("Required"),
       username: Yup.string().required("Required"),
       password: Yup.string().required("Required"),
+      tenant: Yup.object().shape({
+        id: Yup.string().required("Required"),
+        externalNetworkId: Yup.string().required("Required"),
+        internalRouterId: Yup.string().required("Required"),
+      }),
     }),
   }),
 });
@@ -153,12 +136,13 @@ const initialFormValues: VimFormValues = {
   },
   openstack: {
     address: "",
-    tenantId: "",
-    tenantExternalId: "",
-    tenantInternalId: "",
     username: "",
     password: "",
-    domain: "",
+    tenant: {
+      id: "",
+      externalNetworkId: "",
+      internalRouterId: "",
+    },
   },
   type: "",
 };

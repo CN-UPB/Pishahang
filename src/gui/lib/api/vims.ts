@@ -1,13 +1,14 @@
 import axios, { AxiosError } from "axios";
 
 import { ApiReply } from "../models/ApiReply";
+import { NewVim } from "../models/Vim";
 import { getApiUrl } from ".";
 
-export async function addVim(data: any): Promise<ApiReply> {
+export async function addVim(vim: NewVim): Promise<ApiReply> {
   try {
     return {
       success: true,
-      payload: await axios.post(getApiUrl("vims"), data),
+      payload: await axios.post(getApiUrl("vims"), vim),
     };
   } catch (error) {
     switch ((error as AxiosError).response?.status) {

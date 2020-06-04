@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { addVim } from "../api/vims";
 import { VimForm, VimFormValues } from "../components/forms/VimForm";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
-import { VimType } from "../models/Vims";
+import { BaseVim, NewVim, VimType } from "../models/Vim";
 import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
 
 export function useAddVimDialog(onVimAdded: () => Promise<any>) {
@@ -19,9 +19,11 @@ export function useAddVimDialog(onVimAdded: () => Promise<any>) {
   };
 
   const onSubmit = async (values: VimFormValues) => {
-    const { openstack, aws, kubernetes, ...common } = values;
+    const { openstack, aws, kubernetes, ...common } = values as Omit<VimFormValues, "type"> & {
+      type: VimType;
+    }; // Yup has already made sure that VimType is not an empty string
 
-    let vim: any;
+    let vim: NewVim;
     switch (values.type) {
       case VimType.OpenStack:
         vim = { ...openstack, ...common };
