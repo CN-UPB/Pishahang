@@ -48,10 +48,6 @@ services:
   vim-adaptor:
     build: ./src/mano-framework/plugins/vim-adaptor
 
-  # Old VIM Adaptor
-  old-vim-adaptor:
-    build: ./vim-adaptor
-
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
