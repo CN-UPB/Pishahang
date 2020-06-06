@@ -2,17 +2,16 @@ import { Box, Button } from "@material-ui/core";
 import { FormikValues } from "formik";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
-import { useDispatch } from "react-redux";
 
-import { addVim } from "../api/vims";
 import { VimForm, VimFormValues } from "../components/forms/VimForm";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { NewVim, VimType } from "../models/Vim";
-import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
+import { useThunkDispatch } from "../store";
+import { addVim } from "../store/thunks/vims";
 
 export function useAddVimDialog(onVimAdded: () => Promise<any>) {
   const formikRef = React.useRef<FormikValues>();
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   const submit = () => {
     formikRef.current.handleSubmit();
@@ -37,13 +36,10 @@ export function useAddVimDialog(onVimAdded: () => Promise<any>) {
         vim = { ...aws, ...common };
         break;
     }
-    const reply = await addVim(vim);
+    const reply = await dispatch(addVim(vim, { successSnackbarMessage: "VIM successfully added" }));
     if (reply.success) {
       hideDialog();
-      dispatch(showSnackbar("VIM successfully added"));
       await onVimAdded();
-    } else {
-      dispatch(showInfoDialog({ title: "Error", message: reply.message }));
     }
   };
 

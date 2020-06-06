@@ -9,43 +9,35 @@ import {
   TableRow,
   Tooltip,
 } from "@material-ui/core";
-import { useTheme } from "@material-ui/core/styles";
 import { Add, DeleteForeverRounded, InfoRounded } from "@material-ui/icons";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
-import { deleteVim } from "../../../api/vims";
 import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
 import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmationDialog";
 import { useAddVimDialog } from "../../../hooks/useAddVimDialog";
-import { showInfoDialog, showSnackbar, showVimInfoDialog } from "../../../store/actions/dialogs";
+import { useThunkDispatch } from "../../../store";
+import { showVimInfoDialog } from "../../../store/actions/dialogs";
+import { deleteVim } from "../../../store/thunks/vims";
 import { Table } from "../../layout/tables/Table";
 
 type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.Vims>;
 
-const InternalVimsTable: React.FunctionComponent<Props> = ({ data: vims, mutate, revalidate }) => {
-  const theme = useTheme();
-  const dispatch = useDispatch();
+const InternalVimsTable: React.FunctionComponent<Props> = ({ data: vims, revalidate }) => {
+  const dispatch = useThunkDispatch();
 
   const showRemoveVimDialog = useGenericConfirmationDialog(
-    "Confirm Remove",
+    "Remove VIM?",
     "Are you sure, you want to remove this VIM?",
     async (confirmed: boolean, id: string) => {
-      if (confirmed) {
-        let reply = await deleteVim(id);
-        if (reply.success) {
-          mutate(
-            vims.filter((vim) => vim.id !== id),
-            false
-          );
-          dispatch(showSnackbar("VIM removed"));
-        } else {
-          dispatch(showInfoDialog({ title: "Error Removing VIM", message: reply.message }));
-        }
+      if (!confirmed) return;
+
+      let reply = await dispatch(deleteVim(id, { successSnackbarMessage: "VIM removed" }));
+      if (reply.success) {
+        revalidate();
       }
     },
-    "Remove Vim"
+    "Remove VIM"
   );
 
   const showAddVimDialog = useAddVimDialog(revalidate);

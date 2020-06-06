@@ -11,15 +11,15 @@ import {
 import { useTheme } from "@material-ui/core/styles";
 import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
-import { useDispatch } from "react-redux";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
-import { onboardServiceDescriptor } from "../../../api/services";
 import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { Descriptor, DescriptorType } from "../../../models/Descriptor";
+import { DescriptorType } from "../../../models/Descriptor";
+import { useThunkDispatch } from "../../../store";
 import { showDescriptorInfoDialog, showInfoDialog } from "../../../store/actions/dialogs";
+import { onboardServiceDescriptor } from "../../../store/thunks/services";
 import { Table } from "../../layout/tables/Table";
 import { DescriptorUploadButton } from "../DescriptorUploadButton";
 
@@ -27,12 +27,12 @@ type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.ServiceDescriptors>;
 
 const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, revalidate }) => {
   const theme = useTheme();
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog(revalidate);
 
   async function onboard(descriptorId: string) {
-    const reply = await onboardServiceDescriptor(descriptorId);
+    const reply = await dispatch(onboardServiceDescriptor(descriptorId));
     if (reply.success) {
       dispatch(
         showInfoDialog({
@@ -40,13 +40,6 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
           message:
             "The descriptor was successfully onboarded. " +
             'You can find it in the "Services" section now.',
-        })
-      );
-    } else {
-      dispatch(
-        showInfoDialog({
-          title: "Onboarding Error",
-          message: reply.message,
         })
       );
     }

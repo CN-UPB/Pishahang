@@ -11,16 +11,12 @@ import {
 import { useTheme } from "@material-ui/core/styles";
 import { InfoRounded, PlayCircleOutline } from "@material-ui/icons";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
-import { instantiateService } from "../../../api/services";
 import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
-import {
-  showInfoDialog,
-  showServiceInfoDialog,
-  showSnackbar,
-} from "../../../store/actions/dialogs";
+import { useThunkDispatch } from "../../../store";
+import { showServiceInfoDialog } from "../../../store/actions/dialogs";
+import { instantiateService } from "../../../store/thunks/services";
 import { formatDate } from "../../../util/time";
 import { Table } from "../../layout/tables/Table";
 
@@ -28,15 +24,12 @@ type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.Services>;
 
 const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services, mutate }) => {
   const theme = useTheme();
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   const instantiate = async (id: string) => {
-    const reply = await instantiateService(id);
-    if (reply.success) {
-      dispatch(showSnackbar("Instantiation request made"));
-    } else {
-      dispatch(showInfoDialog({ title: "Instantiation Error", message: reply.message }));
-    }
+    const reply = await dispatch(
+      instantiateService(id, { successSnackbarMessage: "Instantiation request made" })
+    );
   };
 
   return (
@@ -76,14 +69,6 @@ const InternalServicesTable: React.FunctionComponent<Props> = ({ data: services,
                     <PlayCircleOutline htmlColor={theme.palette.success.main} />
                   </IconButton>
                 </Tooltip>
-                {/* <Tooltip title={"Stop " + service.name} arrow>
-                  <IconButton
-                    color="primary"
-                    onClick={() => showServiceStopDialog(service.id, service.name)}
-                  >
-                    <RadioButtonCheckedRounded htmlColor={theme.palette.error.main} />
-                  </IconButton>
-                </Tooltip> */}
               </TableCell>
             </TableRow>
           ))}

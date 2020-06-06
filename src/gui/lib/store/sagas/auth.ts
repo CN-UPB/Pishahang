@@ -14,7 +14,7 @@ export function* loginSaga(loginAction: ReturnType<typeof actions.login>) {
   const { username, password } = loginAction.payload;
   const reply: ApiReply = yield call(api.login, username, password);
   if (!reply.success) {
-    yield put(actions.loginError(reply.message));
+    yield put(actions.loginError(reply.error.message));
   } else {
     yield put(actions.loginSuccess(reply.payload));
     yield call(Router.push, "/");

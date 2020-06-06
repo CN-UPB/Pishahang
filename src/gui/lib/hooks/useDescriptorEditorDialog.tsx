@@ -4,10 +4,11 @@ import dynamic from "next/dynamic";
 import * as React from "react";
 import { useModal } from "react-modal-hook";
 
-import { updateDescriptor } from "../api/descriptors";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
 import { Descriptor } from "../models/Descriptor";
+import { useThunkDispatch } from "../store";
+import { updateDescriptor } from "../store/thunks/descriptors";
 import { convertJsonToYaml } from "../util/yaml";
 import { useStateRef } from "./useStateRef";
 
@@ -19,6 +20,7 @@ export function useDescriptorEditorDialog(): (string) => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef<string>("");
   const [descriptor, setDescriptor, descriptorRef] = useStateRef<Descriptor>("");
+  const dispatch = useThunkDispatch();
   let hasDataChanged: boolean = false;
 
   /**
@@ -39,20 +41,21 @@ export function useDescriptorEditorDialog(): (string) => void {
   /**
    * Function for saving modified file
    */
-  function onSave() {
+  const onSave = async () => {
     if (hasDataChanged) {
       //save something only if changes are made
       hideDialog();
-      try {
-        let convertedDescriptorObject = yaml.safeLoad(formDataRef.current);
-        updateDescriptor(convertedDescriptorObject, descriptorRef.current.id);
-      } catch (e) {
-        console.log("E: " + e);
-      }
+      let descriptorContent = yaml.safeLoad(formDataRef.current);
+      await dispatch(
+        updateDescriptor(descriptorContent, descriptorRef.current.id, {
+          showErrorInfoDialog: true,
+          successSnackbarMessage: "Descriptor successfully updated",
+        })
+      );
     } else {
       hideDialog();
     }
-  }
+  };
 
   /**
    * Function to

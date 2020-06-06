@@ -5,9 +5,10 @@ import * as React from "react";
 import FileReaderInput from "react-file-reader-input";
 import { useDispatch } from "react-redux";
 
-import { uploadDescriptor } from "../../api/descriptors";
-import { DescriptorType } from "../../models/Descriptor";
+import { Descriptor, DescriptorContent, DescriptorType } from "../../models/Descriptor";
+import { useThunkDispatch } from "../../store";
 import { showInfoDialog, showSnackbar } from "../../store/actions/dialogs";
+import { uploadDescriptor } from "../../store/thunks/descriptors";
 
 type Props = {
   descriptorType: DescriptorType;
@@ -18,21 +19,35 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = (
   { descriptorType, onUploaded },
   ref
 ) => {
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   const upload = async (
     event: React.ChangeEvent<HTMLInputElement>,
     [[progressEvent, file]]: FileReaderInput.Result[]
   ) => {
     const contentString = await file.text();
-    const content = yaml.safeLoad(contentString);
+    let content: DescriptorContent;
+    try {
+      content = yaml.safeLoad(contentString);
+    } catch {
+      dispatch(
+        showInfoDialog({
+          title: "Error",
+          message:
+            "An error ocurred while parsing the selected descriptor file. " +
+            "Please make sure the file you upload is a valid YAML file.",
+        })
+      );
+      return;
+    }
 
-    const reply = await uploadDescriptor(descriptorType, content, contentString);
+    const reply = await dispatch(
+      uploadDescriptor(descriptorType, content, contentString, {
+        successSnackbarMessage: "Descriptor successfully uploaded",
+      })
+    );
     if (reply.success) {
-      dispatch(showSnackbar("Descriptor successfully uploaded"));
       await onUploaded();
-    } else {
-      dispatch(showInfoDialog({ title: "Error", message: reply.message }));
     }
   };
 

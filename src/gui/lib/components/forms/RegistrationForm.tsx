@@ -5,8 +5,6 @@ import { useRouter } from "next/router";
 import * as React from "react";
 import * as Yup from "yup";
 
-import { registerUser } from "../../api/users";
-
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     logoContainer: {
@@ -35,13 +33,7 @@ export const RegistrationForm: React.FunctionComponent = () => {
   const [errorMessage, setErrorMessage] = React.useState<string>("foo");
   const router = useRouter();
 
-  const onSubmit = async ({ confirmPassword, ...userData }: FormValues) => {
-    const response = await registerUser(userData);
-    console.log(response);
-
-    //router.push("/login")
-    //setErrorMessage("dsfkjsdbf")
-  };
+  const onSubmit = async ({ confirmPassword, ...userData }: FormValues) => {};
 
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("Required"),

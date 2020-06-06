@@ -1,7 +1,5 @@
-import { useDispatch } from "react-redux";
-
-import { deleteDescriptor } from "../api/descriptors";
-import { showInfoDialog, showSnackbar } from "../store/actions/dialogs";
+import { useThunkDispatch } from "./../store/index";
+import { deleteDescriptor } from "../store/thunks/descriptors";
 import { useGenericConfirmationDialog } from "./genericConfirmationDialog";
 
 /**
@@ -10,20 +8,21 @@ import { useGenericConfirmationDialog } from "./genericConfirmationDialog";
  * descriptor will be deleted and the provided `onDeleted` function will be called.
  */
 export function useDescriptorDeleteDialog(onDeleted: () => Promise<any>) {
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   return useGenericConfirmationDialog(
     "Delete Descriptor?",
     "Are you sure you want to delete this descriptor? This cannot be undone.",
     async (confirmed: boolean, id: string) => {
       if (!confirmed) return;
-
-      const reply = await deleteDescriptor(id);
+      const reply = await dispatch(
+        deleteDescriptor(id, {
+          showErrorInfoDialog: true,
+          successSnackbarMessage: "Descriptor successfully deleted",
+        })
+      );
       if (reply.success) {
-        dispatch(showSnackbar("Descriptor successfully deleted"));
         await onDeleted();
-      } else {
-        dispatch(showInfoDialog({ title: "Error", message: reply.message }));
       }
     },
     "Delete Descriptor"
