@@ -3,11 +3,10 @@ import { CloudUpload } from "@material-ui/icons";
 import yaml from "js-yaml";
 import * as React from "react";
 import FileReaderInput from "react-file-reader-input";
-import { useDispatch } from "react-redux";
 
-import { Descriptor, DescriptorContent, DescriptorType } from "../../models/Descriptor";
+import { DescriptorContent, DescriptorType } from "../../models/Descriptor";
 import { useThunkDispatch } from "../../store";
-import { showInfoDialog, showSnackbar } from "../../store/actions/dialogs";
+import { showInfoDialog } from "../../store/actions/dialogs";
 import { uploadDescriptor } from "../../store/thunks/descriptors";
 
 type Props = {
@@ -63,7 +62,7 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = (
         <Fab
           color="primary"
           size="small"
-          style={{ float: "right" }}
+          style={{ float: "right", marginBottom: "0px" }}
           aria-label="Upload"
           component="label"
         >
