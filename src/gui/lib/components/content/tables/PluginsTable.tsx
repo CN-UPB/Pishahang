@@ -17,7 +17,7 @@ import React from "react";
 import { ApiDataEndpoint } from "../../../api/endpoints";
 import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
 import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmationDialog";
-import { PluginState } from "../../../models/Plugins";
+import { PluginState } from "../../../models/Plugin";
 import { useThunkDispatch } from "../../../store";
 import { showPluginInfoDialog } from "../../../store/actions/dialogs";
 import { changePluginLifecycleState, stopPlugin } from "../../../store/thunks/plugins";

@@ -1,5 +1,5 @@
-import { Plugin, PluginState } from "./../../models/Plugins";
 import { getApiUrl } from "../../api";
+import { Plugin, PluginState } from "../../models/Plugin";
 import { ApiThunkOptions, callApiEnhanced } from "./auth";
 
 /**

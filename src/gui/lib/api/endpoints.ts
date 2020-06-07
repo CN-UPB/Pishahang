@@ -1,6 +1,6 @@
 import { Service } from "./../models/Service";
 import { Descriptor } from "../models/Descriptor";
-import { Plugin } from "../models/Plugins";
+import { Plugin } from "../models/Plugin";
 import { User } from "../models/User";
 import { RetrievedVim } from "../models/Vim";
 
