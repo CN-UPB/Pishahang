@@ -1,11 +1,25 @@
-export interface User {
+/**
+ * User fields common for retrieved users and new users
+ */
+export interface BaseUser {
   username: string;
-  uuid: string;
-  created_at: Date;
-  user_type: "developer" | "admin";
+  fullName: string;
   email: string;
-  last_name: string;
-  first_name: string;
-  instances_public_key?: string;
-  instances_private_key?: string;
+  isAdmin: boolean;
+}
+
+/**
+ * User object as retrieved by the API
+ */
+export interface User extends BaseUser {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * User object as sent to the API when adding a new user
+ */
+export interface NewUser extends BaseUser {
+  password: string;
 }
