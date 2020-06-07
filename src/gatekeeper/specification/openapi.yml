@@ -237,11 +237,11 @@ paths:
       operationId: gatekeeper.api.users.getCurrentUser
       responses:
         "200":
-          description: The current users was successfully returned.
+          description: The current user was successfully returned.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Users"
+                $ref: "#/components/schemas/User"
         "401":
           $ref: "#/components/responses/Error401"
         "403":
