@@ -4,13 +4,13 @@ from pytest_voluptuous import S
 config = get_config("gatekeeper")
 
 
-def testUsers(authorizedApi):
+def testUsers(api):
     adminUserData = dict(config["initialUserData"])
     adminUserData.pop("password")
 
     # GET /users
     def getUsers():
-        return authorizedApi.get("/api/v3/users").get_json()
+        return api.get("/api/v3/users").get_json()
 
     # Only the admin user should be present
     users = getUsers()
@@ -21,11 +21,11 @@ def testUsers(authorizedApi):
     )
 
     # GET /current-user should return the admin user
-    assert adminUser == authorizedApi.get("/api/v3/current-user").get_json()
+    assert adminUser == api.get("/api/v3/current-user").get_json()
 
     # Let's change the username of the admin user via PUT /current-user
     newAdminUserData = {**adminUserData, "username": "admin2", "password": ""}
-    reply = authorizedApi.put("/api/v3/current-user", json=newAdminUserData)
+    reply = api.put("/api/v3/current-user", json=newAdminUserData)
     assert 200 == reply.status_code
     assert S({**adminUserData, "username": "admin2"}) <= reply.get_json()
 
@@ -37,7 +37,7 @@ def testUsers(authorizedApi):
         "password": "password",
         "username": "newuser",
     }
-    reply = authorizedApi.post("/api/v3/users", json=newUserData)
+    reply = api.post("/api/v3/users", json=newUserData)
     newUserData.pop("password")
     assert 201 == reply.status_code
     newUser = reply.get_json()
@@ -46,12 +46,12 @@ def testUsers(authorizedApi):
     assert 2 == len(getUsers())
 
     # Let's get it by its id
-    reply = authorizedApi.get("/api/v3/users/" + newUser["id"])
+    reply = api.get("/api/v3/users/" + newUser["id"])
     assert 200 == reply.status_code
     assert newUser == reply.get_json()
 
     # Update the new user's data without providing a password
-    reply = authorizedApi.put(
+    reply = api.put(
         "/api/v3/users/" + newUser["id"],
         json={**newUserData, "email": "newmail@example.org", "password": ""},
     )
@@ -59,7 +59,7 @@ def testUsers(authorizedApi):
     assert S({**newUserData, "email": "newmail@example.org"}) <= reply.get_json()
 
     # Update the new user's password
-    reply = authorizedApi.put(
+    reply = api.put(
         "/api/v3/users/" + newUser["id"],
         json={**newUserData, "password": "new password"},
     )
@@ -67,5 +67,5 @@ def testUsers(authorizedApi):
     assert S(newUserData) <= reply.get_json()
 
     # Delete the new user
-    assert 200 == authorizedApi.delete("/api/v3/users/" + newUser["id"]).status_code
+    assert 200 == api.delete("/api/v3/users/" + newUser["id"]).status_code
     assert 1 == len(getUsers())

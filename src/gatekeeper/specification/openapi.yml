@@ -8,6 +8,9 @@ info:
 servers:
   - url: /api/v3
 
+security:
+  - bearerAuth: []
+
 tags:
   - name: Authentication
     description: User management and authentication
@@ -32,6 +35,7 @@ paths:
         Given a username and a password, returns an access token and a refresh token or fails with
         error 401 if the credentials are invalid.
       operationId: gatekeeper.api.auth.createTokenFromCredentials
+      security: []
       requestBody:
         description: The username and password to create a new access token with
         content:
@@ -71,6 +75,7 @@ paths:
         Given a refresh token, returns a new access token or fails with error 401 if the given
         refresh token is invalid.
       operationId: gatekeeper.api.auth.refreshToken
+      security: []
       requestBody:
         description: The refresh token which was handed out by the `/auth` endpoint
         content:
@@ -111,8 +116,6 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
     post:
       tags:
         - Authentication
@@ -132,8 +135,6 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
 
   /users/{id}:
     get:
@@ -165,8 +166,6 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
 
     delete:
       tags:
@@ -194,8 +193,6 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
 
     put:
       tags:
@@ -230,8 +227,6 @@ paths:
           $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
 
   /current-user:
     get:
@@ -249,12 +244,8 @@ paths:
                 $ref: "#/components/schemas/User"
         "401":
           $ref: "#/components/responses/Error401"
-        "403":
-          $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
     put:
       tags:
         - Authentication
@@ -262,9 +253,9 @@ paths:
       description:
         Updates the current user's information. If the `password` field is empty, the
         user's password won't be changed. Note that the `isAdmin` field, while required
-        due to a shortcoming in JsonSchema
-        (https://json-schema.org/understanding-json-schema/reference/combining.html#id5),
-        is ignored for this endpoint.
+        due to a
+        [shortcoming](https://json-schema.org/understanding-json-schema/reference/combining.html#allof)
+        in JsonSchema, is ignored for this endpoint.
       operationId: gatekeeper.api.users.updateCurrentUser
       requestBody:
         content:
@@ -282,12 +273,8 @@ paths:
                 $ref: "#/components/schemas/User"
         "401":
           $ref: "#/components/responses/Error401"
-        "403":
-          $ref: "#/components/responses/Error403"
         "500":
           $ref: "#/components/responses/Error500"
-      security:
-        - bearerAuth: []
 
   # Descriptors ====================================================================================
 
@@ -314,6 +301,8 @@ paths:
                 $ref: "#/components/schemas/Descriptors"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
     post:
@@ -339,6 +328,8 @@ paths:
                 $ref: "#/components/schemas/Descriptor"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -363,6 +354,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Descriptor"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -400,6 +393,8 @@ paths:
                 $ref: "#/components/schemas/Descriptor"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -425,6 +420,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Descriptor"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -446,6 +443,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Services"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
     post:
@@ -478,6 +477,8 @@ paths:
                 $ref: "#/components/schemas/Service"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -502,6 +503,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -527,6 +530,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -555,6 +560,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceInstances"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -593,6 +600,8 @@ paths:
                 $ref: "#/components/schemas/ServiceInstance"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -613,6 +622,8 @@ paths:
                 $ref: "#/components/schemas/Vims"
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
     post:
@@ -630,6 +641,8 @@ paths:
           description: The VIM was successfully added.
         "400":
           $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
   /vims/{id}:
@@ -654,6 +667,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Vims"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -674,6 +689,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Plugins"
+        "401":
+          $ref: "#/components/responses/Error401"
         "500":
           $ref: "#/components/responses/Error500"
 
@@ -698,6 +715,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Plugin"
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -718,6 +737,8 @@ paths:
       responses:
         "204":
           description: The shutdown request was successfully made.
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -752,6 +773,8 @@ paths:
       responses:
         "204":
           description: The lifecycle manipulation request was successfully made.
+        "401":
+          $ref: "#/components/responses/Error401"
         "404":
           $ref: "#/components/responses/Error404"
         "500":
@@ -1076,7 +1099,7 @@ components:
           schema:
             $ref: "#/components/schemas/Message"
     Error403:
-      description: The action requires elevated privileges.
+      description: The endpoint requires elevated privileges.
       content:
         application/json:
           schema:

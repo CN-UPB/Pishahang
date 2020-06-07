@@ -1,11 +1,11 @@
 from flask_jwt_extended import decode_token
 
 
-def testTokenRetrieval(api, adminUser, adminPassword):
+def testTokenRetrieval(unauthorizedApi, adminUser, adminPassword):
     # Login with invalid credentials
     assert (
         401
-        == api.post(
+        == unauthorizedApi.post(
             "/api/v3/auth", json={"username": "user", "password": "pass"}
         ).status_code
     )
@@ -13,13 +13,13 @@ def testTokenRetrieval(api, adminUser, adminPassword):
     # Login with valid username and invalid password
     assert (
         401
-        == api.post(
+        == unauthorizedApi.post(
             "/api/v3/auth", json={"username": adminUser.username, "password": "pass"}
         ).status_code
     )
 
     # Login with valid credentials
-    reply = api.post(
+    reply = unauthorizedApi.post(
         "/api/v3/auth", json={"username": adminUser.username, "password": adminPassword}
     )
     assert reply.status_code == 200
@@ -36,8 +36,8 @@ def testTokenRetrieval(api, adminUser, adminPassword):
     assert decode_token(token["refreshToken"])["type"] == "refresh"
 
 
-def testTokenRefresh(api, refreshToken):
-    reply = api.put("/api/v3/auth", json={"refreshToken": refreshToken})
+def testTokenRefresh(unauthorizedApi, refreshToken):
+    reply = unauthorizedApi.put("/api/v3/auth", json={"refreshToken": refreshToken})
 
     assert reply.status_code == 200
     token = reply.get_json()

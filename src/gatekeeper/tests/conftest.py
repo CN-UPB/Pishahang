@@ -60,14 +60,14 @@ def refreshToken(adminUser):
 
 
 @pytest.fixture(scope="module")
-def api():
+def unauthorizedApi():
     app.app.test_client_class = FlaskClient
     with app.app.test_client() as c:
         yield c
 
 
 @pytest.fixture(scope="module")
-def authorizedApi(accessToken):
+def api(accessToken):
     AuthorizedFlaskClient.accessToken = accessToken
     app.app.test_client_class = AuthorizedFlaskClient
     with app.app.test_client() as c:
