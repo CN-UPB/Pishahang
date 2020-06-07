@@ -83,8 +83,7 @@ def getTokenInfo(token) -> dict:
         tokenInfo["sub"] = tokenInfo.pop("identity")
         return tokenInfo
     except Exception:
-        _, message, _ = sys.exc_info()
-        logger.info("Bearer authentication failed: {}".format(message))
+        logger.info("Bearer authentication failed", exc_info=True)
         return
 
 

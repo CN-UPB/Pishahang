@@ -1,21 +1,21 @@
+from mongoengine.errors import NotUniqueError
+
 from connexion.exceptions import BadRequestProblem, ProblemException
 
 
 class NotFoundError(ProblemException):
-    def __init__(self, title="Not Found", detail=None):
-        super(NotFoundError, self).__init__(status=404, title=title, detail=detail)
+    def __init__(self, title="Not Found", **kwargs):
+        super(NotFoundError, self).__init__(status=404, title=title, **kwargs)
 
 
 class InternalServerError(ProblemException):
-    def __init__(self, title="Internal Server Error", detail=None):
-        super(InternalServerError, self).__init__(
-            status=500, title=title, detail=detail
-        )
+    def __init__(self, title="Internal Server Error", **kwargs):
+        super(InternalServerError, self).__init__(status=500, title=title, **kwargs)
 
 
 class InvalidDescriptorContentError(BadRequestProblem):
     """
-    Indicates that invalid content has been assigned to `Descriptor.descriptor`
+    Indicates that invalid content has been assigned to `Descriptor.content`
     """
 
     def __init__(self, detail, **kwargs):
@@ -56,4 +56,20 @@ class PluginNotFoundError(NotFoundError):
             title="Plugin Not Found",
             detail="No plugin with id '{}' was found.".format(id),
             **kwargs
+        )
+
+
+class UserNotFoundError(NotFoundError):
+    def __init__(self, id, **kwargs):
+        super(UserNotFoundError, self).__init__(
+            title="User does not exist",
+            detail="No user with id '{}' exists.".format(id),
+            **kwargs
+        )
+
+
+class UserDataNotUniqueError(BadRequestProblem):
+    def __init__(self, mongoEngineError: NotUniqueError, **kwargs):
+        super(UserNotFoundError, self).__init__(
+            title="User data not unique", detail=str(mongoEngineError), **kwargs
         )
