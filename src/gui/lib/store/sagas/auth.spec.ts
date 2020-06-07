@@ -1,35 +1,30 @@
 import Router from "next/router";
 import { expectSaga } from "redux-saga-test-plan";
-import { call } from "redux-saga/effects";
 
-import * as api from "../../api/auth";
 import { Tokens } from "../../models/Tokens";
-import * as actions from "./../actions/auth";
-import { loginSaga } from "./auth";
+import { loginSuccess, logout } from "./../actions/auth";
+import { authError } from "../actions/auth";
+import { authSaga } from "./auth";
 
 // Mock Next.js router – it throws an error if imported in an environment other than client-side Next.js
 jest.mock("next/router");
 
-describe("loginSaga", () => {
-  const tokens: Tokens = {
-    accessToken: "token",
-    accessTokenExpiresAt: 0,
-    refreshToken: "refresh token",
-    refreshTokenExpiresAt: 0,
-  };
+expectSaga.DEFAULT_TIMEOUT = 100;
 
-  it("should dispatch loginSuccess and redirect on successful login", () => {
-    return expectSaga(loginSaga, actions.login({ username: "user", password: "pass" }))
-      .provide([[call(api.login, "user", "pass"), { success: true, payload: tokens }]])
-      .put(actions.loginSuccess(tokens))
-      .call(Router.push, "/")
-      .run();
+const tokens: Tokens = {
+  accessToken: "token",
+  accessTokenExpiresAt: 0,
+  refreshToken: "refresh token",
+  refreshTokenExpiresAt: 0,
+};
+
+describe("authSaga", () => {
+  it('should redirect to "/" on successful login', () => {
+    return expectSaga(authSaga).dispatch(loginSuccess(tokens)).call(Router.push, "/").silentRun();
   });
 
-  it("should dispatch loginError on login errors", () => {
-    return expectSaga(loginSaga, actions.login({ username: "user", password: "pass" }))
-      .provide([[call(api.login, "user", "pass"), { success: false, message: "error message" }]])
-      .put(actions.loginError("error message"))
-      .run();
+  it('should redirect to "/login" on logout or authentication errors', async () => {
+    await expectSaga(authSaga).dispatch(logout()).call(Router.push, "/login").silentRun();
+    await expectSaga(authSaga).dispatch(authError()).call(Router.push, "/login").silentRun();
   });
 });

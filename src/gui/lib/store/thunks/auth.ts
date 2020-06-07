@@ -1,11 +1,11 @@
 import { AxiosError, AxiosRequestConfig } from "axios";
 import axios from "axios";
-import { AppThunkAction, AppThunkDispatch } from "StoreTypes";
+import { AppThunkAction } from "StoreTypes";
 
 import { ApiReply } from "./../../models/ApiReply";
 import { getApiUrl } from "../../api";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../api/endpoints";
-import { authError } from "./../actions/auth";
+import { authError, loginError, loginSuccess } from "./../actions/auth";
 import { showSnackbar } from "./../actions/dialogs";
 import { selectAccessToken } from "./../selectors/auth";
 
@@ -92,7 +92,7 @@ export function callApiEnhanced<ReplyDataType = any>(
     ...options,
   };
 
-  return async (dispatch: AppThunkDispatch) => {
+  return async (dispatch) => {
     let reply: ApiReply<ReplyDataType>;
     try {
       const replyData = await dispatch(callApiAuthorized<ReplyDataType>(config));
@@ -113,5 +113,37 @@ export function callApiEnhanced<ReplyDataType = any>(
     }
 
     return reply;
+  };
+}
+
+/**
+ * Return a thunk that sends a login request to the API. Dispatches either a
+ * `loginSuccess` or a `loginError` action.
+ *
+ * @param username The username to be submitted
+ * @param password The password to be submitted
+ */
+export function login(username: string, password: string): AppThunkAction {
+  return async (dispatch) => {
+    try {
+      const replyData = (await axios.post(getApiUrl("auth"), { username, password })).data;
+      const now = Math.round(Date.now() / 1000);
+      dispatch(
+        loginSuccess({
+          accessToken: replyData.accessToken,
+          refreshToken: replyData.refreshToken,
+          accessTokenExpiresAt: now + replyData.accessTokenExpiresIn,
+          refreshTokenExpiresAt: now + replyData.refreshTokenExpiresIn,
+        })
+      );
+    } catch (error) {
+      let message: string;
+      if ((error as AxiosError).response?.status === 401) {
+        message = "Invalid username or password";
+      } else {
+        message = "An unexpected error ocurred. Please try again.";
+      }
+      dispatch(loginError(message));
+    }
   };
 }

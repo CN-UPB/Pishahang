@@ -1,7 +1,6 @@
 import {
   AppBar,
   Drawer as MaterialDrawer,
-  Theme,
   Toolbar,
   Typography,
   createStyles,
@@ -15,7 +14,7 @@ import { RightToolBarContent } from "../content/toolbar/RightToolBarContent";
 
 const drawerWidth = 280;
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     root: {
       display: "flex",

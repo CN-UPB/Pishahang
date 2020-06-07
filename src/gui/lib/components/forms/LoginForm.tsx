@@ -1,26 +1,13 @@
-import { Box, Button, Container, Grid, Theme, createStyles, makeStyles } from "@material-ui/core";
+import { Box, Button, Container, Grid, Typography } from "@material-ui/core";
 import { Field, Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import * as Yup from "yup";
 
-import { login } from "./../../store/actions/auth";
+import { useThunkDispatch } from "../../store";
 import { selectLoginErrorMessage } from "../../store/selectors/auth";
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    logoContainer: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingBottom: theme.spacing(2),
-    },
-    logo: {
-      width: "100%",
-    },
-  })
-);
+import { login } from "../../store/thunks/auth";
 
 type FormValues = {
   username: string;
@@ -28,11 +15,10 @@ type FormValues = {
 };
 
 export const LoginForm: React.FunctionComponent = () => {
-  const classes = useStyles({});
   const loginErrorMessage = useSelector(selectLoginErrorMessage);
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
-  const onSubmit = async (values: FormValues) => dispatch(login(values));
+  const onSubmit = async (values: FormValues) => dispatch(login(values.username, values.password));
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Required"),
@@ -45,34 +31,38 @@ export const LoginForm: React.FunctionComponent = () => {
   };
 
   return (
-    <Container maxWidth={"xs"}>
+    <Container style={{ maxWidth: "400px" }}>
       <Formik
         initialValues={initialFormValues}
         onSubmit={onSubmit}
         validationSchema={validationSchema}
       >
         <Form>
-          <Box padding={6}>
-            <div className={classes.logoContainer}>
-              <img className={classes.logo} src="/img/logo.svg" />
-            </div>
-            <Grid container spacing={2}>
-              {loginErrorMessage}
-              <Grid item xs={12}>
-                <Field component={TextField} name="username" label="User Name" />
-              </Grid>
-              <Grid item xs={12}>
-                <Field component={TextField} name="password" label="Password" type="password" />
-              </Grid>
-              <Grid item xs={12} container alignItems="center" justify="center">
-                <Box paddingTop={3}>
-                  <Button type="submit" variant="contained" color="primary">
-                    Login
-                  </Button>
-                </Box>
-              </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} container alignItems="center" justify="center">
+              <img src="/img/logo.svg" />
             </Grid>
-          </Box>
+            {loginErrorMessage && (
+              <Grid item xs={12}>
+                <Typography color="error" align="center">
+                  {loginErrorMessage}
+                </Typography>
+              </Grid>
+            )}
+            <Grid item xs={12}>
+              <Field component={TextField} name="username" label="User Name" />
+            </Grid>
+            <Grid item xs={12}>
+              <Field component={TextField} name="password" label="Password" type="password" />
+            </Grid>
+            <Grid item xs={12} container alignItems="center" justify="center">
+              <Box paddingTop={3}>
+                <Button type="submit" variant="contained" color="primary">
+                  Login
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
         </Form>
       </Formik>
     </Container>

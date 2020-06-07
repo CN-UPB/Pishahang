@@ -1,7 +1,10 @@
 import { fork } from "redux-saga/effects";
 
+import { isClient } from "../../util/environment";
 import { authSaga } from "./auth";
 
 export function* rootSaga() {
-  yield fork(authSaga);
+  if (isClient) {
+    yield fork(authSaga);
+  }
 }
