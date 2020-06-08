@@ -1,5 +1,5 @@
 /**
- * Base interface for API response types that define `id`, `createdAt`, and `updatedAt` fields.
+ * Base interface for API responses that include `id`, `createdAt`, and `updatedAt` fields.
  */
 export interface BaseEntity {
   id: string;

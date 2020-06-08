@@ -1,16 +1,19 @@
 import { createReducer } from "typesafe-actions";
 
+import { User } from "./../../models/User";
 import { Tokens } from "../../models/Tokens";
 import * as actions from "./../actions/auth";
 
 export type AuthState = Readonly<{
   tokens: Tokens;
   loginErrorMessage: string;
+  user: User;
 }>;
 
 const initialState: AuthState = {
   tokens: null,
   loginErrorMessage: "",
+  user: null,
 };
 
 const authReducer = createReducer(initialState)
@@ -23,9 +26,9 @@ const authReducer = createReducer(initialState)
     tokens: action.payload,
     loginErrorMessage: "",
   }))
-  .handleAction([actions.logout, actions.authError], (state) => ({
+  .handleAction(actions.setUser, (state, action) => ({
     ...state,
-    tokens: null,
+    user: action.payload,
   }))
   .handleAction(actions.setAccessToken, (state, action) => ({
     ...state,
@@ -33,6 +36,11 @@ const authReducer = createReducer(initialState)
       ...state.tokens,
       ...action.payload,
     },
+  }))
+  .handleAction([actions.logout, actions.authError], (state) => ({
+    ...state,
+    tokens: null,
+    user: null,
   }));
 
 export default authReducer;

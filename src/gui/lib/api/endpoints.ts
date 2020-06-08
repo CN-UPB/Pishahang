@@ -12,6 +12,7 @@ export enum ApiDataEndpoint {
    * Users route – returns a list of all users
    */
   Users = "users",
+  CurrentUser = "current-user",
   Services = "services",
   ServiceDescriptors = "descriptors?type=service",
   OpenStackFunctionDescriptors = "descriptors?type=openStack",
@@ -27,6 +28,7 @@ export enum ApiDataEndpoint {
  */
 type ApiDataEndpointReturnTypes = {
   [ApiDataEndpoint.Users]: User[];
+  [ApiDataEndpoint.CurrentUser]: User;
   [ApiDataEndpoint.Services]: Service[];
   [ApiDataEndpoint.ServiceDescriptors]: Descriptor[];
   [ApiDataEndpoint.OpenStackFunctionDescriptors]: Descriptor[];

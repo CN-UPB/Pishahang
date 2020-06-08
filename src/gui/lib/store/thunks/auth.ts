@@ -6,7 +6,7 @@ import { ApiReply } from "./../../models/ApiReply";
 import { getTimestamp } from "./../../util/time";
 import { getApiUrl } from "../../api";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../api/endpoints";
-import { authError, loginError, loginSuccess, setAccessToken } from "./../actions/auth";
+import { authError, loginError, loginSuccess, setAccessToken, setUser } from "./../actions/auth";
 import { showSnackbar } from "./../actions/dialogs";
 import { selectAccessToken, selectRefreshToken } from "./../selectors/auth";
 
@@ -151,6 +151,7 @@ export function login(username: string, password: string): AppThunkAction {
           refreshTokenExpiresAt: now + replyData.refreshTokenExpiresIn,
         })
       );
+      dispatch(fetchUser());
     } catch (error) {
       let message: string;
       if ((error as AxiosError).response?.status === 401) {
@@ -159,6 +160,25 @@ export function login(username: string, password: string): AppThunkAction {
         message = "An unexpected error ocurred. Please try again.";
       }
       dispatch(loginError(message));
+    }
+  };
+}
+
+/**
+ * Return a thunk that fetches the currently logged-in user and dispatches a `setUser`
+ * action on success, or `authError` otherwise.
+ */
+export function fetchUser(): AppThunkAction {
+  return async (dispatch) => {
+    try {
+      const user = await dispatch(fetchApiDataAuthorized(ApiDataEndpoint.CurrentUser));
+      if (user !== null) {
+        // null is returned on an auth error
+        dispatch(setUser(user));
+      }
+    } catch {
+      // This might be an error 500 or a connection problem
+      dispatch(authError());
     }
   };
 }

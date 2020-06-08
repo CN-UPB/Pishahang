@@ -1,5 +1,6 @@
+import { BaseEntity } from "./BaseEntity";
 /**
- * User fields common for retrieved users and new users
+ * User fields common for retrieved users and "local" users
  */
 export interface BaseUser {
   username: string;
@@ -11,15 +12,11 @@ export interface BaseUser {
 /**
  * User object as retrieved by the API
  */
-export interface User extends BaseUser {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export interface User extends BaseUser, BaseEntity {}
 
 /**
- * User object as sent to the API when adding a new user
+ * User object as sent to the API when adding or modifying a new user
  */
-export interface NewUser extends BaseUser {
+export interface LocalUser extends BaseUser {
   password: string;
 }
