@@ -36,13 +36,13 @@ const useStyles = makeStyles((theme) =>
     },
     logoContainer: {
       ...theme.mixins.toolbar,
-      height: theme.mixins.toolbar.minHeight,
+      height: `calc(${theme.mixins.toolbar.minHeight} * 2px)`,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
     },
     logo: {
-      maxHeight: "100%",
+      maxHeight: "80%",
     },
     drawerPaper: {
       width: drawerWidth,

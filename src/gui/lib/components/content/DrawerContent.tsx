@@ -36,18 +36,15 @@ export const DrawerContent: React.FunctionComponent = () => {
   const router = useRouter();
 
   const [descriptorsExpanded, toggleDescriptorsExpanded] = useToggle(
-    router.pathname.startsWith("/descriptors/")
+    router.pathname.startsWith("/descriptors/") &&
+      !router.pathname.startsWith("/descriptors/service")
   );
 
   return (
     <>
-      <Divider />
-
       <List>
         <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"}></LinkedListItem>
       </List>
-
-      <Divider />
 
       <List>
         <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
@@ -97,13 +94,9 @@ export const DrawerContent: React.FunctionComponent = () => {
         ></LinkedListItem>
       </List>
 
-      <Divider />
-
       <List>
         <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
-
-      <Divider />
     </>
   );
 };
