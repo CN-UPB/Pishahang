@@ -1,4 +1,4 @@
-import { FormControl, Grid, InputLabel, MenuItem, makeStyles } from "@material-ui/core";
+import { FormControl, Grid, InputLabel, MenuItem } from "@material-ui/core";
 import { Field, Form, Formik, FormikProps, FormikValues } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
@@ -6,6 +6,7 @@ import * as Yup from "yup";
 
 import {
   AwsSpecificVimFields,
+  BaseVim,
   KubernetesSpecificVimFields,
   OpenStackSpecificVimFields,
   VimType,
@@ -67,16 +68,7 @@ const AwsFields: React.FunctionComponent = () => (
   </>
 );
 
-const useStyles = makeStyles((theme) => ({
-  select: {
-    width: "100%",
-  },
-}));
-
-export type VimFormValues = {
-  name: string;
-  country: string;
-  city: string;
+export type VimFormValues = Omit<BaseVim, "type"> & {
   openstack: OpenStackSpecificVimFields;
   kubernetes: KubernetesSpecificVimFields;
   aws: AwsSpecificVimFields;
@@ -153,8 +145,6 @@ type Props = {
 };
 
 export const VimForm: React.FunctionComponent<Props> = ({ formikRef, onSubmit }) => {
-  const classes = useStyles();
-
   return (
     <Formik
       innerRef={formikRef as any}
@@ -169,7 +159,7 @@ export const VimForm: React.FunctionComponent<Props> = ({ formikRef, onSubmit })
               <Field component={TextField} name="name" label="Name" />
             </Grid>
             <Grid item xs={6} container>
-              <FormControl className={classes.select}>
+              <FormControl style={{ width: "100%" }}>
                 <InputLabel id="vim-type">Type</InputLabel>
                 <Field component={Select} name="type" inputProps={{ id: "vim-type" }}>
                   <MenuItem value={VimType.OpenStack}>OpenStack</MenuItem>
