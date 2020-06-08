@@ -158,15 +158,16 @@ class VimAdaptor(ManoBasePlugin):
 
         try:
             manager = KubernetesFunctionManager(
-                service_id=payload["csd"]["uuid"],
+                vim_id=payload["vim_uuid"],
+                service_id="",  # TODO is this available?
                 service_instance_id=payload["service_instance_id"],
+                function_id=payload["csd"]["uuid"],
                 function_instance_id=payload["csd"]["instance_uuid"],
                 descriptor=payload["csd"],
-                vim_id=payload["vim_uuid"],
             )
             manager.deploy()
             return create_completed_response()
-        except VimNotFoundException | TerraformException as e:
+        except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
 
 
