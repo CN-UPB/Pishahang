@@ -10,7 +10,7 @@ import Head from "next/head";
 import * as React from "react";
 
 import { DrawerContent } from "../content/DrawerContent";
-import { RightToolBarContent } from "../content/toolbar/RightToolBarContent";
+import { RightToolbarContent } from "../content/RightToolbarContent";
 
 const drawerWidth = 280;
 
@@ -50,10 +50,8 @@ const useStyles = makeStyles((theme) =>
     content: {
       flexGrow: 1,
       padding: theme.spacing(3),
-    },
-    contentMarginTop: {
-      marginTop: theme.mixins.toolbar.minHeight,
       paddingTop: theme.spacing(4),
+      marginTop: theme.mixins.toolbar.minHeight,
     },
   })
 );
@@ -67,64 +65,45 @@ type Props = {
    * Whether to hide " – Pishahang" in the document title. Defaults to `false`.
    */
   disableTitleSuffix?: boolean;
-  /**
-   * Whether or not to hide the drawer. Defaults to `false`.
-   */
-  hideDrawer?: boolean;
-  /**
-   * Whether or not to hide the toolbar. Defaults to `false`.
-   */
-  hideToolbar?: boolean;
 };
 
 export const Page: React.FunctionComponent<Props> = ({
   title,
   disableTitleSuffix = false,
-  hideDrawer = false,
-  hideToolbar = false,
   children,
 }) => {
-  const classes = useStyles({});
-
-  const contentClasses = [classes.content];
-  if (!hideToolbar) {
-    contentClasses.push(classes.contentMarginTop);
-  }
+  const classes = useStyles();
 
   return (
     <div className={classes.root}>
       <Head>
         <title>{title + (disableTitleSuffix ? "" : " – Pishahang")}</title>
       </Head>
-      {hideDrawer || (
-        <nav className={classes.drawer} aria-label="menu">
-          <MaterialDrawer
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            variant="permanent"
-            open
-          >
-            <div>
-              <div className={classes.logoContainer}>
-                <img className={classes.logo} src="/img/logo.svg" />
-              </div>
-              <DrawerContent />
+      <nav className={classes.drawer} aria-label="menu">
+        <MaterialDrawer
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+          variant="permanent"
+          open
+        >
+          <div>
+            <div className={classes.logoContainer}>
+              <img className={classes.logo} src="/img/logo.svg" />
             </div>
-          </MaterialDrawer>
-        </nav>
-      )}
-      <main className={contentClasses.join(" ")}>
-        {hideToolbar || (
-          <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar className={classes.toolbar}>
-              <Typography variant="h6" noWrap>
-                {title}
-              </Typography>
-              <RightToolBarContent className={classes.rightToolbarContent} />
-            </Toolbar>
-          </AppBar>
-        )}
+            <DrawerContent />
+          </div>
+        </MaterialDrawer>
+      </nav>
+      <main className={classes.content}>
+        <AppBar position="fixed" className={classes.appBar}>
+          <Toolbar className={classes.toolbar}>
+            <Typography variant="h6" noWrap>
+              {title}
+            </Typography>
+            <RightToolbarContent className={classes.rightToolbarContent} />
+          </Toolbar>
+        </AppBar>
         {children}
       </main>
     </div>
