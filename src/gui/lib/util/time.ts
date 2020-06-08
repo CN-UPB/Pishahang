@@ -7,3 +7,10 @@
 export function formatDate(isoDate: string) {
   return new Date(Date.parse(isoDate)).toLocaleString();
 }
+
+/**
+ * Returns the current UNIX timestamp
+ */
+export function getTimestamp() {
+  return Math.round(Date.now() / 1000);
+}

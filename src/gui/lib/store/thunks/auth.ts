@@ -3,18 +3,23 @@ import axios from "axios";
 import { AppThunkAction } from "StoreTypes";
 
 import { ApiReply } from "./../../models/ApiReply";
+import { getTimestamp } from "./../../util/time";
 import { getApiUrl } from "../../api";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../api/endpoints";
-import { authError, loginError, loginSuccess } from "./../actions/auth";
+import { authError, loginError, loginSuccess, setAccessToken } from "./../actions/auth";
 import { showSnackbar } from "./../actions/dialogs";
-import { selectAccessToken } from "./../selectors/auth";
+import { selectAccessToken, selectRefreshToken } from "./../selectors/auth";
 
 /**
  * Returns a Redux Thunk that performs an HTTP request using axios and sets an
  * `Authorization` header with the token selected from the store and returns the reply
- * data as an object. An `authError` action is dispatched and `null` is returned in case
- * of an authorization failure (when the server replies with status code 401) or if the
- * token is `null`.
+ * data as an object.
+ *
+ * If the token in the store is `null`, `null` is returned and an `authError` action is
+ * dispatched.
+ *
+ * If he server replies with status code 401, the `refreshAccessToken` thunk is executed. The
+ * request is repeated if it succeeds, and `authError` is dispatched otherwise.
  *
  * @param config The axios request config object
  */
@@ -22,29 +27,39 @@ export function callApiAuthorized<ReplyDataType = any>(
   config: AxiosRequestConfig
 ): AppThunkAction<Promise<ReplyDataType>> {
   return async (dispatch, getState) => {
-    const token = selectAccessToken(getState());
-
-    if (token === null) {
-      dispatch(authError());
-      return null;
-    }
-
-    // Add Authorization header
     if (typeof config.headers === "undefined") {
       config.headers = {};
     }
-    config.headers.Authorization = `Bearer ${token}`;
 
-    // Send request
-    try {
-      return (await axios.request<ReplyDataType>(config)).data;
-    } catch (error) {
-      if ((error as AxiosError).response?.status === 401) {
-        dispatch(authError());
-        return null;
+    let retried = false;
+    while (true) {
+      const token = selectAccessToken(getState());
+
+      if (token === null) {
+        break; // Dispatch auth error and return null
       }
-      throw error;
+
+      // Set Authorization header
+      config.headers.Authorization = `Bearer ${token}`;
+
+      try {
+        return (await axios.request<ReplyDataType>(config)).data;
+      } catch (error) {
+        if ((error as AxiosError).response?.status !== 401) {
+          throw error;
+        }
+
+        // Token seems to be invalid, optionally trying to refresh it
+        if (!retried && (await dispatch(refreshAccessToken()))) {
+          retried = true;
+        } else {
+          break; // Dispatch auth error and return null
+        }
+      }
     }
+
+    dispatch(authError());
+    return null;
   };
 }
 
@@ -127,7 +142,7 @@ export function login(username: string, password: string): AppThunkAction {
   return async (dispatch) => {
     try {
       const replyData = (await axios.post(getApiUrl("auth"), { username, password })).data;
-      const now = Math.round(Date.now() / 1000);
+      const now = getTimestamp();
       dispatch(
         loginSuccess({
           accessToken: replyData.accessToken,
@@ -144,6 +159,30 @@ export function login(username: string, password: string): AppThunkAction {
         message = "An unexpected error ocurred. Please try again.";
       }
       dispatch(loginError(message));
+    }
+  };
+}
+
+/**
+ * Return a thunk that refreshes the access token using the refresh token and dispatches
+ * `setAccessToken` on success, or `authError` on error.
+ */
+export function refreshAccessToken(): AppThunkAction<Promise<Boolean>> {
+  return async (dispatch, getState) => {
+    try {
+      const replyData = (
+        await axios.put(getApiUrl("auth"), { refreshToken: selectRefreshToken(getState()) })
+      ).data;
+      dispatch(
+        setAccessToken({
+          accessToken: replyData.accessToken,
+          accessTokenExpiresAt: getTimestamp() + replyData.accessTokenExpiresIn,
+        })
+      );
+      return true;
+    } catch (error) {
+      dispatch(authError());
+      return false;
     }
   };
 }

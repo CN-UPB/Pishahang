@@ -1,6 +1,6 @@
 import { createAction } from "typesafe-actions";
 
-import { Tokens } from "../../models/Tokens";
+import { AccessToken, Tokens } from "./../../models/Tokens";
 
 /**
  * Can be dispatched to log in a user, providing its username and password.
@@ -27,3 +27,8 @@ export const logout = createAction("Auth:Logout")();
  * Can be dispatched when API authentication fails for a request. Resets the stored auth data.
  */
 export const authError = createAction("Auth:Error")();
+
+/**
+ * Set the access token and its expiry date
+ */
+export const setAccessToken = createAction("Auth:Tokens:setAccess")<AccessToken>();

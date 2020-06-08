@@ -23,13 +23,16 @@ const authReducer = createReducer(initialState)
     tokens: action.payload,
     loginErrorMessage: "",
   }))
-  .handleAction(actions.logout, (state, action) => ({
+  .handleAction([actions.logout, actions.authError], (state) => ({
     ...state,
     tokens: null,
   }))
-  .handleAction(actions.authError, state => ({
+  .handleAction(actions.setAccessToken, (state, action) => ({
     ...state,
-    tokens: null,
+    tokens: {
+      ...state.tokens,
+      ...action.payload,
+    },
   }));
 
 export default authReducer;
