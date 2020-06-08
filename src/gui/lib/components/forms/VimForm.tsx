@@ -2,7 +2,7 @@ import { FormControl, Grid, InputLabel, MenuItem } from "@material-ui/core";
 import { Field, Form, Formik, FormikProps, FormikValues } from "formik";
 import { Select, TextField } from "formik-material-ui";
 import * as React from "react";
-import * as Yup from "yup";
+import * as yup from "yup";
 
 import {
   AwsSpecificVimFields,
@@ -75,39 +75,39 @@ export type VimFormValues = Omit<BaseVim, "type"> & {
   type: VimType | "";
 };
 
-const validationSchema = Yup.object().shape({
-  name: Yup.string().required("Required"),
-  country: Yup.string().required("Required"),
-  city: Yup.string().required("Required"),
-  type: Yup.string().required("Required"),
+const validationSchema = yup.object().shape({
+  name: yup.string().required("Required"),
+  country: yup.string().required("Required"),
+  city: yup.string().required("Required"),
+  type: yup.string().required("Required"),
 
-  aws: Yup.object().when("type", {
+  aws: yup.object().when("type", {
     is: VimType.Aws,
-    then: Yup.object({
-      accessKey: Yup.string().required("Required"),
-      secretKey: Yup.string().required("Required"),
+    then: yup.object({
+      accessKey: yup.string().required("Required"),
+      secretKey: yup.string().required("Required"),
     }),
   }),
 
-  kubernetes: Yup.object().when("type", {
+  kubernetes: yup.object().when("type", {
     is: VimType.Kubernetes,
-    then: Yup.object({
-      address: Yup.string().required("Required"),
-      serviceToken: Yup.string().required("Required"),
-      ccc: Yup.string().required("Required"),
+    then: yup.object({
+      address: yup.string().required("Required"),
+      serviceToken: yup.string().required("Required"),
+      ccc: yup.string().required("Required"),
     }),
   }),
 
-  openstack: Yup.object().when("type", {
+  openstack: yup.object().when("type", {
     is: VimType.OpenStack,
-    then: Yup.object({
-      address: Yup.string().required("Required"),
-      username: Yup.string().required("Required"),
-      password: Yup.string().required("Required"),
-      tenant: Yup.object().shape({
-        id: Yup.string().required("Required"),
-        externalNetworkId: Yup.string().required("Required"),
-        externalRouterId: Yup.string().required("Required"),
+    then: yup.object({
+      address: yup.string().required("Required"),
+      username: yup.string().required("Required"),
+      password: yup.string().required("Required"),
+      tenant: yup.object().shape({
+        id: yup.string().required("Required"),
+        externalNetworkId: yup.string().required("Required"),
+        externalRouterId: yup.string().required("Required"),
       }),
     }),
   }),
