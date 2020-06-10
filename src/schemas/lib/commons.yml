@@ -1,0 +1,41 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "Common definitions that can be referenced by other schemas."
+
+memory_units:
+  enum:
+    - "B" # Byte
+    - "kB" # Kilobyte
+    - "KiB" # Kibityte
+    - "MB" # Megabyte
+    - "MiB" # Mebibyte
+    - "GB" # Gigabyte
+    - "GiB" # Gibibyte
+    - "TB" # Terabyte
+    - "TiB" # Tebibyte
+    - "PT" # Petabyte
+    - "PiT" # Pebibyte
+
+bandwidth_units:
+  enum:
+    - "bps" # Bit per second
+    - "kbps" # Kilobit per second
+    - "Mbps" # Megabit per second
+    - "Gbps" # Gigabit per second
+    - "Tbps" # Terabit per second
+
+images_formats:
+  enum:
+    - "raw"
+    - "vhd"
+    - "vmdk"
+    - "vdi"
+    - "iso"
+    - "qcow2"
+    - "docker"
+    - "ova"
+    - "ovf"
+    - "bare"
+
+interfaces:
+  enum:
+    - "interface"
