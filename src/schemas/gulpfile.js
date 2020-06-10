@@ -23,7 +23,7 @@ function clean() {
  */
 function compile() {
   return pipeline(
-    gulp.src(IN_DIR + "/**/*.yml"),
+    gulp.src([IN_DIR + "/**/*.yml", "!**/*-tests/**/*"]),
     through.obj(function (file, encoding, callback) {
       RefParser.bundle(file.path, (err, schema) => {
         if (err) {
@@ -61,7 +61,7 @@ function testSchemas() {
   const getRelativePath = (filePath) => path.relative(process.cwd(), filePath);
 
   return pipeline(
-    gulp.src(IN_DIR + "/**/*-tests/*?(.invalid).yml"),
+    gulp.src(IN_DIR + "/**/*-tests/*.yml"),
     through.obj(function (file, encoding, callback) {
       const testDir = path.dirname(file.path);
       const schemaFileName = path.basename(testDir).replace("-tests", "");
