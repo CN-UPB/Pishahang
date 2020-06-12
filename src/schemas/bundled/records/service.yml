@@ -1,0 +1,384 @@
+$schema: 'http://json-schema.org/draft-07/schema#'
+description: The core scheme for RECUSRIVE service record (many details left out)
+definitions:
+  connection_point_types:
+    enum:
+      - internal
+      - external
+      - management
+  interfaces:
+    ethernet:
+      description: An Ethernet capable interface
+      type: object
+      properties:
+        address:
+          description: The Ethernet address of the interface.
+          type: string
+          pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+      required:
+        - address
+    ipv4:
+      description: An IPv4 capable interface.
+      type: object
+      properties:
+        address:
+          description: The IPv4 address of the interface.
+          type: string
+        netmask:
+          description: The netmask of the interface.
+          type: string
+        hardware_address:
+          description: The hardware address of the interface.
+          type: string
+      required:
+        - address
+    ipv6:
+      description: An IPv6 capable interface.
+      type: object
+      properties:
+        address:
+          description: The IPv6 address of the interface.
+          type: string
+        hardware_address:
+          description: The hardware address of the interface.
+          type: string
+      required:
+        - address
+type: object
+required:
+  - descriptor_version
+  - id
+  - status
+additionalProperties: false
+properties:
+  id:
+    description: The UUID of the service record.
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  version:
+    description: The version of the service record. Can be used to track changes.
+    type: string
+    pattern: '^[0-9]+$'
+  status:
+    description: The current status of the Service
+    enum:
+      - failed
+      - normal operation
+      - degraded operation
+      - offline
+      - updating
+      - terminated
+  descriptor_reference:
+    description: Reference to the NSD used to instanciate this NS.
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  network_functions:
+    description: >-
+      The VNF instances (actually their records), that are part of this network
+      service instance.
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - vnfr_id
+      additionalProperties: false
+      properties:
+        vnfr_id:
+          description: >-
+            A unique identifier of the network function record within the scope
+            of this NS instance.
+          type: string
+          pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  cloud_services:
+    description: >-
+      The CS instances (actually their records), that are part of this network
+      service instance.
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - csr_id
+      additionalProperties: false
+      properties:
+        csr_id:
+          description: >-
+            A unique identifier of the cloud service record within the scope of
+            this NS instance.
+          type: string
+          pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  network_services:
+    description: >-
+      The recursive NSs (their descriptors), that are part of this network
+      service.
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: string
+  connection_points:
+    description: >-
+      The connection points of the overall NS, that connects the NS to the
+      external world.
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - id
+        - interface
+        - type
+      additionalProperties: false
+      properties:
+        id:
+          description: A VNF-unique id of the connection point. Can be used for references.
+          type: string
+        interface:
+          description: >-
+            The type of connection point, such as a virtual port, a virtual NIC
+            address, a physical port, a physcial NIC address, or the endpoint of
+            a VPN tunnel.
+          oneOf:
+            - ethernet:
+                description: An Ethernet capable interface
+                type: object
+                properties:
+                  address:
+                    description: The Ethernet address of the interface.
+                    type: string
+                    pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+                required:
+                  - address
+              ipv4:
+                description: An IPv4 capable interface.
+                type: object
+                properties:
+                  address:
+                    description: The IPv4 address of the interface.
+                    type: string
+                  netmask:
+                    description: The netmask of the interface.
+                    type: string
+                  hardware_address:
+                    description: The hardware address of the interface.
+                    type: string
+                required:
+                  - address
+              ipv6:
+                description: An IPv6 capable interface.
+                type: object
+                properties:
+                  address:
+                    description: The IPv6 address of the interface.
+                    type: string
+                  hardware_address:
+                    description: The hardware address of the interface.
+                    type: string
+                required:
+                  - address
+        type:
+          description: >-
+            The type of the connection point with respect to its visibility in
+            the service platform
+          enum:
+            - internal
+            - external
+            - management
+        virtual_link_reference:
+          description: 'A reference to a virtual link, i.e. the virtual_links:id.'
+          type: string
+  virtual_links:
+    type: array
+    items:
+      type: object
+      oneOf:
+        - description: A reference to an external virtual link descriptor (VLD).
+          type: object
+          properties:
+            vl_group:
+              type: string
+            vl_name:
+              type: string
+            vl_version:
+              type: string
+            vl_description:
+              type: string
+          required:
+            - vl_group
+            - vl_name
+            - vl_version
+          additionalProperties: false
+        - description: A full-featured virtual link description.
+          type: object
+          properties:
+            id:
+              type: string
+            connectivity_type:
+              enum:
+                - E-Line
+                - E-Tree
+                - E-LAN
+            connection_points_reference:
+              type: array
+              items:
+                type: string
+                minItems: 2
+                uniqueItems: true
+            access:
+              type: boolean
+            external_access:
+              type: boolean
+            root_requirement:
+              type: string
+            leaf_requirement:
+              type: string
+            dhcp:
+              type: boolean
+            qos:
+              type: string
+          required:
+            - id
+            - connectivity_type
+            - connection_points_reference
+          additionalProperties: false
+  forwarding_graphs:
+    description: The forwarding graph.
+    type: array
+    items:
+      type: object
+      oneOf:
+        - description: A reference to an external forwarding graph descriptor (VNFFGD).
+          type: object
+          properties:
+            fg_group:
+              type: string
+            fg_name:
+              type: string
+            fg_version:
+              type: string
+            fg_description:
+              type: string
+          required:
+            - fg_group
+            - fg_name
+            - fg_version
+          additionalProperties: false
+        - description: A full-featured forwarding graph description.
+          type: object
+          properties:
+            fg_id:
+              description: >-
+                A unique identifier of this forwarding graph within the scope of
+                this NS descriptor.
+              type: string
+            number_of_endpoints:
+              type: integer
+            number_of_virtual_links:
+              type: integer
+            depedent_virtual_links:
+              type: array
+              items:
+                - type: string
+            constituent_vnfs:
+              type: array
+              items:
+                - type: string
+            constituent_services:
+              type: array
+              items:
+                - type: string
+            network_forwarding_paths:
+              type: array
+              items:
+                type: object
+                properties:
+                  fp_id:
+                    type: string
+                  policy:
+                    type: string
+                  connection_points:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        connection_point_ref:
+                          description: >-
+                            A connection point reference, referenced by a
+                            connection point id.
+                          type: string
+                        position:
+                          description: >-
+                            The possition of the connection point with the
+                            forwarding graph
+                          type: integer
+          required:
+            - fg_id
+  lifecycle_events:
+    type: object
+    properties:
+      start:
+        type: array
+        items:
+          type: object
+          properties:
+            vnf_id:
+              type: string
+            vnf_event:
+              type: string
+      stop:
+        type: array
+        items:
+          type: object
+          properties:
+            vnf_id:
+              type: string
+            vnf_event:
+              type: string
+      scale_out:
+        type: array
+        items:
+          type: object
+          properties:
+            vnf_id:
+              type: string
+            vnf_event:
+              type: string
+  vnf_depedency:
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: string
+  services_depedency:
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: string
+  monitoring_parameters:
+    type: array
+    items:
+      - type: object
+        properties:
+          desc:
+            type: string
+          metric:
+            type: string
+          unit:
+            type: string
+  auto_scale_policy:
+    type: object
+    properties:
+      criteria:
+        type: array
+        items:
+          - type: object
+            properties:
+              end-to-end bandwidth:
+                type: string
+      action:
+        type: string

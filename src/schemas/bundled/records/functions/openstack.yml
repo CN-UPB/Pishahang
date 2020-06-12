@@ -1,0 +1,961 @@
+$schema: 'http://json-schema.org/draft-07/schema#'
+description: The core schema for SONATA network function records.
+definitions:
+  interfaces:
+    ethernet:
+      description: An Ethernet capable interface
+      type: object
+      properties:
+        address:
+          description: The Ethernet address of the interface.
+          type: string
+          pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+      required:
+        - address
+    ipv4:
+      description: An IPv4 capable interface.
+      type: object
+      properties:
+        address:
+          description: The IPv4 address of the interface.
+          type: string
+        netmask:
+          description: The netmask of the interface.
+          type: string
+        hardware_address:
+          description: The hardware address of the interface.
+          type: string
+      required:
+        - address
+    ipv6:
+      description: An IPv6 capable interface.
+      type: object
+      properties:
+        address:
+          description: The IPv6 address of the interface.
+          type: string
+        hardware_address:
+          description: The hardware address of the interface.
+          type: string
+      required:
+        - address
+    enum:
+      - ethernet
+      - ipv4
+      - ipv6
+  images_formats:
+    enum:
+      - raw
+      - vhd
+      - vmdk
+      - vdi
+      - iso
+      - qcow2
+      - docker
+      - ova
+      - ovf
+      - bare
+  connection_point_types:
+    enum:
+      - internal
+      - external
+      - management
+  monitoring:
+    type: object
+    required:
+      - name
+      - unit
+    additionalProperties: false
+    properties:
+      name:
+        description: >-
+          The name of the parameter to monitor. The name has to be supported by
+          the service platform or the FSM.
+        type: string
+        pattern: '^[A-Za-z-_]+$'
+      unit:
+        description: The unit used to monitor (or represent) the parameter.
+        oneOf:
+          - const: Percentage
+          - enum:
+              - B
+              - kB
+              - KiB
+              - MB
+              - MiB
+              - GB
+              - GiB
+              - TB
+              - TiB
+              - PT
+              - PiT
+          - enum:
+              - bps
+              - kbps
+              - Mbps
+              - Gbps
+              - Tbps
+          - enum:
+              - Hz
+              - kHz
+              - MHz
+              - GHz
+              - THz
+      frequency:
+        description: The sample rate of the monitoring parameter.
+        type: number
+        exclusiveMinimum: 0
+      frequency_unit:
+        description: The unit of the sample frequency.
+        default: Hz
+        enum:
+          - Hz
+          - kHz
+          - MHz
+          - GHz
+          - THz
+      command:
+        description: A command that is executed in order to perform custom monitoring.
+        type: string
+  monitoring_parameters:
+    description: The various metrics and parameters to monitor.
+    type: array
+    items:
+      description: A specific monitoring metric or parameter.
+      type: object
+      required:
+        - name
+        - unit
+      additionalProperties: false
+      properties:
+        name:
+          description: >-
+            The name of the parameter to monitor. The name has to be supported
+            by the service platform or the FSM.
+          type: string
+          pattern: '^[A-Za-z-_]+$'
+        unit:
+          description: The unit used to monitor (or represent) the parameter.
+          oneOf:
+            - const: Percentage
+            - enum:
+                - B
+                - kB
+                - KiB
+                - MB
+                - MiB
+                - GB
+                - GiB
+                - TB
+                - TiB
+                - PT
+                - PiT
+            - enum:
+                - bps
+                - kbps
+                - Mbps
+                - Gbps
+                - Tbps
+            - enum:
+                - Hz
+                - kHz
+                - MHz
+                - GHz
+                - THz
+        frequency:
+          description: The sample rate of the monitoring parameter.
+          type: number
+          exclusiveMinimum: 0
+        frequency_unit:
+          description: The unit of the sample frequency.
+          default: Hz
+          enum:
+            - Hz
+            - kHz
+            - MHz
+            - GHz
+            - THz
+        command:
+          description: A command that is executed in order to perform custom monitoring.
+          type: string
+  scale_in_out:
+    description: The scale-in/scale-out parameters.
+    type: object
+    additionalProperties: false
+    properties:
+      minimum:
+        description: The minimum number of VDUs instantiated at any time.
+        type: integer
+        minimum: 1
+        default: 1
+      maximum:
+        description: >-
+          The maximum number of VDUs instantiated at any time. 0 means
+          unlimited.
+        type: integer
+        minimum: 0
+        default: 1
+type: object
+required:
+  - descriptor_version
+  - id
+  - name
+  - status
+  - vendor
+  - version
+  - virtual_deployment_units
+properties:
+  descriptor_version:
+    description: The version of the descriptor definition
+    type: string
+    pattern: '^[A-Za-z0-9\-_.]+$'
+  vendor:
+    description: Unique id of the descriptor's vendor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  name:
+    description: The name of the descriptor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  version:
+    description: The version of the descriptor
+    type: string
+    pattern: '(?=^[0-9\-_.]+$)(?=^[0-9]+$)'
+  author:
+    description: The person or organization that created the descriptor
+    type: string
+  description:
+    description: A description of the function or service specified by this descriptor
+    type: string
+  licences:
+    description: Information on the descriptor's license
+    type: array
+    uniqueItems: true
+    items:
+      anyOf:
+        - type: object
+          required:
+            - type
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''public'' in this case.'
+              type: string
+              const: public
+        - type: object
+          required:
+            - type
+            - url
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''private'' in this case.'
+              type: string
+              const: private
+            url:
+              description: The URL to the licence file.
+              type: string
+  monitoring_rules:
+    type: array
+    items:
+      type: object
+      required:
+        - name
+        - duration
+        - condition
+        - notification
+      properties:
+        name:
+          description: The name of the monitoring rule
+          type: string
+        description:
+          description: An arbitrary descritpion of this monitoring rule
+          type: string
+        duration:
+          description: The duration the condtion has to be met before an event is fired
+          type: number
+        duration_unit:
+          description: The unit of the durration
+          ref: '#/definitions/time_units'
+        condition:
+          description: >-
+            The condition, a boolean expression, that must be met to fire the
+            event
+          type: string
+        notification:
+          description: A list of notifications that are fired when the condition is met
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - type
+            properties:
+              name:
+                description: The name of the notification
+                type: string
+              type:
+                description: The type of message that is send to the message bus
+                type: string
+  function_specific_managers:
+    description: A list of FSMs used to manage this VNF.
+    type: array
+    uniqueItems: true
+    minItems: 0
+    items:
+      description: An FSM object of this VNF. FSMs are always Docker containers.
+      type: object
+      required:
+        - id
+        - image
+      additionalProperties: false
+      properties:
+        description:
+          description: An arbitrary description of the FSM.
+          type: string
+        id:
+          description: >-
+            A unique identifier of this FSM within the scope of this VNF
+            descriptor.
+          type: string
+        image:
+          description: The reference to a Docker image.
+          type: string
+        image_md5:
+          description: An MD5 hash of the Docker image.
+          type: string
+          pattern: '^[A-Fa-f0-9]{32}$'
+        resource_requirements:
+          description: The requirements for the Docker environment that runs the FSM.
+          type: object
+          properties:
+            docker_version:
+              description: The version of Docker needed for this FSM.
+              type: string
+              pattern: '^(== |>= |<= |!= )?[0-9\-_.]+$'
+        options:
+          description: >-
+            The options as key-value parameters that are passed to the Docker
+            container. Can be used to configure the Docker.
+          type: array
+          uniqueItems: true
+          items:
+            description: A key-value parameter object.
+            type: object
+            required:
+              - key
+              - value
+            additionalProperties: false
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+  virtual_deployment_units:
+    description: The virtual deployment units (VDUs) of the virtual network function.
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - id
+        - resource_requirements
+      additionalProperties: false
+      properties:
+        description:
+          description: 'An arbitrary description of the VDU:'
+          type: string
+        id:
+          description: >-
+            A unique identifier of this VDU within the scope of this VNF
+            descriptor.
+          type: string
+        vm_image:
+          description: The reference to a virtual machine image.
+          type: string
+        vm_image_format:
+          description: The format of the virtual machine image.
+          enum:
+            - raw
+            - vhd
+            - vmdk
+            - vdi
+            - iso
+            - qcow2
+            - docker
+            - ova
+            - ovf
+            - bare
+        vm_image_md5:
+          description: An MD5 hash of the virtual machine image.
+          type: string
+          pattern: '^[A-Fa-f0-9]{32}$'
+        resource_requirements:
+          description: >-
+            The requirements of a (virtual) machine that hosts this VDU. The
+            service platform has to provide machines that meet these
+            requirements.
+          type: object
+          required:
+            - cpu
+            - memory
+          additionalProperties: false
+          properties:
+            hypervisor_parameters:
+              description: >-
+                The requirements and parameters of a (potential) hyperviser that
+                operates the VDU VM.
+              type: object
+              properties:
+                type:
+                  description: The type of hypervisor needed for this VDU.
+                  type: string
+                version:
+                  description: The version of the hypervisor needed for this VDU.
+                  type: string
+                  pattern: '^(== |>= |<= |!= )?[0-9\-_.]+$'
+            vswitch_capabilities:
+              type: object
+              properties:
+                version:
+                  description: The version of vswitch to use.
+                  type: string
+                  pattern: '^(== |>= |<= |!= )?[0-9\-_.]+$'
+                type:
+                  description: The type of vswitch to use.
+                  type: string
+                overlay_tunnel:
+                  type: string
+            cpu:
+              description: >-
+                All the requirements and parameters related to the (virtual)
+                CPU.
+              type: object
+              required:
+                - vcpus
+              properties:
+                vcpus:
+                  description: The number of (virtualized) CPU cores.
+                  type: integer
+                  exclusiveMinimum: 0
+                cpu_support_accelerator:
+                  type: string
+            memory:
+              type: object
+              required:
+                - size
+              additionalProperties: false
+              properties:
+                size:
+                  description: The size of the memory for this VDU.
+                  type: number
+                  exclusiveMinimum: 0
+                size_unit:
+                  description: >-
+                    The unit the host memory is measured in. Default is MB
+                    (Megabyte).
+                  default: MB
+                  enum:
+                    - B
+                    - kB
+                    - KiB
+                    - MB
+                    - MiB
+                    - GB
+                    - GiB
+                    - TB
+                    - TiB
+                    - PT
+                    - PiT
+                large_pages_required:
+                  description: States whether large memory pages are required or not.
+                  type: boolean
+                numa_allocation_policy:
+                  description: Names the NUMA allocation policy.
+                  type: string
+            storage:
+              type: object
+              required:
+                - size
+              additionalProperties: false
+              properties:
+                size:
+                  description: The size of the storage for this VDU.
+                  type: number
+                  exclusiveMinimum: 0
+                size_unit:
+                  description: >-
+                    The unit the host storage is measured in. Default is MB
+                    (Megabyte).
+                  default: MB
+                  enum:
+                    - B
+                    - kB
+                    - KiB
+                    - MB
+                    - MiB
+                    - GB
+                    - GiB
+                    - TB
+                    - TiB
+                    - PT
+                    - PiT
+                persistence:
+                  description: States whether this is persistent storage or not.
+                  type: boolean
+            network:
+              type: object
+              properties:
+                network_interface_bandwidth:
+                  description: The size of the bandwidth for this VDU.
+                  type: number
+                  exclusiveMinimum: 0
+                network_interface_bandwidth_unit:
+                  description: >-
+                    The unit of the network interface bandwidth. Default is bps
+                    (bit per second).
+                  enum:
+                    - bps
+                    - kbps
+                    - Mbps
+                    - Gbps
+                    - Tbps
+                network_interface_card_capabilities:
+                  description: 'Additional NIC capabilities:'
+                  type: object
+                  properties:
+                    SR-IOV:
+                      description: >-
+                        States whether this VDU requires Single Root I/O
+                        Virtualization on this NIC.
+                      type: boolean
+                    mirroring:
+                      description: States whether the traffic is mirrored or not.
+                      type: boolean
+                data_processing_acceleration_library:
+                  description: The name of the data processing acceleration library.
+                  type: string
+            pcie:
+              description: The PCIe parameters of the platform.
+              type: object
+              properties:
+                SR-IOV:
+                  description: >-
+                    States whether this VDU requires Single Root I/O
+                    Virtualization on this PCI entity.
+                  type: boolean
+                device_pass_through:
+                  description: >-
+                    States whether this PCI entity MUST support PCI pass
+                    through.
+                  type: boolean
+        connection_points:
+          description: >-
+            The connection points of this VDU. Connects the VDU to other VDUs or
+            the external world.
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: object
+            required:
+              - id
+              - interface
+              - type
+            additionalProperties: false
+            properties:
+              id:
+                description: >-
+                  A VNF-unique id of the connection point. Can be used for
+                  references.
+                type: string
+              interface:
+                description: >-
+                  The type of connection point, such as a virtual port, a
+                  virtual NIC address, a physical port, a physcial NIC address,
+                  or the endpoint of a VPN tunnel.
+                oneOf:
+                  - enum:
+                      - ethernet
+                      - ipv4
+                      - ipv6
+              type:
+                description: >-
+                  The type of the connection point with respect to its
+                  visibility in the service platform
+                enum:
+                  - internal
+                  - external
+                  - management
+              virtual_link_reference:
+                description: 'A reference to a virtual link, i.e. the virtual_links:id.'
+                type: string
+        monitoring_parameters:
+          description: The various metrics and parameters to monitor.
+          type: array
+          items:
+            description: A specific monitoring metric or parameter.
+            type: object
+            required:
+              - name
+              - unit
+            additionalProperties: false
+            properties:
+              name:
+                description: >-
+                  The name of the parameter to monitor. The name has to be
+                  supported by the service platform or the FSM.
+                type: string
+                pattern: '^[A-Za-z-_]+$'
+              unit:
+                description: The unit used to monitor (or represent) the parameter.
+                oneOf:
+                  - const: Percentage
+                  - enum:
+                      - B
+                      - kB
+                      - KiB
+                      - MB
+                      - MiB
+                      - GB
+                      - GiB
+                      - TB
+                      - TiB
+                      - PT
+                      - PiT
+                  - enum:
+                      - bps
+                      - kbps
+                      - Mbps
+                      - Gbps
+                      - Tbps
+                  - enum:
+                      - Hz
+                      - kHz
+                      - MHz
+                      - GHz
+                      - THz
+              frequency:
+                description: The sample rate of the monitoring parameter.
+                type: number
+                exclusiveMinimum: 0
+              frequency_unit:
+                description: The unit of the sample frequency.
+                default: Hz
+                enum:
+                  - Hz
+                  - kHz
+                  - MHz
+                  - GHz
+                  - THz
+              command:
+                description: >-
+                  A command that is executed in order to perform custom
+                  monitoring.
+                type: string
+        scale_in_out:
+          description: The scale-in/scale-out parameters.
+          type: object
+          additionalProperties: false
+          properties:
+            minimum:
+              description: The minimum number of VDUs instantiated at any time.
+              type: integer
+              minimum: 1
+              default: 1
+            maximum:
+              description: >-
+                The maximum number of VDUs instantiated at any time. 0 means
+                unlimited.
+              type: integer
+              minimum: 0
+              default: 1
+  connection_points:
+    description: >-
+      The connection points of the overall VNF, that connects the VNF to the
+      external world.
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - id
+        - interface
+        - type
+      additionalProperties: true
+      properties:
+        id:
+          description: A VNF-unique id of the connection point. Can be used for references.
+          type: string
+        interface:
+          description: >-
+            The type of connection point, such as a virtual port, a virtual NIC
+            address, a physical port, a physcial NIC address, or the endpoint of
+            a VPN tunnel.
+          enum:
+            - ethernet
+            - ipv4
+            - ipv6
+        type:
+          description: >-
+            The type of the connection point with respect to its visibility in
+            the service platform
+          enum:
+            - internal
+            - external
+            - management
+        virtual_link_reference:
+          description: 'A reference to a virtual link, i.e. the virtual_links:id.'
+          type: string
+        actual_interface:
+          oneOf:
+            - description: An Ethernet capable interface
+              type: object
+              properties:
+                address:
+                  description: The Ethernet address of the interface.
+                  type: string
+                  pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+              required:
+                - address
+            - description: An IPv4 capable interface.
+              type: object
+              properties:
+                address:
+                  description: The IPv4 address of the interface.
+                  type: string
+                netmask:
+                  description: The netmask of the interface.
+                  type: string
+                hardware_address:
+                  description: The hardware address of the interface.
+                  type: string
+              required:
+                - address
+            - description: An IPv6 capable interface.
+              type: object
+              properties:
+                address:
+                  description: The IPv6 address of the interface.
+                  type: string
+                hardware_address:
+                  description: The hardware address of the interface.
+                  type: string
+              required:
+                - address
+  virtual_links:
+    description: >-
+      VNF internal virtual link. A link interconnects at least two connection
+      points.
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - connectivity_type
+        - connection_points_reference
+      additionalProperties: false
+      properties:
+        id:
+          description: A VNF-unique id of the virtual link. Can be used for references.
+          type: string
+        connectivity_type:
+          description: >-
+            The connectivity type, such as point-to-point, point-to-multipoint,
+            and multipoint-to-multipoint.
+          enum:
+            - E-Line
+            - E-Tree
+            - E-LAN
+        connection_points_reference:
+          description: >-
+            The references to the connection points connected to this virtual
+            link.
+          type: array
+          items:
+            type: string
+            minItems: 2
+            uniqueItems: true
+        access:
+          type: boolean
+        external_access:
+          type: boolean
+        root_requirement:
+          type: string
+        leaf_requirement:
+          type: string
+        dhcp:
+          type: boolean
+        qos:
+          type: string
+  deployment_flavours:
+    description: The flavours of the VNF that can be deployed.
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        vdu_reference:
+          type: array
+          items:
+            type: string
+        constraint:
+          type: string
+        flavour_key:
+          type: string
+        vlink_reference:
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+        assurance_parameters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              violation:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    interval:
+                      type: integer
+                    breaches_count:
+                      type: integer
+              value:
+                type: integer
+              penalty:
+                type: object
+                additionalProperties: false
+                properties:
+                  type:
+                    type: string
+                  expression:
+                    type: integer
+                  validity:
+                    type: string
+                  unit:
+                    type: string
+              formula:
+                type: string
+              rel_id:
+                type: string
+              id:
+                type: string
+              unit:
+                type: string
+  lifecycle_events:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        authentication_username:
+          type: string
+        driver:
+          type: string
+        authentication_type:
+          type: string
+        authentication:
+          type: string
+        vnf_container:
+          type: string
+        events:
+          type: object
+          additionalProperties: false
+          properties:
+            start:
+              type: object
+              additionalProperties: false
+              properties:
+                command:
+                  type: string
+                template_file_format:
+                  type: string
+                template_file:
+                  type: string
+            stop:
+              type: object
+              additionalProperties: false
+              properties:
+                command:
+                  type: string
+                template_file:
+                  type: string
+                template_file_format:
+                  type: string
+            restart:
+              type: object
+              additionalProperties: false
+              properties:
+                command:
+                  type: string
+                template_file:
+                  type: string
+                template_file_format:
+                  type: string
+            scale-in:
+              type: object
+              additionalProperties: false
+              properties:
+                command:
+                  type: string
+                template_file:
+                  type: string
+                template_file_format:
+                  type: string
+            scale-out:
+              type: object
+              additionalProperties: false
+              properties:
+                command:
+                  type: string
+                template_file:
+                  type: string
+                template_file_format:
+                  type: string
+        flavor_id_ref:
+          type: string
+  id:
+    description: The UUID of the function record.
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  status:
+    description: The current status of the VNF
+    oneOf:
+      - enum:
+          - failed
+          - normal operation
+          - degraded operation
+          - offline
+          - terminated
+  descriptor_reference:
+    description: Reference to the VNFD used to instanciate this VNF.
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  deployment_favour:
+    description: 'Reference to the selected deployment flavour (vnfd:deployment_flavour:id).'
+    type: string
+    pattern: '^[A-Za-z0-9\-_.:]+$'
+  parent_ns:
+    description: >-
+      Reference to records of network service (nsr:id) that this VNF instance is
+      part of.
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  vnf_address:
+    type: array
+    uniqueItems: true
+    items:
+      type: object
+      required:
+        - address
+      additionalProperties: false
+      properties:
+        address:
+          type: string
