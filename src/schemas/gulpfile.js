@@ -6,6 +6,7 @@ const RefParser = require("@apidevtools/json-schema-ref-parser");
 const { Readable } = require("stream");
 const through = require("through2");
 const yaml = require("js-yaml");
+const mergeAllOf = require("json-schema-merge-allof");
 
 const { promisify } = require("util");
 const pipeline = promisify(require("stream").pipeline);
@@ -25,10 +26,12 @@ function compile() {
   return pipeline(
     gulp.src([IN_DIR + "/**/*.yml", "!**/*-tests/**/*"]),
     through.obj(function (file, encoding, callback) {
-      RefParser.bundle(file.path, (err, schema) => {
+      RefParser.dereference(file.path, (err, schema) => {
         if (err) {
           callback(err);
         } else {
+          schema = mergeAllOf(schema);
+
           const yamlFile = file.clone();
           yamlFile.contents = Readable.from([yaml.dump(schema)]);
           this.push(yamlFile);
@@ -81,10 +84,12 @@ function testSchemas() {
         `Validating ${relativeFilePath} against ${relativeSchemaPath}`
       );
 
-      RefParser.bundle(schemaPath, (err, schema) => {
+      RefParser.dereference(schemaPath, (err, schema) => {
         if (err) {
           callback(err);
         } else {
+          schema = mergeAllOf(schema);
+
           const data = yaml.safeLoad(file.contents);
           const validate = ajv.compile(schema);
           const valid = validate(data);

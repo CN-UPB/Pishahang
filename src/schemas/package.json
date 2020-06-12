@@ -9,6 +9,7 @@
     "del": "^5.1.0",
     "gulp": "^4.0.2",
     "js-yaml": "^3.14.0",
+    "json-schema-merge-allof": "^0.7.0",
     "through2": "^3.0.1"
   },
   "devDependencies": {},
