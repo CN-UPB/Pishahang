@@ -1,73 +1,131 @@
 $schema: 'http://json-schema.org/draft-07/schema#'
-description: The core scheme for RECUSRIVE service record (many details left out)
-definitions:
-  connection_point_types:
-    enum:
-      - internal
-      - external
-      - management
-  interfaces:
-    ethernet:
-      description: An Ethernet capable interface
-      type: object
-      properties:
-        address:
-          description: The Ethernet address of the interface.
-          type: string
-          pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
-      required:
-        - address
-    ipv4:
-      description: An IPv4 capable interface.
-      type: object
-      properties:
-        address:
-          description: The IPv4 address of the interface.
-          type: string
-        netmask:
-          description: The netmask of the interface.
-          type: string
-        hardware_address:
-          description: The hardware address of the interface.
-          type: string
-      required:
-        - address
-    ipv6:
-      description: An IPv6 capable interface.
-      type: object
-      properties:
-        address:
-          description: The IPv6 address of the interface.
-          type: string
-        hardware_address:
-          description: The hardware address of the interface.
-          type: string
-      required:
-        - address
+description: Pishahang service record schema
 type: object
 required:
   - descriptor_version
-  - id
+  - name
   - status
-additionalProperties: false
+  - vendor
+  - version
 properties:
+  descriptor_version:
+    description: The version of the descriptor definition
+    type: string
+    pattern: '^[A-Za-z0-9\-_.]+$'
+  vendor:
+    description: Unique id of the descriptor's vendor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  name:
+    description: The name of the descriptor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  version:
+    description: The version of the descriptor
+    type: string
+    pattern: '(?=^[0-9\-_.]+$)(?=^[0-9]+$)'
+  author:
+    description: The person or organization that created the descriptor
+    type: string
+  description:
+    description: A description of the function or service specified by this descriptor
+    type: string
+  licences:
+    description: Information on the descriptor's license
+    type: array
+    uniqueItems: true
+    items:
+      anyOf:
+        - type: object
+          required:
+            - type
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''public'' in this case.'
+              type: string
+              const: public
+        - type: object
+          required:
+            - type
+            - url
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''private'' in this case.'
+              type: string
+              const: private
+            url:
+              description: The URL to the licence file.
+              type: string
+  service_specific_managers:
+    description: A list of SSMs used to manage this network service.
+    type: array
+    uniqueItems: true
+    items:
+      description: An SSM object of this VNF. FSMs are always Docker containers.
+      required:
+        - id
+        - image
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          description: An arbitrary description of the FSM.
+          type: string
+        id:
+          description: >-
+            A unique identifier of this FSM within the scope of this VNF
+            descriptor.
+          type: string
+        image:
+          description: The reference to a Docker image.
+          type: string
+        image_md5:
+          description: An MD5 hash of the Docker image.
+          type: string
+          pattern: '^[A-Fa-f0-9]{32}$'
+        resource_requirements:
+          description: The requirements for the Docker environment that runs the FSM.
+          type: object
+          properties:
+            docker_version:
+              description: The version of Docker needed for this FSM.
+              type: string
+              pattern: '^(== |>= |<= |!= )?[0-9\-_.]+$'
+        options:
+          description: >-
+            The options as key-value parameters that are passed to the Docker
+            container. Can be used to configure the Docker.
+          type: array
+          uniqueItems: true
+          items:
+            description: A key-value parameter object.
+            required:
+              - key
+              - value
+            type: object
+            additionalProperties: false
+            properties:
+              key:
+                type: string
+              value:
+                type: string
   id:
     description: The UUID of the service record.
     type: string
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-  version:
-    description: The version of the service record. Can be used to track changes.
-    type: string
-    pattern: '^[0-9]+$'
   status:
     description: The current status of the Service
-    enum:
-      - failed
-      - normal operation
-      - degraded operation
-      - offline
-      - updating
-      - terminated
+    oneOf:
+      - enum:
+          - failed
+          - normal operation
+          - degraded operation
+          - offline
+          - terminated
+      - enum:
+          - updating
   descriptor_reference:
     description: Reference to the NSD used to instanciate this NS.
     type: string
@@ -110,15 +168,6 @@ properties:
             this NS instance.
           type: string
           pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-  network_services:
-    description: >-
-      The recursive NSs (their descriptors), that are part of this network
-      service.
-    type: array
-    minItems: 0
-    uniqueItems: true
-    items:
-      type: string
   connection_points:
     description: >-
       The connection points of the overall NS, that connects the NS to the
@@ -132,7 +181,7 @@ properties:
         - id
         - interface
         - type
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           description: A VNF-unique id of the connection point. Can be used for references.
@@ -142,44 +191,10 @@ properties:
             The type of connection point, such as a virtual port, a virtual NIC
             address, a physical port, a physcial NIC address, or the endpoint of
             a VPN tunnel.
-          oneOf:
-            - ethernet:
-                description: An Ethernet capable interface
-                type: object
-                properties:
-                  address:
-                    description: The Ethernet address of the interface.
-                    type: string
-                    pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
-                required:
-                  - address
-              ipv4:
-                description: An IPv4 capable interface.
-                type: object
-                properties:
-                  address:
-                    description: The IPv4 address of the interface.
-                    type: string
-                  netmask:
-                    description: The netmask of the interface.
-                    type: string
-                  hardware_address:
-                    description: The hardware address of the interface.
-                    type: string
-                required:
-                  - address
-              ipv6:
-                description: An IPv6 capable interface.
-                type: object
-                properties:
-                  address:
-                    description: The IPv6 address of the interface.
-                    type: string
-                  hardware_address:
-                    description: The hardware address of the interface.
-                    type: string
-                required:
-                  - address
+          enum:
+            - ethernet
+            - ipv4
+            - ipv6
         type:
           description: >-
             The type of the connection point with respect to its visibility in
@@ -191,6 +206,46 @@ properties:
         virtual_link_reference:
           description: 'A reference to a virtual link, i.e. the virtual_links:id.'
           type: string
+        actual_interface:
+          description: >-
+            The type of connection point, such as a virtual port, a virtual NIC
+            address, a physical port, a physcial NIC address, or the endpoint of
+            a VPN tunnel.
+          oneOf:
+            - description: An Ethernet capable interface
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  description: The Ethernet address of the interface.
+                  type: string
+                  pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+            - description: An IPv4 capable interface.
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  description: The IPv4 address of the interface.
+                  type: string
+                netmask:
+                  description: The netmask of the interface.
+                  type: string
+                hardware_address:
+                  description: The hardware address of the interface.
+                  type: string
+            - description: An IPv6 capable interface.
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  description: The IPv6 address of the interface.
+                  type: string
+                hardware_address:
+                  description: The hardware address of the interface.
+                  type: string
   virtual_links:
     type: array
     items:
@@ -198,6 +253,11 @@ properties:
       oneOf:
         - description: A reference to an external virtual link descriptor (VLD).
           type: object
+          required:
+            - vl_group
+            - vl_name
+            - vl_version
+          additionalProperties: false
           properties:
             vl_group:
               type: string
@@ -207,13 +267,13 @@ properties:
               type: string
             vl_description:
               type: string
-          required:
-            - vl_group
-            - vl_name
-            - vl_version
-          additionalProperties: false
         - description: A full-featured virtual link description.
           type: object
+          required:
+            - id
+            - connectivity_type
+            - connection_points_reference
+          additionalProperties: false
           properties:
             id:
               type: string
@@ -225,6 +285,11 @@ properties:
             connection_points_reference:
               type: array
               items:
+                description: >-
+                  The connection point reference has to uniquely reference the
+                  connection point of the VNF. To this end, it should name the
+                  vnf_id of the network_function section and the name of the
+                  connection point of this VNF as specified in the VNFD.
                 type: string
                 minItems: 2
                 uniqueItems: true
@@ -240,11 +305,6 @@ properties:
               type: boolean
             qos:
               type: string
-          required:
-            - id
-            - connectivity_type
-            - connection_points_reference
-          additionalProperties: false
   forwarding_graphs:
     description: The forwarding graph.
     type: array
@@ -269,6 +329,8 @@ properties:
           additionalProperties: false
         - description: A full-featured forwarding graph description.
           type: object
+          required:
+            - fg_id
           properties:
             fg_id:
               description: >-
@@ -279,7 +341,7 @@ properties:
               type: integer
             number_of_virtual_links:
               type: integer
-            depedent_virtual_links:
+            constituent_virtual_links:
               type: array
               items:
                 - type: string
@@ -315,8 +377,6 @@ properties:
                             The possition of the connection point with the
                             forwarding graph
                           type: integer
-          required:
-            - fg_id
   lifecycle_events:
     type: object
     properties:

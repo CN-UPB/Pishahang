@@ -52,10 +52,49 @@ definitions:
     enum:
       - "interface"
 
-  function_status:
+  execution_status:
     enum:
       - "failed"
       - "normal operation"
       - "degraded operation"
       - "offline"
       - "terminated"
+
+  actual_interfaces:
+    ethernet:
+      description: "An Ethernet capable interface"
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The Ethernet address of the interface."
+          type: "string"
+          pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
+    ipv4:
+      description: "An IPv4 capable interface."
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The IPv4 address of the interface."
+          type: "string"
+        netmask:
+          description: "The netmask of the interface."
+          type: "string"
+        hardware_address:
+          description: "The hardware address of the interface."
+          type: "string"
+    ipv6:
+      description: "An IPv6 capable interface."
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The IPv6 address of the interface."
+          type: "string"
+        hardware_address:
+          description: "The hardware address of the interface."
+          type: "string"

@@ -467,7 +467,7 @@ properties:
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   status:
     description: The current status of the CS
-    ref: ../../commons.yml#/definitions/function_status
+    ref: ../../commons.yml#/definitions/execution_status
   descriptor_reference:
     description: Reference to the CSD used to instantiate this CS.
     type: string

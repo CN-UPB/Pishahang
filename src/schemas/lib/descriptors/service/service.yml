@@ -142,7 +142,7 @@ allOf:
             - id
             - interface
             - type
-          additionalProperties: false
+          additionalProperties: true # allow extensions in the record schema
           properties:
             id:
               description: "A VNF-unique id of the connection point. Can be used for references."

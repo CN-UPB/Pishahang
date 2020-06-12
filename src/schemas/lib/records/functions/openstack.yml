@@ -1,46 +1,6 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 description: "The core schema for SONATA network function records."
 
-definitions:
-  interfaces:
-    ethernet:
-      description: "An Ethernet capable interface"
-      type: "object"
-      properties:
-        address:
-          description: "The Ethernet address of the interface."
-          type: "string"
-          pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
-      required:
-        - address
-    ipv4:
-      description: "An IPv4 capable interface."
-      type: "object"
-      properties:
-        address:
-          description: "The IPv4 address of the interface."
-          type: "string"
-        netmask:
-          description: "The netmask of the interface."
-          type: "string"
-        hardware_address:
-          description: "The hardware address of the interface."
-          type: "string"
-      required:
-        - address
-    ipv6:
-      description: "An IPv6 capable interface."
-      type: "object"
-      properties:
-        address:
-          description: "The IPv6 address of the interface."
-          type: "string"
-        hardware_address:
-          description: "The hardware address of the interface."
-          type: "string"
-      required:
-        - address
-
 allOf:
   - $ref: "../../descriptors/functions/openstack.yml"
   - type: "object"
@@ -61,7 +21,7 @@ allOf:
       status:
         description: "The current status of the VNF"
         oneOf:
-          - $ref: "../../commons.yml#/definitions/function_status"
+          - $ref: "../../commons.yml#/definitions/execution_status"
 
       descriptor_reference:
         description: "Reference to the VNFD used to instanciate this VNF."
@@ -140,9 +100,9 @@ allOf:
           properties:
             actual_interface:
               oneOf:
-                - $ref: "#/definitions/interfaces/ethernet"
-                - $ref: "#/definitions/interfaces/ipv4"
-                - $ref: "#/definitions/interfaces/ipv6"
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ethernet"
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ipv4"
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ipv6"
 
       vnf_address:
         type: "array"

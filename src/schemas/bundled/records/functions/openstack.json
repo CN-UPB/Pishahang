@@ -2,65 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "The core schema for SONATA network function records.",
   "definitions": {
-    "interfaces": {
-      "ethernet": {
-        "description": "An Ethernet capable interface",
-        "type": "object",
-        "properties": {
-          "address": {
-            "description": "The Ethernet address of the interface.",
-            "type": "string",
-            "pattern": "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
-          }
-        },
-        "required": [
-          "address"
-        ]
-      },
-      "ipv4": {
-        "description": "An IPv4 capable interface.",
-        "type": "object",
-        "properties": {
-          "address": {
-            "description": "The IPv4 address of the interface.",
-            "type": "string"
-          },
-          "netmask": {
-            "description": "The netmask of the interface.",
-            "type": "string"
-          },
-          "hardware_address": {
-            "description": "The hardware address of the interface.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "address"
-        ]
-      },
-      "ipv6": {
-        "description": "An IPv6 capable interface.",
-        "type": "object",
-        "properties": {
-          "address": {
-            "description": "The IPv6 address of the interface.",
-            "type": "string"
-          },
-          "hardware_address": {
-            "description": "The hardware address of the interface.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "address"
-        ]
-      },
-      "enum": [
-        "ethernet",
-        "ipv4",
-        "ipv6"
-      ]
-    },
     "images_formats": {
       "enum": [
         "raw",
@@ -80,6 +21,13 @@
         "internal",
         "external",
         "management"
+      ]
+    },
+    "interfaces": {
+      "enum": [
+        "ethernet",
+        "ipv4",
+        "ipv6"
       ]
     },
     "monitoring": {
@@ -884,20 +832,23 @@
               {
                 "description": "An Ethernet capable interface",
                 "type": "object",
+                "required": [
+                  "address"
+                ],
                 "properties": {
                   "address": {
                     "description": "The Ethernet address of the interface.",
                     "type": "string",
                     "pattern": "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
                   }
-                },
-                "required": [
-                  "address"
-                ]
+                }
               },
               {
                 "description": "An IPv4 capable interface.",
                 "type": "object",
+                "required": [
+                  "address"
+                ],
                 "properties": {
                   "address": {
                     "description": "The IPv4 address of the interface.",
@@ -911,14 +862,14 @@
                     "description": "The hardware address of the interface.",
                     "type": "string"
                   }
-                },
-                "required": [
-                  "address"
-                ]
+                }
               },
               {
                 "description": "An IPv6 capable interface.",
                 "type": "object",
+                "required": [
+                  "address"
+                ],
                 "properties": {
                   "address": {
                     "description": "The IPv6 address of the interface.",
@@ -928,10 +879,7 @@
                     "description": "The hardware address of the interface.",
                     "type": "string"
                   }
-                },
-                "required": [
-                  "address"
-                ]
+                }
               }
             ]
           }

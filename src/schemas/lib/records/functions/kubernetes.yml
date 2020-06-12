@@ -17,7 +17,7 @@ allOf:
 
       status:
         description: "The current status of the CS"
-        ref: "../../commons.yml#/definitions/function_status"
+        ref: "../../commons.yml#/definitions/execution_status"
 
       descriptor_reference:
         description: "Reference to the CSD used to instantiate this CS."

@@ -204,7 +204,7 @@ properties:
         - id
         - interface
         - type
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           description: A VNF-unique id of the connection point. Can be used for references.
