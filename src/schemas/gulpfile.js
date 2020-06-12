@@ -14,6 +14,33 @@ const pipeline = promisify(require("stream").pipeline);
 const IN_DIR = "lib";
 const OUT_DIR = "bundled";
 
+// Utilities
+
+/**
+ * Given an async function, returns a streams.Transform object that runs the async
+ * function, passing in `chunk`.
+ */
+function makeStreamTransformer(transformerFunction) {
+  return through.obj(function (chunk, encoding, callback) {
+    transformerFunction
+      .bind(this)(chunk)
+      .then(
+        () => callback(),
+        (error) => callback(error)
+      );
+  });
+}
+
+async function getBundledSchema(filePath) {
+  return mergeAllOf(await RefParser.dereference(filePath));
+}
+
+function getRelativePath(filePath) {
+  return path.relative(process.cwd(), filePath);
+}
+
+// Gulp Tasks
+
 function clean() {
   return del(OUT_DIR);
 }
@@ -25,25 +52,18 @@ function clean() {
 function compile() {
   return pipeline(
     gulp.src([IN_DIR + "/**/*.yml", "!**/*-tests/**/*"]),
-    through.obj(function (file, encoding, callback) {
-      RefParser.dereference(file.path, (err, schema) => {
-        if (err) {
-          callback(err);
-        } else {
-          schema = mergeAllOf(schema);
+    makeStreamTransformer(async function (file) {
+      let schema = await RefParser.dereference(file.path);
+      schema = mergeAllOf(schema);
 
-          const yamlFile = file.clone();
-          yamlFile.contents = Readable.from([yaml.dump(schema)]);
-          this.push(yamlFile);
+      const yamlFile = file.clone();
+      yamlFile.contents = Readable.from([yaml.dump(schema)]);
+      this.push(yamlFile);
 
-          const jsonFile = file.clone();
-          jsonFile.extname = ".json";
-          jsonFile.contents = Readable.from([JSON.stringify(schema, null, 2)]);
-          this.push(jsonFile);
-
-          callback();
-        }
-      });
+      const jsonFile = file.clone();
+      jsonFile.extname = ".json";
+      jsonFile.contents = Readable.from([JSON.stringify(schema, null, 2)]);
+      this.push(jsonFile);
     }),
     gulp.dest(OUT_DIR)
   );
@@ -60,12 +80,11 @@ exports.bundle = gulp.series(clean, compile);
  */
 function testSchemas() {
   const ajv = new Ajv();
-
-  const getRelativePath = (filePath) => path.relative(process.cwd(), filePath);
+  const schemaCache = {};
 
   return pipeline(
     gulp.src(IN_DIR + "/**/*-tests/*.yml"),
-    through.obj(function (file, encoding, callback) {
+    makeStreamTransformer(async function (file) {
       const testDir = path.dirname(file.path);
       const schemaFileName = path.basename(testDir).replace("-tests", "");
       const schemaPath = path.join(
@@ -84,35 +103,23 @@ function testSchemas() {
         `Validating ${relativeFilePath} against ${relativeSchemaPath}`
       );
 
-      RefParser.dereference(schemaPath, (err, schema) => {
-        if (err) {
-          callback(err);
-        } else {
-          schema = mergeAllOf(schema);
+      if (typeof schemaCache[schemaPath] === "undefined") {
+        schemaCache[schemaPath] = await getBundledSchema(schemaPath);
+      }
+      const schema = schemaCache[schemaPath];
 
-          const data = yaml.safeLoad(file.contents);
-          const validate = ajv.compile(schema);
-          const valid = validate(data);
-          if (shouldDataBeValid)
-            if (!valid) {
-              console.log(validate.errors);
-              callback(validate.errors[0]);
-            } else {
-              callback();
-            }
-          else {
-            if (valid) {
-              callback(
-                new Error(
-                  `${relativeFilePath} is valid against ${relativeSchemaPath} although it is suffixed with ".invalid.yml"`
-                )
-              );
-            } else {
-              callback();
-            }
-          }
-        }
-      });
+      const data = yaml.safeLoad(file.contents);
+      const validate = ajv.compile(schema);
+      const valid = validate(data);
+      if (shouldDataBeValid && !valid) {
+        console.log(validate.errors);
+        throw validate.errors[0];
+      }
+      if (!shouldDataBeValid && valid) {
+        throw new Error(
+          `${relativeFilePath} is valid against ${relativeSchemaPath} although it is suffixed with ".invalid.yml"`
+        );
+      }
     })
   );
 }
