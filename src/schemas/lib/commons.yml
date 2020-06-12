@@ -1,41 +1,61 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 description: "Common definitions that can be referenced by other schemas."
 
-memory_units:
-  enum:
-    - "B" # Byte
-    - "kB" # Kilobyte
-    - "KiB" # Kibityte
-    - "MB" # Megabyte
-    - "MiB" # Mebibyte
-    - "GB" # Gigabyte
-    - "GiB" # Gibibyte
-    - "TB" # Terabyte
-    - "TiB" # Tebibyte
-    - "PT" # Petabyte
-    - "PiT" # Pebibyte
+definitions:
+  general_units:
+    const: "Percentage"
 
-bandwidth_units:
-  enum:
-    - "bps" # Bit per second
-    - "kbps" # Kilobit per second
-    - "Mbps" # Megabit per second
-    - "Gbps" # Gigabit per second
-    - "Tbps" # Terabit per second
+  memory_units:
+    enum:
+      - "B" # Byte
+      - "kB" # Kilobyte
+      - "KiB" # Kibityte
+      - "MB" # Megabyte
+      - "MiB" # Mebibyte
+      - "GB" # Gigabyte
+      - "GiB" # Gibibyte
+      - "TB" # Terabyte
+      - "TiB" # Tebibyte
+      - "PT" # Petabyte
+      - "PiT" # Pebibyte
 
-images_formats:
-  enum:
-    - "raw"
-    - "vhd"
-    - "vmdk"
-    - "vdi"
-    - "iso"
-    - "qcow2"
-    - "docker"
-    - "ova"
-    - "ovf"
-    - "bare"
+  bandwidth_units:
+    enum:
+      - "bps" # Bit per second
+      - "kbps" # Kilobit per second
+      - "Mbps" # Megabit per second
+      - "Gbps" # Gigabit per second
+      - "Tbps" # Terabit per second
 
-interfaces:
-  enum:
-    - "interface"
+  frequency_units:
+    enum:
+      - "Hz" # Hertz, 1/sec
+      - "kHz" # Kilohertz
+      - "MHz" # Megahertz
+      - "GHz" # Gigahertz
+      - "THz" # Terahertz
+
+  images_formats:
+    enum:
+      - "raw"
+      - "vhd"
+      - "vmdk"
+      - "vdi"
+      - "iso"
+      - "qcow2"
+      - "docker"
+      - "ova"
+      - "ovf"
+      - "bare"
+
+  interfaces:
+    enum:
+      - "interface"
+
+  function_status:
+    enum:
+      - "failed"
+      - "normal operation"
+      - "degraded operation"
+      - "offline"
+      - "terminated"
