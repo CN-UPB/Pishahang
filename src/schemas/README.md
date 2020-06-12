@@ -5,7 +5,7 @@ All schemas are written in the YAML format and placed in the `lib` directory.
 Schemas may contain references to other schema files.
 Yet, many JSON schema implementations are not capable of resolving these references.
 Hence, this directory also includes a Node.js script to resolve the references and write the resulting schemas to the `bundled` directory, in YAML and JSON formats.
-When you make changes to schema files in the `lib` directory, make sure to follow the [bundling section](Bundling) to update the bundled files as well.
+When you make changes to schema files in the `lib` directory, make sure to follow the [bundling section](#bundling) to update the bundled files as well.
 
 ## Installation
 
