@@ -51,7 +51,6 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = (
   };
 
   return (
-    // @ts-ignore https://github.com/DefinitelyTyped/DefinitelyTyped/pull/45268
     <FileReaderInput as="text" accept=".yml,.yaml" onChange={upload}>
       <Tooltip
         title={`Upload a ${
