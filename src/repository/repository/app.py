@@ -1,13 +1,16 @@
 from typing import List
 from uuid import UUID, uuid4
 
+from appcfg import get_config
 from bson import ObjectId
-from config2.config import config
 from eve import Eve
 from eve.io.base import BaseJSONEncoder
 from eve.io.mongo import Validator
 from jsonschema import ValidationError, validate
+
 from repository.resources import resources
+
+config = get_config(__name__)
 
 
 class JsonEncoder(BaseJSONEncoder):
@@ -54,7 +57,7 @@ def make_domain_config(resources: dict):
 
 
 settings = {
-    "MONGO_URI": config.mongo_uri,
+    "MONGO_URI": config["mongo_uri"],
     "RENDERERS": ["eve.render.JSONRenderer"],
     "HATEOAS": False,
     "IF_MATCH": False,

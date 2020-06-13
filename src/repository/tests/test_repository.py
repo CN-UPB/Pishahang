@@ -1,27 +1,21 @@
+import importlib
+
 import mongomock
 import pymongo
 import pytest
+from appcfg import get_config
 from pytest_voluptuous import S
-from voluptuous.validators import All, Contains, Equal, ExactSequence
+from voluptuous.validators import All, Contains
 from werkzeug.test import Client
 
+with mongomock.patch():
+    import repository.app as app
 
-@pytest.fixture(scope="function")
-def api():
-    with mongomock.patch() as patcher:
-        from repository.app import app
-        from config2.config import config
-
-        with app.test_client() as client:
-            yield client
-
-        # Drop the MongoMock database
-        uri: str = config.mongo_uri
-        pymongo.MongoClient(host=uri).drop_database(uri[uri.rfind("/") + 1 :])
+config = get_config("repository")
 
 
 @pytest.fixture
-def patch_resources(mocker):
+def api(mocker):
     mocker.patch(
         "repository.resources.resources",
         new={
@@ -39,9 +33,17 @@ def patch_resources(mocker):
             }
         },
     )
+    importlib.reload(app)
+
+    with app.app.test_client() as client:
+        yield client
+
+    # Drop the MongoMock database
+    uri: str = config["mongo_uri"]
+    pymongo.MongoClient(host=uri).drop_database(uri[uri.rfind("/") + 1 :])
 
 
-def test_fields(patch_resources, api: Client):
+def test_fields(api: Client):
     def get_items():
         return api.get("/entries").get_json()["_items"]
 
@@ -59,7 +61,7 @@ def test_fields(patch_resources, api: Client):
     assert item == response.get_json()
 
 
-def test_json_schema_validation(patch_resources, api: Client):
+def test_json_schema_validation(api: Client):
     def post(json: dict):
         return api.post("/entries", json=json)
 

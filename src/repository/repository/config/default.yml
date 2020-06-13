@@ -1,2 +1,2 @@
 mongo_uri: mongodb://localhost/repository
-schema_dir: ../../schemas
+schema_dir: ../schemas/bundled

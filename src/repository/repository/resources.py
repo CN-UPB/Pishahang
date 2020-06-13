@@ -1,19 +1,23 @@
-from config2.config import config
+from appcfg import get_config
 from pathlib import Path
-import yaml
+import json
 
-SCHEMA_DIR = Path(__file__).parents[1] / Path(config.schema_dir)
+config = get_config(__name__)
+
+SCHEMA_DIR = Path(__file__).parents[1] / Path(config["schema_dir"])
 
 
 def load_schema_file(path: Path):
-    with open(path) as schema_file:
-        return yaml.safe_load(schema_file)
+    with path.with_suffix(".json").open() as f:
+        return json.load(f)
 
 
 resources = {
     name: load_schema_file(SCHEMA_DIR / path)
     for name, path in [
-        ("cosds", "complex-service-descriptor/cosd-schema.yml"),
-        ("cosrs", "complex-service-record/cosr-schema.yml"),
+        ("function-descriptors", "descriptors/functions/any"),
+        ("service-descriptors", "descriptors/service/service"),
+        ("function-records", "records/functions/any"),
+        ("service-records", "records/service"),
     ]
 }
