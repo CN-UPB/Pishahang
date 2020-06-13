@@ -8,39 +8,40 @@ from pytest_voluptuous import S
 from voluptuous.validators import All, Contains
 from werkzeug.test import Client
 
-with mongomock.patch():
-    import repository.app as app
 
 config = get_config("repository")
+
+RESOURCES = {
+    "entries": {
+        "type": "object",
+        "required": ["a"],
+        "properties": {
+            "a": {"type": "string"},
+            "b": {
+                "type": "object",
+                "required": ["c"],
+                "properties": {"c": {"type": "number"}},
+            },
+        },
+    }
+}
 
 
 @pytest.fixture
 def api(mocker):
-    mocker.patch(
-        "repository.resources.resources",
-        new={
-            "entries": {
-                "type": "object",
-                "required": ["a"],
-                "properties": {
-                    "a": {"type": "string"},
-                    "b": {
-                        "type": "object",
-                        "required": ["c"],
-                        "properties": {"c": {"type": "number"}},
-                    },
-                },
-            }
-        },
-    )
-    importlib.reload(app)
 
-    with app.app.test_client() as client:
-        yield client
+    with mongomock.patch():
+        import repository.app as app
 
-    # Drop the MongoMock database
-    uri: str = config["mongo_uri"]
-    pymongo.MongoClient(host=uri).drop_database(uri[uri.rfind("/") + 1 :])
+        mocker.patch("repository.resources.resources", new=RESOURCES)
+        importlib.reload(app)
+
+        with app.app.test_client() as client:
+            yield client
+
+        # Drop the MongoMock database
+        uri: str = config["mongo_uri"]
+        pymongo.MongoClient(host=uri).drop_database(uri[uri.rfind("/") + 1 :])
 
 
 def test_fields(api: Client):
