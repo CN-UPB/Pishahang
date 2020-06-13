@@ -1,7 +1,0 @@
----
-
-##
-## A very simple descriptor that just
-## fails the test-schema.
-##
-image_format: "FAIL"

@@ -1,0 +1,100 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "Common definitions that can be referenced by other schemas."
+
+definitions:
+  general_units:
+    const: "Percentage"
+
+  memory_units:
+    enum:
+      - "B" # Byte
+      - "kB" # Kilobyte
+      - "KiB" # Kibityte
+      - "MB" # Megabyte
+      - "MiB" # Mebibyte
+      - "GB" # Gigabyte
+      - "GiB" # Gibibyte
+      - "TB" # Terabyte
+      - "TiB" # Tebibyte
+      - "PT" # Petabyte
+      - "PiT" # Pebibyte
+
+  bandwidth_units:
+    enum:
+      - "bps" # Bit per second
+      - "kbps" # Kilobit per second
+      - "Mbps" # Megabit per second
+      - "Gbps" # Gigabit per second
+      - "Tbps" # Terabit per second
+
+  frequency_units:
+    enum:
+      - "Hz" # Hertz, 1/sec
+      - "kHz" # Kilohertz
+      - "MHz" # Megahertz
+      - "GHz" # Gigahertz
+      - "THz" # Terahertz
+
+  images_formats:
+    enum:
+      - "raw"
+      - "vhd"
+      - "vmdk"
+      - "vdi"
+      - "iso"
+      - "qcow2"
+      - "docker"
+      - "ova"
+      - "ovf"
+      - "bare"
+
+  interfaces:
+    enum:
+      - "interface"
+
+  execution_status:
+    enum:
+      - "failed"
+      - "normal operation"
+      - "degraded operation"
+      - "offline"
+      - "terminated"
+
+  actual_interfaces:
+    ethernet:
+      description: "An Ethernet capable interface"
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The Ethernet address of the interface."
+          type: "string"
+          pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
+    ipv4:
+      description: "An IPv4 capable interface."
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The IPv4 address of the interface."
+          type: "string"
+        netmask:
+          description: "The netmask of the interface."
+          type: "string"
+        hardware_address:
+          description: "The hardware address of the interface."
+          type: "string"
+    ipv6:
+      description: "An IPv6 capable interface."
+      type: "object"
+      required:
+        - address
+      properties:
+        address:
+          description: "The IPv6 address of the interface."
+          type: "string"
+        hardware_address:
+          description: "The hardware address of the interface."
+          type: "string"

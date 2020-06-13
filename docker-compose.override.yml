@@ -14,7 +14,9 @@ services:
   # Base
   mano-base:
     image: pishahang/mano-base:${PISHAHANG_VERSION}
-    build: ./src/mano-framework/base
+    build:
+      context: ./src
+      dockerfile: mano-framework/base/Dockerfile
 
   # Plugin Manager
   pluginmanager:

@@ -1,0 +1,22 @@
+{
+  "name": "schemas",
+  "version": "1.0.0",
+  "description": "JSON schemas for many objects used in Pishahang, including descriptors and records",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "^9.0.1",
+    "ajv": "^6.12.2",
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "js-yaml": "^3.14.0",
+    "json-schema-merge-allof": "^0.7.0",
+    "through2": "^3.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "bundle": "gulp bundle",
+    "test": "gulp test"
+  },
+  "author": "",
+  "license": "Apache-2.0"
+}
