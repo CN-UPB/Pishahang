@@ -31,6 +31,13 @@ jobs:
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES=mano-base
 
+    - name: repository
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=repository
+        - COMPONENT_DIR=src/repository
+        - BUILD_SERVICES="mano-base repository"
+
     - name: pluginmanager
       <<: *python_job_config
       env:

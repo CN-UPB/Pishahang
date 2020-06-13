@@ -371,6 +371,16 @@ services:
     ports:
       - "4002:4011"
 
+  repository:
+    image: pishahang/repository:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - mongo
+    networks:
+      - pishanet
+    ports:
+      - "80:4000"
+
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
   pluginmanager:

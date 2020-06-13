@@ -10,6 +10,9 @@ services:
   catalogue-repos:
     build: ./son-catalogue-repos
 
+  repository:
+    build: ./src/repository
+
   # MANO framework -------------------------------------------------------------
   # Base
   mano-base:
