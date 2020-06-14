@@ -209,29 +209,6 @@ services:
     networks:
       - pishanet
 
-  # Infastructure Adaptor ------------------------------------------------------
-  # Infrastructure Abstractor VIM Adaptor
-  vim-adaptor:
-    image: pishahang/vim-adaptor:${PISHAHANG_VERSION}
-    restart: always
-    depends_on:
-      - broker
-      - postgres
-    environment:
-      broker_host: broker
-      broker_uri: amqp://guest:guest@broker:5672/%2F
-      repo_host: postgres
-      repo_port: 5432
-      repo_user: ${IA_REPO_USER}
-      repo_pass: ${IA_REPO_PASS}
-      SONATA_SP_ADDRESS: ${PUBLIC_DOMAIN_NAME}
-    networks:
-      pishanet:
-        aliases:
-          - son-sp-infrabstract
-    volumes:
-      - /root/terraform_data
-
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
