@@ -32,7 +32,7 @@ services:
     ports:
       - 27017:27017
 
-  # RedisDB (used by Validator and Gkapi)
+  # RedisDB for the gatekeeper
   redis:
     image: redis
     restart: always
@@ -87,278 +87,6 @@ services:
     ports:
       - 8086:8086
 
-  # Keycloak (to be removed)
-  son-keycloak:
-    image: pishahang/gtk-keycloak
-    restart: always
-    environment:
-      KEYCLOAK_USER: ${GTK_KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${GTK_KEYCLOAK_PASS}
-      SONATA_USER:
-      SONATA_PASSWORD:
-      SONATA_EMAIL:
-    networks:
-      - pishanet
-    ports:
-      - "5601:5601"
-
-  # GUI (to be removed)
-  son-gui:
-    image: pishahang/gui
-    restart: always
-    depends_on:
-      - son-gtkapi
-    environment:
-      MON_URL: http://${PUBLIC_DOMAIN_NAME}/monitoring
-      GK_URL: http://${PUBLIC_DOMAIN_NAME}/api/v2
-    networks:
-      - pishanet
-
-  # Gatekeeper BSS (to be removed)
-  son-bss:
-    image: pishahang/bss
-    restart: always
-    command: "grunt serve:integration --gkApiUrl=http://${PUBLIC_DOMAIN_NAME}/api/v2 --hostname=0.0.0.0 --userManagementEnabled=true --licenseManagementEnabled=true --debug"
-    networks:
-      - pishanet
-    ports:
-      - "25001:1337"
-      - "25002:1338"
-
-  # Gatekeeper (to be removed)--------------------------------------------------
-  # SONATA Validator
-  son-validate:
-    image: sonatanfv/son-validate:dev
-    restart: always
-    depends_on:
-      - redis
-    environment:
-      VAPI_DEBUG: "True"
-      VAPI_REDIS_HOST: redis
-      VAPI_PORT: 5050
-      SON_CLI_IN_DOCKER: 1
-    networks:
-      - pishanet
-    expose:
-      - 5050
-    ports:
-      - "5050:5050"
-
-  # Gatekeeper Packages
-  son-gtkpkg:
-    image: sonatanfv/son-gtkpkg:${SONATA_VERSION}
-    restart: always
-    depends_on:
-      - catalogue-repos
-    environment:
-      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
-      RACK_ENV: integration
-    networks:
-      - pishanet
-    ports:
-      - "5100:5100"
-
-  # Gatekeeper Services
-  son-gtksrv:
-    image: tdierich/son-gtksrv
-    restart: always
-    depends_on:
-      - catalogue-repos
-      - broker
-      - postgres
-    environment:
-      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
-      RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@broker:5672
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      POSTGRES_PASSWORD: ${GTK_DB_PASS}
-      POSTGRES_USER: ${GTK_DB_USER}
-      POSTGRES_DB: ${GTK_DB_NAME}
-    command: 'bash -c "bundle exec rake db:migrate && bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:5300"' # The first command used to be a separate ansible task, executed in an intermediate container before the final container was started
-    networks:
-      - pishanet
-    ports:
-      - "5300:5300"
-
-  # Gatekeeper Cloud Services
-  son-gtkcsrv:
-    image: tdierich/son-gtkcsrv
-    restart: always
-    depends_on:
-      - catalogue-repos
-      - broker
-      - postgres
-    environment:
-      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
-      RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@broker:5672
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      POSTGRES_PASSWORD: ${GTK_DB_PASS}
-      POSTGRES_USER: ${GTK_DB_USER}
-      POSTGRES_DB: ${GTK_DB_NAME}
-    networks:
-      - pishanet
-    ports:
-      - "5250:5250"
-
-  # Gatekeeper Functions
-  son-gtkfnct:
-    image: sonatanfv/son-gtkfnct
-    restart: always
-    depends_on:
-      - catalogue-repos
-    environment:
-      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
-      RACK_ENV: integration
-    networks:
-      - pishanet
-    ports:
-      - "5500:5500"
-
-  # Gatekeeper Records
-  son-gtkrec:
-    image: tdierich/son-gtkrec
-    restart: always
-    depends_on:
-      - catalogue-repos
-    environment:
-      REPOSITORIES_URL: http://catalogue-repos:4011/records
-      RACK_ENV: integration
-    networks:
-      - pishanet
-    ports:
-      - "5800:5800"
-
-  # Gatekeeper VIM
-  son-gtkvim:
-    image: sonatanfv/son-gtkvim
-    restart: always
-    depends_on:
-      - broker
-      - postgres
-    environment:
-      # TODO: Is a catalogues URL missing here?
-      RACK_ENV: integration
-      MQSERVER: amqp://guest:guest@broker:5672
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      POSTGRES_PASSWORD: ${GTK_DB_PASS}
-      POSTGRES_USER: ${GTK_DB_USER}
-      POSTGRES_DB: ${GTK_DB_NAME}
-    command: 'bash -c "bundle exec rake db:migrate && bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:5700"'
-    networks:
-      - pishanet
-    ports:
-      - "5700:5700"
-
-  # Gatekeeper License Manager
-  son-gtklic:
-    image: sonatanfv/son-gtklic:${SONATA_VERSION}
-    restart: always
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      POSTGRES_PASSWORD: ${GTK_DB_PASS}
-      POSTGRES_USER: ${GTK_DB_USER}
-      POSTGRES_DB: ${GTK_DB_NAME}
-    command: 'bash -c "python manage.py db upgrade && python manage.py runserver --host 0.0.0.0"'
-    networks:
-      - pishanet
-    expose:
-      - 5900 # TODO: Why 5900? Server is listening on 5000 AFAIK.
-    ports:
-      - "5900:5900"
-
-  # Gatekeeper Key Performance Indicators
-  son-gtkkpi:
-    image: sonatanfv/son-gtkkpi:${SONATA_VERSION}
-    restart: always
-    depends_on:
-      - monitor-pushgateway
-      - monitor-prometheus
-    environment:
-      PUSHGATEWAY_HOST: pushgateway
-      PUSHGATEWAY_PORT: 9091
-      PROMETHEUS_PORT: 9090
-      RACK_ENV: integration
-    networks:
-      - pishanet
-    ports:
-      - "5400:5400"
-
-  # Gatekeeper User Management
-  son-gtkusr:
-    image: tdierich/son-gtkusr
-    restart: always
-    depends_on:
-      - son-keycloak
-    environment:
-      KEYCLOAK_ADDRESS: son-keycloak
-      KEYCLOAK_PORT: 5601
-      KEYCLOAK_PATH: auth
-      SONATA_REALM: sonata
-      CLIENT_NAME: adapter
-    networks:
-      - pishanet
-    ports:
-      - "5600:5600"
-
-  # Gatekeeper Rate Limiter
-  son-gtkrlt:
-    image: tdierich/son-gtkrlt
-    restart: always
-    depends_on:
-      - redis
-    environment:
-      REDIS_URL: redis://redis:6379
-    networks:
-      - pishanet
-    expose:
-      - 5150
-    ports:
-      - "5150:5150"
-
-  # Gatekeeper API
-  son-gtkapi:
-    image: tdierich/son-gtkapi
-    restart: always
-    depends_on:
-      - son-gtkusr
-      - son-gtklic
-      - monitor-manager
-      - catalogue-repos
-      - son-gtkpkg
-      - son-gtksrv
-      - son-gtkfnct
-      - son-gtkvim
-      - son-gtkrec
-      - son-gtkkpi
-      - son-validate
-      - son-gtkrlt
-    environment:
-      RACK_ENV: integration
-      USER_MANAGEMENT_URL: http://son-gtkusr:5600
-      LICENSE_MANAGEMENT_URL: http://son-gtklic:5900
-      METRICS_URL: http://monitor-manager:8000/api/v1
-      CATALOGUES_URL: http://catalogue-repos:4011/catalogues/api/v2
-      PACKAGE_MANAGEMENT_URL: http://son-gtkpkg:5100
-      SERVICE_MANAGEMENT_URL: http://son-gtksrv:5300
-      CLOUD_SERVICE_MANAGEMENT_URL: http://son-gtkcsrv:5250
-      FUNCTION_MANAGEMENT_URL: http://son-gtkfnct:5500
-      VIM_MANAGEMENT_URL: http://son-gtkvim:5700
-      RECORD_MANAGEMENT_URL: http://son-gtkrec:5800
-      KPI_MANAGEMENT_URL: http://son-gtkkpi:5400
-      VALIDATOR_URL: http://son-validate:5050
-      RATE_LIMITER_URL: http://son-gtkrlt:5150
-    networks:
-      - pishanet
-    ports:
-      - "32001:5000"
-
   # Repositories ---------------------------------------------------------------
   catalogue-repos:
     image: pishahang/catalogue-repos:${PISHAHANG_VERSION}
@@ -392,12 +120,10 @@ services:
     image: pishahang/mano-plugin-service-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-gtkapi
       - catalogue-repos
       - monitor-manager
       - broker
     environment:
-      url_gk_api: http://son-gtkapi:5000/api/v2/
       url_nsr_repository: http://catalogue-repos:4011/records/nsr/
       url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
@@ -410,12 +136,10 @@ services:
     image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-gtkapi
       - catalogue-repos
       - monitor-manager
       - broker
     environment:
-      url_gk_api: http://son-gtkapi:5000/api/v2/
       url_nsr_repository: http://catalogue-repos:4011/records/nsr/
       url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
@@ -453,12 +177,10 @@ services:
     image: pishahang/mano-plugin-kubernetes-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-gtkapi
       - catalogue-repos
       - monitor-manager
       - broker
     environment:
-      url_gk_api: http://son-gtkapi:5000/api/v2/
       url_cosr_repository: http://catalogue-repos:4011/records/cosr/
       url_vnfr_repository: http://catalogue-repos:4011/records/csr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
@@ -471,13 +193,11 @@ services:
     image: pishahang/mano-plugin-sdn:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - son-gtkapi
       - catalogue-repos
       - monitor-manager
       - broker
       - postgres
     environment:
-      url_gk_api: http://son-gtkapi:5000/api/v2/
       url_nsr_repository: http://catalogue-repos:4011/records/nsr/
       url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
@@ -511,23 +231,6 @@ services:
           - son-sp-infrabstract
     volumes:
       - /root/terraform_data
-
-  # Infrastructure Abstractor WIM Adaptor (to be removed)
-  wim-adaptor:
-    image: sonatanfv/wim-adaptor:${SONATA_VERSION}
-    restart: always
-    depends_on:
-      - broker
-      - postgres
-    environment:
-      broker_host: broker
-      broker_uri: amqp://guest:guest@broker:5672/%2F
-      repo_host: postgres
-      repo_port: 5432
-      repo_user: ${IA_REPO_USER}
-      repo_pass: ${IA_REPO_PASS}
-    networks:
-      - pishanet
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
@@ -591,16 +294,3 @@ services:
       pishanet:
         aliases:
           - son-monitor-probe
-
-  # Security Gateway (to be replaced)-------------------------------------------
-  son-sec-gw:
-    image: pishahang/gtk-sec-gateway:${PISHAHANG_VERSION}
-    restart: always
-    depends_on:
-      - son-gui
-      - son-bss
-    networks:
-      - pishanet
-    ports:
-      - "80:80"
-      - "443:443"
