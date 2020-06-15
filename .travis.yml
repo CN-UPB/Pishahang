@@ -18,6 +18,11 @@ _python_job_config: &python_job_config
 
 jobs:
   include:
+    - name: schemas
+      language: node_js
+      node_js: lts/*
+      before_install: cd src/schemas
+
     - name: manobase
       <<: *python_job_config
       env:

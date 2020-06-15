@@ -1,0 +1,101 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "A common base schema for Pishahang virtual network function descriptors"
+
+definitions:
+  monitoring:
+    type: "object"
+    required:
+      - name
+      - unit
+    additionalProperties: false
+    properties:
+      name:
+        description: "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM."
+        type: "string"
+        pattern: "^[A-Za-z-_]+$"
+      unit:
+        description: "The unit used to monitor (or represent) the parameter."
+        oneOf:
+          - $ref: "../../commons.yml#/definitions/general_units"
+          - $ref: "../../commons.yml#/definitions/memory_units"
+          - $ref: "../../commons.yml#/definitions/bandwidth_units"
+          - $ref: "../../commons.yml#/definitions/frequency_units"
+      frequency:
+        description: "The sample rate of the monitoring parameter."
+        type: "number"
+        exclusiveMinimum: 0
+      frequency_unit:
+        description: "The unit of the sample frequency."
+        $ref: "../../commons.yml#/definitions/frequency_units"
+        default: "Hz"
+      command:
+        description: "A command that is executed in order to perform custom monitoring."
+        type: "string"
+
+  monitoring_parameters:
+    description: "The various metrics and parameters to monitor."
+    type: "array"
+    items:
+      description: "A specific monitoring metric or parameter."
+      $ref: "#/definitions/monitoring"
+
+  scale_in_out:
+    description: "The scale-in/scale-out parameters."
+    type: "object"
+    additionalProperties: false
+    properties:
+      minimum:
+        description: "The minimum number of VDUs instantiated at any time."
+        type: "integer"
+        minimum: 1
+        default: 1
+      maximum:
+        description: "The maximum number of VDUs instantiated at any time. 0 means unlimited."
+        type: "integer"
+        minimum: 0
+        default: 1
+
+allOf:
+  - $ref: "../base.yml"
+  - type: "object"
+    properties:
+      monitoring_rules:
+        type: "array"
+        items:
+          type: "object"
+          required:
+            - name
+            - duration
+            - condition
+            - notification
+          properties:
+            name:
+              description: "The name of the monitoring rule"
+              type: "string"
+            description:
+              description: "An arbitrary descritpion of this monitoring rule"
+              type: "string"
+            duration:
+              description: "The duration the condtion has to be met before an event is fired"
+              type: "number"
+            duration_unit:
+              description: "The unit of the durration"
+              ref: "#/definitions/time_units"
+            condition:
+              description: "The condition, a boolean expression, that must be met to fire the event"
+              type: "string"
+            notification:
+              description: "A list of notifications that are fired when the condition is met"
+              type: "array"
+              items:
+                type: "object"
+                required:
+                  - name
+                  - type
+                properties:
+                  name:
+                    description: "The name of the notification"
+                    type: "string"
+                  type:
+                    description: "The type of message that is send to the message bus"
+                    type: "string"

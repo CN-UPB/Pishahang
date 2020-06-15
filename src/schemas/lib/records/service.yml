@@ -1,0 +1,100 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "Pishahang service record schema"
+
+allOf:
+  - $ref: "../descriptors/base.yml"
+  - type: "object"
+    required:
+      - status
+    properties:
+      service_specific_managers:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/service_specific_managers"
+
+      id:
+        description: "The UUID of the service record."
+        type: "string"
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      version:
+        description: "The version of the service record. Can be used to track changes."
+        type: "string"
+        pattern: "^[0-9]+$"
+
+      status:
+        description: "The current status of the Service"
+        oneOf:
+          - $ref: "../commons.yml#/definitions/execution_status"
+          - enum:
+              - "updating"
+
+      descriptor_reference:
+        description: "Reference to the NSD used to instanciate this NS."
+        type: "string"
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      network_functions:
+        description: "The VNF instances (actually their records), that are part of this network service instance."
+        type: "array"
+        minItems: 0
+        uniqueItems: true
+        items:
+          type: "object"
+          required:
+            - vnfr_id
+          additionalProperties: false
+          properties:
+            vnfr_id:
+              description: "A unique identifier of the network function record within the scope of this NS instance."
+              type: "string"
+              pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      cloud_services:
+        description: "The CS instances (actually their records), that are part of this network service instance."
+        type: "array"
+        minItems: 0
+        uniqueItems: true
+        items:
+          type: "object"
+          required:
+            - csr_id
+          additionalProperties: false
+          properties:
+            csr_id:
+              description: "A unique identifier of the cloud service record within the scope of this NS instance."
+              type: "string"
+              pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      connection_points:
+        allOf:
+          - $ref: "../descriptors/service/service.yml#/allOf/1/properties/connection_points"
+          - type: "array"
+            items:
+              type: "object"
+              properties:
+                actual_interface:
+                  description: "The type of connection point, such as a virtual port, a virtual NIC address, a physical port, a physcial NIC address, or the endpoint of a VPN tunnel."
+                  oneOf:
+                    - $ref: "../commons.yml#/definitions/actual_interfaces/ethernet"
+                    - $ref: "../commons.yml#/definitions/actual_interfaces/ipv4"
+                    - $ref: "../commons.yml#/definitions/actual_interfaces/ipv6"
+
+      virtual_links:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/virtual_links"
+
+      forwarding_graphs:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/forwarding_graphs"
+
+      lifecycle_events:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/lifecycle_events"
+
+      vnf_depedency:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/vnf_depedency"
+
+      services_depedency:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/services_depedency"
+
+      monitoring_parameters:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/monitoring_parameters"
+
+      auto_scale_policy:
+        $ref: "../descriptors/service/service.yml#/allOf/1/properties/auto_scale_policy"
