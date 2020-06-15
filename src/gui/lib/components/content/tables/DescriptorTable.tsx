@@ -1,23 +1,29 @@
 import { useTheme } from "@material-ui/core/styles";
-import { DeleteForeverRounded, Edit, Info } from "@material-ui/icons";
+import { DeleteForeverRounded, Edit, Info, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
-import { useDispatch } from "react-redux";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
 import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { Descriptor, DescriptorType } from "../../../models/Descriptor";
-import { showDescriptorInfoDialog } from "../../../store/actions/dialogs";
+import { useThunkDispatch } from "../../../store";
+import { showDescriptorInfoDialog, showInfoDialog } from "../../../store/actions/dialogs";
+import { onboardServiceDescriptor } from "../../../store/thunks/services";
 import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 import { DescriptorUploadButton } from "../DescriptorUploadButton";
 
 type Props = { descriptorType: DescriptorType };
 
-export const FunctionDescriptorTable: React.FunctionComponent<Props> = ({ descriptorType }) => {
+export const DescriptorTable: React.FunctionComponent<Props> = ({ descriptorType }) => {
   let endpoint: ApiDataEndpoint;
   let uploadTooltip: string;
   switch (descriptorType) {
+    case DescriptorType.Service:
+      endpoint = ApiDataEndpoint.ServiceDescriptors;
+      uploadTooltip = "Upload a service descriptor";
+      break;
+
     case DescriptorType.OPENSTACK:
       endpoint = ApiDataEndpoint.OpenStackFunctionDescriptors;
       uploadTooltip = "Upload an OpenStack descriptor";
@@ -35,10 +41,24 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = ({ descri
   }
 
   const theme = useTheme();
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const swr = useAuthorizedSWR(endpoint);
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog(swr.revalidate);
+
+  const onboard = async (descriptorId: string) => {
+    const reply = await dispatch(onboardServiceDescriptor(descriptorId));
+    if (reply.success) {
+      dispatch(
+        showInfoDialog({
+          title: "Success",
+          message:
+            "The descriptor was successfully onboarded. " +
+            'You can find it in the "Services" section now.',
+        })
+      );
+    }
+  };
 
   return (
     <SwrDataTable
@@ -49,6 +69,11 @@ export const FunctionDescriptorTable: React.FunctionComponent<Props> = ({ descri
         { title: "Version", field: "content.version" },
       ]}
       actions={[
+        descriptorType === DescriptorType.Service && {
+          icon: (props) => <QueueRounded htmlColor={theme.palette.secondary.main} {...props} />,
+          tooltip: "Onboard",
+          onClick: (event, descriptor: Descriptor) => onboard(descriptor.id),
+        },
         {
           icon: (props) => <Info htmlColor={theme.palette.primary.main} {...props} />,
           tooltip: "Info",
