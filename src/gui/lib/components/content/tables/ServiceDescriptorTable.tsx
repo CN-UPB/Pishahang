@@ -1,35 +1,25 @@
-import {
-  IconButton,
-  Paper,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-} from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
-import { DeleteForeverRounded, Edit, Info as InfoIcon, QueueRounded } from "@material-ui/icons";
+import { DeleteForeverRounded, Edit, Info, QueueRounded } from "@material-ui/icons";
 import * as React from "react";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
-import { InjectedAuthorizedSWRProps, withAuthorizedSWR } from "../../../hocs/withAuthorizedSWR";
+import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
 import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
-import { DescriptorType } from "../../../models/Descriptor";
+import { Descriptor, DescriptorType } from "../../../models/Descriptor";
 import { useThunkDispatch } from "../../../store";
 import { showDescriptorInfoDialog, showInfoDialog } from "../../../store/actions/dialogs";
 import { onboardServiceDescriptor } from "../../../store/thunks/services";
-import { Table } from "../../layout/tables/Table";
+import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 import { DescriptorUploadButton } from "../DescriptorUploadButton";
 
-type Props = InjectedAuthorizedSWRProps<ApiDataEndpoint.ServiceDescriptors>;
-
-const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, revalidate }) => {
+export const ServiceDescriptorTable: React.FunctionComponent = () => {
   const theme = useTheme();
   const dispatch = useThunkDispatch();
+  const swr = useAuthorizedSWR(ApiDataEndpoint.ServiceDescriptors);
+
   const showDescriptorEditorDialog = useDescriptorEditorDialog();
-  const showDescriptorDeleteDialog = useDescriptorDeleteDialog(revalidate);
+  const showDescriptorDeleteDialog = useDescriptorDeleteDialog(swr.revalidate);
 
   async function onboard(descriptorId: string) {
     const reply = await dispatch(onboardServiceDescriptor(descriptorId));
@@ -46,68 +36,47 @@ const InternalServiceDescriptorTable: React.FunctionComponent<Props> = ({ data, 
   }
 
   return (
-    <>
-      <DescriptorUploadButton descriptorType={DescriptorType.Service} onUploaded={revalidate} />
-      <TableContainer component={Paper}>
-        <Table aria-label="service descriptor table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Vendor</TableCell>
-              <TableCell>Version</TableCell>
-              <TableCell align="center" style={{ width: "300px" }}>
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((descriptor) => (
-              <TableRow key={descriptor.content.name}>
-                <TableCell component="th" scope="row">
-                  {descriptor.content.name}
-                </TableCell>
-                <TableCell>{descriptor.content.vendor}</TableCell>
-                <TableCell>{descriptor.content.version}</TableCell>
-                <TableCell align="center" style={{ width: "300px" }}>
-                  <Tooltip title={"Onboard " + descriptor.content.name} arrow>
-                    <IconButton color="secondary" onClick={() => onboard(descriptor.id)}>
-                      <QueueRounded />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title="Info" arrow>
-                    <IconButton
-                      color="primary"
-                      onClick={() => dispatch(showDescriptorInfoDialog(descriptor))}
-                    >
-                      <InfoIcon />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title={"Edit " + descriptor.content.name} arrow>
-                    <IconButton onClick={() => showDescriptorEditorDialog(descriptor)}>
-                      <Edit htmlColor={theme.palette.success.main} />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title={"Delete " + descriptor.content.name} arrow>
-                    <IconButton
-                      color="primary"
-                      onClick={() => showDescriptorDeleteDialog(descriptor.id)}
-                    >
-                      <DeleteForeverRounded htmlColor={theme.palette.error.main} />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </>
+    <SwrDataTable
+      swr={swr}
+      columns={[
+        { title: "Name", field: "content.name" },
+        { title: "Vendor", field: "content.vendor" },
+        { title: "Version", field: "content.version" },
+      ]}
+      actions={[
+        {
+          icon: (props) => <QueueRounded htmlColor={theme.palette.secondary.main} {...props} />,
+          tooltip: "Onboard",
+          onClick: (event, descriptor: Descriptor) => onboard(descriptor.id),
+        },
+        {
+          icon: (props) => <Info htmlColor={theme.palette.primary.main} {...props} />,
+          tooltip: "Info",
+          onClick: (event, descriptor: Descriptor) =>
+            dispatch(showDescriptorInfoDialog(descriptor)),
+        },
+        {
+          icon: (props) => <Edit htmlColor={theme.palette.success.main} {...props} />,
+          tooltip: "Edit",
+          onClick: (event, descriptor: Descriptor) => showDescriptorEditorDialog(descriptor),
+        },
+        {
+          icon: (props) => <DeleteForeverRounded htmlColor={theme.palette.error.main} {...props} />,
+          tooltip: "Delete",
+          onClick: (event, descriptor: Descriptor) => showDescriptorDeleteDialog(descriptor.id),
+        },
+        {
+          icon: () => (
+            <DescriptorUploadButton
+              descriptorType={DescriptorType.Service}
+              onUploaded={swr.revalidate}
+            />
+          ),
+          tooltip: "Upload a service descriptor",
+          onClick: null,
+          isFreeAction: true,
+        },
+      ]}
+    />
   );
 };
-
-export const ServiceDescriptorTable = withAuthorizedSWR(ApiDataEndpoint.ServiceDescriptors)(
-  InternalServiceDescriptorTable
-);

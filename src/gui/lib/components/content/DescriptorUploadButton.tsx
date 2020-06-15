@@ -1,4 +1,6 @@
-import { Fab, Tooltip } from "@material-ui/core";
+/** @jsx jsx */
+import { jsx } from "@emotion/core";
+import { useTheme } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import yaml from "js-yaml";
 import * as React from "react";
@@ -14,11 +16,12 @@ type Props = {
   onUploaded: () => Promise<any>;
 };
 
-export const DescriptorUploadButton: React.FunctionComponent<Props> = (
-  { descriptorType, onUploaded },
-  ref
-) => {
+export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
+  descriptorType,
+  onUploaded,
+}) => {
   const dispatch = useThunkDispatch();
+  const theme = useTheme();
 
   const upload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -51,23 +54,14 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = (
   };
 
   return (
-    <FileReaderInput as="text" accept=".yml,.yaml" onChange={upload}>
-      <Tooltip
-        title={`Upload a ${
-          descriptorType == DescriptorType.Service ? "service" : "function"
-        } descriptor`}
-        arrow
-      >
-        <Fab
-          color="primary"
-          size="small"
-          style={{ float: "right", marginBottom: "0px" }}
-          aria-label="Upload"
-          component="label"
-        >
-          <CloudUpload />
-        </Fab>
-      </Tooltip>
+    <FileReaderInput
+      as="text"
+      accept=".yml,.yaml"
+      onChange={upload}
+      css={{ display: "none" }} // Hide <input> element
+      style={{ display: "inline-flex" }}
+    >
+      <CloudUpload htmlColor={theme.palette.primary.main} />
     </FileReaderInput>
   );
 };
