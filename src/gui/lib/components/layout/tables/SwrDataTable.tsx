@@ -20,9 +20,7 @@ import { Icons } from "material-table";
 import MaterialTable, { MaterialTableProps } from "material-table";
 import { forwardRef } from "react";
 import React from "react";
-
-import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../../api/endpoints";
-import { useAuthorizedSWRResponseType } from "../../../hooks/useAuthorizedSWR";
+import { responseInterface } from "swr";
 
 const icons: Icons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -44,16 +42,16 @@ const icons: Icons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 };
 
-export interface SwrDataTableProps<E extends ApiDataEndpoint>
-  extends Omit<MaterialTableProps<ApiDataEndpointReturnType<E>[number]>, "data" | "isLoading"> {
+export interface SwrDataTableProps<DataType extends {}>
+  extends Omit<MaterialTableProps<DataType>, "data" | "isLoading"> {
   /**
-   * The return value of the `useAuthorizedSWR` hook for the corresponding endpoint
+   * The return value of the `useSWR` hook for the corresponding endpoint
    */
-  swr: useAuthorizedSWRResponseType<E>;
+  swr: responseInterface<DataType[], any>;
 }
 
-export function SwrDataTable<E extends ApiDataEndpoint>({ swr, ...props }: SwrDataTableProps<E>) {
-  const { data, error, ...swrProps } = swr;
+export function SwrDataTable<DataType extends {}>({ swr, ...props }: SwrDataTableProps<DataType>) {
+  const { data, error } = swr;
 
   const isLoading = typeof data === "undefined" || typeof error !== "undefined";
 
