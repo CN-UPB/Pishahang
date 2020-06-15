@@ -69,27 +69,28 @@ export const DescriptorTable: React.FunctionComponent<Props> = ({ descriptorType
         { title: "Version", field: "content.version" },
       ]}
       actions={[
-        descriptorType === DescriptorType.Service && {
+        (descriptor) => ({
+          tooltip: "Onboard " + descriptor.content.name,
+          hidden: descriptorType !== DescriptorType.Service,
           icon: (props) => <QueueRounded htmlColor={theme.palette.secondary.main} {...props} />,
-          tooltip: "Onboard",
-          onClick: (event, descriptor: Descriptor) => onboard(descriptor.id),
-        },
+          onClick: () => onboard(descriptor.id),
+        }),
         {
-          icon: (props) => <Info htmlColor={theme.palette.primary.main} {...props} />,
           tooltip: "Info",
+          icon: (props) => <Info htmlColor={theme.palette.primary.main} {...props} />,
           onClick: (event, descriptor: Descriptor) =>
             dispatch(showDescriptorInfoDialog(descriptor)),
         },
-        {
+        (descriptor) => ({
+          tooltip: "Edit " + descriptor.content.name,
           icon: (props) => <Edit htmlColor={theme.palette.success.main} {...props} />,
-          tooltip: "Edit",
-          onClick: (event, descriptor: Descriptor) => showDescriptorEditorDialog(descriptor),
-        },
-        {
+          onClick: () => showDescriptorEditorDialog(descriptor),
+        }),
+        (descriptor) => ({
+          tooltip: "Delete " + descriptor.content.name,
           icon: (props) => <DeleteForeverRounded htmlColor={theme.palette.error.main} {...props} />,
-          tooltip: "Delete",
-          onClick: (event, descriptor: Descriptor) => showDescriptorDeleteDialog(descriptor.id),
-        },
+          onClick: () => showDescriptorDeleteDialog(descriptor.id),
+        }),
         {
           icon: () => (
             <DescriptorUploadButton descriptorType={descriptorType} onUploaded={swr.revalidate} />
