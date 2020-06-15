@@ -1,0 +1,59 @@
+$schema: 'http://json-schema.org/draft-07/schema#'
+description: A common base schema for Pishahang descriptors
+type: object
+required:
+  - descriptor_version
+  - vendor
+  - name
+  - version
+properties:
+  descriptor_version:
+    description: The version of the descriptor definition
+    type: string
+    pattern: '^[A-Za-z0-9\-_.]+$'
+  vendor:
+    description: Unique id of the descriptor's vendor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  name:
+    description: The name of the descriptor
+    type: string
+    pattern: '^[a-z0-9\-_.]+$'
+  version:
+    description: The version of the descriptor
+    type: string
+    pattern: '^[0-9\-_.]+$'
+  author:
+    description: The person or organization that created the descriptor
+    type: string
+  description:
+    description: A description of the function or service specified by this descriptor
+    type: string
+  licences:
+    description: Information on the descriptor's license
+    type: array
+    uniqueItems: true
+    items:
+      anyOf:
+        - type: object
+          required:
+            - type
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''public'' in this case.'
+              type: string
+              const: public
+        - type: object
+          required:
+            - type
+            - url
+          additionalProperties: false
+          properties:
+            type:
+              description: 'The type of licence, ''private'' in this case.'
+              type: string
+              const: private
+            url:
+              description: The URL to the licence file.
+              type: string
