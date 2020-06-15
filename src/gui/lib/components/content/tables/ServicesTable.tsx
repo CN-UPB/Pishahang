@@ -3,15 +3,17 @@ import { InfoRounded, PlayCircleOutline } from "@material-ui/icons";
 import * as React from "react";
 
 import { ApiDataEndpoint } from "../../../api/endpoints";
+import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
 import { Service } from "../../../models/Service";
 import { useThunkDispatch } from "../../../store";
 import { showServiceInfoDialog } from "../../../store/actions/dialogs";
 import { instantiateService } from "../../../store/thunks/services";
-import { DataTable } from "../../layout/tables/DataTable";
+import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 
 export const ServicesTable: React.FunctionComponent = () => {
   const theme = useTheme();
   const dispatch = useThunkDispatch();
+  const swr = useAuthorizedSWR(ApiDataEndpoint.Services);
 
   const instantiate = async (id: string) => {
     const reply = await dispatch(
@@ -20,8 +22,8 @@ export const ServicesTable: React.FunctionComponent = () => {
   };
 
   return (
-    <DataTable
-      endpoint={ApiDataEndpoint.Services}
+    <SwrDataTable
+      swr={swr}
       title="Services"
       columns={[
         { title: "Name", field: "name" },

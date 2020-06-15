@@ -22,7 +22,7 @@ import { forwardRef } from "react";
 import React from "react";
 
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../../api/endpoints";
-import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
+import { useAuthorizedSWRResponseType } from "../../../hooks/useAuthorizedSWR";
 
 const icons: Icons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -44,16 +44,17 @@ const icons: Icons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 };
 
-export interface DataTableProps<E extends ApiDataEndpoint>
+export interface SwrDataTableProps<E extends ApiDataEndpoint>
   extends Omit<MaterialTableProps<ApiDataEndpointReturnType<E>[number]>, "data" | "isLoading"> {
   /**
-   * The `ApiDataEndpoint` to fetch the table data from
+   * The return value of the `useAuthorizedSWR` hook for the corresponding endpoint
    */
-  endpoint: E;
+  swr: useAuthorizedSWRResponseType<E>;
 }
 
-export function DataTable<E extends ApiDataEndpoint>({ endpoint, ...props }: DataTableProps<E>) {
-  const { data, error, ...swrProps } = useAuthorizedSWR(endpoint);
+export function SwrDataTable<E extends ApiDataEndpoint>({ swr, ...props }: SwrDataTableProps<E>) {
+  const { data, error, ...swrProps } = swr;
+
   const isLoading = typeof data === "undefined" || typeof error !== "undefined";
 
   return (
@@ -63,7 +64,9 @@ export function DataTable<E extends ApiDataEndpoint>({ endpoint, ...props }: Dat
       data={data}
       {...props}
       components={{
-        Container: (props) => <TableContainer component={Paper} {...props} />,
+        Container: (props) => (
+          <TableContainer component={Paper} style={{ maxWidth: "100%" }} {...props} />
+        ),
         ...props.components,
       }}
       options={{
