@@ -68,7 +68,6 @@ export function SwrDataTable<DataType extends {}>({ swr, ...props }: SwrDataTabl
         ...props.components,
       }}
       options={{
-        ...props.options,
         showTitle: false,
         draggable: false,
         search: true,
@@ -79,6 +78,8 @@ export function SwrDataTable<DataType extends {}>({ swr, ...props }: SwrDataTabl
         paging: false,
         paginationType: "stepped",
         minBodyHeight: 0,
+
+        ...props.options,
       }}
     />
   );
