@@ -39,8 +39,16 @@ export const VimsTable: React.FunctionComponent = () => {
         { title: "Name", field: "name" },
         { title: "Country", field: "country" },
         { title: "City", field: "city" },
-        { title: "Core Usage", render: (vim) => vim.coresUsed + "/" + vim.coresTotal },
-        { title: "Memory Usage", render: (vim) => vim.memoryUsed + "/" + vim.memoryTotal + " MB" },
+        {
+          title: "Core Usage",
+          render: (vim) => vim.coresUsed + "/" + vim.coresTotal,
+          customSort: (vim) => vim.coresUsed,
+        },
+        {
+          title: "Memory Usage",
+          render: (vim) => vim.memoryUsed + "/" + vim.memoryTotal + " MB",
+          customSort: (vim) => vim.memoryUsed,
+        },
       ]}
       actions={[
         {
