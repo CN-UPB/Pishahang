@@ -1,0 +1,25 @@
+descriptor_version: "2.0"
+vendor: "eu.sonata-nfv.cloud-service-descriptor"
+name: "hello-web"
+version: "0.2"
+author: "Tobias Dierich"
+description: "A simple cloud service descriptor which deploys an hello-world nodeJs app."
+virtual_deployment_units:
+  - id: "testing"
+    service_image: "gcr.io/google-samples/hello-app:1.0"
+    service_type: "LoadBalancer"
+    service_ports:
+      - name: "http"
+        protocol: "TCP"
+        port: 8080
+        target_port: 8080
+    resource_requirements:
+      memory:
+        size: 128
+        size_unit: "MiB"
+    scale_in_out:
+      minimum: 2
+      maximum: 5
+    environment:
+      - name: "APP_ENV"
+        value: "production"

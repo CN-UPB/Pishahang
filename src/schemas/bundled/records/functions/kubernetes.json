@@ -1,0 +1,615 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Pishahang Kubernetes function record schema",
+  "definitions": {
+    "service_types": {
+      "enum": [
+        "ClusterIP",
+        "NodePort",
+        "LoadBalancer",
+        "ExternalName"
+      ]
+    },
+    "protocols": {
+      "enum": [
+        "TCP",
+        "UDP"
+      ]
+    },
+    "monitoring": {
+      "type": "object",
+      "required": [
+        "name",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM.",
+          "type": "string",
+          "pattern": "^[A-Za-z-_]+$"
+        },
+        "unit": {
+          "description": "The unit used to monitor (or represent) the parameter.",
+          "oneOf": [
+            {
+              "const": "Percentage"
+            },
+            {
+              "enum": [
+                "B",
+                "kB",
+                "KiB",
+                "MB",
+                "MiB",
+                "GB",
+                "GiB",
+                "TB",
+                "TiB",
+                "PT",
+                "PiT"
+              ]
+            },
+            {
+              "enum": [
+                "bps",
+                "kbps",
+                "Mbps",
+                "Gbps",
+                "Tbps"
+              ]
+            },
+            {
+              "enum": [
+                "Hz",
+                "kHz",
+                "MHz",
+                "GHz",
+                "THz"
+              ]
+            }
+          ]
+        },
+        "frequency": {
+          "description": "The sample rate of the monitoring parameter.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "frequency_unit": {
+          "description": "The unit of the sample frequency.",
+          "default": "Hz",
+          "enum": [
+            "Hz",
+            "kHz",
+            "MHz",
+            "GHz",
+            "THz"
+          ]
+        },
+        "command": {
+          "description": "A command that is executed in order to perform custom monitoring.",
+          "type": "string"
+        }
+      }
+    },
+    "monitoring_parameters": {
+      "description": "The various metrics and parameters to monitor.",
+      "type": "array",
+      "items": {
+        "description": "A specific monitoring metric or parameter.",
+        "type": "object",
+        "required": [
+          "name",
+          "unit"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM.",
+            "type": "string",
+            "pattern": "^[A-Za-z-_]+$"
+          },
+          "unit": {
+            "description": "The unit used to monitor (or represent) the parameter.",
+            "oneOf": [
+              {
+                "const": "Percentage"
+              },
+              {
+                "enum": [
+                  "B",
+                  "kB",
+                  "KiB",
+                  "MB",
+                  "MiB",
+                  "GB",
+                  "GiB",
+                  "TB",
+                  "TiB",
+                  "PT",
+                  "PiT"
+                ]
+              },
+              {
+                "enum": [
+                  "bps",
+                  "kbps",
+                  "Mbps",
+                  "Gbps",
+                  "Tbps"
+                ]
+              },
+              {
+                "enum": [
+                  "Hz",
+                  "kHz",
+                  "MHz",
+                  "GHz",
+                  "THz"
+                ]
+              }
+            ]
+          },
+          "frequency": {
+            "description": "The sample rate of the monitoring parameter.",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "frequency_unit": {
+            "description": "The unit of the sample frequency.",
+            "default": "Hz",
+            "enum": [
+              "Hz",
+              "kHz",
+              "MHz",
+              "GHz",
+              "THz"
+            ]
+          },
+          "command": {
+            "description": "A command that is executed in order to perform custom monitoring.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scale_in_out": {
+      "description": "The scale-in/scale-out parameters.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimum": {
+          "description": "The minimum number of VDUs instantiated at any time.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "maximum": {
+          "description": "The maximum number of VDUs instantiated at any time. 0 means unlimited.",
+          "type": "integer",
+          "minimum": 0,
+          "default": 1
+        }
+      }
+    }
+  },
+  "type": "object",
+  "required": [
+    "descriptor_version",
+    "name",
+    "vendor",
+    "version",
+    "virtual_deployment_units"
+  ],
+  "properties": {
+    "descriptor_version": {
+      "description": "The version of the descriptor definition",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-_.]+$"
+    },
+    "vendor": {
+      "description": "Unique id of the descriptor's vendor",
+      "type": "string",
+      "pattern": "^[a-z0-9\\-_.]+$"
+    },
+    "name": {
+      "description": "The name of the descriptor",
+      "type": "string",
+      "pattern": "^[a-z0-9\\-_.]+$"
+    },
+    "version": {
+      "description": "The version of the descriptor",
+      "type": "string",
+      "pattern": "(?=^[0-9\\-_.]+$)(?=^[0-9]+$)"
+    },
+    "author": {
+      "description": "The person or organization that created the descriptor",
+      "type": "string"
+    },
+    "description": {
+      "description": "A description of the function or service specified by this descriptor",
+      "type": "string"
+    },
+    "licences": {
+      "description": "Information on the descriptor's license",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "description": "The type of licence, 'public' in this case.",
+                "type": "string",
+                "const": "public"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "description": "The type of licence, 'private' in this case.",
+                "type": "string",
+                "const": "private"
+              },
+              "url": {
+                "description": "The URL to the licence file.",
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "monitoring_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "duration",
+          "condition",
+          "notification"
+        ],
+        "properties": {
+          "name": {
+            "description": "The name of the monitoring rule",
+            "type": "string"
+          },
+          "description": {
+            "description": "An arbitrary descritpion of this monitoring rule",
+            "type": "string"
+          },
+          "duration": {
+            "description": "The duration the condtion has to be met before an event is fired",
+            "type": "number"
+          },
+          "duration_unit": {
+            "description": "The unit of the durration",
+            "ref": "#/definitions/time_units"
+          },
+          "condition": {
+            "description": "The condition, a boolean expression, that must be met to fire the event",
+            "type": "string"
+          },
+          "notification": {
+            "description": "A list of notifications that are fired when the condition is met",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "type"
+              ],
+              "properties": {
+                "name": {
+                  "description": "The name of the notification",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "The type of message that is send to the message bus",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "virtual_deployment_units": {
+      "description": "The virtual deployment units (VDUs) of the cloud service.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "service_image",
+          "service_ports",
+          "service_type",
+          "vim_id"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "description": {
+            "description": "An arbitrary description of the VDU:",
+            "type": "string"
+          },
+          "id": {
+            "description": "A unique identifier of this VDU within the scope of this VNF descriptor.",
+            "type": "string"
+          },
+          "service_image": {
+            "description": "The reference to a docker image for the cloud service.",
+            "type": "string"
+          },
+          "service_name": {
+            "description": "The name for the network service. Useful for DNS, etc.",
+            "type": "string"
+          },
+          "service_type": {
+            "description": "The service type. See Kubernetes documentation for further information.",
+            "enum": [
+              "ClusterIP",
+              "NodePort",
+              "LoadBalancer",
+              "ExternalName"
+            ]
+          },
+          "service_ports": {
+            "description": "Array of service ports.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "port"
+              ],
+              "properties": {
+                "name": {
+                  "description": "A name for the port, e.g. 'http'.",
+                  "type": "string"
+                },
+                "protocol": {
+                  "description": "The transport protocol.",
+                  "default": "TCP",
+                  "enum": [
+                    "TCP",
+                    "UDP"
+                  ]
+                },
+                "port": {
+                  "description": "The incoming port.",
+                  "type": "integer"
+                },
+                "target_port": {
+                  "description": "The target port. Defaults to the value of port.",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "resource_requirements": {
+            "description": "The requirements of a node that hosts this network function.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cpu": {
+                "description": "All the requirements and parameters related to the (virtual) CPU.",
+                "type": "object",
+                "required": [
+                  "vcpus"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "vcpus": {
+                    "description": "The number of (virtualized) CPU cores.",
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              },
+              "memory": {
+                "type": "object",
+                "required": [
+                  "size"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "size": {
+                    "description": "The size of the memory for this VDU.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "size_unit": {
+                    "description": "The unit the host memory is measured in. Default is MB (Megabyte).",
+                    "default": "MB",
+                    "enum": [
+                      "B",
+                      "kB",
+                      "KiB",
+                      "MB",
+                      "MiB",
+                      "GB",
+                      "GiB",
+                      "TB",
+                      "TiB",
+                      "PT",
+                      "PiT"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "monitoring_parameters": {
+            "description": "The various metrics and parameters to monitor.",
+            "type": "array",
+            "items": {
+              "description": "A specific monitoring metric or parameter.",
+              "type": "object",
+              "required": [
+                "name",
+                "unit"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "description": "The name of the parameter to monitor. The name has to be supported by the service platform or the FSM.",
+                  "type": "string",
+                  "pattern": "^[A-Za-z-_]+$"
+                },
+                "unit": {
+                  "description": "The unit used to monitor (or represent) the parameter.",
+                  "oneOf": [
+                    {
+                      "const": "Percentage"
+                    },
+                    {
+                      "enum": [
+                        "B",
+                        "kB",
+                        "KiB",
+                        "MB",
+                        "MiB",
+                        "GB",
+                        "GiB",
+                        "TB",
+                        "TiB",
+                        "PT",
+                        "PiT"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "bps",
+                        "kbps",
+                        "Mbps",
+                        "Gbps",
+                        "Tbps"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "Hz",
+                        "kHz",
+                        "MHz",
+                        "GHz",
+                        "THz"
+                      ]
+                    }
+                  ]
+                },
+                "frequency": {
+                  "description": "The sample rate of the monitoring parameter.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "frequency_unit": {
+                  "description": "The unit of the sample frequency.",
+                  "default": "Hz",
+                  "enum": [
+                    "Hz",
+                    "kHz",
+                    "MHz",
+                    "GHz",
+                    "THz"
+                  ]
+                },
+                "command": {
+                  "description": "A command that is executed in order to perform custom monitoring.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "scale_in_out": {
+            "description": "The scale-in/scale-out parameters.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "minimum": {
+                "description": "The minimum number of VDUs instantiated at any time.",
+                "type": "integer",
+                "minimum": 1,
+                "default": 1
+              },
+              "maximum": {
+                "description": "The maximum number of VDUs instantiated at any time. 0 means unlimited.",
+                "type": "integer",
+                "minimum": 0,
+                "default": 1
+              }
+            }
+          },
+          "environment": {
+            "description": "Environment variables for the VDU",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "description": "The name of the env variable",
+                  "type": "string"
+                },
+                "value": {
+                  "description": "Value of the env variable",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "vdu_reference": {
+            "description": "The reference to the VDU (csd:vdu:id) used to instantiate this element.",
+            "type": "string"
+          },
+          "number_of_instances": {
+            "description": "The number of instances of this VDU element.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "vim_id": {
+            "description": "Identifier of the VIM this replica is running at."
+          }
+        }
+      }
+    },
+    "id": {
+      "description": "The UUID of the cloud service record.",
+      "type": "string",
+      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    },
+    "status": {
+      "description": "The current status of the CS",
+      "ref": "../../commons.yml#/definitions/execution_status"
+    },
+    "descriptor_reference": {
+      "description": "Reference to the CSD used to instantiate this CS.",
+      "type": "string",
+      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    },
+    "parent_ns": {
+      "description": "Reference to records of network service (nsr:id) that this CS instance is part of.",
+      "type": "string",
+      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    }
+  }
+}

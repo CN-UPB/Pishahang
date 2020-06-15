@@ -6,8 +6,6 @@ RUN apt-get update && apt-get install -y gcc libpq-dev
 # Install poetry
 RUN pip install poetry
 
-WORKDIR /mano-framework/base
-
 # We do not disable virtual environments for two reasons:
 # * `poetry install` messes with system dependencies when --no-dev is set
 # * Poetry dependencies would not be separate otherwise
@@ -15,7 +13,10 @@ WORKDIR /mano-framework/base
 # Using cache directories in docker images is a little ugly, use the project dirs instead
 RUN poetry config virtualenvs.in-project true
 
-COPY . ./
+COPY  schemas/bundled /schemas/bundled
+COPY mano-framework/base /mano-framework/base
+
+WORKDIR /mano-framework/base
 
 # Common Configuration
 ENV broker_host amqp://guest:guest@broker:5672/%2F

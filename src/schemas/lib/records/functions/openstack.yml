@@ -1,0 +1,117 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "The core schema for SONATA network function records."
+
+allOf:
+  - $ref: "../../descriptors/functions/openstack.yml"
+  - type: "object"
+    required:
+      - id
+      - status
+    properties:
+      id:
+        description: "The UUID of the function record."
+        type: "string"
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      version:
+        description: "The version of the function record. Can be used to track changes."
+        type: "string"
+        pattern: "^[0-9]+$"
+
+      status:
+        description: "The current status of the VNF"
+        oneOf:
+          - $ref: "../../commons.yml#/definitions/execution_status"
+
+      descriptor_reference:
+        description: "Reference to the VNFD used to instanciate this VNF."
+        type: "string"
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      deployment_favour:
+        description: "Reference to the selected deployment flavour (vnfd:deployment_flavour:id)."
+        type: "string"
+        pattern: "^[A-Za-z0-9\\-_.:]+$"
+
+      parent_ns:
+        description: "Reference to records of network service (nsr:id) that this VNF instance is part of."
+        type: "string"
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+      virtual_deployment_units:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            vdu_reference:
+              description: "The reference to the VDU (vnfd:vdu:id) used to instantiate this element:"
+              type: "string"
+            number_of_instances:
+              description: "The number of instances of this VDU element."
+              type: "integer"
+              minimum: 0
+            vnfc_instance:
+              description: "Additional information distinct for each VNFC instance created based on this VDU."
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  id:
+                    description: "Unique name within the namespace of this VNF instance."
+                    type: "string"
+                  vim_id:
+                    description: "Identifier of the VIM this VNFC is running at."
+                    type: "string"
+                  vc_id:
+                    description: "Identifier of the virtualization container or VM running on the VIM."
+                    type: "string"
+                  connection_points:
+                    description: "The connection points of this VNFC. Connects the VDU to other VDUs or the external world."
+                    type: "array"
+                    minItems: 1
+                    uniqueItems: true
+                    items:
+                      type: "object"
+                      required:
+                        - id
+                        - interface
+                        - type
+                      additionalProperties: false
+                      properties:
+                        id:
+                          description: "A VNF-unique id of the connection point. Can be used for references."
+                          type: "string"
+                        interface:
+                          description: "The type of connection point, such as a virtual port, a virtual NIC address, a physical port, a physcial NIC address, or the endpoint of a VPN tunnel."
+                          oneOf:
+                            - $ref: "../../descriptors/functions/openstack.yml#/definitions/interfaces"
+                        type:
+                          description: "The type of the connection point with respect to its visibility in the service platform"
+                          oneOf:
+                            - $ref: "../../descriptors/functions/openstack.yml#/definitions/connection_point_types"
+                        virtual_link_reference:
+                          description: "A reference to a virtual link, i.e. the virtual_links:id."
+                          type: "string"
+
+      connection_points:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            actual_interface:
+              oneOf:
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ethernet"
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ipv4"
+                - $ref: "../../commons.yml#/definitions/actual_interfaces/ipv6"
+
+      vnf_address:
+        type: "array"
+        uniqueItems: true
+        items:
+          type: "object"
+          properties:
+            address:
+              type: "string"
+          required:
+            - address
+          additionalProperties: false
