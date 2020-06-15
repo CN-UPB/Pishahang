@@ -3,6 +3,7 @@ import axios from "axios";
 import { AppThunkAction } from "StoreTypes";
 
 import { ApiReply } from "./../../models/ApiReply";
+import { User } from "./../../models/User";
 import { getTimestamp } from "./../../util/time";
 import { getApiUrl } from "../../api";
 import { ApiDataEndpoint, ApiDataEndpointReturnType } from "../../api/endpoints";
@@ -171,7 +172,12 @@ export function login(username: string, password: string): AppThunkAction {
 export function fetchUser(): AppThunkAction {
   return async (dispatch) => {
     try {
-      const user = await dispatch(fetchApiDataAuthorized(ApiDataEndpoint.CurrentUser));
+      const user = await dispatch(
+        callApiAuthorized<User>({
+          method: "GET",
+          url: getApiUrl("current-user"),
+        })
+      );
       if (user !== null) {
         // null is returned on an auth error
         dispatch(setUser(user));
