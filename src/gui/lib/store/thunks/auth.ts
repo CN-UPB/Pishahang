@@ -64,19 +64,6 @@ export function callApiAuthorized<ReplyDataType = any>(
   };
 }
 
-/**
- * Returns a Thunk action creator that sends an authorized GET request to the API and
- * returns the results.
- *
- * @param endpoint The API endpoint
- */
-export function fetchApiDataAuthorized<E extends ApiDataEndpoint>(endpoint: E) {
-  return callApiAuthorized<ApiDataEndpointReturnType<E>>({
-    method: "GET",
-    url: getApiUrl(endpoint),
-  });
-}
-
 export type ApiThunkOptions = {
   /**
    * If an error is encountered during the API call, show an error info dialog by
