@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from mongoengine.errors import DoesNotExist
@@ -5,10 +6,19 @@ from mongoengine.errors import DoesNotExist
 import connexion
 from connexion.exceptions import ProblemException
 from gatekeeper.app import broker
-from gatekeeper.exceptions import DescriptorNotFoundError, ServiceNotFoundError
+from gatekeeper.exceptions import (
+    DescriptorNotFoundError,
+    ServiceInstanceNotFoundError,
+    ServiceNotFoundError,
+)
 from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
-from gatekeeper.models.services import Service
+from gatekeeper.models.services import Service, ServiceInstance
 from gatekeeper.util.mongoengine_custom_json import to_custom_dict
+from manobase.messaging import Message
+
+logger = logging.getLogger(__name__)
+
+SERVICE_CREATION_TOPIC = "service.instances.create"
 
 
 def getServices():
@@ -17,7 +27,7 @@ def getServices():
 
 def _getServiceByIdOrFail(id: str) -> Service:
     try:
-        return Service.objects(id=id).get()
+        return Service.objects.get(id=id)
     except DoesNotExist:
         raise ServiceNotFoundError()
 
@@ -147,15 +157,22 @@ def addService(body):
 def deleteServiceById(id):
     service = _getServiceByIdOrFail(id)
 
-    instanceCount = len(service.instances)
-    if instanceCount > 0:
+    activeInstances = 0
+    for instance in service.instances:
+        if instance.status != "ERROR":
+            activeInstances += 1
+
+    if activeInstances > 0:
         raise ProblemException(
             title="Bad Request",
             detail=(
-                "The service has {:d} instances that need to be stopped before it "
-                "can be deleted."
-            ).format(instanceCount),
+                "The service has {:d} active instances that need to be terminated "
+                "before the service can be deleted."
+            ).format(activeInstances),
         )
+
+    for instance in service.instances:
+        instance.delete()
 
     service.delete()
     return service
@@ -200,10 +217,47 @@ def instantiateService(serviceId):
         vnfdCounter += 1
 
     # Send instantiation message
-    validationReply = broker.call_sync("service.instances.create", message).payload
-    if validationReply["status"] == "ERROR":
+    validationReply = broker.call_sync(SERVICE_CREATION_TOPIC, message)
+    if validationReply.payload["status"] == "ERROR":
         raise ProblemException(
-            status=500, title="Instantiation Failed", detail=validationReply["error"]
+            status=500,
+            title="Instantiation Failed",
+            detail=validationReply.payload["error"],
         )
 
-    # TODO register for notification and create service instance in database, return instance
+    instance = ServiceInstance(
+        status=validationReply.payload["status"],
+        correlationId=validationReply.correlation_id,
+    )
+    instance.save()
+    service.instances.append(instance)
+    service.save()
+
+    def onNotificationReceived(message: Message):
+        """
+        React to the SLM's notification about the instantiation outcome
+        """
+        if message.correlation_id == instance.correlationId:
+            logger.debug("Received instantiation notification: %s", message.payload)
+
+            instance.status = message.payload["status"]
+            if message.payload["status"] == "ERROR":
+                instance.message = message.payload["error"]
+            instance.save()
+
+            broker.unsubscribe(subscriptionId)
+
+    subscriptionId = broker.register_notification_endpoint(
+        onNotificationReceived, SERVICE_CREATION_TOPIC
+    )
+
+    return instance
+
+
+def terminateServiceInstance(serviceId, instanceId):
+    _getServiceByIdOrFail(serviceId)
+    try:
+        instance = ServiceInstance.objects.get(id=instanceId)
+        instance.delete()
+    except DoesNotExist:
+        raise ServiceInstanceNotFoundError()

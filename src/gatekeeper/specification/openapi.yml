@@ -513,7 +513,7 @@ paths:
       tags:
         - Services
       summary: Delete a service by its ID
-      description: Deletes the service with the provided ID if it exists and it has no instances.
+      description: Deletes the service with the provided ID if it has no active instances.
       operationId: gatekeeper.api.services.deleteServiceById
       parameters:
         - name: id
@@ -579,21 +579,11 @@ paths:
           schema:
             type: string
             format: uuid
-      # requestBody:
-      #   required: true
-      #   content:
-      #     application/json:
-      #       schema:
-      #         type: object
-      #         required:
-      #           - id
-      #         properties:
-      #           id:
-      #             type: string
-      #             format: uuid
       responses:
         "201":
-          description: The service instance was added and returned.
+          description: >
+            An instantiation request was successfully made, and the corresponding
+            ServiceInstance object was returned.
           content:
             application/json:
               schema:
@@ -602,6 +592,37 @@ paths:
           $ref: "#/components/responses/Error400"
         "401":
           $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /services/{serviceId}/instances/{instanceId}:
+    delete:
+      tags:
+        - Services
+      summary: Terminate a service instance
+      operationId: gatekeeper.api.services.terminateServiceInstance
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The ID of the service that the instance belongs to
+          schema:
+            type: string
+            format: uuid
+        - name: instanceId
+          in: path
+          required: true
+          description: The ID of the service instance to be terminated
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: The service instance was successfully terminated.
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
 

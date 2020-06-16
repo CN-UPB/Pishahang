@@ -2,25 +2,24 @@
 Service-related Mongoengine document definitions
 """
 
+import mongoengine
 from mongoengine import (
-    EmbeddedDocument,
     EmbeddedDocumentListField,
+    ListField,
+    ReferenceField,
     StringField,
     UUIDField,
 )
 
-from gatekeeper.models.base import (
-    TimestampsDocument,
-    TimestampsMixin,
-    UuidDocument,
-    UuidMixin,
-)
+from gatekeeper.models.base import TimestampsDocument, UuidDocument
 from gatekeeper.models.descriptors import DescriptorSnapshot
 from gatekeeper.util.mongoengine_custom_json import CustomJsonRules
 
 
-class ServiceInstance(UuidMixin, TimestampsMixin, EmbeddedDocument):
+class ServiceInstance(UuidDocument, TimestampsDocument):
     status = StringField(required=True)
+    correlationId = UUIDField(required=True, custom_json=CustomJsonRules.HIDDEN)
+    message = StringField()
 
 
 class Service(UuidDocument, TimestampsDocument):
@@ -36,6 +35,7 @@ class Service(UuidDocument, TimestampsDocument):
     name = StringField(required=True)
     version = StringField(required=True)
 
-    instances = EmbeddedDocumentListField(
-        ServiceInstance, custom_json=CustomJsonRules.HIDDEN
+    instances = ListField(
+        ReferenceField(ServiceInstance, reverse_delete_rule=mongoengine.PULL),
+        custom_json=CustomJsonRules.HIDDEN,
     )

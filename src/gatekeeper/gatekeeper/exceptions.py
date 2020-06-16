@@ -50,6 +50,15 @@ class ServiceNotFoundError(NotFoundError):
         )
 
 
+class ServiceInstanceNotFoundError(NotFoundError):
+    def __init__(
+        self, detail="No service instance matching the given id was found.", **kwargs
+    ):
+        super(ServiceInstanceNotFoundError, self).__init__(
+            title="Service Instance Not Found", detail=detail, **kwargs
+        )
+
+
 class PluginNotFoundError(NotFoundError):
     def __init__(self, id, **kwargs):
         super(PluginNotFoundError, self).__init__(
