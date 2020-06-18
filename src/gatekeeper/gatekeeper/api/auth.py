@@ -1,13 +1,12 @@
 import logging
-import sys
 from functools import wraps
 from inspect import Parameter, signature
 
+import connexion
 from appcfg import get_config
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from mongoengine import DoesNotExist
 
-import connexion
 from gatekeeper.app import jwt
 from gatekeeper.models.users import User
 
@@ -25,7 +24,7 @@ def __getClaimsByUser(user: User):
 
 @jwt.user_identity_loader
 def getIdentityByUser(user: User):
-    return user.username
+    return user.id
 
 
 def createTokenFromCredentials(body):
@@ -64,7 +63,7 @@ def refreshToken(body):
                 "Unauthorized",
                 "The provided token is not valid as a refresh token.",
             )
-        user = User.objects(username=token["identity"]).get()
+        user = User.objects(id=token["identity"]).get()
         return {
             "accessToken": create_access_token(identity=user),
             "tokenExpires": config["jwt"]["accessTokenLifetime"],

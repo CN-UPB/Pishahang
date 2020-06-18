@@ -57,17 +57,16 @@ def updateUser(id, body):
 
 
 def getCurrentUser(user):
-    # A user with username `user` is guaranteed to exist (authorization would have
+    # A user with id `user` is guaranteed to exist (authorization would have
     # failed otherwise)
-    return User.objects(username=user).get()
+    return User.objects(id=user).get()
 
 
 def updateCurrentUser(user, body):
-
-    # A user with username `user` is guaranteed to exist (authorization would have
+    # A user with id `user` is guaranteed to exist (authorization would have
     # failed otherwise)
 
-    user: User = User.objects(username=user).get()
+    user: User = User.objects(id=user).get()
     user.username = body["username"]
     user.email = body["email"]
     user.fullName = body["fullName"]
