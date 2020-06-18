@@ -129,10 +129,18 @@ class VimAdaptor(ManoBasePlugin):
             try:
                 resource_utilization = vim.get_resource_utilization()
             except Exception:  # TODO Change to VimConnectionError once get_resource_utilization is implemented for all vim types
+                # resource_utilization = {
+                #     "core_total": 0,
+                #     "core_used": 0,
+                #     "memory_total": 0,
+                #     "memory_used": 0,
+                # }
+
+                # TODO: Remove this once get_resource_utilization is implemented for all vim types
                 resource_utilization = {
-                    "core_total": 0,
+                    "core_total": 4,
                     "core_used": 0,
-                    "memory_total": 0,
+                    "memory_total": 32000,
                     "memory_used": 0,
                 }
 
