@@ -10,6 +10,9 @@ from python_terraform import Terraform
 from vim_adaptor.exceptions import TerraformException
 from vim_adaptor.models.vims import BaseVim
 
+# Hide warnings of python_terraform – we raise exceptions instead.
+logging.getLogger("python_terraform").setLevel(logging.ERROR)
+
 config = get_config(__name__)
 
 TEMPLATE_BASE_PATH: Path = Path(__file__).parent / "templates"
@@ -17,7 +20,7 @@ TERRAFORM_BIN_PATH: Path = Path(__file__).parents[2] / "terraform"
 
 
 @wrapt.decorator
-def terraform_method(wrapped, instance, args, kwargs):
+def terraform_method(wrapped, instance: "TerraformFunctionManager", args, kwargs):
     """
     Decorate a method that returns a python_terraform `return_code, stdout, stderr`
     tuple such that it returns `None` if `return_code` is `0` and raises a
@@ -26,7 +29,9 @@ def terraform_method(wrapped, instance, args, kwargs):
 
     return_code, stdout, stderr = wrapped(*args, **kwargs)
     if return_code != 0:
-        raise TerraformException(return_code, stdout, stderr)
+        exception = TerraformException(return_code, stdout, stderr)
+        instance.logger.error("Terraform invocation failed: ", exc_info=exception)
+        raise exception
 
 
 class TerraformFunctionManager:
