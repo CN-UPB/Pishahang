@@ -1,5 +1,5 @@
-from connexion.exceptions import ProblemException
 from gatekeeper.app import broker
+from gatekeeper.exceptions import InternalServerError
 from gatekeeper.util.casing import snakecaseDictKeys
 
 
@@ -31,7 +31,7 @@ def deleteVim(id: str):
         "infrastructure.management.compute.remove", {"id": id}
     ).payload
     if response["request_status"] == "ERROR":
-        raise ProblemException(title="Invalid request", detail=response["message"])
+        raise InternalServerError(detail=response["message"])
 
 
 def addVim(body: dict):
@@ -40,5 +40,5 @@ def addVim(body: dict):
     ).payload
 
     if response["request_status"] == "ERROR":
-        raise ProblemException(title="Invalid request", detail=response["message"])
+        raise InternalServerError(detail=response["message"])
     return {"id": response["id"]}, 201

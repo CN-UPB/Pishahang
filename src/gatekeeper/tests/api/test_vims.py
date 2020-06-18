@@ -66,7 +66,7 @@ def testAddVim(api, broker: Connection, reraise):
     # Let the mock vim adaptor reply with an error
     vimAdaptorResponse = {"request_status": "ERROR", "message": "error message"}
     reply = api.post("/api/v3/vims", json=vimData["aws"])
-    assert 400 == reply.status_code
+    assert 500 == reply.status_code
     assert "error message" == reply.get_json()["detail"]
 
 
@@ -92,7 +92,7 @@ def testDeleteVim(api, broker: Connection, reraise):
     # Test vim adaptor error response
     vimAdaptorResponse = {"request_status": "ERROR", "message": "error message"}
     reply = api.delete("/api/v3/vims/" + id)
-    assert 400 == reply.status_code
+    assert 500 == reply.status_code
     assert "error message" == reply.get_json()["detail"]
 
 

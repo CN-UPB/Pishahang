@@ -690,8 +690,6 @@ paths:
                 $ref: "#/components/schemas/Vims"
         "401":
           $ref: "#/components/responses/Error401"
-        "404":
-          $ref: "#/components/responses/Error404"
         "500":
           $ref: "#/components/responses/Error500"
 
