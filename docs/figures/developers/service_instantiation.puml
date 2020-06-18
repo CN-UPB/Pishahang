@@ -9,7 +9,7 @@ SLM -> SMR: instantiate SSM
 SMR --> SLM: Response on instatitation
 SLM -> Vim_Adaptor: Request Vim topology
 Vim_Adaptor -->SLM: Response on vim tolology call
-SLM -> Placemen_tPlugin: Request placement
+SLM -> Placement_Plugin: Request placement
 Placement_Plugin --> SLM: Response with placement
 SLM -> Vim_Adaptor: Service prepare request
 Vim_Adaptor --> SLM: Response on service prepare
