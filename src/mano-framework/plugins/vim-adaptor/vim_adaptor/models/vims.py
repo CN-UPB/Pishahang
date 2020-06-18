@@ -1,7 +1,7 @@
 from enum import Enum
 
 from marshmallow_mongoengine import ModelSchema
-from mongoengine import StringField, EmbeddedDocumentField, EmbeddedDocument
+from mongoengine import EmbeddedDocument, EmbeddedDocumentField, StringField
 from mongoengine.errors import DoesNotExist
 
 from vim_adaptor.exceptions import VimNotFoundException
@@ -33,6 +33,11 @@ class BaseVim(BaseDocument):
         except DoesNotExist:
             raise VimNotFoundException(cls.__class__.name, vim_id)
 
+    def get_resource_utilization(self):
+        raise NotImplementedError(
+            "This method is only implemented for subclasses of BaseVim."
+        )
+
 
 class OpenStackTenant(EmbeddedDocument):
     id = StringField(required=True)
@@ -45,6 +50,11 @@ class OpenStackVim(BaseVim):
     username = StringField(required=True)
     password = StringField(required=True)
     tenant = EmbeddedDocumentField(OpenStackTenant, required=True)
+
+    def get_resource_utilization(self):
+        from vim_adaptor.resource_utilization.openstack import get_resource_utilization
+
+        return get_resource_utilization(self)
 
 
 class OpenStackVimSchema(ModelSchema):

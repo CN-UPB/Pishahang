@@ -36,7 +36,11 @@ from vim_adaptor.models.vims import (
     VimType,
 )
 from vim_adaptor.util import create_completed_response, create_error_response
-from vim_adaptor.exceptions import TerraformException, VimNotFoundException
+from vim_adaptor.exceptions import (
+    TerraformException,
+    VimConnectionError,
+    VimNotFoundException,
+)
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -108,24 +112,42 @@ class VimAdaptor(ManoBasePlugin):
         if len(errors) > 0:
             return create_error_response(str(errors))
 
+        # Try to get the resource utilization, fail if it does not work
+        try:
+            vim.get_resource_utilization()
+        except NotImplementedError:
+            pass
+        except VimConnectionError as e:
+            return create_error_response(str(e))
+
         vim.save()
         return create_completed_response({"id": str(vim.id)})
 
     def list_vims(self, message: Message):
-        return [
-            {
-                "vim_uuid": str(vim.id),
-                "vim_name": vim.name,
-                "vim_country": vim.country,
-                "vim_city": vim.city,
-                "vim_type": "Kubernetes" if vim.type == "kubernetes" else vim.type,
-                "memory_total": 32000,
-                "memory_used": 0,
-                "core_total": 4,
-                "core_used": 0,
-            }
-            for vim in BaseVim.objects
-        ]
+        vims = []
+        for vim in BaseVim.objects:
+            try:
+                resource_utilization = vim.get_resource_utilization()
+            except Exception:  # TODO Change to VimConnectionError once get_resource_utilization is implemented for all vim types
+                resource_utilization = {
+                    "core_total": 0,
+                    "core_used": 0,
+                    "memory_total": 0,
+                    "memory_used": 0,
+                }
+
+            vims.append(
+                {
+                    "vim_uuid": str(vim.id),
+                    "vim_name": vim.name,
+                    "vim_country": vim.country,
+                    "vim_city": vim.city,
+                    "vim_type": "Kubernetes" if vim.type == "kubernetes" else vim.type,
+                    **resource_utilization,
+                }
+            )
+
+        return vims
 
     def delete_vim(self, message: Message):
         payload = message.payload

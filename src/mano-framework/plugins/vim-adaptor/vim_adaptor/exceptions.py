@@ -5,6 +5,15 @@ class VimNotFoundException(Exception):
         )
 
 
+class VimConnectionError(Exception):
+    def __init__(self, message: str = None):
+        super().__init__(
+            "Failed to connect to VIM{}".format(
+                "." if message is None else ": " + message
+            )
+        )
+
+
 class TerraformException(Exception):
     def __init__(self, return_code, stdout, stderr):
         super().__init__(stderr)
