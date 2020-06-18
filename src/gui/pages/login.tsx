@@ -26,7 +26,7 @@ const LoginPage: NextPage = () => {
   return (
     <div className={classes.root}>
       <Head>
-        <title>Pishahang Login</title>
+        <title>Pishahang</title>
       </Head>
       <main className={classes.content}>
         <LoginForm />
