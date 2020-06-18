@@ -42,12 +42,12 @@ export const VimsTable: React.FunctionComponent = () => {
         {
           title: "Core Usage",
           render: (vim) => vim.coresUsed + "/" + vim.coresTotal,
-          customSort: (vim) => vim.coresUsed,
+          customSort: (vim) => vim.coresTotal - vim.coresUsed,
         },
         {
           title: "Memory Usage",
           render: (vim) => vim.memoryUsed + "/" + vim.memoryTotal + " MB",
-          customSort: (vim) => vim.memoryUsed,
+          customSort: (vim) => vim.memoryTotal - vim.memoryUsed,
         },
       ]}
       actions={[
