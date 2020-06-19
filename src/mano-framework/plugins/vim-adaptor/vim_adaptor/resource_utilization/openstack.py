@@ -17,14 +17,12 @@ def get_resource_utilization(vim: vims.OpenStackVim):
         )
         limits = nova.limits.get(tenant_id=vim.tenant.id).to_dict()["absolute"]
 
-        resource_utilization = {
+        return {
             "core_total": limits["maxTotalCores"],
             "core_used": limits["totalCoresUsed"],
             "memory_total": limits["maxTotalRAMSize"],
             "memory_used": limits["totalRAMUsed"],
         }
-
-        return resource_utilization
 
     except Unauthorized:
         raise VimConnectionError(

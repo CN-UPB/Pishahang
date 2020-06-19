@@ -67,6 +67,11 @@ class KubernetesVim(BaseVim):
     service_token = StringField(required=True)
     ccc = StringField(required=True)
 
+    def get_resource_utilization(self):
+        from vim_adaptor.resource_utilization.kubernetes import get_resource_utilization
+
+        return get_resource_utilization(self)
+
 
 class KubernetesVimSchema(ModelSchema):
     class Meta:

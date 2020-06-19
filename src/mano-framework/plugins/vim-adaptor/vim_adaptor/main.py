@@ -125,18 +125,19 @@ class VimAdaptor(ManoBasePlugin):
 
     def list_vims(self, message: Message):
         vims = []
-        for vim in BaseVim.objects:
+        for vim in BaseVim.objects():
             try:
                 resource_utilization = vim.get_resource_utilization()
-            except Exception:  # TODO Change to VimConnectionError once get_resource_utilization is implemented for all vim types
-                # resource_utilization = {
-                #     "core_total": 0,
-                #     "core_used": 0,
-                #     "memory_total": 0,
-                #     "memory_used": 0,
-                # }
+            except VimConnectionError:
+                resource_utilization = {
+                    "core_total": 0,
+                    "core_used": 0,
+                    "memory_total": 0,
+                    "memory_used": 0,
+                }
 
-                # TODO: Remove this once get_resource_utilization is implemented for all vim types
+            # TODO: Remove this once get_resource_utilization is implemented for all vim types
+            except NotImplementedError:
                 resource_utilization = {
                     "core_total": 4,
                     "core_used": 0,

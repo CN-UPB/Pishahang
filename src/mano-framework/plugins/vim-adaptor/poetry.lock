@@ -73,6 +73,14 @@ version = "2.8.0"
 pytz = ">=2015.7"
 
 [[package]]
+category = "main"
+description = "Pythonic module for representing and manipulating file sizes with different prefix notations (file size unit conversion)"
+name = "bitmath"
+optional = false
+python-versions = "*"
+version = "1.3.3.1"
+
+[[package]]
 category = "dev"
 description = "The uncompromising code formatter."
 name = "black"
@@ -945,7 +953,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "ee663b83887546a62b544d09e2dabf95a334b3976afdc3dc0a34b21dff6de6dd"
+content-hash = "eb98c7fa83af698a23e08f6c305c6c8262f8e6329669f2072e82a263c7799be8"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -972,6 +980,9 @@ attrs = [
 babel = [
     {file = "Babel-2.8.0-py2.py3-none-any.whl", hash = "sha256:d670ea0b10f8b723672d3a6abeb87b565b244da220d76b4dba1b66269ec152d4"},
     {file = "Babel-2.8.0.tar.gz", hash = "sha256:1aac2ae2d0d8ea368fa90906567f5c08463d98ade155c0c4bfedd6a0f7160e38"},
+]
+bitmath = [
+    {file = "bitmath-1.3.3.1.tar.gz", hash = "sha256:293325f01e65defe966853111df11d39215eb705a967cb115851da8c4cfa3eb8"},
 ]
 black = [
     {file = "black-19.10b0-py36-none-any.whl", hash = "sha256:1b30e59be925fafc1ee4565e5e08abef6b03fe455102883820fe5ee2e4734e0b"},
