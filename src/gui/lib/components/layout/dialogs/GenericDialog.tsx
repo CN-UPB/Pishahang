@@ -1,17 +1,7 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from "@material-ui/core";
+import { Dialog, DialogActions, DialogContent, DialogTitle } from "@material-ui/core";
 import { DialogProps } from "@material-ui/core/Dialog";
 import * as React from "react";
 
-/**
- * Generic Dialogue
- */
 export type GenericDialogProps = DialogProps & {
   /**
    * A unique id prefix to be used internally for `aria` properties.
@@ -24,9 +14,6 @@ export type GenericDialogProps = DialogProps & {
   buttons: React.ReactFragment;
 };
 
-/**
- * Generic Dialog for cutomizability
- */
 export const GenericDialog: React.FunctionComponent<GenericDialogProps> = ({
   dialogId,
   dialogTitle,
@@ -34,11 +21,7 @@ export const GenericDialog: React.FunctionComponent<GenericDialogProps> = ({
   children,
   ...dialogProps
 }) => (
-  <Dialog
-    {...dialogProps}
-    aria-labelledby={dialogId + "-dialog-title"}
-    aria-describedby={dialogId + "-dialog-description"}
-  >
+  <Dialog aria-labelledby={dialogId + "-dialog-title"} {...dialogProps}>
     <DialogTitle id={dialogId + "-dialog-title"}>{dialogTitle}</DialogTitle>
     <DialogContent>{children}</DialogContent>
     <DialogActions>{buttons}</DialogActions>

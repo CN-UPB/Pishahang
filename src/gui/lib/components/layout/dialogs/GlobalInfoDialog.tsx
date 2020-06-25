@@ -10,7 +10,7 @@ import {
 } from "../../../store/selectors/dialogs";
 import { TextDialog } from "./TextDialog";
 
-export const GlobalInfoDialog: React.FunctionComponent = props => {
+export const GlobalInfoDialog: React.FunctionComponent = (props) => {
   const dispatch = useDispatch();
   const title = useSelector(selectInfoDialogTitle);
   const message = useSelector(selectInfoDialogMessage);
