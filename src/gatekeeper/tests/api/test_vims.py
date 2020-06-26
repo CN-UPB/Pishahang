@@ -27,6 +27,7 @@ def testAddVim(api, broker: Connection, reraise):
             "type": "kubernetes",
             "serviceToken": "service token",
             "address": "address",
+            "port": 1234,
             "ccc": "ccc",
         },
         "openstack": {

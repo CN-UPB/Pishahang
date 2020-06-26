@@ -965,6 +965,7 @@ components:
         - type: object
           required:
             - address
+            - port
             - serviceToken
             - ccc
             - type
@@ -974,6 +975,8 @@ components:
               enum: ["kubernetes"]
             address:
               type: string
+            port:
+              type: number
             serviceToken:
               type: string
             ccc:
