@@ -28,5 +28,10 @@ class KubernetesFunctionManager(TerraformFunctionManager):
             function_id,
             function_instance_id,
             descriptor,
-            vars={"host": vim.address, "token": vim.service_token},
+            vars={
+                "host": vim.address,
+                "port": vim.port,
+                "token": vim.service_token,
+                "ccc": vim.ccc,
+            },
         )

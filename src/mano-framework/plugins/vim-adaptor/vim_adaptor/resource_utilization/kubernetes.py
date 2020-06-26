@@ -20,12 +20,12 @@ logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 def get_resource_utilization(vim: KubernetesVim):
 
     config = client.Configuration()
-    config.host = "https://{}".format(vim.address)
+    config.host = vim.url
     config.api_key = {"authorization": "Bearer " + vim.service_token}
 
     try:
         ca_cert = b64decode(vim.ccc, validate=True)
-    except Base64DecodingError:
+    except (Base64DecodingError, ValueError):
         raise VimConnectionError(
             "Error decoding the cluster CA certificate. "
             "Make sure it is a valid base64-encoded string."

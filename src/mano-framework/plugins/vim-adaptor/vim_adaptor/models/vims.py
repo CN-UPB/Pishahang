@@ -3,6 +3,7 @@ from enum import Enum
 from marshmallow_mongoengine import ModelSchema
 from mongoengine import EmbeddedDocument, EmbeddedDocumentField, StringField
 from mongoengine.errors import DoesNotExist
+from mongoengine.fields import IntField
 
 from vim_adaptor.exceptions import VimNotFoundException
 from vim_adaptor.models.base import BaseDocument
@@ -64,6 +65,7 @@ class OpenStackVimSchema(ModelSchema):
 
 class KubernetesVim(BaseVim):
     address = StringField(required=True)
+    port = IntField(required=True)
     service_token = StringField(required=True)
     ccc = StringField(required=True)
 
@@ -71,6 +73,10 @@ class KubernetesVim(BaseVim):
         from vim_adaptor.resource_utilization.kubernetes import get_resource_utilization
 
         return get_resource_utilization(self)
+
+    @property
+    def url(self):
+        return "https://{}:{}".format(self.address, self.port)
 
 
 class KubernetesVimSchema(ModelSchema):
