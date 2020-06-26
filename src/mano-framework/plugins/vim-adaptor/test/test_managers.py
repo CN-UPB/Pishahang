@@ -24,7 +24,13 @@ def test_initialization(fixture_fs, mocker):
     target_file: Path = manager._work_dir / "simple_template.tmpl"
     assert target_file.exists()
     with target_file.open() as f:
-        assert "Descriptor Id: descriptor-id" == f.read()
+        assert (
+            "Descriptor Id: descriptor-id\n"
+            "Function Id: function-id\n"
+            "Function Instance Id: function-instance-id\n"
+            "Service Id: service-id\n"
+            "Service Instance Id: service-instance-id"
+        ) == f.read()
 
     # _tf_init should have been called
     manager._tf_init.assert_called()
