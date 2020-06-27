@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from pathlib import Path
@@ -25,23 +26,35 @@ TEMPLATE_BASE_PATH: Path = Path(__file__).parent / "templates"
 TERRAFORM_BIN_PATH: Path = Path(__file__).parents[2] / "terraform"
 
 
-@wrapt.decorator
-def terraform_method(wrapped, instance: "TerraformFunctionManager", args, kwargs):
+def terraform_method(return_json=False):
     """
-    Decorate a method that returns a python_terraform `return_code, stdout, stderr`
-    tuple such that it raises and logs a TerraformException if return_code is not 0.
+    A decorator factory to decorate a method that returns a python_terraform
+    `return_code, stdout, stderr` tuple such that it raises and logs a
+    TerraformException if return_code is not 0. If `return_json` is set to ``True``,
+    `stdout` will be parsed as JSON and the resulting object will be returned from the
+    decorated method.
     """
 
-    return_code, stdout, stderr = wrapped(*args, **kwargs)
-    if return_code != 0:
-        exception = TerraformException(return_code, stdout, stderr)
-        instance.logger.error(
-            "Terraform invocation failed (exit code %d): ",
-            return_code,
-            exc_info=exception,
-        )
-        raise exception
-    return return_code, stdout, stderr
+    @wrapt.decorator
+    def decorator(wrapped, instance: "TerraformFunctionManager", args, kwargs):
+
+        return_code, stdout, stderr = wrapped(*args, **kwargs)
+        if return_code != 0:
+            exception = TerraformException(return_code, stdout, stderr)
+            instance.logger.error(
+                "Terraform invocation failed (exit code %d): ",
+                return_code,
+                exc_info=exception,
+            )
+            raise exception
+
+        if not return_json:
+            return return_code, stdout, stderr
+
+        # Parse stdout as JSON
+        return json.loads(stdout)
+
+    return decorator
 
 
 class TerraformFunctionManager:
@@ -77,6 +90,7 @@ class TerraformFunctionManager:
             descriptor: The descriptor of the network function that the manager will control
             vars: Environment variables that will be available to Terraform
         """
+        self.vim = vim
         self.service_id = service_id
         self.service_instance_id = service_instance_id
         self.function_id = function_id
@@ -144,7 +158,7 @@ class TerraformFunctionManager:
             with (self._work_dir / template_name).open("w") as target_file:
                 target_file.write(env.get_template(template_name).render())
 
-    @terraform_method
+    @terraform_method()
     def _tf_init(self):
         """
         Runs `terraform init`
@@ -152,7 +166,7 @@ class TerraformFunctionManager:
         self.logger.debug("Executing `terraform init`")
         return self._terraform.init(var=self.vars, input=False)
 
-    @terraform_method
+    @terraform_method()
     def _tf_plan(self):
         """
         Runs `terraform plan`
@@ -162,7 +176,7 @@ class TerraformFunctionManager:
             var=self.vars, out="tfplan", input=False, detailed_exitcode=None
         )
 
-    @terraform_method
+    @terraform_method()
     def _tf_apply(self):
         """
         Runs `terraform apply`
@@ -172,7 +186,15 @@ class TerraformFunctionManager:
             var=None, dir_or_plan="tfplan", input=False, auto_approve=IsFlagged,
         )  # No vars here, they are included in the plan already
 
-    @terraform_method
+    @terraform_method(return_json=True)
+    def _tf_show(self):
+        """
+        Runs `terraform show` and returns the parsed JSON output
+        """
+        self.logger.debug("Executing `terraform show`")
+        return self._terraform.cmd("show", no_color=IsFlagged, json=IsFlagged)
+
+    @terraform_method()
     def _tf_destroy(self):
         """
         Runs `terraform destroy`
