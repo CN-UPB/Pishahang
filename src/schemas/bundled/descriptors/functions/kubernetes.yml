@@ -324,7 +324,7 @@ properties:
               properties:
                 vcpus:
                   description: The number of (virtualized) CPU cores.
-                  type: integer
+                  type: number
                   exclusiveMinimum: 0
             memory:
               type: object
