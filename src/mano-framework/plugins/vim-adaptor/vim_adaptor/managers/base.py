@@ -1,17 +1,24 @@
 import logging
+import os
 from pathlib import Path
 from typing import List
 
 import wrapt
 from appcfg import get_config
 from jinja2 import Template
-from python_terraform import Terraform
+from python_terraform import IsFlagged, Terraform
 
 from vim_adaptor.exceptions import TerraformException
 from vim_adaptor.models.vims import BaseVim
 
 # Hide warnings of python_terraform – we raise exceptions instead.
 logging.getLogger("python_terraform").setLevel(logging.ERROR)
+
+# Remove hints from terraform output
+os.environ["TF_IN_AUTOMATION"] = "true"
+
+# Use this to get debug output from Terraform:
+# os.environ["TF_LOG"] = "DEBUG"
 
 config = get_config(__name__)
 
@@ -23,15 +30,19 @@ TERRAFORM_BIN_PATH: Path = Path(__file__).parents[2] / "terraform"
 def terraform_method(wrapped, instance: "TerraformFunctionManager", args, kwargs):
     """
     Decorate a method that returns a python_terraform `return_code, stdout, stderr`
-    tuple such that it returns `None` if `return_code` is `0` and raises a
-    TerraformException otherwise
+    tuple such that it raises and logs a TerraformException if return_code is not 0.
     """
 
     return_code, stdout, stderr = wrapped(*args, **kwargs)
     if return_code != 0:
         exception = TerraformException(return_code, stdout, stderr)
-        instance.logger.error("Terraform invocation failed: ", exc_info=exception)
+        instance.logger.error(
+            "Terraform invocation failed (exit code %d): ",
+            return_code,
+            exc_info=exception,
+        )
         raise exception
+    return return_code, stdout, stderr
 
 
 class TerraformFunctionManager:
@@ -74,7 +85,7 @@ class TerraformFunctionManager:
         self.descriptor = descriptor
         self.vars = vars
 
-        self._function_repr = 'function "{}" ({}) of service {} on VIM "{}" ({})'.format(
+        self._function_repr = 'Function: "{}" ({}), Service: {}, VIM: "{}" ({})'.format(
             descriptor["name"],
             function_instance_id,
             service_instance_id,
@@ -86,7 +97,9 @@ class TerraformFunctionManager:
             "{}.FunctionManager({})".format(__name__, self._function_repr)
         )
 
-        self._work_dir: Path = Path(config["terraform_workdir"]) / self.function_id
+        self._work_dir: Path = Path(
+            config["terraform_workdir"]
+        ) / self.service_instance_id / self.function_id
         self._work_dir.mkdir(parents=True, exist_ok=True)
 
         self._terraform = Terraform(
@@ -133,7 +146,7 @@ class TerraformFunctionManager:
         Runs `terraform init`
         """
         self.logger.debug("Executing `terraform init`")
-        return self._terraform.init(var=self.vars)
+        return self._terraform.init(var=self.vars, input=False)
 
     @terraform_method
     def _tf_plan(self):
@@ -141,7 +154,9 @@ class TerraformFunctionManager:
         Runs `terraform plan`
         """
         self.logger.debug("Executing `terraform plan`")
-        return self._terraform.plan(var=self.vars)
+        return self._terraform.plan(
+            var=self.vars, out="tfplan", input=False, detailed_exitcode=None
+        )
 
     @terraform_method
     def _tf_apply(self):
@@ -149,7 +164,9 @@ class TerraformFunctionManager:
         Runs `terraform apply`
         """
         self.logger.debug("Executing `terraform apply`")
-        return self._terraform.apply(var=self.vars)
+        return self._terraform.apply(
+            var=None, dir_or_plan="tfplan", input=False, auto_approve=IsFlagged,
+        )  # No vars here, they are included in the plan already
 
     @terraform_method
     def _tf_destroy(self):
@@ -157,7 +174,7 @@ class TerraformFunctionManager:
         Runs `terraform destroy`
         """
         self.logger.debug("Executing `terraform destroy`")
-        return self._terraform.destroy(var=self.vars)
+        return self._terraform.destroy(var=self.vars, input=False)
 
     def deploy(self):
         """
@@ -165,14 +182,16 @@ class TerraformFunctionManager:
         `terraform plan`, followed by `terraform apply`. Raises a `TerraformException`
         on failure.
         """
-        self.logger.info("Deploying network function")
+        self.logger.info("Deploying")
         self._tf_plan()
         self._tf_apply()
+        self.logger.info("Deployment succeeded")
 
     def destroy(self):
         """
         Destroys the network function managed by this TerraformFunctionManager by
         running `terraform destroy`. Raises a `TerraformException` on failure.
         """
-        self.logger.info("Destroying network function")
+        self.logger.info("Destroying")
         self._tf_destroy()
+        self.logger.info("Destruction succeeded")

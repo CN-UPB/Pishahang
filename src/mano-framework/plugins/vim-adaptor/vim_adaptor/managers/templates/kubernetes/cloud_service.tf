@@ -1,115 +1,141 @@
 {% for vdu in descriptor.virtual_deployment_units %}
-resource "kubernetes_replication_controller" "{{ vdu.id }}-{{ instance_uuid }}" {
+resource "kubernetes_deployment" "{{ vdu.id }}-{{ function_instance_id }}" {
   metadata {
-    name = "{{ vdu.id }}-{{ instance_uuid }}"
-    labels {
+    name = "{{ vdu.id }}-{{ function_instance_id }}"
+    labels = {
       service = "{{ service_instance_id  }}"
+      function = "{{ function_instance_id }}"
       vdu = "{{ vdu.id }}"
     }
   }
 
   spec {
     selector {
-      service = "{{ service_instance_id  }}"
-      vdu = "{{ vdu.id }}"
+      match_labels = {
+        service = "{{ service_instance_id  }}"
+        function = "{{ function_instance_id }}"
+        vdu = "{{ vdu.id }}"
+      }
     }
+
     template {
-      container {
-        image = "{{ vdu.service_image }}"
-        name  = "{{ vdu.id }}-{{ service_instance_id  }}"
+      metadata {
+        labels = {
+          service = "{{ service_instance_id  }}"
+          function = "{{ function_instance_id }}"
+          vdu = "{{ vdu.id }}"
+        }
+      }
 
-        {% for port in vdu.service_ports %}
+      spec {
+        container {
+          image = "{{ vdu.service_image }}"
+          name  = "{{ vdu.id }}-{{ service_instance_id  }}"
+
+          {% for port in vdu.service_ports %}
             port {
-                {% if port.name != null %}
-                name = "{{ port.name }}"
-                {% endif %}
-                {% if port.protocol != null %}
-                protocol = "{{ port.protocol }}"
-                {% endif %}
-                container_port = {{ port.target_port }}
+              {% if port.name != null %}
+              name = "{{ port.name }}"
+              {% endif %}
+              {% if port.protocol != null %}
+              protocol = "{{ port.protocol }}"
+              {% endif %}
+              container_port = {{ port.target_port }}
             }
-        {% endfor %}
+          {% endfor %}
 
-        {% if vdu.resource_requirements != null %}
+          {% if vdu.resource_requirements != null %}
             resources {
               requests {
                 {% if vdu.resource_requirements.cpu != null %}
-                    cpu = {{ vdu.resource_requirements.cpu.v_cpus }}
+                  cpu = {{ vdu.resource_requirements.cpu.vcpus }}
                 {% endif %}
-
                 {% if vdu.resource_requirements.memory != null %}
-                    memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit }}"
+                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit }}"
+                {% endif %}
+              }
+
+              limits {
+                {% if vdu.resource_requirements.cpu != null %}
+                  cpu = {{ vdu.resource_requirements.cpu.vcpus }}
+                {% endif %}
+                {% if vdu.resource_requirements.memory != null %}
+                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit }}"
                 {% endif %}
               }
             }
-        {% endif %}
+          {% endif %}
 
-        {% if vdu.environment_variables != null %}
+          {% if vdu.environment_variables != null %}
             {% for env in vdu.environment_variables %}
-                env {
-                    name = "{{ env.name }}"
-                    value = "{{ env.value }}"
-                }
+              env {
+                name = "{{ env.name }}"
+                value = "{{ env.value }}"
+              }
             {% endfor %}
-        {% endif %}
+          {% endif %}
+        }
       }
+
     }
   }
 }
 
-resource "kubernetes_service" "{{ vdu.id }}-{{ instance_uuid }}" {
+resource "kubernetes_service" "{{ vdu.id }}-{{ function_instance_id }}" {
   metadata {
     {% if vdu.name != null %}
       name = "{{ vdu.name }}"
     {% else %}
-      name = "{{ vdu.id }}-{{ instance_uuid }}"
+      name = "{{ vdu.id }}-{{ function_instance_id }}"
     {% endif %}
 
-    labels {
+    labels = {
       service = "{{ service_instance_id  }}"
+      function = "{{ function_instance_id }}"
       vdu = "{{ vdu.id }}"
     }
   }
+
   spec {
-    selector {
-      vdu = "${kubernetes_replication_controller.{{ vdu.id }}-{{ instance_uuid }}.metadata.0.labels.vdu}"
+    selector = {
+      service = "{{ service_instance_id  }}"
+      function = "{{ function_instance_id }}"
+      vdu = "{{ vdu.id }}"
     }
 
-    {% for port in vdu.service_ports %}
-        port {
-            {% if port.name != null %}
-                name = "{{ port.name }}"
-            {% endif %}
-            {% if port.protocol != null %}
-                protocol = "{{ port.protocol }}"
-            {% endif %}
-            port = {{ port.port }}
-            target_port = {{ port.target_port }}
-        }
-    {% endfor %}
-
     type = "{{ vdu.service_type }}"
+
+    {% for port in vdu.service_ports %}
+      port {
+        {% if port.name != null %}
+          name = "{{ port.name }}"
+        {% endif %}
+        {% if port.protocol != null %}
+          protocol = "{{ port.protocol }}"
+        {% endif %}
+        port = {{ port.port }}
+        target_port = {{ port.target_port }}
+      }
+    {% endfor %}
   }
 }
 
-    {% if vdu.scale_in_out != null %}
-        resource "kubernetes_horizontal_pod_autoscaler" "{{ vdu.id }}-{{ instance_uuid }}" {
-          metadata {
-              name = "{{ vdu.id }}-{{ instance_uuid }}"
+{% if vdu.scale_in_out != null %}
+resource "kubernetes_horizontal_pod_autoscaler" "{{ vdu.id }}-{{ function_instance_id }}" {
+  metadata {
+    name = "{{ vdu.id }}-{{ function_instance_id }}"
+  }
+  
+  spec {
+    max_replicas = {{ vdu.scale_in_out.maximum }}
+    min_replicas = {{ vdu.scale_in_out.minimum }}
+    scale_target_ref {
+      api_version = "apps/v1"
+      kind = "Deployment"
+      name = "{{ vdu.id }}-{{ function_instance_id }}"
+    }
+  }
+}
+{% endif %}
 
-              labels {
-              service = "{{ service_instance_id  }}"
-              vdu = "{{ vdu.id }}"
-              }
-          }
-          spec {
-              max_replicas = {{ vdu.scale_in_out.maximum }}
-              min_replicas = {{ vdu.scale_in_out.minimum }}
-              scale_target_ref {
-              kind = "ReplicationController"
-              name = "${kubernetes_replication_controller.{{ vdu.id }}-{{ instance_uuid }}.metadata.0.name}"
-              }
-          }
-        }
-    {% endif %}
 {% endfor %}

@@ -1,9 +1,11 @@
 variable "host"{
-	type = "string"
-	default = ""
+	type = string
 }
 
 variable "token"{
-	type = "string"
-	default = "fpga_service"
+	type = string
+}
+
+variable "ccc"{
+	type = string
 }
