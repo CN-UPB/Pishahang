@@ -85,6 +85,8 @@ class VimAdaptor(ManoBasePlugin):
         self.conn.register_async_endpoint(
             self.deploy_kubernetes_function, "infrastructure.cloud_service.deploy"
         )
+        # Termination
+        # TODO infrastructure.service.remove
 
     def on_lifecycle_start(self, message: Message):
         super().on_lifecycle_start(message)
@@ -196,8 +198,7 @@ class VimAdaptor(ManoBasePlugin):
                 function_instance_id=payload["csd"]["instance_uuid"],
                 descriptor=payload["csd"],
             )
-            manager.deploy()
-            return create_completed_response()
+            return create_completed_response({"csr": manager.deploy()})
         except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
 
