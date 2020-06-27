@@ -50,57 +50,10 @@ def cserviceid_from_corrid(ledger, corr_id):
 
 def build_csr(ia_csr, csd):
     """
+    To be removed: The VIM adaptor now builds the csd itself.
+
     This method builds the CSRs. CSRs are built from the stripped CSRs
     returned by the Infrastructure Adaptor (IA), combining it with the
     provided CSD.
     """
-
-    csr = {}
-    # csd base fields
-    csr["descriptor_version"] = ia_csr["descriptor_version"]
-    csr["id"] = ia_csr["id"]
-    # Building the csr makes it the first version of this csr.
-    csr["version"] = "1"
-    csr["status"] = ia_csr["status"]
-    csr["descriptor_reference"] = ia_csr["descriptor_reference"]
-
-    # virtual_deployment_units
-    csr["virtual_deployment_units"] = []
-    for ia_vdu in ia_csr["virtual_deployment_units"]:
-        csd_vdu = get_csd_vdu_by_reference(csd, ia_vdu["vdu_reference"])
-
-        vdu = {}
-        vdu["id"] = ia_vdu["id"]
-        vdu["vim_id"] = ia_vdu["vim_id"]
-        if "resource_requirements" in csd_vdu:
-            vdu["resource_requirements"] = csd_vdu["resource_requirements"]
-        vdu["service_image"] = csd_vdu["service_image"]
-        vdu["service_type"] = csd_vdu["service_type"]
-        vdu["service_ports"] = csd_vdu["service_ports"]
-
-        if "service_name" in csd_vdu:
-            vdu["service_name"] = csd_vdu["service_name"]
-
-        if "environment" in csd_vdu:
-            vdu["environment"] = csd_vdu["environment"]
-
-        # vdu optional info
-        if "vdu_reference" in ia_vdu:
-            vdu["vdu_reference"] = ia_vdu["vdu_reference"]
-        if "number_of_instances" in ia_vdu:
-            vdu["number_of_instances"] = ia_vdu["number_of_instances"]
-
-        if csd_vdu is not None and "monitoring_parameters" in csd_vdu:
-            vdu["monitoring_parameters"] = csd_vdu["monitoring_parameters"]
-
-        csr["virtual_deployment_units"].append(vdu)
-
-    return csr
-
-
-def get_csd_vdu_by_reference(csd, vdu_reference):
-    if "virtual_deployment_units" in csd:
-        for csd_vdu in csd["virtual_deployment_units"]:
-            if csd_vdu["id"] in vdu_reference:
-                return csd_vdu
-    return None
+    return ia_csr
