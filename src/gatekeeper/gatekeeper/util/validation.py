@@ -1,26 +1,25 @@
 """
-Helper functions related to the validation of json schemas
+Functions to validate data against Pishahang JSON schemas
 """
 
+import json
 from pathlib import Path
 
 import jsonschema
-import yaml
+
 from gatekeeper.models.descriptors import DescriptorType
 
-SPEC_DIR = Path(__file__).parent / "../../specification"
-
-DESCRIPTOR_SPEC_DIR = SPEC_DIR / "schemas/descriptors"
+DESCRIPTOR_SCHEMA_DIR = Path(__file__).parents[3] / "schemas/bundled/descriptors"
 
 schemaMap = {}
 
 for descriptorType, filename in [
-    (DescriptorType.SERVICE, "service.yml"),
-    (DescriptorType.OPENSTACK, "openstack.yml"),
-    (DescriptorType.KUBERNETES, "kubernetes.yml"),
+    (DescriptorType.SERVICE, "service/service"),
+    (DescriptorType.OPENSTACK, "functions/openstack"),
+    (DescriptorType.KUBERNETES, "functions/kubernetes"),
 ]:
-    with (DESCRIPTOR_SPEC_DIR / filename).open() as schema:
-        schemaMap[descriptorType.value] = yaml.safe_load(schema)
+    with (DESCRIPTOR_SCHEMA_DIR / filename).with_suffix(".json").open() as schema:
+        schemaMap[descriptorType.value] = json.load(schema)
 
 
 def validateDescriptor(type: str, descriptor: dict):
