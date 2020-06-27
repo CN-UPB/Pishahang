@@ -438,7 +438,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         add_schedule.append("cs_deploy")
         # add_schedule.append('vnf_chain')
         add_schedule.append("store_nsr")
-        add_schedule.append("wan_configure")
+        # add_schedule.append("wan_configure")
         add_schedule.append("start_monitoring")
         add_schedule.append("inform_gk_instantiation")
 
@@ -521,7 +521,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         if orig == "GK":
             add_schedule.append("contact_gk")
         add_schedule.append("stop_monitoring")
-        add_schedule.append("wan_deconfigure")
+        # add_schedule.append("wan_deconfigure")
         add_schedule.append("vnf_unchain")
         add_schedule.append("vnfs_stop")
         add_schedule.append("terminate_service")
