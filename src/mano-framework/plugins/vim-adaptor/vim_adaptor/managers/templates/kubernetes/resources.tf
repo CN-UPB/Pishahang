@@ -51,7 +51,7 @@ resource "kubernetes_deployment" "{{ vdu.id }}-{{ function_instance_id }}" {
                   cpu = {{ vdu.resource_requirements.cpu.vcpus }}
                 {% endif %}
                 {% if vdu.resource_requirements.memory != null %}
-                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit }}"
+                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit[:-1] }}"
                 {% endif %}
               }
 
@@ -60,7 +60,7 @@ resource "kubernetes_deployment" "{{ vdu.id }}-{{ function_instance_id }}" {
                   cpu = {{ vdu.resource_requirements.cpu.vcpus }}
                 {% endif %}
                 {% if vdu.resource_requirements.memory != null %}
-                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit }}"
+                  memory = "{{ vdu.resource_requirements.memory.size }}{{ vdu.resource_requirements.memory.size_unit[:-1] }}"
                 {% endif %}
               }
             }
