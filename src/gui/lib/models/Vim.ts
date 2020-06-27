@@ -39,6 +39,7 @@ export interface OpenStackSpecificVimFields {
 
 export interface KubernetesSpecificVimFields {
   address: string;
+  port: number;
   serviceToken: string;
   ccc: string;
 }

@@ -46,9 +46,12 @@ const OpenStackFields: React.FunctionComponent = () => (
 const KubernetesFields: React.FunctionComponent = () => (
   <>
     <Grid item xs={6}>
-      <Field component={TextField} name="kubernetes.address" label="Address" />
+      <Field component={TextField} name="kubernetes.address" label="Host" />
     </Grid>
     <Grid item xs={6}>
+      <Field component={TextField} name="kubernetes.port" label="Port" type="number" />
+    </Grid>
+    <Grid item xs={12}>
       <Field component={TextField} name="kubernetes.serviceToken" label="Service Token" />
     </Grid>
     <Grid item xs={12}>
@@ -93,6 +96,7 @@ const validationSchema = yup.object().shape({
     is: VimType.Kubernetes,
     then: yup.object({
       address: yup.string().required("Required"),
+      port: yup.number().required("Required"),
       serviceToken: yup.string().required("Required"),
       ccc: yup.string().required("Required"),
     }),
@@ -123,6 +127,7 @@ const initialFormValues: VimFormValues = {
   },
   kubernetes: {
     address: "",
+    port: 443,
     serviceToken: "",
     ccc: "",
   },
