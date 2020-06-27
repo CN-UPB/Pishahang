@@ -242,7 +242,7 @@ def instantiateService(serviceId):
 
             instance.status = message.payload["status"]
             if message.payload["status"] == "ERROR":
-                instance.message = message.payload["error"]
+                instance.message = str(message.payload["error"])
             instance.save()
 
             broker.unsubscribe(subscriptionId)
