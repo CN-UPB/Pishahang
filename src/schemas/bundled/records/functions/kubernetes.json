@@ -577,10 +577,6 @@
               }
             }
           },
-          "vdu_reference": {
-            "description": "The reference to the VDU (csd:vdu:id) used to instantiate this element.",
-            "type": "string"
-          },
           "number_of_instances": {
             "description": "The number of instances of this VDU element.",
             "type": "integer",
