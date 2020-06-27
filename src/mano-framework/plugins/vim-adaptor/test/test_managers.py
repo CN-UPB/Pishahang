@@ -1,16 +1,28 @@
 from pathlib import Path
 
+from pyfakefs.fake_filesystem import FakeFilesystem
+
 from vim_adaptor.managers.base import TerraformFunctionManager
 from vim_adaptor.models.vims import BaseVim
 
 
-def test_initialization(fixture_fs, mocker):
+def test_initialization(mocker, fs: FakeFilesystem):
     mocker.patch("vim_adaptor.managers.base.TerraformFunctionManager._tf_init")
+    fs.create_file(
+        "/my-template-dir/template.tf",
+        contents=(
+            "Descriptor Id: {{ descriptor.id }}\n"
+            "Function Id: {{ function_id }}\n"
+            "Function Instance Id: {{ function_instance_id }}\n"
+            "Service Id: {{ service_id }}\n"
+            "Service Instance Id: {{ service_instance_id }}"
+        ),
+    )
 
     vim = BaseVim(name="MyVIM", country="country", city="city", type="AWS")
 
     manager = TerraformFunctionManager(
-        fixture_fs.fixture_dir,
+        Path("/my-template-dir"),
         vim,
         "service-id",
         "service-instance-id",
@@ -19,9 +31,9 @@ def test_initialization(fixture_fs, mocker):
         {"id": "descriptor-id", "name": "descriptor-name"},
     )
 
-    # Templates should have been compiled
+    # Template(s) should have been compiled
     assert manager._work_dir.exists()
-    target_file: Path = manager._work_dir / "simple_template.tmpl"
+    target_file: Path = manager._work_dir / "template.tf"
     assert target_file.exists()
     with target_file.open() as f:
         assert (

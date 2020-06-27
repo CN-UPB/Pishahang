@@ -1,11 +1,10 @@
 import logging
 import os
 from pathlib import Path
-from typing import List
 
 import wrapt
 from appcfg import get_config
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 from python_terraform import IsFlagged, Terraform
 
 from vim_adaptor.exceptions import TerraformException
@@ -85,7 +84,7 @@ class TerraformFunctionManager:
         self.descriptor = descriptor
         self.vars = vars
 
-        self._function_repr = 'Function: "{}" ({}), Service: {}, VIM: "{}" ({})'.format(
+        self._function_repr = "Function: {} ({}), Service: {}, VIM: {} ({})".format(
             descriptor["name"],
             function_instance_id,
             service_instance_id,
@@ -107,22 +106,26 @@ class TerraformFunctionManager:
             terraform_bin_path=TERRAFORM_BIN_PATH.as_posix(),
         )
 
-        self._compile_templates(list(template_path.iterdir()))
+        self._render_templates(template_path)
         self._tf_init()
 
-    def _compile_templates(self, templates: List[Path], context={}):
+    def _render_templates(self, template_path: Path, context={}):
         """
-        Compile the templates from the file paths specified in `templates` and store
-        them in `self._work_dir`.
+        Render the templates from `template_path` and store them in `self._work_dir`.
 
         Args:
 
-            templates: A list of paths of the template files that shall be compiled
-            context: The compilation context. `service_id`, `service_instance_id`,
-                `function_id`, `function_instance_id`, and `descriptor` field are set
+            template_path: The directory to read the templates from
+            context: The render context. The `service_id`, `service_instance_id`,
+                `function_id`, `function_instance_id`, and `descriptor` fields are set
                 by default.
         """
-        context = {
+        env = Environment(
+            loader=FileSystemLoader(template_path.as_posix()),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        env.globals = {
             "service_id": self.service_id,
             "service_instance_id": self.service_instance_id,
             "function_id": self.function_id,
@@ -130,15 +133,16 @@ class TerraformFunctionManager:
             "descriptor": self.descriptor,
             **context,
         }
-        self.logger.debug("Compiling templates. Context: %s", context)
 
-        for file_path in templates:
-            target_path = self._work_dir / Path(file_path).name
-
-            with file_path.open() as input_file:
-                template = Template(input_file.read())
-                with target_path.open("w") as output_file:
-                    output_file.write(template.render(context))
+        self.logger.debug(
+            "Rendering templates from %s to %s. Context: %s",
+            template_path,
+            self._work_dir,
+            env.globals,
+        )
+        for template_name in env.list_templates():
+            with (self._work_dir / template_name).open("w") as target_file:
+                target_file.write(env.get_template(template_name).render())
 
     @terraform_method
     def _tf_init(self):
