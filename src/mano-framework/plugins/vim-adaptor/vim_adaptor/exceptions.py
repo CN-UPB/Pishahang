@@ -15,7 +15,7 @@ class VimConnectionError(Exception):
 
 
 class TerraformException(Exception):
-    def __init__(self, return_code, stdout, stderr):
-        super().__init__(stderr)
+    def __init__(self, return_code: int, stdout: str, stderr: str):
+        super().__init__(stderr if stderr != "" else stdout)
         self.return_code = return_code
-        self.stdout = return_code
+        self.stdout = stdout
