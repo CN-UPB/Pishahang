@@ -2,44 +2,77 @@
 
 #Image details
 resource "openstack_images_image_v2" "image" {
-  name = "{{ descriptor.name }}"
-  image_source_url = "{{vdu.vm_image}}"
-  disk_format = "{{ vdu.vm_image_format }}"
-  container_format = "bare"
+  {% if vdu.name != null %}
+    name = "{{ vdu.name }}"
+  {% endif %}
+
+  {% if vdu.vm_image != null %}
+    image_source_url = "{{vdu.vm_image}}"
+  {% endif %}
+
+  {% if vdu.vm_image_format != null %}
+    disk_format = "{{ vdu.vm_image_format }}"
+  {% endif %}
+  
+  {% if vdu.vm_image_format != null %}
+    container_format = "{{ vdu.vm_image_format }}"
+  {% endif %}
 }
 
 #Creating a compute flavor
 resource "openstack_compute_flavor_v2" "flavor" {
-  name  = "my-flavor"   #  unique name for the flavor.
-  ram   = "{{ vdu.resource_requirements.memory.size }}"        #  amount of RAM to use, in megabytes
-  vcpus = "{{ vdu.resource_requirements.cpu.vcpus }}"           #  number of virtual CPUs to use
-  disk  = "{{ vdu.resource_requirements.storage.size }}"          #  amount of disk space in gigabytes
+  name  = "flavor"-{{ vdu.id }}   #  unique name for the flavor.
+  #flavor_id = "${openstack_images_image_v2.image.id}"
+  {% if vdu.resource_requirements.memory.size != null %}
+    ram   = "{{ vdu.resource_requirements.memory.size }}"        #  amount of RAM to use, in megabytes
+  {% endif %}
+
+  {% if vdu.resource_requirements.cpu.vcpus != null %}
+    vcpus = "{{ vdu.resource_requirements.cpu.vcpus }}"           #  number of virtual CPUs to use
+  {% endif %}
+
+  {% if vdu.resource_requirements.storage.size != null %}
+    disk  = "{{ vdu.resource_requirements.storage.size }}"          #  amount of disk space in gigabytes
+  {% endif %}
 }
 
 # Creating a openstack compute with an image id
-resource "openstack_compute_instance_v2" "{{vdu.id}}-{{}}" {
-  name            = "{{ descriptor.name }}" #name of image with count, if more than one.
-  image_id        = "${openstack_images_image_v2.image.id}"#"7cd3f630-7c1b-4cc9-8f5c-3026e7fe2f59"
+resource "openstack_compute_instance_v2" "{{ vdu.id }}-{{ instance_uuid }}" {
+  name            = "{{ vdu.id }}-{{ instance_uuid }}"
+  image_id        = "${openstack_images_image_v2.image.id}"
   image_name      = "${openstack_images_image_v2.image.name}"
   flavor_id       = "${openstack_compute_flavor_v2.flavor.id}"
   security_groups = ["default"] 
   # key_pair        = "${openstack_compute_keypair_v2.terraform.name}"
-  user_data       = "#cloud-config\nhostname: pish.example.com\nfqdn: pish.example.com" #Cloud-Init
-  #count           = 2 #number of duplicates
+
+  {% connection in vdu.connection_points %}
+    connection {
+        {% if connection.id != null %}
+          id = "{ connection.id }"
+        {% endif %}
+        {% if connection.type != null%}
+          type = "{ connection.type }"
+        {% endif %}
+
+        {% if connection.interface != null%}
+          interface = "{ connection.interface }"
+        {% endif %}
+    }
+  {% endfor %}
 
   #Meta-Information about the instance
   metadata = {
-    name = "{{ descriptor.name }}"
-    author = "{{ descriptor.author }}"
-    vendor = "{{ descriptor.vendor }}"
-    version = "{{ descriptor.version }}"
-    description = "{{ descriptor.description }}"
-    descriptor_version = "{{ descriptor.descriptor_version }}"
+    {% if vdu.id != null %}
+      id = "{{ vdu.id }}"
+    {% endif %}
+
+    {% if vdu.description != null %}
+      description = "{{ vdu.description }}"
+    {% endif %}
   }
 
   network {
     name = "public"
   }
 }
-
 {% endfor %}
