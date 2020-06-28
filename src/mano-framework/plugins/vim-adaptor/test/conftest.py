@@ -1,7 +1,11 @@
 import pytest
+from appcfg import get_config
 
 from manobase.messaging import ManoBrokerRequestResponseConnection
 from vim_adaptor.main import VimAdaptor
+from mongoengine.connection import connect
+
+config = get_config("vim_adaptor")
 
 
 @pytest.fixture(scope="module")
@@ -24,3 +28,11 @@ def connection():
     )
     yield connection
     connection.close()
+
+
+@pytest.fixture(scope="module")
+def mongo_connection():
+    """
+    A fixture that connects to MongoDB at test setup
+    """
+    connect(host=config["mongo"])
