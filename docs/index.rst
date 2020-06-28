@@ -18,4 +18,6 @@ Joint Orchestration of Network Function Chains and Distributed Cloud Application
    developers/developing
    developers/microservices
    developers/apis
+   developers/service_instantiation
+   developers/topics
 
