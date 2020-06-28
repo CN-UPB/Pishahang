@@ -218,6 +218,38 @@ Placement Executive
   Using the service uuid in topics, we isolate messages owned by
   different services.
 
+Scaling Executive
+-----------------
+
+| **Description:** Scaling executive is provided to inspect messages
+  originated from scaling FSMs or destained for the scaling FSMs. The
+  topic exposed by this executive is the following:
+
+| **Topic:** scaling.fsm.[function_uuid]
+| **function_uuid** is the uuid of the VNF that the FSM belongs to.
+  Using the function uuid in topics, we isolate messages owned by
+  different VNFs.
+
+FLM
+---
+
+| **Description:** Besides other tasks that have already mentioned for
+  FLM, it also takes care of inspecting the messages of any FSM that
+  does not correspond to scaling FSMs. The topics exposed by this plugin
+  is as follow:
+
+**Topic:** generic.fsm.[function_uuid]
+
+SLM
+---
+
+| **Description:** Besides other tasks that have already mentioned for
+  SLM, it also takes care of inspecting the messages of any SSM that
+  does not correspond to placement SSMs. The topics exposed by this
+  plugin is as follow:
+
+**Topic:** generic.ssm.[service_uuid]
+
 Vim Adaptor
 ===========
 
