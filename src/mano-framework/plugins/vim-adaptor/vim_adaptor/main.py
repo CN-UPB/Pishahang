@@ -27,20 +27,21 @@ from mongoengine import DoesNotExist, connect
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-from vim_adaptor.managers.kubernetes import KubernetesFunctionManager
-from vim_adaptor.models.vims import (
-    AwsVimSchema,
-    BaseVim,
-    KubernetesVimSchema,
-    OpenStackVimSchema,
-    VimType,
-)
-from vim_adaptor.util import create_completed_response, create_error_response
 from vim_adaptor.exceptions import (
     TerraformException,
     VimConnectionError,
     VimNotFoundException,
 )
+from vim_adaptor.models.vims import (
+    AwsVimSchema,
+    BaseVim,
+    KubernetesVim,
+    KubernetesVimSchema,
+    OpenStackVimSchema,
+    VimType,
+)
+from vim_adaptor.util import create_completed_response, create_error_response
+from vim_adaptor.managers import factory as manager_factory
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -190,12 +191,13 @@ class VimAdaptor(ManoBasePlugin):
         payload = message.payload
 
         try:
-            manager = KubernetesFunctionManager(
-                vim_id=payload["vim_uuid"],
-                service_id="",  # TODO is this available?
-                service_instance_id=payload["service_instance_id"],
-                function_id=payload["csd"]["uuid"],
+            vim = KubernetesVim.get_by_id(payload["vim_uuid"])
+            manager = manager_factory.create_manager(
+                "kubernetes",
+                vim=vim,
                 function_instance_id=payload["csd"]["instance_uuid"],
+                function_id=payload["csd"]["uuid"],
+                service_instance_id=payload["service_instance_id"],
                 descriptor=payload["csd"],
             )
             return create_completed_response({"csr": manager.deploy()})
