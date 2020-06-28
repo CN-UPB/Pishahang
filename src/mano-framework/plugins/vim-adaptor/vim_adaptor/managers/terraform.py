@@ -23,7 +23,7 @@ environ["TF_IN_AUTOMATION"] = "true"
 
 config = get_config(__name__)
 
-TEMPLATE_BASE_PATH: Path = Path(__file__).parent / "templates"
+TEMPLATE_BASE_PATH: Path = Path(__file__).parents[1] / "templates"
 TERRAFORM_BIN_PATH: Path = Path(__file__).parents[2] / "terraform"
 
 
