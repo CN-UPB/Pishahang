@@ -211,10 +211,15 @@ class VimAdaptor(ManoBasePlugin):
         service_instance_id = message.payload["instance_uuid"]
         LOG.info("Removing service %s", service_instance_id)
 
-        for function_instance in FunctionInstance.objects(
-            service_instance_id=service_instance_id
-        ):
-            manager_factory.get_manager(function_instance.id).destroy()
+        try:
+            for function_instance in FunctionInstance.objects(
+                service_instance_id=service_instance_id
+            ):
+                manager_factory.get_manager(function_instance.id).destroy()
+
+            return create_completed_response()
+        except TerraformException as e:
+            return create_error_response(str(e))
 
 
 def main():
