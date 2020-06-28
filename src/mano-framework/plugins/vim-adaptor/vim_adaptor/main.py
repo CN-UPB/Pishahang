@@ -42,6 +42,7 @@ from vim_adaptor.models.vims import (
 )
 from vim_adaptor.util import create_completed_response, create_error_response
 from vim_adaptor.managers import factory as manager_factory
+from vim_adaptor.models.function import FunctionInstance
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -87,7 +88,9 @@ class VimAdaptor(ManoBasePlugin):
             self.deploy_kubernetes_function, "infrastructure.cloud_service.deploy"
         )
         # Termination
-        # TODO infrastructure.service.remove
+        self.conn.register_async_endpoint(
+            self.remove_service, "infrastructure.service.remove"
+        )
 
     def on_lifecycle_start(self, message: Message):
         super().on_lifecycle_start(message)
@@ -203,6 +206,15 @@ class VimAdaptor(ManoBasePlugin):
             return create_completed_response({"csr": manager.deploy()})
         except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
+
+    def remove_service(self, message: Message):
+        service_instance_id = message.payload["instance_uuid"]
+        LOG.info("Removing service %s", service_instance_id)
+
+        for function_instance in FunctionInstance.objects(
+            service_instance_id=service_instance_id
+        ):
+            manager_factory.get_manager(function_instance.id).destroy()
 
 
 def main():

@@ -1,5 +1,6 @@
 import json
 import logging
+import shutil
 from os import environ
 from pathlib import Path
 
@@ -72,9 +73,9 @@ class TerraformFunctionInstanceManager(FunctionInstanceManager):
     ):
         super(TerraformFunctionInstanceManager, self).__init__(function_instance)
 
-        self._work_dir: Path = Path(
-            config["terraform_workdir"]
-        ) / self.function_instance.service_instance_id / self.function_instance.function_id
+        self._work_dir: Path = Path(config["terraform_workdir"]) / str(
+            self.function_instance.service_instance_id
+        ) / str(self.function_instance.function_id)
         self._work_dir.mkdir(parents=True, exist_ok=True)
 
         self._tf_vars = self._get_tf_vars()
@@ -188,4 +189,13 @@ class TerraformFunctionInstanceManager(FunctionInstanceManager):
         """
         super(TerraformFunctionInstanceManager, self).destroy()
         self._tf_destroy()
+
+        # Remove working directory
+        shutil.rmtree(self._work_dir)
+
+        # Remove service instance directory if it is empty now
+        service_instance_dir = self._work_dir.parent
+        if len(list(service_instance_dir.iterdir())) == 0:
+            service_instance_dir.rmdir()
+
         self.logger.info("Destruction succeeded")
