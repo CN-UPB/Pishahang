@@ -125,7 +125,6 @@ class FunctionInstanceManager:
 
     def destroy(self):
         """
-        Destroys the network function managed by this TerraformFunctionManager by
-        running `terraform destroy`. Raises a `TerraformException` on failure.
+        Destroys the network function managed by this FunctionInstanceManager.
         """
         self.logger.info("Destroying")
