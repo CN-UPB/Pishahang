@@ -190,65 +190,6 @@ SLM
 
 **Topic:** generic.ssm.[service_uuid]
 
-Function Lifecycle Management (FLM)
-===================================
-
-Function termination (request from FLM to IA)
----------------------------------------------
-
-| **Topic:** infratructure.function.terminate
-| **Sender:** FLM
-| **Reciever:** IA
-| **contains:** {“vnfr”: The function record,“vim_uuid”: The VIM id that
-  is hosting the function}
-
-SSM/FSM Executives
-==================
-
-Placement Executive
--------------------
-
-| **Description:** Placement executive inspects the messages related to
-  placement SSMs. It exposes an API that will be used by placement SSMs
-  to send and receive messages. The API is a RabbitMQ topic which is as
-  follow:
-
-| **Topic:** placement.ssm.[service_uuid]
-| **service_uuid** is the uuid of the service that the SSM belongs to.
-  Using the service uuid in topics, we isolate messages owned by
-  different services.
-
-Scaling Executive
------------------
-
-| **Description:** Scaling executive is provided to inspect messages
-  originated from scaling FSMs or destained for the scaling FSMs. The
-  topic exposed by this executive is the following:
-
-| **Topic:** scaling.fsm.[function_uuid]
-| **function_uuid** is the uuid of the VNF that the FSM belongs to.
-  Using the function uuid in topics, we isolate messages owned by
-  different VNFs.
-
-FLM
----
-
-| **Description:** Besides other tasks that have already mentioned for
-  FLM, it also takes care of inspecting the messages of any FSM that
-  does not correspond to scaling FSMs. The topics exposed by this plugin
-  is as follow:
-
-**Topic:** generic.fsm.[function_uuid]
-
-SLM
----
-
-| **Description:** Besides other tasks that have already mentioned for
-  SLM, it also takes care of inspecting the messages of any SSM that
-  does not correspond to placement SSMs. The topics exposed by this
-  plugin is as follow:
-
-**Topic:** generic.ssm.[service_uuid]
 
 Vim Adaptor
 ===========
