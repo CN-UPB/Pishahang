@@ -1,0 +1,15 @@
+@startuml
+
+SLM -> FLM: VNF deploy request
+FLM -> SMR: Onboard FSM request
+SMR --> FLM: Response to onboard call
+FLM -> SMR: Instantiate FSM request
+SMR --> FLM: Response to instantiation call
+FLM -> Vim_Adaptor: VNF deploy request
+Vim_Adaptor --> FLM: Response to deploy call
+FLM -> FLM: Generate Function Record
+FLM -> Repo: Store Function Record
+Repo --> FLM: Response to store call
+FLM --> SLM: response to deploy call
+
+@enduml

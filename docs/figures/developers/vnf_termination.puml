@@ -1,0 +1,13 @@
+@startuml
+
+SLM -> FLM: VNF terminate request
+FLM -> Vim_Adaptor: VNF terminate request
+Vim_Adaptor --> FLM: Response to termination call
+FLM -> FLM: Update Function Record
+FLM -> Repo: Store updated Function Record
+Repo --> FLM: Response to store call
+FLM -> SMR: Terminate FSMs 
+SMR --> FLM: Response on termination call
+FLM --> SLM: Response to termination call
+
+@enduml
