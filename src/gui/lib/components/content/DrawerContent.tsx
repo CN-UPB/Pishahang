@@ -21,8 +21,10 @@ import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import { useRouter } from "next/router";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
 import { useToggle } from "../../hooks/useToggle";
+import { selectUserIsAdmin } from "../../store/selectors/auth";
 import { LinkedListItem } from "../layout/LinkedListItem";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -36,6 +38,7 @@ const useStyles = makeStyles((theme: Theme) =>
 export const DrawerContent: React.FunctionComponent = () => {
   const classes = useStyles();
   const router = useRouter();
+  const isUserAdmin = useSelector(selectUserIsAdmin);
 
   const [descriptorsExpanded, toggleDescriptorsExpanded] = useToggle(
     router.pathname.startsWith("/descriptors/") &&
@@ -103,7 +106,11 @@ export const DrawerContent: React.FunctionComponent = () => {
       <Divider />
       <List>
         <LinkedListItem text={"Profile"} icon={Person} href={"/profile"}></LinkedListItem>
-        <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
+        {isUserAdmin ? (
+          <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
+        ) : (
+          ""
+        )}
       </List>
       <Divider />
     </>
