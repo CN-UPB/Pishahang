@@ -4,16 +4,15 @@ description: "The core schema for SONATA network function descriptors."
 definitions:
   images_formats:
     enum:
-      - "raw"
+      - "ami"
+      - "ari"
+      - "aki"
       - "vhd"
       - "vmdk"
+      - "raw"
+      - "qcow2"
       - "vdi"
       - "iso"
-      - "qcow2"
-      - "docker"
-      - "ova"
-      - "ovf"
-      - "bare"
   connection_point_types:
     enum:
       - "internal"

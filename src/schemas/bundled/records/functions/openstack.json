@@ -4,16 +4,15 @@
   "definitions": {
     "images_formats": {
       "enum": [
-        "raw",
+        "ami",
+        "ari",
+        "aki",
         "vhd",
         "vmdk",
-        "vdi",
-        "iso",
+        "raw",
         "qcow2",
-        "docker",
-        "ova",
-        "ovf",
-        "bare"
+        "vdi",
+        "iso"
       ]
     },
     "connection_point_types": {
@@ -440,16 +439,15 @@
           "vm_image_format": {
             "description": "The format of the virtual machine image.",
             "enum": [
-              "raw",
+              "ami",
+              "ari",
+              "aki",
               "vhd",
               "vmdk",
-              "vdi",
-              "iso",
+              "raw",
               "qcow2",
-              "docker",
-              "ova",
-              "ovf",
-              "bare"
+              "vdi",
+              "iso"
             ]
           },
           "vm_image_md5": {

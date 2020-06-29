@@ -3,16 +3,15 @@ description: The core schema for SONATA network function descriptors.
 definitions:
   images_formats:
     enum:
-      - raw
+      - ami
+      - ari
+      - aki
       - vhd
       - vmdk
+      - raw
+      - qcow2
       - vdi
       - iso
-      - qcow2
-      - docker
-      - ova
-      - ovf
-      - bare
   connection_point_types:
     enum:
       - internal
@@ -340,16 +339,15 @@ properties:
         vm_image_format:
           description: The format of the virtual machine image.
           enum:
-            - raw
+            - ami
+            - ari
+            - aki
             - vhd
             - vmdk
+            - raw
+            - qcow2
             - vdi
             - iso
-            - qcow2
-            - docker
-            - ova
-            - ovf
-            - bare
         vm_image_md5:
           description: An MD5 hash of the virtual machine image.
           type: string
