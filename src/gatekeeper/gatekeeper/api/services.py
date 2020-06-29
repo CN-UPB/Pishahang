@@ -237,15 +237,27 @@ def instantiateService(serviceId):
         """
         React to the SLM's notification about the instantiation outcome
         """
-        if message.correlation_id == instance.correlationId:
-            logger.debug("Received instantiation notification: %s", message.payload)
+        if message.correlation_id != instance.correlationId:
+            return
 
-            instance.status = message.payload["status"]
-            if message.payload["status"] == "ERROR":
-                instance.message = str(message.payload["error"])
-            instance.save()
+        payload = message.payload
 
-            broker.unsubscribe(subscriptionId)
+        logger.debug("Received instantiation notification: %s", payload)
+
+        instance.status = payload["status"]
+        if payload["status"] == "ERROR":
+            instance.message = str(payload["error"])
+        else:
+            # Get instance id
+            if "cosr" in payload:
+                instance.internalId = payload["cosr"]["id"]
+            else:
+                # TODO handle "simple service" (if we need this before it is removed)
+                pass
+
+        instance.save()
+
+        broker.unsubscribe(subscriptionId)
 
     subscriptionId = broker.register_notification_endpoint(
         onNotificationReceived, SERVICE_CREATION_TOPIC
@@ -257,7 +269,33 @@ def instantiateService(serviceId):
 def terminateServiceInstance(serviceId, instanceId):
     _getServiceByIdOrFail(serviceId)
     try:
-        instance = ServiceInstance.objects.get(id=instanceId)
-        instance.delete()
+        instance: ServiceInstance = ServiceInstance.objects.get(id=instanceId)
     except DoesNotExist:
         raise ServiceInstanceNotFoundError()
+
+    if not instance.internalId:
+        instance.delete()
+        return
+
+    def onResponseReceived(message: Message):
+        payload = message.payload
+
+        logger.debug("Received termination response: %s", payload)
+
+        instance.status = payload["status"]
+        if payload["status"] == "ERROR":
+            instance.message = "Termination failed: {}".format(payload["error"])
+            instance.save()
+        else:
+            instance.delete()
+
+    # Request service termination at the SLM
+    broker.call_async(
+        onResponseReceived,
+        "service.instance.terminate",
+        {"instance_id": str(instance.internalId)},
+    )
+
+    instance.status = "TERMINATING"
+    instance.internalId = None  # Prevent another deletion request
+    instance.save()

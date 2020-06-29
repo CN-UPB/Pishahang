@@ -18,8 +18,10 @@ from gatekeeper.util.mongoengine_custom_json import CustomJsonRules
 
 class ServiceInstance(UuidDocument, TimestampsDocument):
     status = StringField(required=True)
-    correlationId = UUIDField(required=True, custom_json=CustomJsonRules.HIDDEN)
     message = StringField()
+
+    correlationId = UUIDField(required=True, custom_json=CustomJsonRules.HIDDEN)
+    internalId = UUIDField(custom_json=CustomJsonRules.HIDDEN)
 
 
 class Service(UuidDocument, TimestampsDocument):

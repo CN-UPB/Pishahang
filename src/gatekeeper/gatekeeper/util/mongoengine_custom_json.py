@@ -34,9 +34,11 @@ def to_custom_dict(obj: Union[BaseDocument, QuerySet]):
                 try:
                     doc.pop(fieldName)
                 except KeyError:
-                    doc.pop(
-                        "_id"
-                    )  # TODO Is the field always stored in "_id" in this case?
+                    # TODO Is the field always stored in "_id" in this case?
+                    # doc.pop(
+                    #     "_id"
+                    # )
+                    pass
             else:
                 # Check for recursive document fields and process them recursively
                 if isinstance(field, (ReferenceField, EmbeddedDocumentField)):
