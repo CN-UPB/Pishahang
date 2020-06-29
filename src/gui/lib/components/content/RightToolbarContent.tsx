@@ -20,7 +20,7 @@ export const RightToolbarContent: React.FunctionComponent<React.HTMLAttributes<H
         {userName}
       </Typography>
       <Tooltip title="Profile" arrow>
-        <IconButtonLink color={"inherit"} href="/user">
+        <IconButtonLink color={"inherit"} href="/profile">
           <PersonIcon />
         </IconButtonLink>
       </Tooltip>
