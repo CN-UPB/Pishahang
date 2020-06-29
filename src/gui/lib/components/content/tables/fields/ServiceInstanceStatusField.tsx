@@ -20,6 +20,7 @@ export const ServiceInstanceStatusField: React.FunctionComponent<Props> = ({ ins
 
   switch (status) {
     case "INSTANTIATING":
+    case "TERMINATING":
       return (
         <div style={{ display: "inline-block" }}>
           {status}
