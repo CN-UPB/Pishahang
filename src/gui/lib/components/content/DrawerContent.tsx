@@ -11,6 +11,8 @@ import {
   Dashboard,
   Dns,
   Dvr,
+  Group,
+  Person,
   ScatterPlotRounded,
   Settings,
   WebAsset,
@@ -97,6 +99,13 @@ export const DrawerContent: React.FunctionComponent = () => {
       <List>
         <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
+
+      <Divider />
+      <List>
+        <LinkedListItem text={"Profile"} icon={Person} href={"/profile"}></LinkedListItem>
+        <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
+      </List>
+      <Divider />
     </>
   );
 };
