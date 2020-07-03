@@ -52,7 +52,7 @@ def get_resource_utilization(vim: KubernetesVim):
         for node in api.list_node().items:
             allocatable = node.status.allocatable
             cores_total += float(allocatable["cpu"])
-            memory_total += bitmath.parse_string(allocatable["memory"] + "B")
+            memory_total += bitmath.parse_string_unsafe(allocatable["memory"])
 
         # Aggregate resource requests for all containers in all pods (like `kubectl
         # describe nodes` does)
@@ -65,8 +65,8 @@ def get_resource_utilization(vim: KubernetesVim):
                             float(resource_requests["cpu"].replace("m", "")) / 1000
                         )
                     if "memory" in resource_requests:
-                        memory_used += bitmath.parse_string(
-                            resource_requests["memory"] + "B"
+                        memory_used += bitmath.parse_string_unsafe(
+                            resource_requests["memory"]
                         )
 
         return {
