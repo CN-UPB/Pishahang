@@ -37,6 +37,7 @@ from vim_adaptor.models.vims import (
     BaseVim,
     KubernetesVim,
     KubernetesVimSchema,
+    OpenStackVim,
     OpenStackVimSchema,
     VimType,
 )
@@ -87,6 +88,10 @@ class VimAdaptor(ManoBasePlugin):
         self.conn.register_async_endpoint(
             self.deploy_kubernetes_function, "infrastructure.cloud_service.deploy"
         )
+        self.conn.register_async_endpoint(
+            self.deploy_openstack_function, "infrastructure.function.deploy"
+        )
+
         # Termination
         self.conn.register_async_endpoint(
             self.remove_service, "infrastructure.service.remove"
@@ -204,6 +209,24 @@ class VimAdaptor(ManoBasePlugin):
                 descriptor=payload["csd"],
             )
             return create_completed_response({"csr": manager.deploy()})
+        except (VimNotFoundException, TerraformException) as e:
+            return create_error_response(str(e))
+
+    def deploy_openstack_function(self, message: Message):
+        payload = message.payload
+
+        try:
+            vim = OpenStackVim.get_by_id(payload["vim_uuid"])
+            manager = manager_factory.create_manager(
+                "openstack",
+                vim=vim,
+                function_instance_id=payload["vnfd"]["instance_uuid"],
+                function_id=payload["vnfd"]["uuid"],
+                service_instance_id=payload["service_instance_id"],
+                descriptor=payload["vnfd"],
+            )
+            manager.deploy()
+            return create_completed_response()
         except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
 
