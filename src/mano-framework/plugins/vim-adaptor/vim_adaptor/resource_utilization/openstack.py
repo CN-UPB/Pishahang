@@ -1,19 +1,26 @@
+from keystoneauth1.exceptions.http import Unauthorized
+from keystoneauth1.loading import get_plugin_loader
+from keystoneauth1.session import Session
 from novaclient.client import Client
 
 import vim_adaptor.models.vims as vims
 from vim_adaptor.exceptions import VimConnectionError
-from keystoneauth1.exceptions.http import Unauthorized
 
 
 def get_resource_utilization(vim: vims.OpenStackVim):
     try:
         nova = Client(
             version="2",
-            username=vim.username,
-            password=vim.password,
-            project_id=vim.tenant.id,
-            auth_url="http://{}:5000/".format(vim.address),
-            timeout=5,
+            session=Session(
+                auth=get_plugin_loader("password").load_from_options(
+                    auth_url="http://{}/identity".format(vim.address),
+                    username=vim.username,
+                    password=vim.password,
+                    user_domain_id="default",
+                    project_id=vim.tenant.id,
+                ),
+                timeout=5,
+            ),
         )
         limits = nova.limits.get(tenant_id=vim.tenant.id).to_dict()["absolute"]
 
