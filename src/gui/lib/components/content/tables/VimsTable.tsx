@@ -11,6 +11,7 @@ import { useThunkDispatch } from "../../../store";
 import { showVimInfoDialog } from "../../../store/actions/dialogs";
 import { deleteVim } from "../../../store/thunks/vims";
 import { SwrDataTable } from "../../layout/tables/SwrDataTable";
+import { VimTypeIconField } from "./fields/VimTypeIconField";
 
 export const VimsTable: React.FunctionComponent = () => {
   const dispatch = useThunkDispatch();
@@ -37,6 +38,11 @@ export const VimsTable: React.FunctionComponent = () => {
       swr={swr}
       columns={[
         { title: "Name", field: "name" },
+        {
+          title: "Type",
+          field: "type",
+          render: (vim) => <VimTypeIconField vimType={vim.type} />,
+        },
         { title: "Country", field: "country" },
         { title: "City", field: "city" },
         {
