@@ -14,7 +14,7 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
 
     manager_type = "openstack"
 
-    templates = (TEMPLATE_BASE_PATH / "openstack").iterdir()
+    templates = list((TEMPLATE_BASE_PATH / "openstack").iterdir())
 
     def _get_tf_vars(self):
         vim: OpenStackVim = self.function_instance.vim

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, List
 
 from appcfg import get_config
 
@@ -19,7 +19,7 @@ class TerraformFunctionInstanceManager(FunctionInstanceManager):
     """
 
     # The paths of Jinja2 templates that will be rendered to Terraform templates
-    templates: Iterable[Path] = None
+    templates: List[Path] = None
 
     def __init__(
         self, function_instance: FunctionInstance,

@@ -11,7 +11,7 @@ class KubernetesFunctionInstanceManager(TerraformFunctionInstanceManager):
 
     manager_type = "kubernetes"
 
-    template_path = TEMPLATE_BASE_PATH / "kubernetes"
+    templates = list((TEMPLATE_BASE_PATH / "kubernetes").iterdir())
 
     def _get_tf_vars(self):
         vim: KubernetesVim = self.function_instance.vim

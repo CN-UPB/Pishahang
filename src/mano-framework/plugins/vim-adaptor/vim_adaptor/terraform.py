@@ -3,7 +3,7 @@ import logging
 import shutil
 from os import environ
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, List
 
 import wrapt
 from appcfg import get_config
@@ -19,7 +19,7 @@ logging.getLogger("python_terraform").setLevel(logging.ERROR)
 environ["TF_IN_AUTOMATION"] = "true"
 
 # Use this to get debug output from Terraform:
-# environ["TF_LOG"] = "DEBUG"
+# environ["TF_LOG"] = "TRACE"
 
 config = get_config(__name__)
 
@@ -67,7 +67,7 @@ class TerraformWrapper:
     def __init__(
         self,
         work_dir: Path,
-        templates: Iterable[Path],
+        templates: List[Path],
         context: Dict[str, Any],
         tf_vars: Dict[str, str],
     ):
@@ -98,7 +98,7 @@ class TerraformWrapper:
 
     @classmethod
     def render_templates(
-        cls, templates: Iterable[Path], context: Dict[str, any], output_dir: Path
+        cls, templates: List[Path], context: Dict[str, any], output_dir: Path
     ):
         """
         Render the templates specified in `templates` using the context from
