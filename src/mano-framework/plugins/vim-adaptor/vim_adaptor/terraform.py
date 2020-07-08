@@ -24,6 +24,7 @@ environ["TF_IN_AUTOMATION"] = "true"
 config = get_config(__name__)
 
 TERRAFORM_BIN_PATH: Path = Path(__file__).parents[1] / "terraform"
+TERRAFORM_WORKDIR = Path(config["terraform_workdir"])
 
 
 def terraform_method(return_json=False):
@@ -66,7 +67,7 @@ class TerraformWrapper:
 
     def __init__(
         self,
-        work_dir: Path,
+        workdir: Path,
         templates: List[Path],
         context: Dict[str, Any],
         tf_vars: Dict[str, str],
@@ -81,19 +82,19 @@ class TerraformWrapper:
             tf_vars: A `dict` of Terraform variables that will be available to Terraform
         """
 
-        self._work_dir = work_dir
+        self.workdir = workdir
         self._templates = templates
         self._context = context
         self._tf_vars = tf_vars
 
-        work_dir.mkdir(parents=True, exist_ok=True)
+        workdir.mkdir(parents=True, exist_ok=True)
 
         self._terraform = Terraform(
-            working_dir=work_dir.as_posix(),
+            working_dir=workdir.as_posix(),
             terraform_bin_path=TERRAFORM_BIN_PATH.as_posix(),
         )
 
-        self.render_templates(templates, context, work_dir)
+        self.render_templates(templates, context, workdir)
         self.init()
 
     @classmethod
@@ -112,12 +113,12 @@ class TerraformWrapper:
                 with (output_dir / template_path.name).open("w") as output_file:
                     output_file.write(template.render(context))
 
-    def remove_work_dir(self):
+    def remove_workdir(self):
         """
         Recursively removes the working directory of this `TerraformWrapper`
         """
         # Remove working directory
-        shutil.rmtree(self._work_dir)
+        shutil.rmtree(self.workdir)
 
     @terraform_method()
     def init(self):

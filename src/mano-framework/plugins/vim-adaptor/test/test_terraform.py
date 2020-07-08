@@ -13,15 +13,15 @@ def test_terraform_wrapper(mocker, fs: FakeFilesystem):
     )
 
     terraform = TerraformWrapper(
-        work_dir=Path("/workdir"),
+        workdir=Path("/workdir"),
         templates=[Path("/my-template-dir/template.tf")],
         context={"my_var": "value"},
         tf_vars={},
     )
 
     # Template(s) should have been compiled
-    assert terraform._work_dir.exists()
-    rendered_template_file: Path = terraform._work_dir / "template.tf"
+    assert terraform.workdir.exists()
+    rendered_template_file: Path = terraform.workdir / "template.tf"
     assert rendered_template_file.exists()
     with rendered_template_file.open() as f:
         assert "Context variable: value" == f.read()
@@ -30,6 +30,6 @@ def test_terraform_wrapper(mocker, fs: FakeFilesystem):
     terraform.init.assert_called()
 
     # Remove working directory
-    terraform.remove_work_dir()
+    terraform.remove_workdir()
     assert not rendered_template_file.exists()
-    assert not terraform._work_dir.exists()
+    assert not terraform.workdir.exists()
