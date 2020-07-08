@@ -3,7 +3,7 @@ from vim_adaptor.managers.kubernetes import KubernetesFunctionInstanceManager
 from vim_adaptor.managers.openstack import OpenStackFunctionInstanceManager
 
 factory = FunctionInstanceManagerFactory()
-factory.register_manager_type("kubernetes", KubernetesFunctionInstanceManager)
-factory.register_manager_type("openstack", OpenStackFunctionInstanceManager)
+factory.register_manager_type(KubernetesFunctionInstanceManager)
+factory.register_manager_type(OpenStackFunctionInstanceManager)
 
 __all__ = ["factory"]

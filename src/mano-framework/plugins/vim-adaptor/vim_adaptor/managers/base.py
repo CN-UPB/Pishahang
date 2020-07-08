@@ -14,15 +14,13 @@ class FunctionInstanceManagerFactory:
         # Map manager types to manager classes:
         self._manager_classes: Dict[str, Type["FunctionInstanceManager"]] = {}
 
-    def register_manager_type(
-        self, manager_type: str, manager_class: Type["FunctionInstanceManager"]
-    ):
+    def register_manager_type(self, manager_class: Type["FunctionInstanceManager"]):
         """
-        Registers a manager type at the factory. The arbitrary string provided as
-        `manager_type` can then be used to refer to the subclass of
-        FunctionInstanceManager provided as `manager_class`.
+        Registers a manager type at the factory. The FunctionInstanceManager subclass
+        provided as `manager_class` can then be referred to via the class'
+        `manager_type` string.
         """
-        self._manager_classes[manager_type] = manager_class
+        self._manager_classes[manager_class.manager_type] = manager_class
 
     def create_manager(
         self,
@@ -89,7 +87,8 @@ class FunctionInstanceManager:
     handed out by a `FunctionInstanceManagerFactory`.
     """
 
-    template_path: Path = None
+    # A string that identifies this class at the FunctionInstanceManagerFactory
+    manager_type: str
 
     def __init__(
         self, function_instance: FunctionInstance,

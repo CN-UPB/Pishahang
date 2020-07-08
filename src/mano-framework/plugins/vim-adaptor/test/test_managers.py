@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from pyfakefs.fake_filesystem import FakeFilesystem
+from appcfg import get_config
 
 from vim_adaptor.managers.base import (
     FunctionInstanceManager,
@@ -11,15 +11,19 @@ from vim_adaptor.managers.terraform import TerraformFunctionInstanceManager
 from vim_adaptor.models.function import FunctionInstance
 from vim_adaptor.models.vims import BaseVim
 
+config = get_config("vim_adaptor")
+
 
 def uuid_string():
     return str(uuid4())
 
 
 def test_manager_factory(mongo_connection):
+    FunctionInstanceManager.manager_type = "test"
+
     def create_factory():
         factory = FunctionInstanceManagerFactory()
-        factory.register_manager_type("test", FunctionInstanceManager)
+        factory.register_manager_type(FunctionInstanceManager)
         return factory
 
     factory = create_factory()
@@ -55,21 +59,10 @@ def test_manager_factory(mongo_connection):
     assert function_instance == manager2.function_instance
 
 
-def test_terraform_manager_initialization(mocker, fs: FakeFilesystem):
-    mocker.patch(
-        "vim_adaptor.managers.terraform.TerraformFunctionInstanceManager._tf_init"
-    )
-    TerraformFunctionInstanceManager.template_path = Path("/my-template-dir")
+def test_terraform_manager(mocker, fs):
+    wrapper_class_mock = mocker.patch("vim_adaptor.managers.terraform.TerraformWrapper")
 
-    fs.create_file(
-        "/my-template-dir/template.tf",
-        contents=(
-            "Function Instance Id: {{ function_instance_id }}\n"
-            "Function Id: {{ function_id }}\n"
-            "Service Instance Id: {{ service_instance_id }}\n"
-            "Descriptor Id: {{ descriptor.id }}"
-        ),
-    )
+    TerraformFunctionInstanceManager.templates = Path("/my-template-dir/template.tf")
 
     function_instance = FunctionInstance(
         id=uuid_string(),
@@ -81,17 +74,22 @@ def test_terraform_manager_initialization(mocker, fs: FakeFilesystem):
 
     manager = TerraformFunctionInstanceManager(function_instance)
 
-    # Template(s) should have been compiled
-    assert manager._work_dir.exists()
-    target_file: Path = manager._work_dir / "template.tf"
-    assert target_file.exists()
-    with target_file.open() as f:
-        assert [
-            "Function Instance Id: " + str(function_instance.id),
-            "Function Id: " + str(function_instance.function_id),
-            "Service Instance Id: " + str(function_instance.service_instance_id),
-            "Descriptor Id: " + function_instance.descriptor["id"],
-        ] == f.read().splitlines()
+    # A TerraformWrapper should have been initialized
+    wrapper_class_mock.assert_called_once()
 
-    # _tf_init should have been called
-    manager._tf_init.assert_called()
+    # Test deploy
+    manager.terraform.plan.assert_not_called()
+    manager.terraform.plan.assert_not_called()
+    manager.deploy()
+    manager.terraform.plan.assert_called_once()
+    manager.terraform.apply.assert_called_once()
+
+    # Test destroy
+    function_dir = Path(config["terraform_workdir"]) / str(
+        manager.function_instance.service_instance_id
+    )
+    function_dir.mkdir(parents=True)
+
+    manager.terraform.destroy.assert_not_called()
+    manager.destroy()
+    manager.terraform.apply.assert_called_once()

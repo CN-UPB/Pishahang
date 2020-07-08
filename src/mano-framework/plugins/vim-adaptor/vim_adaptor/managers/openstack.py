@@ -11,7 +11,10 @@ from vim_adaptor.util import convert_size
 
 
 class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
-    template_path = TEMPLATE_BASE_PATH / "openstack"
+
+    manager_type = "openstack"
+
+    templates = (TEMPLATE_BASE_PATH / "openstack").iterdir()
 
     def _get_tf_vars(self):
         vim: OpenStackVim = self.function_instance.vim

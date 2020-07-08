@@ -8,6 +8,9 @@ from vim_adaptor.models.vims import KubernetesVim
 
 
 class KubernetesFunctionInstanceManager(TerraformFunctionInstanceManager):
+
+    manager_type = "kubernetes"
+
     template_path = TEMPLATE_BASE_PATH / "kubernetes"
 
     def _get_tf_vars(self):
