@@ -41,7 +41,7 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
                 convert_size(memory["size"], memory.get("size_unit", "MB"), bitmath.MB,)
             )
             # Remove the size unit so it does not lead to confusion
-            requirements["memory"].pop("size_unit")
+            memory.pop("size_unit", None)
 
             if "storage" in requirements:
                 storage = requirements["storage"]
@@ -51,5 +51,6 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
                     ),
                     3,
                 )
+                memory.pop("size_unit", None)
 
         return ctx
