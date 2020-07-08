@@ -1,6 +1,6 @@
 import logging
-from pathlib import Path
-from typing import Dict, Type
+from typing import Dict, Type, Union
+from uuid import UUID
 
 from vim_adaptor.models.function import FunctionInstance
 from vim_adaptor.models.vims import BaseVim
@@ -59,10 +59,10 @@ class FunctionInstanceManagerFactory:
         self._managers[function_instance_id] = manager
         return manager
 
-    def get_manager(self, function_instance_id):
+    def get_manager(self, function_instance_id: Union[str, UUID]):
         """
-        Retrieves a FunctionManager by the id of its function instance. If the manager
-        has not been created during this program execution, the corresponding
+        Retrieves a FunctionInstanceManager by the id of its function instance. If the
+        manager has not been created during this program execution, the corresponding
         FunctionInstance document is fetched from the database and a manager instance is
         re-created. Throws a `mongoengine.DoesNotExist` exception if no manager has
         previously been created for the given function instance id.
@@ -78,6 +78,29 @@ class FunctionInstanceManagerFactory:
         )
         self._managers[function_instance_id] = manager
         return manager
+
+    def delete_manager(self, function_instance_id: Union[str, UUID]):
+        """
+        Permanently deletes a manager for a given `function_instance_id`. Throws a
+        `mongoengine.DoesNotExist` exception if no manager has previously been created
+        for the given function instance id.
+        """
+        function_instance: FunctionInstance = FunctionInstance.objects.get(
+            id=function_instance_id
+        )
+        function_instance.delete()
+        self._managers.pop(function_instance, None)
+
+    def count_managers_per_vim(
+        self, manager_class: Type["FunctionInstanceManager"], vim_id: Union[str, UUID]
+    ) -> int:
+        """
+        Returns the number of FunctionInstanceManagers of a given
+        FunctionInstanceManager subclass that exist for a specific VIM.
+        """
+        return FunctionInstance.objects(
+            manager_type=manager_class.manager_type, vim=vim_id
+        ).count()
 
 
 class FunctionInstanceManager:

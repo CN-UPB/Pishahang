@@ -1,6 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
 from appcfg import get_config
 
 from vim_adaptor.managers.base import (
@@ -10,6 +11,7 @@ from vim_adaptor.managers.base import (
 from vim_adaptor.managers.terraform import TerraformFunctionInstanceManager
 from vim_adaptor.models.function import FunctionInstance
 from vim_adaptor.models.vims import BaseVim
+from mongoengine.errors import DoesNotExist
 
 config = get_config("vim_adaptor")
 
@@ -33,6 +35,7 @@ def test_manager_factory(mongo_connection):
 
     ids = [uuid_string() for _ in range(4)]
 
+    # Test manager creation
     manager = factory.create_manager(
         manager_type="test",
         vim=vim,
@@ -54,9 +57,20 @@ def test_manager_factory(mongo_connection):
     assert manager is factory.get_manager(ids[0])
 
     # Create another factory and test manager re-creation
-    factory2 = create_factory()
-    manager2 = factory2.get_manager(ids[0])
+    manager2 = create_factory().get_manager(ids[0])
     assert function_instance == manager2.function_instance
+
+    # Test manager counting
+    assert 1 == factory.count_managers_per_vim(FunctionInstanceManager, vim.id)
+
+    # Test manager deletion
+    factory.delete_manager(function_instance.id)
+
+    with pytest.raises(DoesNotExist):
+        factory.get_manager(function_instance.id)
+
+    # Count managers again
+    assert 0 == factory.count_managers_per_vim(FunctionInstanceManager, vim.id)
 
 
 def test_terraform_manager(mocker, fs):
