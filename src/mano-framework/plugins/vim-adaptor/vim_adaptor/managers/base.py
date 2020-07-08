@@ -1,6 +1,8 @@
 import logging
 import warnings
-from typing import Dict, List, Set, Type, Union
+from collections import defaultdict
+from threading import Lock
+from typing import Dict, List, Set, Tuple, Type, Union
 from uuid import UUID
 
 from vim_adaptor.models.function import FunctionInstance
@@ -12,11 +14,20 @@ class FunctionInstanceManagerFactory:
         # Map function instance ids to their manager objects:
         self._managers: Dict[str, "FunctionInstanceManager"] = {}
 
-        # Map function instance ids to their `ServiceInstanceHandler`s:
-        self._service_instance_handlers: Dict[str, Set["ServiceInstanceHandler"]] = {}
+        # Map function instance ids to Dicts that map (manager class, vim id) tuples to
+        # `ServiceInstanceHandler`s:
+        self._service_instance_handlers: Dict[
+            str,
+            Dict[
+                Tuple[Type["FunctionInstanceManager"], str],
+                Set["ServiceInstanceHandler"],
+            ],
+        ] = defaultdict(dict)
 
         # Map manager types to manager classes:
         self._manager_classes: Dict[str, Type["FunctionInstanceManager"]] = {}
+
+        self._lock = Lock()
 
     def register_manager_type(self, manager_class: Type["FunctionInstanceManager"]):
         """
@@ -87,24 +98,72 @@ class FunctionInstanceManagerFactory:
         is_recreation=False,
     ):
         manager_class = self._manager_classes[manager_type]
-
-        # Create `ServiceInstanceHandler`s if there are none yet
         service_instance_id = str(function_instance.service_instance_id)
-        if service_instance_id not in self._service_instance_handlers:
-            handlers = {
-                handler_class(service_instance_id, function_instance.vim)
-                for handler_class in manager_class.service_instance_handlers
-            }
+        vim = function_instance.vim
 
-            if not is_recreation:
-                for handler in handlers:
-                    handler.on_init()
+        with self._lock:
+            # Create the `ServiceInstanceHandler`s for the VIM if they are not yet
+            # present
+            if not self._are_service_handlers_instantiated(
+                manager_class, service_instance_id, str(vim.id)
+            ):
+                handlers = self._instantiate_service_handlers(
+                    manager_class, service_instance_id, vim
+                )
 
-            self._service_instance_handlers[service_instance_id] = handlers
+                if not is_recreation:
+                    for handler in handlers:
+                        handler.on_init()
 
-        manager = manager_class(function_instance, self)
-        self._managers[str(function_instance.id)] = manager
-        return manager
+            manager = manager_class(function_instance, self)
+            self._managers[str(function_instance.id)] = manager
+            return manager
+
+    def _get_service_handlers(
+        self,
+        manager_class: Type["FunctionInstanceManager"],
+        service_instance_id: str,
+        vim_id: str,
+        remove=False,
+    ) -> Set["ServiceInstanceHandler"]:
+        handlers_by_manager_and_vim = self._service_instance_handlers[
+            service_instance_id
+        ]
+        handlers = handlers_by_manager_and_vim[manager_class, vim_id]
+
+        if remove:
+            self._service_instance_handlers.pop(service_instance_id)
+
+        return handlers
+
+    def _are_service_handlers_instantiated(
+        self,
+        manager_class: Type["FunctionInstanceManager"],
+        service_instance_id: str,
+        vim_id: str,
+    ):
+        try:
+            self._get_service_handlers(manager_class, service_instance_id, vim_id)
+            return True
+        except KeyError:
+            return False
+
+    def _instantiate_service_handlers(
+        self,
+        manager_class: Type["FunctionInstanceManager"],
+        service_instance_id: str,
+        vim: BaseVim,
+    ) -> Set["ServiceInstanceHandler"]:
+        handlers = {
+            handler_class(manager_class, service_instance_id, vim)
+            for handler_class in manager_class.service_instance_handlers
+        }
+
+        self._service_instance_handlers[service_instance_id][
+            manager_class, str(vim.id)
+        ] = handlers
+
+        return handlers
 
     def _on_manager_destroyed(self, manager: "FunctionInstanceManager"):
         """
@@ -112,21 +171,24 @@ class FunctionInstanceManagerFactory:
         FunctionInstanceManager instance.
         """
         function_instance = manager.function_instance
-        function_instance.delete()
-        self._managers.pop(str(function_instance.id), None)
+        function_instance_id = str(function_instance.id)
+        manager_class = manager.__class__
+        vim_id = str(function_instance.vim.id)
 
-        # If this was the last manager for a service instance on a VIM, call
-        # `on_destroy()` on the service handlers
-        if (
-            self.count_managers(
-                manager.__class__, function_instance.id, function_instance.vim.id
-            )
-            == 0
-        ):
-            for handler in self._service_instance_handlers.pop(
-                str(function_instance.service_instance_id)
-            ):
-                handler.on_destroy()
+        with self._lock:
+            function_instance.delete()
+            self._managers.pop(function_instance_id)
+
+            # If this was the last manager for a manager type, service instance, and
+            # vim, call `on_destroy()` on the service handlers
+            if self.count_managers(manager_class, function_instance_id, vim_id) == 0:
+                for handler in self._get_service_handlers(
+                    manager_class,
+                    str(function_instance.service_instance_id),
+                    vim_id,
+                    remove=True,
+                ):
+                    handler.on_destroy()
 
     def count_managers(
         self,
@@ -210,8 +272,8 @@ class ServiceInstanceHandler:
     """
     A ServiceInstanceHandler is responsible to handle tasks related to service creation
     and destruction given a service id. It does so by implementing the two methods
-    `on_init` and `on_destroy`. This enables to implement per-service setup and teardown
-    tasks which may or may not be related to a specific VIM type.
+    `on_init` and `on_destroy`. This enables the implementation of per-service, per-vim,
+    per-function-instance-manager-type setup and teardown tasks.
 
     `ServiceInstanceHandler`s are not supposed to be instantiated manually. Instead, the
     desired subclasses of `ServiceInstanceHandler` can be specified as a list in a
@@ -223,21 +285,32 @@ class ServiceInstanceHandler:
     and teardown tasks may be required per VIM.
     """
 
-    def __init__(self, service_instance_id: Union[str, UUID], vim: BaseVim):
+    def __init__(
+        self,
+        manager_class: Type[FunctionInstanceManager],
+        service_instance_id: Union[str, UUID],
+        vim: BaseVim,
+    ):
         """
         Initializes a ServiceInstanceHandler.
 
         Args:
+            manager_class
             service_instance_id
             vim: The Vim document representing the VIM that this ServiceInstanceHandler
                 is responsible for
         """
+        self.manager_class = manager_class
         self.service_instance_id = str(service_instance_id)
         self.vim = vim
 
         self.logger = logging.getLogger(
-            "{}.{}(Service Instance Id: {})".format(
-                type(self).__module__, type(self).__name__, service_instance_id,
+            "{}.{}(Service Instance Id: {}, VIM: {} ({}))".format(
+                type(self).__module__,
+                type(self).__name__,
+                service_instance_id,
+                vim.name,
+                vim.id,
             )
         )
 

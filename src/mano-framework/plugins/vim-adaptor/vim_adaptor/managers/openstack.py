@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import bitmath
 
+from vim_adaptor.managers.base import ServiceInstanceHandler
 from vim_adaptor.managers.terraform import (
     TEMPLATE_BASE_PATH,
     TerraformFunctionInstanceManager,
@@ -11,6 +12,8 @@ from vim_adaptor.util import convert_size
 
 
 class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
+    class OpenStackServiceInstanceHandler(ServiceInstanceHandler):
+        pass
 
     manager_type = "openstack"
 

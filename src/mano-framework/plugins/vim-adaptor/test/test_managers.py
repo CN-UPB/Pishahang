@@ -62,13 +62,11 @@ def test_manager_factory(mongo_connection, mocker):
     assert manager is factory.get_manager(function_instance_id)
 
     def get_service_instance_handler(factory: FunctionInstanceManagerFactory):
-        assert {
-            function_instance.service_instance_id
-        } == factory._service_instance_handlers.keys()
-
-        return list(
-            factory._service_instance_handlers[function_instance.service_instance_id]
-        )[0]
+        handlers = factory._get_service_handlers(
+            FunctionInstanceManager, service_instance_id, str(vim.id)
+        )
+        assert 1 == len(handlers)
+        return list(handlers)[0]
 
     # Verify that a ServiceInstanceHandler has been created and that `on_init()` has
     # been called on it
