@@ -105,7 +105,6 @@ export const DrawerContent: React.FunctionComponent = () => {
 
       <Divider />
       <List>
-        <LinkedListItem text={"Profile"} icon={Person} href={"/profile"}></LinkedListItem>
         {isUserAdmin ? (
           <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
         ) : (
