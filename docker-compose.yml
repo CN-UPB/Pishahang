@@ -87,18 +87,6 @@ services:
     ports:
       - 8086:8086
 
-  # Repositories ---------------------------------------------------------------
-  catalogue-repos:
-    image: pishahang/catalogue-repos:${PISHAHANG_VERSION}
-    restart: always
-    networks:
-      pishanet:
-        aliases:
-          - son-catalogue-repos
-    # dns_servers: "8.8.8.8"
-    ports:
-      - "4002:4011"
-
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
   pluginmanager:
