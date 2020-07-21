@@ -156,44 +156,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
         :return:
         """
         super(self.__class__, self).on_lifecycle_start(message)
-        LOG.info("SLM started and operational. Registering with the GK...")
-
-        self.register_slm_with_gk()
-
-    def register_slm_with_gk(self):
-        """
-        This methods tries to register the SLM with the GK
-        """
-        counter = 0
-        while counter < 3:
-            try:
-                user = self.clientId
-                secr = self.password
-                # Get Public key
-                url = t.BASE_URL + t.API_VER + t.REG_PATH + t.PUPLIC_KEY_PATH
-                self.publickey = tools.get_platform_public_key(url)
-                LOG.info("Received key: " + str(self.publickey))
-
-                # Register
-                response = tools.client_register(t.GK_REGISTER, user, secr)
-                LOG.info("Registration response: " + str(response))
-
-                # Login
-                self.token = tools.client_login(t.GK_LOGIN, user, secr)
-                LOG.info("Login response: " + str(self.token))
-            except:
-                pass
-
-            if self.token is None:
-                LOG.info("Registration with GK failed, retrying...")
-                counter = counter + 1
-            else:
-                break
-
-        if self.token is None:
-            LOG.info("Registration with GK failed, continuing without token.")
-        else:
-            LOG.info("Registration with GK succeeded, token obtained.")
+        LOG.info("SLM started and operational.")
 
     def deregister(self):
         """
@@ -267,7 +230,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
                 # they already exist
                 self.roll_back_instantiation(serv_id)
 
-            del self.services[serv_id]
+            # del self.services[serv_id]
             return
 
         # Select the next task, only if task list is not empty
@@ -301,7 +264,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             # share state with other SLMs
             self.slm_share("DONE", self.services[serv_id])
 
-            del self.services[serv_id]
+            # del self.services[serv_id]
 
     ####################
     # SLM input - output
@@ -522,7 +485,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
             add_schedule.append("contact_gk")
         add_schedule.append("stop_monitoring")
         # add_schedule.append("wan_deconfigure")
-        add_schedule.append("vnf_unchain")
+        # add_schedule.append("vnf_unchain")
         add_schedule.append("vnfs_stop")
         add_schedule.append("terminate_service")
 
@@ -2481,175 +2444,15 @@ class ServiceLifecycleManager(ManoBasePlugin):
 
     def recreate_ledger(self, corr_id, serv_id):
         """
+        Deprecated, to be replaced by a MongoDB-based service data persistence solution
+
         This method recreates an entry in the ledger for a service
         based on the service instance id.
 
         :param corr_id: the correlation id of the received message
         :param serv_id: the service instance id
         """
-
-        def request_returned_with_error(request):
-            code = str(request["error"])
-            mess = str(request["content"])
-            LOG.info("Retrieving of record failed: " + code + " " + mess)
-            # TODO: get out of this
-
-        # Update the token of the SLM
-        if self.token is None:
-            self.register_slm_with_gk()
-
-        token = tools.client_login(t.GK_LOGIN, self.clientId, self.password)
-        self.token = token
-        LOG.info("Service " + serv_id + ": new token: " + str(self.token))
-
-        # base of the ledger
-        self.services[serv_id] = {}
-        self.services[serv_id]["original_corr_id"] = corr_id
-        self.services[serv_id]["service"] = {}
-
-        # Retrieve the service record based on the service instance id
-        is_ns = True
-        base = t.NSR_REPOSITORY_URL + "ns-instances/"
-        request = tools.getRestData(base, serv_id)
-
-        if request["error"] is not None:
-            # Try COSRs
-            LOG.info("NSR not found, trying COSR")
-            is_ns = False
-            base = t.COSR_REPOSITORY_URL + "cos-instances/"
-            request = tools.getRestData(base, serv_id)
-
-        if request["error"] is not None:
-            request_returned_with_error(request)
-            return
-
-        self.services[serv_id]["service"]["nsr" if is_ns else "cosr"] = request[
-            "content"
-        ]
-        LOG.info("Service " + serv_id + ": Recreating ledger: Record retrieved.")
-
-        # Retrieve the NSD
-        record = self.services[serv_id]["service"]["nsr" if is_ns else "cosr"]
-        descriptor_uuid = record["descriptor_reference"]
-
-        url = t.GK_SERVICES if is_ns else t.GK_COMPLEX_SERVICES
-        request = tools.getRestData(url, descriptor_uuid, token=self.token)
-
-        if request["error"] is not None:
-            request_returned_with_error(request)
-            return
-
-        self.services[serv_id]["service"]["nsd" if is_ns else "cosd"] = request[
-            "content"
-        ]["nsd" if is_ns else "cosd"]
-        LOG.info("Service " + serv_id + ": Recreating ledger: Descriptor retrieved.")
-
-        # Retrieve the function records based on the service record
-        self.services[serv_id]["function"] = []
-        self.services[serv_id]["cloud_service"] = []
-        record = self.services[serv_id]["service"]["nsr" if is_ns else "cosr"]
-        for vnf in record["network_functions"]:
-            base = t.VNFR_REPOSITORY_URL + "vnf-instances/"
-            request = tools.getRestData(base, vnf["vnfr_id"])
-
-            if request["error"] is not None:
-                request_returned_with_error(request)
-                return
-
-            new_function = {
-                "id": vnf["vnfr_id"],
-                "start": {"trigger": True, "payload": {}},
-                "stop": {"trigger": True, "payload": {}},
-                "configure": {"trigger": True, "payload": {}},
-                "scale": {"trigger": True, "payload": {}},
-                "vnfr": request["content"],
-            }
-
-            self.services[serv_id]["function"].append(new_function)
-            msg = ": Recreating ledger: VNFR retrieved."
-            LOG.info("Service " + serv_id + msg)
-
-        # Retrieve the VNFDS based on the function records
-        for vnf in self.services[serv_id]["function"]:
-            vnfd_id = vnf["vnfr"]["descriptor_reference"]
-
-            req = tools.getRestData(t.GK_FUNCTIONS, vnfd_id, token=self.token)
-
-            if req["error"] is not None:
-                request_returned_with_error(req)
-                return
-
-            vnf["vnfd"] = req["content"]["vnfd"]
-            LOG.info("Service " + serv_id + ": Recreate: VNFD retrieved.")
-
-        if "cloud_services" in record:
-            for cloud_service in record["cloud_services"]:
-                base = t.CSR_REPOSITORY_URL + "cs-instances/"
-                request = tools.getRestData(base, cloud_service["csr_id"])
-
-                if request["error"] is not None:
-                    request_returned_with_error(request)
-                    return
-
-                new_cloud_service = {
-                    "id": cloud_service["csr_id"],
-                    "start": {"trigger": True, "payload": {}},
-                    "stop": {"trigger": True, "payload": {}},
-                    "configure": {"trigger": True, "payload": {}},
-                    "scale": {"trigger": True, "payload": {}},
-                    "csr": request["content"],
-                }
-
-                self.services[serv_id]["cloud_service"].append(new_cloud_service)
-                msg = ": Recreating ledger: CSR retrieved."
-                LOG.info("Service " + serv_id + msg)
-
-        # Retrieve the CSDs based on the cloud service records
-        for cloud_service in self.services[serv_id]["cloud_service"]:
-            csd_id = cloud_service["csr"]["descriptor_reference"]
-
-            req = tools.getRestData(t.GK_CLOUD_SERVICES, csd_id, token=self.token)
-
-            if req["error"] is not None:
-                request_returned_with_error(req)
-                return
-
-            cloud_service["csd"] = req["content"]["csd"]
-            LOG.info("Service " + serv_id + ": Recreate: CSD retrieved.")
-
-        LOG.info(
-            "Service " + serv_id + ": Recreating ledger: VNFDs and CSDs retrieved."
-        )
-
-        # Retrieve the deployed SSMs based on the NSD
-        descriptor = self.services[serv_id]["service"]["nsd" if is_ns else "cosd"]
-        ssm_dict = tools.get_sm_from_descriptor(descriptor)
-
-        self.services[serv_id]["service"]["ssm"] = ssm_dict
-
-        LOG.info("Service " + serv_id + ": ssm_dict: " + str(ssm_dict))
-
-        # Retrieve the deployed FSMs based on the VNFD
-        for vnf in self.services[serv_id]["function"]:
-            vnfd = vnf["vnfd"]
-            fsm_dict = tools.get_sm_from_descriptor(vnfd)
-            vnf["fsm"] = fsm_dict
-            LOG.info(str(vnfd))
-            LOG.info(str(fsm_dict))
-
-        # Create the service schedule
-        self.services[serv_id]["schedule"] = []
-
-        # Create some necessary fields for the ledger
-        self.services[serv_id]["kill_chain"] = False
-        self.services[serv_id]["infrastructure"] = {}
-        self.services[serv_id]["task_log"] = []
-        self.services[serv_id]["vnfs_to_resp"] = 0
-        self.services[serv_id]["css_to_resp"] = 0
-        self.services[serv_id]["pause_chain"] = False
-        self.services[serv_id]["error"] = None
-
-        return
+        pass
 
     def validate_deploy_request(self, serv_id):
         """
