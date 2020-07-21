@@ -21,11 +21,11 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
-from slm import slm
+from slm.main import ServiceLifecycleManager
 
 
 def main():
-    slm.main()
+    ServiceLifecycleManager()
 
 
 if __name__ == "__main__":

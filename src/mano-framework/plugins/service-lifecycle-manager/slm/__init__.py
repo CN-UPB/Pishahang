@@ -21,3 +21,4 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
+version = "1.0.0"

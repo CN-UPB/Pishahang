@@ -120,7 +120,7 @@ GK_FUNCTIONS_URL = BASE_URL + "/api/v2/functions/"
 # With Repositories
 temp = os.environ.get("url_nsr_repository")
 if temp is None:
-    temp = "http://son-catalogue-repos:4011/api/v2/"
+    temp = "http://localhost:4011/api/v2/"
 c = urlparse(temp)
 CAT_PORT = c.port
 CAT_BASE_URL = c.scheme + "://" + c.hostname + ":" + str(CAT_PORT)
@@ -131,5 +131,6 @@ VNFR_REPOSITORY_URL = CAT_BASE_URL + "/records/vnfr/"
 CSR_REPOSITORY_URL = CAT_BASE_URL + "/records/csr/"
 
 # With Monitoring Manager
-# TODO: Secure this get against failure
-MONITORING_URL = os.environ.get("url_monitoring_server")
+MONITORING_URL = os.environ.get(
+    "url_monitoring_server", "http://localhost:8000/api/v1/"
+)
