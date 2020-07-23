@@ -20,7 +20,9 @@
 ## partner consortium (www.sonata-nfv.eu).
 
 ---
+descriptor_type: "function"
 descriptor_version: "2.0"
+descriptor_flavor: "openstack"
 
 vendor: "eu.sonata-nfv.service-descriptor"
 name: "sonata-demo"

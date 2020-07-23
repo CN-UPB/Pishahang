@@ -12,7 +12,7 @@ from slm.exceptions import (
     TerminationError,
 )
 from slm.models import Function, Service
-from slm.util import get_vm_image_id, raise_on_ia_error
+from slm.util import get_vm_image_id, raise_on_error_response
 
 DEPLOY_REQUEST_SCHEMA = Schema(
     {Required("nsd"): dict, Required("vnfds"): All(list, Length(min=1))},
@@ -195,7 +195,7 @@ class ServiceLifecycleManager:
         # Request preparation from IA
         response = (await self.conn.call(topics.IA_PREPARE, mapping)).payload
 
-        raise_on_ia_error(
+        raise_on_error_response(
             response,
             InstantiationError,
             self.logger,
@@ -205,19 +205,31 @@ class ServiceLifecycleManager:
     async def _deploy_vnfs(self):
         for function in self.service.functions:
             self.logger.info("Requesting the deployment of VNF %s", function.id)
-            response = (
-                await self.conn.call(
-                    topics.MANO_DEPLOY,
-                    {
-                        "descriptor": function.descriptor,
-                        "id": str(function.id),
-                        "vim": str(function.vim),
-                        "service_id": self.service_id,
-                    },
-                )
-            ).payload
 
-            raise_on_ia_error(
+            shared_message = {
+                "id": str(function.id),
+                "vim_uuid": str(function.vim),
+                "serv_id": self.service_id,
+            }
+            flavor = function.descriptor["descriptor_flavor"]
+            if flavor == "openstack":
+                response_future = self.conn.call(
+                    topics.MANO_DEPLOY, {**shared_message, "vnfd": function.descriptor},
+                )
+            elif flavor == "kubernetes":
+                response_future = self.conn.call(
+                    topics.MANO_DEPLOY, {**shared_message, "csd": function.descriptor},
+                )
+            else:
+                raise InstantiationError(
+                    'The SLM does not support function descriptor flavor "{}".'.format(
+                        flavor
+                    )
+                )
+
+            response = (await response_future).payload
+
+            raise_on_error_response(
                 response,
                 InstantiationError,
                 self.logger,
@@ -233,7 +245,9 @@ class ServiceLifecycleManager:
             await self.conn.call(topics.IA_REMOVE, {"service_id": self.service_id},)
         ).payload
 
-        raise_on_ia_error(response, TerminationError, self.logger, "Termination failed")
+        raise_on_error_response(
+            response, TerminationError, self.logger, "Termination failed"
+        )
 
     async def _rollback_instantiation(self):
         # Terminate service instance

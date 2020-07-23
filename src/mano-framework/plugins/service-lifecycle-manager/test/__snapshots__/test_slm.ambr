@@ -1,6 +1,9 @@
 # name: test_deploy_vnfs
   <class 'dict'> {
-    'descriptor': <class 'BaseDict'> {
+    'id': '6a15313f-cb0a-4540-baa2-77cc6b3f5b68',
+    'serv_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'vim_uuid': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
+    'vnfd': <class 'BaseDict'> {
       'author': 'Steven van Rossem, iMinds',
       'connection_points': <class 'BaseList'> [
         <class 'dict'> {
@@ -20,6 +23,8 @@
         "A first firewall VNF descriptor"
   
       ',
+      'descriptor_flavor': 'openstack',
+      'descriptor_type': 'function',
       'descriptor_version': 'vnfd-schema-01',
       'monitoring_rules': <class 'BaseList'> [
         <class 'dict'> {
@@ -159,14 +164,14 @@
         },
       ],
     },
-    'id': '6a15313f-cb0a-4540-baa2-77cc6b3f5b68',
-    'service_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
-    'vim': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
   }
 ---
 # name: test_deploy_vnfs.1
   <class 'dict'> {
-    'descriptor': <class 'BaseDict'> {
+    'id': '645db4fa-a714-4cba-9617-4001477d1281',
+    'serv_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'vim_uuid': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
+    'vnfd': <class 'BaseDict'> {
       'author': 'Steven van Rossem, iMinds',
       'connection_points': <class 'BaseList'> [
         <class 'dict'> {
@@ -187,6 +192,8 @@
          acts as a traffic source."
   
       ',
+      'descriptor_flavor': 'openstack',
+      'descriptor_type': 'function',
       'descriptor_version': 'vnfd-schema-01',
       'name': 'iperf-vnf',
       'uuid': '645db4fa-a714-4cba-9617-4001477d1281',
@@ -253,14 +260,14 @@
         },
       ],
     },
-    'id': '645db4fa-a714-4cba-9617-4001477d1281',
-    'service_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
-    'vim': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
   }
 ---
 # name: test_deploy_vnfs.2
   <class 'dict'> {
-    'descriptor': <class 'BaseDict'> {
+    'id': '8a0aa837-ec1c-44e5-9907-898f6401c3ae',
+    'serv_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'vim_uuid': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
+    'vnfd': <class 'BaseDict'> {
       'author': 'Steven van Rossem, iMinds',
       'connection_points': <class 'BaseList'> [
         <class 'dict'> {
@@ -281,6 +288,8 @@
          VNF acts as a traffic sink."
   
       ',
+      'descriptor_flavor': 'openstack',
+      'descriptor_type': 'function',
       'descriptor_version': 'vnfd-schema-01',
       'name': 'tcpdump-vnf',
       'uuid': '8a0aa837-ec1c-44e5-9907-898f6401c3ae',
@@ -347,9 +356,6 @@
         },
       ],
     },
-    'id': '8a0aa837-ec1c-44e5-9907-898f6401c3ae',
-    'service_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
-    'vim': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
   }
 ---
 # name: test_destroy_vnfs
@@ -380,6 +386,8 @@
           "A first firewall VNF descriptor"
   
         ',
+        'descriptor_flavor': 'openstack',
+        'descriptor_type': 'function',
         'descriptor_version': 'vnfd-schema-01',
         'monitoring_rules': <class 'BaseList'> [
           <class 'dict'> {
@@ -540,6 +548,8 @@
            acts as a traffic source."
   
         ',
+        'descriptor_flavor': 'openstack',
+        'descriptor_type': 'function',
         'descriptor_version': 'vnfd-schema-01',
         'name': 'iperf-vnf',
         'uuid': '645db4fa-a714-4cba-9617-4001477d1281',
@@ -627,6 +637,8 @@
            VNF acts as a traffic sink."
   
         ',
+        'descriptor_flavor': 'openstack',
+        'descriptor_type': 'function',
         'descriptor_version': 'vnfd-schema-01',
         'name': 'tcpdump-vnf',
         'uuid': '8a0aa837-ec1c-44e5-9907-898f6401c3ae',
@@ -717,6 +729,8 @@
          comprising iperf, a firewall, and tcpdump."
   
       ',
+      'descriptor_flavor': 'openstack',
+      'descriptor_type': 'function',
       'descriptor_version': '2.0',
       'forwarding_graphs': <class 'BaseList'> [
         <class 'dict'> {
