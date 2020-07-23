@@ -53,7 +53,7 @@ def snapshot_endpoint(connection: AsyncioBrokerConnection, snapshot, reraise):
     def snapshot_async_endpoint(topic, response):
         def endpoint_handler(message: Message):
             with reraise(catch=True):
-                message.payload == snapshot
+                assert message.payload == snapshot
 
             return response
 
