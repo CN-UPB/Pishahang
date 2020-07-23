@@ -8,4 +8,6 @@ RUN poetry install --no-root --no-dev --no-interaction
 
 COPY . ./
 
-CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:80", "repository:app_instance"]
+ENV ENVIRONMENT=production
+
+CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "repository:app_instance"]
