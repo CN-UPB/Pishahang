@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 import yaml
+from syrupy.matchers import path_type
 
 from manobase.messaging import AsyncioBrokerConnection as Connection
 from manobase.messaging import Message
@@ -106,7 +107,11 @@ async def test_fetch_placement(
     topic = topics.MANO_PLACE
 
     # Should send placement request that matches snapshot
-    with snapshot_endpoint(topic, {"mapping": PLACEMENT}):
+    with snapshot_endpoint(
+        topic,
+        {"mapping": PLACEMENT},
+        matcher=path_type(mapping={"functions": (list,), "nsd": (dict,)}, strict=True),
+    ):
         await manager._fetch_placement(topology=[])
 
     # Should store the placement in the Service document and its Function documents
@@ -152,7 +157,9 @@ async def test_deploy_vnfs(
 
     # Should send requests that match their snapshots
     with snapshot_endpoint(
-        topic, response={"request_status": "COMPLETED", "vnfr": {"key": "value"}}
+        topic,
+        response={"request_status": "COMPLETED", "vnfr": {"key": "value"}},
+        matcher=path_type(mapping={"vnfd": (dict,)}, strict=True),
     ):
         await manager._deploy_vnfs()
 

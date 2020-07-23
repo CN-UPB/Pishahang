@@ -46,14 +46,15 @@ def snapshot_endpoint(connection: AsyncioBrokerConnection, snapshot, reraise):
     """
     Returns a context manager that registers an endpoint that snapshot-tests the payload
     of any received message on a given `topic` and returns a provided `response`
-    payload.
+    payload. The context manager also accepts an optional `matcher` parameter that may
+    be used to provide a custom syrupy matcher function.
     """
 
     @contextmanager
-    def snapshot_async_endpoint(topic, response):
+    def snapshot_async_endpoint(topic: str, response: dict, matcher=None):
         def endpoint_handler(message: Message):
             with reraise(catch=True):
-                assert message.payload == snapshot
+                assert message.payload == snapshot(matcher=matcher)
 
             return response
 
