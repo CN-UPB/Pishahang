@@ -2,11 +2,17 @@ $schema: 'http://json-schema.org/draft-07/schema#'
 description: A common base schema for Pishahang descriptors
 type: object
 required:
+  - descriptor_type
   - descriptor_version
   - vendor
   - name
   - version
 properties:
+  descriptor_type:
+    description: The type of the descriptor
+    enum:
+      - service
+      - function
   descriptor_version:
     description: The version of the descriptor definition
     type: string

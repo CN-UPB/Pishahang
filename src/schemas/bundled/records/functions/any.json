@@ -8,16 +8,15 @@
       "definitions": {
         "images_formats": {
           "enum": [
-            "raw",
+            "ami",
+            "ari",
+            "aki",
             "vhd",
             "vmdk",
-            "vdi",
-            "iso",
+            "raw",
             "qcow2",
-            "docker",
-            "ova",
-            "ovf",
-            "bare"
+            "vdi",
+            "iso"
           ]
         },
         "connection_point_types": {
@@ -213,6 +212,8 @@
       },
       "type": "object",
       "required": [
+        "descriptor_flavor",
+        "descriptor_type",
         "descriptor_version",
         "id",
         "name",
@@ -222,6 +223,14 @@
         "virtual_deployment_units"
       ],
       "properties": {
+        "descriptor_type": {
+          "description": "The type of the descriptor",
+          "enum": [
+            "service",
+            "function"
+          ],
+          "const": "function"
+        },
         "descriptor_version": {
           "description": "The version of the descriptor definition",
           "type": "string",
@@ -291,6 +300,10 @@
               }
             ]
           }
+        },
+        "descriptor_flavor": {
+          "description": "The flavor of the function descriptor",
+          "const": "openstack"
         },
         "monitoring_rules": {
           "type": "array",
@@ -423,7 +436,9 @@
             "type": "object",
             "required": [
               "id",
-              "resource_requirements"
+              "resource_requirements",
+              "vm_image",
+              "vm_image_format"
             ],
             "additionalProperties": false,
             "properties": {
@@ -442,16 +457,15 @@
               "vm_image_format": {
                 "description": "The format of the virtual machine image.",
                 "enum": [
-                  "raw",
+                  "ami",
+                  "ari",
+                  "aki",
                   "vhd",
                   "vmdk",
-                  "vdi",
-                  "iso",
+                  "raw",
                   "qcow2",
-                  "docker",
-                  "ova",
-                  "ovf",
-                  "bare"
+                  "vdi",
+                  "iso"
                 ]
               },
               "vm_image_md5": {
@@ -1389,6 +1403,8 @@
       },
       "type": "object",
       "required": [
+        "descriptor_flavor",
+        "descriptor_type",
         "descriptor_version",
         "name",
         "vendor",
@@ -1396,6 +1412,14 @@
         "virtual_deployment_units"
       ],
       "properties": {
+        "descriptor_type": {
+          "description": "The type of the descriptor",
+          "enum": [
+            "service",
+            "function"
+          ],
+          "const": "function"
+        },
         "descriptor_version": {
           "description": "The version of the descriptor definition",
           "type": "string",
@@ -1465,6 +1489,10 @@
               }
             ]
           }
+        },
+        "descriptor_flavor": {
+          "description": "The flavor of the function descriptor",
+          "const": "kubernetes"
         },
         "monitoring_rules": {
           "type": "array",
@@ -1770,10 +1798,6 @@
                     }
                   }
                 }
-              },
-              "vdu_reference": {
-                "description": "The reference to the VDU (csd:vdu:id) used to instantiate this element.",
-                "type": "string"
               },
               "number_of_instances": {
                 "description": "The number of instances of this VDU element.",

@@ -1,12 +1,13 @@
 # YAML description of a firewall docker container
 # used in the SONATA platform
 
----
 ##
 ## Some general information regarding this
 ## VNF descriptor.
 ##
+descriptor_type: "function"
 descriptor_version: "vnfd-schema-01"
+descriptor_flavor: "openstack"
 
 vendor: "eu.sonata-nfv"
 name: "vtc-vnf"
@@ -19,7 +20,7 @@ description: >
 ## Some function specific managers.
 ##
 
-## NOTE : this sub-section of the VNFD is not complete 
+## NOTE : this sub-section of the VNFD is not complete
 function_specific_managers:
   - id: "fsm00"
     description: "FSM for controlling the classification capabilities of the vTC"
@@ -95,9 +96,9 @@ virtual_deployment_units:
     connection_points:
       #Management interface
       - id: "eth0"
-        interface: "ipv4" #this is the only interface that should get floating IP address. traffic for the other interfaces will be forwarded via the SDN controller" 
+        interface: "ipv4" #this is the only interface that should get floating IP address. traffic for the other interfaces will be forwarded via the SDN controller"
         type: "internal"
-        #access: "public" #signal the allocation of public IP from the allocated segment for this tenant. 
+        #access: "public" #signal the allocation of public IP from the allocated segment for this tenant.
       #Data-in interface
       - id: "eth1"
         interface: "ipv4"
@@ -106,9 +107,9 @@ virtual_deployment_units:
       - id: "eth2"
         interface: "ipv4"
         type: "internal"
-  
+
 ##
-## The VNF connection points to the 
+## The VNF connection points to the
 ## outside world.
 ##
 connection_points:
@@ -182,5 +183,3 @@ monitoring_rules:
     notification:
       - name: "notification04"
         type: "rabbitmq_message"
-
-

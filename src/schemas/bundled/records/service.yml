@@ -2,12 +2,18 @@ $schema: 'http://json-schema.org/draft-07/schema#'
 description: Pishahang service record schema
 type: object
 required:
+  - descriptor_type
   - descriptor_version
   - name
   - status
   - vendor
   - version
 properties:
+  descriptor_type:
+    description: The type of the descriptor
+    enum:
+      - service
+      - function
   descriptor_version:
     description: The version of the descriptor definition
     type: string

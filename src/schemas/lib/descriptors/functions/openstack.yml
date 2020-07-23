@@ -30,6 +30,8 @@ allOf:
     required:
       - virtual_deployment_units
     properties:
+      descriptor_flavor:
+        const: "openstack"
       function_specific_managers:
         description: "A list of FSMs used to manage this VNF."
         type: "array"

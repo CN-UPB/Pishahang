@@ -6,7 +6,8 @@
 ##
 ## @author Manuel Peuster
 ##
----
+
+descriptor_type: "service"
 descriptor_version: "1.0"
 
 vendor: "eu.sonata-nfv.service-descriptor"
@@ -48,7 +49,7 @@ service_specific_managers:
         value: "myValue"
 
 ##
-## The NS connection points to the 
+## The NS connection points to the
 ## outside world.
 ##
 connection_points:
@@ -102,7 +103,7 @@ forwarding_graphs:
   - fg_id: "fg01"
     number_of_endpoints: 2
     number_of_virtual_links: 4
-    constituent_virtual_links: 
+    constituent_virtual_links:
       - "mgmt"
       - "input-2-iperf"
       - "iperf-2-firewall"
@@ -132,4 +133,3 @@ forwarding_graphs:
             position: 7
           - connection_point_ref: "output"
             position: 8
-

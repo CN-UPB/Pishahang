@@ -1,12 +1,13 @@
 # YAML description of a firewall docker container
 # used in the SONATA platform
 
----
 ##
 ## Some general information regarding this
 ## VNF descriptor.
 ##
+descriptor_type: "function"
 descriptor_version: "vnfd-schema-01"
+descriptor_flavor: "openstack"
 
 vendor: "eu.sonata-nfv"
 name: "firewall-vnf"
@@ -96,7 +97,7 @@ virtual_links:
     dhcp: True
 
 ##
-## The VNF connection points to the 
+## The VNF connection points to the
 ## outside world.
 ##
 connection_points:
@@ -145,5 +146,3 @@ monitoring_rules:
     notification:
       - name: "notification04"
         type: "rabbitmq_message"
-
-

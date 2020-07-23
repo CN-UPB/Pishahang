@@ -19,6 +19,8 @@ allOf:
     required:
       - virtual_deployment_units
     properties:
+      descriptor_flavor:
+        const: "kubernetes"
       virtual_deployment_units:
         description: "The virtual deployment units (VDUs) of the cloud service."
         type: "array"

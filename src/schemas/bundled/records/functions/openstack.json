@@ -208,6 +208,8 @@
   },
   "type": "object",
   "required": [
+    "descriptor_flavor",
+    "descriptor_type",
     "descriptor_version",
     "id",
     "name",
@@ -217,6 +219,14 @@
     "virtual_deployment_units"
   ],
   "properties": {
+    "descriptor_type": {
+      "description": "The type of the descriptor",
+      "enum": [
+        "service",
+        "function"
+      ],
+      "const": "function"
+    },
     "descriptor_version": {
       "description": "The version of the descriptor definition",
       "type": "string",
@@ -286,6 +296,10 @@
           }
         ]
       }
+    },
+    "descriptor_flavor": {
+      "description": "The flavor of the function descriptor",
+      "const": "openstack"
     },
     "monitoring_rules": {
       "type": "array",

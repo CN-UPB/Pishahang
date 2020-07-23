@@ -181,12 +181,22 @@
   },
   "type": "object",
   "required": [
+    "descriptor_flavor",
+    "descriptor_type",
     "descriptor_version",
-    "vendor",
     "name",
+    "vendor",
     "version"
   ],
   "properties": {
+    "descriptor_type": {
+      "description": "The type of the descriptor",
+      "enum": [
+        "service",
+        "function"
+      ],
+      "const": "function"
+    },
     "descriptor_version": {
       "description": "The version of the descriptor definition",
       "type": "string",
@@ -256,6 +266,9 @@
           }
         ]
       }
+    },
+    "descriptor_flavor": {
+      "description": "The flavor of the function descriptor"
     },
     "monitoring_rules": {
       "type": "array",

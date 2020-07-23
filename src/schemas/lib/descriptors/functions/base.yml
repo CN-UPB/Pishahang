@@ -58,7 +58,13 @@ definitions:
 allOf:
   - $ref: "../base.yml"
   - type: "object"
+    required:
+      - descriptor_flavor
     properties:
+      descriptor_type:
+        const: function
+      descriptor_flavor:
+        description: "The flavor of the function descriptor"
       monitoring_rules:
         type: "array"
         items:

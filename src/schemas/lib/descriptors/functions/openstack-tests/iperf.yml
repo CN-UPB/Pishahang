@@ -1,4 +1,6 @@
+descriptor_type: "function"
 descriptor_version: "vnfd-schema-01"
+descriptor_flavor: "openstack"
 
 vendor: eu.sonata-nfv
 name: iperf-vnf

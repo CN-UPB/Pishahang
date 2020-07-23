@@ -6,16 +6,15 @@ oneOf:
     definitions:
       images_formats:
         enum:
-          - raw
+          - ami
+          - ari
+          - aki
           - vhd
           - vmdk
+          - raw
+          - qcow2
           - vdi
           - iso
-          - qcow2
-          - docker
-          - ova
-          - ovf
-          - bare
       connection_point_types:
         enum:
           - internal
@@ -165,6 +164,8 @@ oneOf:
             default: 1
     type: object
     required:
+      - descriptor_flavor
+      - descriptor_type
       - descriptor_version
       - id
       - name
@@ -173,6 +174,12 @@ oneOf:
       - version
       - virtual_deployment_units
     properties:
+      descriptor_type:
+        description: The type of the descriptor
+        enum:
+          - service
+          - function
+        const: function
       descriptor_version:
         description: The version of the descriptor definition
         type: string
@@ -223,6 +230,9 @@ oneOf:
                 url:
                   description: The URL to the licence file.
                   type: string
+      descriptor_flavor:
+        description: The flavor of the function descriptor
+        const: openstack
       monitoring_rules:
         type: array
         items:
@@ -329,6 +339,8 @@ oneOf:
           required:
             - id
             - resource_requirements
+            - vm_image
+            - vm_image_format
           additionalProperties: false
           properties:
             description:
@@ -345,16 +357,15 @@ oneOf:
             vm_image_format:
               description: The format of the virtual machine image.
               enum:
-                - raw
+                - ami
+                - ari
+                - aki
                 - vhd
                 - vmdk
+                - raw
+                - qcow2
                 - vdi
                 - iso
-                - qcow2
-                - docker
-                - ova
-                - ovf
-                - bare
             vm_image_md5:
               description: An MD5 hash of the virtual machine image.
               type: string
@@ -1083,12 +1094,20 @@ oneOf:
             default: 1
     type: object
     required:
+      - descriptor_flavor
+      - descriptor_type
       - descriptor_version
       - name
       - vendor
       - version
       - virtual_deployment_units
     properties:
+      descriptor_type:
+        description: The type of the descriptor
+        enum:
+          - service
+          - function
+        const: function
       descriptor_version:
         description: The version of the descriptor definition
         type: string
@@ -1139,6 +1158,9 @@ oneOf:
                 url:
                   description: The URL to the licence file.
                   type: string
+      descriptor_flavor:
+        description: The flavor of the function descriptor
+        const: kubernetes
       monitoring_rules:
         type: array
         items:
@@ -1385,11 +1407,6 @@ oneOf:
                   value:
                     description: Value of the env variable
                     type: string
-            vdu_reference:
-              description: >-
-                The reference to the VDU (csd:vdu:id) used to instantiate this
-                element.
-              type: string
             number_of_instances:
               description: The number of instances of this VDU element.
               type: integer
