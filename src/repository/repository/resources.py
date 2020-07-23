@@ -15,9 +15,9 @@ def load_schema_file(path: Path):
 resources = {
     name: load_schema_file(SCHEMA_DIR / path)
     for name, path in [
-        ("function-descriptors", "descriptors/functions/any"),
-        ("service-descriptors", "descriptors/service/service"),
-        ("function-records", "records/functions/any"),
-        ("service-records", "records/service"),
+        ("descriptors/functions", "descriptors/functions/any"),
+        ("descriptors/services", "descriptors/service/service"),
+        ("records/functions", "records/functions/any"),
+        ("records/services", "records/service"),
     ]
 }
