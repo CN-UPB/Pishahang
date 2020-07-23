@@ -87,6 +87,17 @@ services:
     ports:
       - 8086:8086
 
+  # Repository
+  repository:
+    image: pishahang/repository:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - mongo
+    networks:
+      - pishanet
+    ports:
+      - "8080:8080"
+
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
   pluginmanager:
@@ -108,12 +119,10 @@ services:
     image: pishahang/mano-plugin-service-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - catalogue-repos
-      - monitor-manager
       - broker
+      - repository
+      - monitor-manager
     environment:
-      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
       broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
@@ -124,12 +133,10 @@ services:
     image: pishahang/mano-plugin-openstack-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - catalogue-repos
-      - monitor-manager
       - broker
+      - repository
+      - monitor-manager
     environment:
-      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
       broker_host: amqp://guest:guest@broker:5672/%2F
     networks:
@@ -165,35 +172,12 @@ services:
     image: pishahang/mano-plugin-kubernetes-lifecycle-manager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - catalogue-repos
-      - monitor-manager
       - broker
+      - monitor-manager
+      - repository
     environment:
-      url_cosr_repository: http://catalogue-repos:4011/records/cosr/
-      url_vnfr_repository: http://catalogue-repos:4011/records/csr/
       url_monitoring_server: http://monitor-manager:8000/api/v1/
       broker_host: amqp://guest:guest@broker:5672/%2F
-    networks:
-      - pishanet
-
-  # SDN Plugin
-  sdn-plugin:
-    image: pishahang/mano-plugin-sdn:${PISHAHANG_VERSION}
-    restart: always
-    depends_on:
-      - catalogue-repos
-      - monitor-manager
-      - broker
-      - postgres
-    environment:
-      url_nsr_repository: http://catalogue-repos:4011/records/nsr/
-      url_vnfr_repository: http://catalogue-repos:4011/records/vnfr/
-      url_monitoring_server: http://monitor-manager:8000/api/v1/
-      broker_host: amqp://guest:guest@broker:5672/%2F
-      repo_host: postgres
-      repo_port: 5432
-      repo_user: ${IA_REPO_USER}
-      repo_pass: ${IA_REPO_PASS}
     networks:
       - pishanet
 

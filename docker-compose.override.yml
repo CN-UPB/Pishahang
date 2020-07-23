@@ -6,10 +6,7 @@ services:
   monitor-influxdb:
     build: ./src/monitor/influxDB
 
-  # Repositories
-  catalogue-repos:
-    build: ./son-catalogue-repos
-
+  # Repository
   repository:
     build: ./src/repository
 
@@ -44,10 +41,6 @@ services:
   # Kubernetes Lifecycle Manager
   kubernetes-lifecycle-manager:
     build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
-
-  # SDN Plugin
-  sdn-plugin:
-    build: ./src/mano-framework/plugins/sdn
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
