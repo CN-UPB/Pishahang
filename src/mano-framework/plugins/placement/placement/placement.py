@@ -59,7 +59,9 @@ class PlacementPlugin(ManoBasePlugin):
         super().declare_subscriptions()
 
         # The topic on which deploy requests are posted.
-        self.manoconn.subscribe(self.placement_request, "mano.service.place")
+        self.conn.register_async_endpoint(
+            self.on_placement_request, "mano.service.place"
+        )
 
     def on_lifecycle_start(self, message: Message):
         """
@@ -76,7 +78,7 @@ class PlacementPlugin(ManoBasePlugin):
     # Placement
     ##########################
 
-    def placement_request(self, message: Message):
+    def on_placement_request(self, message: Message):
         """
         This method handles a placement request
         """
@@ -87,23 +89,17 @@ class PlacementPlugin(ManoBasePlugin):
         payload = message.payload
         LOG.info("Placement request for service: %s", payload["serv_id"])
         topology = payload["topology"]
-        descriptor = payload["nsd"] if "nsd" in payload else payload["cosd"]
-        functions = payload["functions"] if "functions" in payload else []
-        cloud_services = (
-            payload["cloud_services"] if "cloud_services" in payload else []
-        )
+        descriptor = payload["nsd"]
+        functions = payload["functions"]
 
-        placement = self.placement(descriptor, functions, cloud_services, topology)
+        placement = self.placement(descriptor, functions, topology)
 
-        response = {"mapping": placement}
-        self.manoconn.notify(
-            "mano.service.place", response, correlation_id=message.correlation_id,
-        )
+        LOG.info("Sending placement response for service: %s", payload["serv_id"])
+        LOG.debug("Placement: %s", placement)
 
-        LOG.info("Placement response sent for service: %s", payload["serv_id"])
-        LOG.info(response)
+        return {"mapping": placement}
 
-    def placement(self, descriptor, functions, cloud_services, topology):
+    def placement(self, descriptor, functions, topology):
         """
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
@@ -113,52 +109,25 @@ class PlacementPlugin(ManoBasePlugin):
         mapping = {}
 
         for function in functions:
-            vnfd = function["vnfd"]
-            vdu = vnfd["virtual_deployment_units"]
+            vdu = function["virtual_deployment_units"]
             needed_cpu = vdu[0]["resource_requirements"]["cpu"]["vcpus"]
             needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
-            needed_sto = vdu[0]["resource_requirements"]["storage"]["size"]
 
             for vim in topology:
-                if vim["vim_type"] == "Kubernetes":
-                    continue
-                cpu_req = needed_cpu <= (vim["core_total"] - vim["core_used"])
-                mem_req = needed_mem <= (vim["memory_total"] - vim["memory_used"])
-
-                if cpu_req and mem_req:
-                    mapping[function["id"]] = {}
-                    mapping[function["id"]]["vim"] = vim["vim_uuid"]
-                    vim["core_used"] = vim["core_used"] + needed_cpu
-                    vim["memory_used"] = vim["memory_used"] + needed_mem
-                    break
-
-        for cloud_service in cloud_services:
-            csd = cloud_service["csd"]
-            vdu = csd["virtual_deployment_units"]
-            needed_mem = 0
-            if (
-                "resource_requirements" in vdu[0]
-                and "memory" in vdu[0]["resource_requirements"]
-            ):
-                needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
-
-            for vim in topology:
-                if vim["vim_type"] != "Kubernetes":
-                    continue
-                mem_req = needed_mem <= (vim["memory_total"] - vim["memory_used"])
-
-                if mem_req:
-                    mapping[cloud_service["id"]] = {}
-                    mapping[cloud_service["id"]]["vim"] = vim["vim_uuid"]
-                    vim["memory_used"] = vim["memory_used"] + needed_mem
-                    break
+                if vim["vim_type"] == function["descriptor_flavor"]:
+                    if needed_cpu <= (
+                        vim["core_total"] - vim["core_used"]
+                    ) and needed_mem <= (vim["memory_total"] - vim["memory_used"]):
+                        mapping[function["id"]] = {"vim": vim["vim_uuid"]}
+                        vim["core_used"] = vim["core_used"] + needed_cpu
+                        vim["memory_used"] = vim["memory_used"] + needed_mem
+                        break
 
         # Check if all VNFs and CSs have been mapped
-        if len(mapping.keys()) == len(functions) + len(cloud_services):
+        if len(mapping.keys()) == len(functions):
             return mapping
         else:
             LOG.info("Placement was not possible")
-            return None
 
 
 def main():
