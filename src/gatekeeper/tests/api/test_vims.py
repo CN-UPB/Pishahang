@@ -102,13 +102,13 @@ def testGetVims(api, broker: Connection):
     broker.register_async_endpoint(
         lambda message: [
             {
-                "vim_uuid": "id",
-                "vim_name": "name",
-                "vim_country": "country",
-                "vim_city": "city",
-                "vim_type": "type",
-                "core_total": 4,
-                "core_used": 3,
+                "id": "id",
+                "name": "name",
+                "country": "country",
+                "city": "city",
+                "type": "type",
+                "cores_total": 4,
+                "cores_used": 3,
                 "memory_total": 2,
                 "memory_used": 1,
             }

@@ -1,6 +1,6 @@
 from gatekeeper.app import broker
 from gatekeeper.exceptions import InternalServerError
-from gatekeeper.util.casing import snakecaseDictKeys
+from gatekeeper.util.casing import camelcaseDictKeys, snakecaseDictKeys
 
 
 def getVims():
@@ -8,17 +8,7 @@ def getVims():
     Return the list of VIMs
     """
     return [
-        {
-            "id": vim["vim_uuid"],
-            "name": vim["vim_name"],
-            "country": vim["vim_country"],
-            "city": vim["vim_city"],
-            "type": vim["vim_type"].lower(),
-            "coresTotal": vim["core_total"],
-            "coresUsed": vim["core_used"],
-            "memoryTotal": vim["memory_total"],
-            "memoryUsed": vim["memory_used"],
-        }
+        camelcaseDictKeys(vim)
         for vim in broker.call_sync("infrastructure.management.compute.list").payload
     ]
 
