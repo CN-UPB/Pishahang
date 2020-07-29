@@ -1,9 +1,4 @@
-import Collapse from "@material-ui/core/Collapse";
-import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
+import { Collapse, Divider, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import {
   AccountTreeRounded,
@@ -11,14 +6,13 @@ import {
   Dashboard,
   Dns,
   Dvr,
+  ExpandLess,
+  ExpandMore,
   Group,
-  Person,
   ScatterPlotRounded,
   Settings,
   WebAsset,
 } from "@material-ui/icons";
-import ExpandLess from "@material-ui/icons/ExpandLess";
-import ExpandMore from "@material-ui/icons/ExpandMore";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -100,7 +94,7 @@ export const DrawerContent: React.FunctionComponent = () => {
       </List>
 
       <List>
-        <LinkedListItem text={"Monitoring"} icon={Dvr} href={"/monitor"}></LinkedListItem>
+        <LinkedListItem text={"Plugins"} icon={Dvr} href={"/monitor"}></LinkedListItem>
       </List>
 
       <Divider />
