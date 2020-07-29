@@ -1452,7 +1452,8 @@
               "id",
               "service_image",
               "service_type",
-              "service_ports"
+              "service_ports",
+              "resource_requirements"
             ],
             "additionalProperties": true,
             "properties": {
@@ -1518,6 +1519,10 @@
               "resource_requirements": {
                 "description": "The requirements of a node that hosts this network function.",
                 "type": "object",
+                "required": [
+                  "cpu",
+                  "memory"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "cpu": {
@@ -1530,7 +1535,7 @@
                     "properties": {
                       "vcpus": {
                         "description": "The number of (virtualized) CPU cores.",
-                        "type": "integer",
+                        "type": "number",
                         "exclusiveMinimum": 0
                       }
                     }
