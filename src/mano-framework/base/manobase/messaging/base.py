@@ -40,7 +40,7 @@ import amqpstorm
 import yaml
 from amqpstorm.exception import AMQPConnectionError
 
-logging.getLogger("amqpstorm.Channel").setLevel(logging.ERROR)
+logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
 LOG = logging.getLogger("manobase:messaging:base")
 
 # if we don't find a broker configuration in our ENV, we use this URL as default
