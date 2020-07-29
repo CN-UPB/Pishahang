@@ -32,18 +32,16 @@ from vim_adaptor.exceptions import (
     VimConnectionError,
     VimNotFoundException,
 )
+from vim_adaptor.managers import factory as manager_factory
+from vim_adaptor.models.function import FunctionInstance
 from vim_adaptor.models.vims import (
     AwsVimSchema,
     BaseVim,
-    KubernetesVim,
     KubernetesVimSchema,
-    OpenStackVim,
     OpenStackVimSchema,
     VimType,
 )
 from vim_adaptor.util import create_completed_response, create_error_response
-from vim_adaptor.managers import factory as manager_factory
-from vim_adaptor.models.function import FunctionInstance
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("manobase:plugin").setLevel(logging.INFO)
@@ -141,8 +139,8 @@ class VimAdaptor(ManoBasePlugin):
                 resource_utilization = vim.get_resource_utilization()
             except VimConnectionError:
                 resource_utilization = {
-                    "core_total": 0,
-                    "core_used": 0,
+                    "cores_total": 0,
+                    "cores_used": 0,
                     "memory_total": 0,
                     "memory_used": 0,
                 }
@@ -150,19 +148,19 @@ class VimAdaptor(ManoBasePlugin):
             # TODO: Remove this once get_resource_utilization is implemented for all vim types
             except NotImplementedError:
                 resource_utilization = {
-                    "core_total": 4,
-                    "core_used": 0,
+                    "cores_total": 4,
+                    "cores_used": 0,
                     "memory_total": 32000,
                     "memory_used": 0,
                 }
 
             vims.append(
                 {
-                    "vim_uuid": str(vim.id),
-                    "vim_name": vim.name,
-                    "vim_country": vim.country,
-                    "vim_city": vim.city,
-                    "vim_type": "Kubernetes" if vim.type == "kubernetes" else vim.type,
+                    "id": str(vim.id),
+                    "name": vim.name,
+                    "country": vim.country,
+                    "city": vim.city,
+                    "type": vim.type,
                     **resource_utilization,
                 }
             )
@@ -199,10 +197,8 @@ class VimAdaptor(ManoBasePlugin):
         payload = message.payload
 
         try:
-            vim = KubernetesVim.get_by_id(payload["vim_uuid"])
-            manager = manager_factory.create_manager(
-                "kubernetes",
-                vim=vim,
+            manager = manager_factory.create_function_manager(
+                vim_id=payload["vim_uuid"],
                 function_instance_id=payload["csd"]["instance_uuid"],
                 function_id=payload["csd"]["uuid"],
                 service_instance_id=payload["service_instance_id"],
@@ -216,17 +212,15 @@ class VimAdaptor(ManoBasePlugin):
         payload = message.payload
 
         try:
-            vim = OpenStackVim.get_by_id(payload["vim_uuid"])
-            manager = manager_factory.create_manager(
-                "openstack",
-                vim=vim,
+            manager = manager_factory.create_function_manager(
+                vim_id=payload["vim_uuid"],
                 function_instance_id=payload["vnfd"]["instance_uuid"],
                 function_id=payload["vnfd"]["uuid"],
                 service_instance_id=payload["service_instance_id"],
                 descriptor=payload["vnfd"],
             )
             manager.deploy()
-            return create_completed_response()
+            return create_completed_response({"vnfr": manager.deploy()})
         except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
 
@@ -238,7 +232,7 @@ class VimAdaptor(ManoBasePlugin):
             for function_instance in FunctionInstance.objects(
                 service_instance_id=service_instance_id
             ):
-                manager_factory.get_manager(function_instance.id).destroy()
+                manager_factory.get_function_manager(function_instance.id).destroy()
 
             return create_completed_response()
         except TerraformException as e:

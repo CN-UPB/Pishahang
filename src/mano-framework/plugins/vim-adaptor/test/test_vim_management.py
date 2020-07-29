@@ -111,11 +111,11 @@ def test_list_vims(adaptor: VimAdaptor, connection: Connection, example_vim: Aws
             [
                 Partial(
                     {
-                        "vim_uuid": str(example_vim.id),
-                        "vim_name": example_vim.name,
-                        "vim_country": example_vim.country,
-                        "vim_city": example_vim.city,
-                        "vim_type": example_vim.type,
+                        "id": str(example_vim.id),
+                        "name": example_vim.name,
+                        "country": example_vim.country,
+                        "city": example_vim.city,
+                        "type": example_vim.type,
                     }
                 )
             ]

@@ -70,8 +70,8 @@ def get_resource_utilization(vim: KubernetesVim):
                         )
 
         return {
-            "core_total": cores_total,
-            "core_used": round(cores_used, 3),
+            "cores_total": cores_total,
+            "cores_used": round(cores_used, 3),
             "memory_total": math.floor(memory_total.value),
             "memory_used": math.ceil(memory_used.value),
         }
