@@ -114,12 +114,12 @@ class PlacementPlugin(ManoBasePlugin):
             needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
 
             for vim in topology:
-                if vim["vim_type"] == function["descriptor_flavor"]:
+                if vim["type"] == function["descriptor_flavor"]:
                     if needed_cpu <= (
-                        vim["core_total"] - vim["core_used"]
+                        vim["cores_total"] - vim["cores_used"]
                     ) and needed_mem <= (vim["memory_total"] - vim["memory_used"]):
-                        mapping[function["id"]] = {"vim": vim["vim_uuid"]}
-                        vim["core_used"] = vim["core_used"] + needed_cpu
+                        mapping[function["id"]] = {"vim": vim["id"]}
+                        vim["cores_used"] = vim["cores_used"] + needed_cpu
                         vim["memory_used"] = vim["memory_used"] + needed_mem
                         break
 
