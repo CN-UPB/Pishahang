@@ -1,6 +1,7 @@
-from appcfg import get_config
-from pathlib import Path
 import json
+from pathlib import Path
+
+from appcfg import get_config
 
 config = get_config(__name__)
 

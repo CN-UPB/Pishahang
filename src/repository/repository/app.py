@@ -44,6 +44,12 @@ class JsonSchemaValidator(Validator):
 
         return len(self._errors) == 0
 
+    def _validate_type_uuid(self, value):
+        try:
+            return str(UUID(value))
+        except ValueError:
+            pass
+
 
 def make_domain_config(resources: dict):
     """
@@ -51,7 +57,11 @@ def make_domain_config(resources: dict):
     for the Eve `DOMAIN` setting.
     """
     return {
-        name: {"jsonschema": schema, "allow_unknown": True}
+        name: {
+            "jsonschema": schema,
+            "allow_unknown": True,
+            "schema": {"id": {"type": "uuid"}},
+        }
         for name, schema in resources.items()
     }
 
@@ -78,7 +88,7 @@ app.name = "repository"
 def generate_id(resource_name, items):
     # Generate uuids for inserted items
     for item in items:
-        item["_id"] = str(uuid4())
+        item["_id"] = str(uuid4()) if "id" not in item else item["id"]
 
 
 app.on_insert += generate_id
