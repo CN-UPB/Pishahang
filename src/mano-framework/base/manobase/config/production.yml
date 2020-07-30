@@ -1,0 +1,4 @@
+amqp:
+  host: amqp://guest:guest@broker:5672/%2F
+
+repository_url: http://repository:5000/
