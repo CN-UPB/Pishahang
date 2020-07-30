@@ -1,4 +1,6 @@
 descriptor_version: "1.0"
+descriptor_type: "function"
+descriptor_flavor: "openstack"
 
 vendor: "test.fixture.onboarding"
 name: "vnf-1"

@@ -8,6 +8,7 @@
 ##
 ---
 descriptor_version: "1.0"
+descriptor_type: "service"
 
 vendor: "eu.sonata-nfv.service-descriptor"
 name: "sonata-demo"

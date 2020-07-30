@@ -4,6 +4,7 @@ Service-related Mongoengine document definitions
 
 import mongoengine
 from mongoengine import (
+    EmbeddedDocumentField,
     EmbeddedDocumentListField,
     ListField,
     ReferenceField,
@@ -30,8 +31,8 @@ class Service(UuidDocument, TimestampsDocument):
     required to instantiate it, as well as information on its service instances.
     """
 
-    descriptorSnapshots = EmbeddedDocumentListField(DescriptorSnapshot, required=True)
-    rootDescriptorId = UUIDField(required=True, custom_json=str)
+    descriptor = EmbeddedDocumentField(DescriptorSnapshot, required=True)
+    functionDescriptors = EmbeddedDocumentListField(DescriptorSnapshot, required=True)
 
     vendor = StringField(required=True)
     name = StringField(required=True)

@@ -1,4 +1,5 @@
 descriptor_version: "1.0"
+descriptor_type: "service"
 
 vendor: "example.onboarding"
 name: "root-service"

@@ -25,21 +25,14 @@ def testOnboarding(api, getDescriptorFixture):
         response = api.post("/api/v3/services", json={"id": id})
         return response.status_code, response.get_json()
 
-    # Onboarding requires the id of a service descriptor
-    # assert 400 == onboardServiceDescriptorById("justAnInvalidId")[0]
-    # TODO Contribute string format validation to Connexion?
     assert 400 == onboardServiceDescriptorById(vnfDescriptors[0]["id"])[0]
 
     # Onboard service descriptor
     status, service = onboardServiceDescriptorById(serviceDescriptor["id"])
     assert 201 == status
 
-    assert "descriptorSnapshots" in service
-    snapshots = service["descriptorSnapshots"]
-    assert 3 == len(snapshots)
-    assert serviceDescriptor in snapshots
-    assert all([d in snapshots for d in vnfDescriptors])
-    assert service["rootDescriptorId"] == serviceDescriptor["id"]
+    assert service["descriptor"] == serviceDescriptor
+    assert service["functionDescriptors"] == vnfDescriptors
 
     for attribute in ["vendor", "name", "version"]:
         assert service[attribute] == serviceDescriptor["content"][attribute]
