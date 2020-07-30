@@ -47,7 +47,7 @@ def raise_on_error_response(
     """
     status = response.get("request_status", None) or response.get("status", None)
     if status == "ERROR":
-        message = response["message"]
+        message = response["message"] if "message" in response else response["error"]
         if logger is not None:
             logger.info(*log_args)
             logger.debug("Error: %s", message)

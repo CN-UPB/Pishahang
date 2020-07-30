@@ -1,5 +1,6 @@
 import logging
 from typing import List
+from uuid import uuid4
 
 from voluptuous import ALLOW_EXTRA, All, Length, MultipleInvalid, Required, Schema
 
@@ -71,7 +72,9 @@ class ServiceLifecycleManager:
         service = Service(
             descriptor=payload["nsd"],
             functions=[
-                Function(descriptor=descriptor, id=descriptor["uuid"])
+                Function(
+                    descriptor=descriptor, id=descriptor["id"], instance_id=uuid4()
+                )
                 for descriptor in payload["vnfds"]
             ],
         )
@@ -84,7 +87,7 @@ class ServiceLifecycleManager:
         return str(self.service.id)
 
     async def instantiate(self):
-        self.logger.info("Instantiating.")
+        self.logger.info("Instantiating")
 
         # Onboard and instantiate the SSMs, if required.
         # if self.services[serv_id]["service"]["ssm"]:
@@ -121,6 +124,8 @@ class ServiceLifecycleManager:
 
         # wan_configure
         # start_monitoring
+
+        self.logger.info("Instantiation succeeded")
 
     async def _fetch_topology(self) -> List[dict]:
         """
@@ -207,7 +212,7 @@ class ServiceLifecycleManager:
             self.logger.info("Requesting the deployment of VNF %s", function.id)
 
             shared_message = {
-                "id": str(function.id),
+                "id": str(function.instance_id),
                 "vim_uuid": str(function.vim),
                 "serv_id": self.service_id,
             }
@@ -218,7 +223,8 @@ class ServiceLifecycleManager:
                 )
             elif flavor == "kubernetes":
                 response_future = self.conn.call(
-                    topics.MANO_DEPLOY, {**shared_message, "csd": function.descriptor},
+                    topics.MANO_CS_DEPLOY,
+                    {**shared_message, "csd": function.descriptor},
                 )
             else:
                 raise InstantiationError(
@@ -242,7 +248,9 @@ class ServiceLifecycleManager:
 
     async def _destroy_vnfs(self):
         response = (
-            await self.conn.call(topics.IA_REMOVE, {"service_id": self.service_id},)
+            await self.conn.call(
+                topics.IA_REMOVE, {"service_instance_id": self.service_id},
+            )
         ).payload
 
         raise_on_error_response(

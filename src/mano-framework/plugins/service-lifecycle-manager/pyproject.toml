@@ -26,6 +26,7 @@ pytest-watch = "^4.2.0"
 isort = "^5.1.0"
 pytest-env = "^0.6.2"
 mongomock = "^3.19.0"
+pytest-mock = "^3.2.0"
 
 [tool.poetry.scripts]
 start = "slm.__main__:main"

@@ -422,6 +422,20 @@ pytest = ">=2.6.0"
 
 [[package]]
 category = "dev"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+name = "pytest-mock"
+optional = false
+python-versions = ">=3.5"
+version = "3.2.0"
+
+[package.dependencies]
+pytest = ">=2.7"
+
+[package.extras]
+dev = ["pre-commit", "tox", "pytest-asyncio"]
+
+[[package]]
+category = "dev"
 description = "Make multi-threaded pytest test cases fail when they should"
 name = "pytest-reraise"
 optional = false
@@ -602,7 +616,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "e0bc99bca24b661cbcd632223ccb331116e95aeca7c27452054d72c259278e15"
+content-hash = "4d3a81e0df3cfec83fb7fda44f3b0ceefce5aa35c1ecd7deb9a6d8bc565b509d"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -814,6 +828,10 @@ pytest-asyncio = [
 ]
 pytest-env = [
     {file = "pytest-env-0.6.2.tar.gz", hash = "sha256:7e94956aef7f2764f3c147d216ce066bf6c42948bb9e293169b1b1c880a580c2"},
+]
+pytest-mock = [
+    {file = "pytest-mock-3.2.0.tar.gz", hash = "sha256:7122d55505d5ed5a6f3df940ad174b3f606ecae5e9bc379569cdcbd4cd9d2b83"},
+    {file = "pytest_mock-3.2.0-py3-none-any.whl", hash = "sha256:5564c7cd2569b603f8451ec77928083054d8896046830ca763ed68f4112d17c7"},
 ]
 pytest-reraise = [
     {file = "pytest-reraise-1.0.1.tar.gz", hash = "sha256:08fb65a96bbe713dee2c20ad457ff4f4908a3fa979adeda2ae6809f33b7d0a18"},

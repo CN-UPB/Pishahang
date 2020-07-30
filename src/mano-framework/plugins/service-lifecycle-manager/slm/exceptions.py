@@ -20,6 +20,6 @@ class TerminationError(Exception):
         super().__init__(message)
 
 
-class PlacementError(IndentationError):
+class PlacementError(InstantiationError):
     def __init__(self):
         super().__init__("Unable to perform placement.")

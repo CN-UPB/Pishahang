@@ -17,9 +17,9 @@ class Function(EmbeddedDocument):
     """
 
     id = UUIDField(required=True)
+    instance_id = UUIDField(required=True)
     descriptor = DictField(required=True)
     vim = UUIDField()
-    record = DictField()
 
 
 class Service(Document):

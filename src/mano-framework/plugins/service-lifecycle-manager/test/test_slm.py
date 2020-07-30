@@ -1,6 +1,6 @@
 from pathlib import Path
 from test.util import simple_async_endpoint
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 import yaml
@@ -29,7 +29,7 @@ FUNCTION_DESCRIPTORS = [
 # A static VIM ID so it can be used in snapshot testing
 VIM_ID = "87ecdc7c-665a-475a-b4f7-f053706ceb70"
 
-PLACEMENT = {function["uuid"]: {"vim": VIM_ID} for function in FUNCTION_DESCRIPTORS}
+PLACEMENT = {function["id"]: {"vim": VIM_ID} for function in FUNCTION_DESCRIPTORS}
 
 
 @pytest.fixture
@@ -72,10 +72,19 @@ async def fetched_placement(manager: ServiceLifecycleManager, mocked_placement):
 
 
 @pytest.fixture(scope="function")
-def manager(connection: Connection, mongo_connection, deploy_request):
+def manager(connection: Connection, mongo_connection, deploy_request, mocker):
     """
     A fully initialized ServiceLifecycleManager instance
     """
+    # Fix a sequence of SLM-generated UUIDs for snapshot testing
+    mocker.patch("slm.slm.uuid4").side_effect = [
+        UUID(s)
+        for s in [
+            "6966dbff-de47-4ac7-9162-fe0d866a84ef",
+            "846bb1a4-0ed7-4d36-bf5d-bb704bcd3e36",
+            "7404913e-af2e-4309-ab03-f133866d1409",
+        ]
+    ]
 
     manager = ServiceLifecycleManager.from_deploy_request(
         Message(

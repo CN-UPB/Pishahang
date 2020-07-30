@@ -32,15 +32,16 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
         # Map service ids to ServiceLifecycleManager instances
         self.managers: Dict[str, ServiceLifecycleManager] = {}
 
-        super(ServiceLifecycleManagerPlugin, self).__init__(
-            *args, version=version, start_running=False, **kwargs
-        )
+        super().__init__(*args, version=version, start_running=False, **kwargs)
 
     def declare_subscriptions(self):
-        super(ServiceLifecycleManagerPlugin, self).declare_subscriptions()
+        super().declare_subscriptions()
+        self.conn.register_async_endpoint(
+            self.on_service_instance_create, "service.instances.create"
+        )
 
     def on_lifecycle_start(self, message: Message):
-        super(self.__class__, self).on_lifecycle_start(message)
+        super().on_lifecycle_start(message)
         LOG.info("SLM started and operational.")
 
     async def on_service_instance_create(self, message: Message):
@@ -60,7 +61,9 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
             )
 
             await manager.instantiate()
-            return create_status_message(status="READY")
+            return create_status_message(
+                status="READY", payload={"nsr": {"id": manager.service_id}}
+            )
 
         except (DeployRequestValidationError, InstantiationError) as e:
             return create_status_message(error=e)
