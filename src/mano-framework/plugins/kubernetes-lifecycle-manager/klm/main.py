@@ -25,14 +25,14 @@ the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
-
 import concurrent.futures as pool
 import logging
 import time
 import uuid
 
-import requests
+from requests import RequestException
 
+import manobase.repository as repository
 from klm import helpers as tools
 from klm import topics as t
 from manobase.messaging import Message
@@ -144,7 +144,7 @@ class KubernetesLifecycleManager(ManoBasePlugin):
         LOG.info("Cloud Service %s: error occured: %s", cservice_id, error)
         LOG.info("Cloud Service %s: informing SLM", cservice_id)
 
-        message = {"status": "failed", "error": error, "timestamp": time.time()}
+        message = {"status": "ERROR", "error": error, "timestamp": time.time()}
 
         corr_id = self.cloud_services[cservice_id]["orig_corr_id"]
         topic = self.cloud_services[cservice_id]["topic"]
@@ -252,28 +252,19 @@ class KubernetesLifecycleManager(ManoBasePlugin):
 
         cloud_service = self.cloud_services[cservice_id]
 
-        # Build the record
-        csr = tools.build_csr(cloud_service["ia_csr"], cloud_service["csd"])
+        csr = cloud_service["ia_csr"]
         self.cloud_services[cservice_id]["csr"] = csr
 
         # Store the record
-        url = t.CSR_REPOSITORY_URL + "cs-instances"
-        csr_response = requests.post(url, json=csr, timeout=1.0)
-        LOG.info("Storing CSR on %s", url)
+        LOG.info("Storing CSR")
         LOG.debug("CSR: %s", csr)
-
-        if csr_response.status_code == 200:
-            LOG.info("CSR storage accepted.")
-        # If storage fails, add error code and message to reply to gk
-        else:
-            error = {
-                "http_code": csr_response.status_code,
-                "message": csr_response.json(),
+        try:
+            repository.post("records/functions", csr)
+        except RequestException as e:
+            LOG.error("CSR storage failed", exc_info=e)
+            self.cloud_services[cservice_id]["error"] = {
+                "message": str(e),
             }
-            self.cloud_services[cservice_id]["error"] = error
-            LOG.info("CSR to repo failed: %s", error)
-
-        return
 
     def inform_slm_on_deployment(self, cservice_id):
         """

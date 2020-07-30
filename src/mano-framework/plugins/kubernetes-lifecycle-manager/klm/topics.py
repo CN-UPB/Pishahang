@@ -25,10 +25,6 @@ the Horizon 2020 and 5G-PPP programmes. The authors would like to
 acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
-
-import os
-from urllib.parse import urlparse
-
 # List of topics that are used by the FLM for its rabbitMQ communication
 
 # With the CLM
@@ -41,30 +37,3 @@ CS_KILL = "mano.cloud_service.terminate"
 
 # With infrastructure adaptor
 IA_DEPLOY = "infrastructure.cloud_service.deploy"
-
-# REST APIs
-temp = os.environ.get("url_gk_api")
-if temp is None:
-    temp = "http://son-gtkapi:5000/api/v2/"
-p = urlparse(temp)
-GK_PORT = p.port
-BASE_URL = p.scheme + "://" + p.hostname + ":" + str(GK_PORT)
-
-# REST API with GK
-GK_SERVICES_URL = BASE_URL + "/api/v2/complex-services/"
-GK_CLOUD_SERVICES_URL = BASE_URL + "/api/v2/cloud-services/"
-
-# With Repositories
-temp = os.environ.get("url_csr_repository")
-if temp is None:
-    temp = "http://son-catalogue-repos:4011/records/csr/"
-c = urlparse(temp)
-CAT_PORT = c.port
-CAT_BASE_URL = c.scheme + "://" + c.hostname + ":" + str(CAT_PORT)
-
-NSR_REPOSITORY_URL = CAT_BASE_URL + "/records/nsr/"
-CSR_REPOSITORY_URL = CAT_BASE_URL + "/records/csr/"
-
-# With Monitoring Manager
-# TODO: Secure this get against failure
-MONITORING_URL = os.environ.get("url_monitoring_server")

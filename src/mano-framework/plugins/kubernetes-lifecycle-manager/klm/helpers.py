@@ -46,14 +46,3 @@ def cserviceid_from_corrid(ledger, corr_id):
                 break
 
     return cservice_id
-
-
-def build_csr(ia_csr, csd):
-    """
-    To be removed: The VIM adaptor now builds the csd itself.
-
-    This method builds the CSRs. CSRs are built from the stripped CSRs
-    returned by the Infrastructure Adaptor (IA), combining it with the
-    provided CSD.
-    """
-    return ia_csr
