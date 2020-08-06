@@ -36,4 +36,4 @@ CS_SCALE = "mano.cloud_service.scale"
 CS_KILL = "mano.cloud_service.terminate"
 
 # With infrastructure adaptor
-IA_DEPLOY = "infrastructure.cloud_service.deploy"
+IA_DEPLOY = "infrastructure.function.deploy"

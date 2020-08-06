@@ -167,7 +167,7 @@ class KubernetesLifecycleManager(ManoBasePlugin):
         LOG.info("Cloud Service instance create request received.")
         payload = message.payload
 
-        cservice_id = payload["id"]
+        cservice_id = payload["function_instance_id"]
 
         # Add the function to the ledger
         self.add_cloud_service_to_ledger(
@@ -196,9 +196,10 @@ class KubernetesLifecycleManager(ManoBasePlugin):
         cloud_service = self.cloud_services[cservice_id]
 
         outg_message = {
-            "csd": {**cloud_service["csd"], "instance_uuid": cloud_service["id"]},
-            "vim_uuid": cloud_service["vim_uuid"],
+            "function_instance_id": cloud_service["id"],
             "service_instance_id": cloud_service["serv_id"],
+            "vim_id": cloud_service["vim_uuid"],
+            "vnfd": cloud_service["csd"],
         }
 
         corr_id = str(uuid.uuid4())
@@ -233,7 +234,7 @@ class KubernetesLifecycleManager(ManoBasePlugin):
 
         if payload["request_status"] == "COMPLETED":
             LOG.info("Cs deployed correctly")
-            self.cloud_services[cservice_id]["ia_csr"] = payload["csr"]
+            self.cloud_services[cservice_id]["ia_csr"] = payload["vnfr"]
             self.cloud_services[cservice_id]["error"] = None
 
         else:
@@ -301,14 +302,14 @@ class KubernetesLifecycleManager(ManoBasePlugin):
 
         # Add the cloud service to the ledger and add instance ids
         self.cloud_services[cservice_id] = {
-            "csd": payload["csd"],
+            "csd": payload["vnfd"],
             "id": cservice_id,
             "topic": topic,
             "orig_corr_id": corr_id,
             "payload": payload,
             # The service uuid that this cloud service belongs to
-            "serv_id": payload["serv_id"],
-            "vim_uuid": payload["vim_uuid"],
+            "serv_id": payload["service_instance_id"],
+            "vim_uuid": payload["vim_id"],
             "schedule": [],
             "pause_chain": False,
             "kill_chain": False,
