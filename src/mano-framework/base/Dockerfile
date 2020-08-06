@@ -16,10 +16,4 @@ RUN poetry config virtualenvs.in-project true
 COPY  schemas/bundled /schemas/bundled
 COPY mano-framework/base /mano-framework/base
 
-WORKDIR /mano-framework/base
-
-# Common Configuration
-ENV broker_host amqp://guest:guest@broker:5672/%2F
-ENV broker_exchange son-kernel
-ENV mongo_host mongo
-ENV mongo_port 27017
+ENV ENVIRONMENT production

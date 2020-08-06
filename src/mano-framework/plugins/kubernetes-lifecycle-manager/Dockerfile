@@ -8,6 +8,4 @@ RUN poetry install --no-root --no-dev --no-interaction
 
 COPY . ./
 
-ENV ENVIRONMENT = production
-
 CMD ["poetry", "run", "start"]
