@@ -25,7 +25,7 @@ def addUser(body):
 @adminOnly
 def deleteUser(id, user):
     if id == user:
-        raise BadRequestProblem("A user cannot delete themselves.")
+        raise BadRequestProblem(detail="A user cannot delete themself.")
 
     try:
         user = User.objects(id=id).get()
