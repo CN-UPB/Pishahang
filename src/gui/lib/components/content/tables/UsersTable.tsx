@@ -66,26 +66,14 @@ export const UsersTable: React.FunctionComponent = () => {
     <SwrDataTable
       swr={swr}
       columns={[
-        {
-          title: "Name",
-          render: (user) => user.fullName,
-        },
-        {
-          title: "Username",
-          render: (user) => user.username,
-        },
-        {
-          title: "Email",
-          render: (user) => user.email,
-        },
+        { title: "Name", field: "fullName" },
+        { title: "Username", field: "username" },
+        { title: "Email", field: "email" },
         {
           title: "User Type",
           render: (user) => (user.isAdmin ? "Administrator" : "Non-Administrator"),
         },
-        {
-          title: "User Id",
-          render: (user) => user.id,
-        },
+        { title: "User Id", field: "id" },
       ]}
       actions={[
         {
