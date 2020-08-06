@@ -1,7 +1,11 @@
 from mongoengine.errors import DoesNotExist, NotUniqueError
-from gatekeeper.api.auth import adminOnly
 
-from gatekeeper.exceptions import UserDataNotUniqueError, UserNotFoundError
+from gatekeeper.api.auth import adminOnly
+from gatekeeper.exceptions import (
+    BadRequestProblem,
+    UserDataNotUniqueError,
+    UserNotFoundError,
+)
 from gatekeeper.models.users import User
 
 
@@ -19,7 +23,10 @@ def addUser(body):
 
 
 @adminOnly
-def deleteUser(id):
+def deleteUser(id, user):
+    if id == user:
+        raise BadRequestProblem("A user cannot delete themselves.")
+
     try:
         user = User.objects(id=id).get()
         user.delete()
