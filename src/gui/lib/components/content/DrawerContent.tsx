@@ -43,10 +43,9 @@ export const DrawerContent: React.FunctionComponent = () => {
     <>
       <List>
         <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"}></LinkedListItem>
-      </List>
-
-      <List>
-        <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
+        {isUserAdmin && (
+          <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
+        )}
       </List>
 
       <Divider />
@@ -93,19 +92,21 @@ export const DrawerContent: React.FunctionComponent = () => {
         ></LinkedListItem>
       </List>
 
-      <List>
-        <LinkedListItem text={"Plugins"} icon={Dvr} href={"/monitor"}></LinkedListItem>
-      </List>
+      {isUserAdmin && (
+        <List>
+          <LinkedListItem text={"Plugins"} icon={Dvr} href={"/monitor"}></LinkedListItem>
+        </List>
+      )}
 
       <Divider />
-      <List>
-        {isUserAdmin ? (
-          <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
-        ) : (
-          ""
-        )}
-      </List>
-      <Divider />
+      {isUserAdmin && (
+        <>
+          <List>
+            <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
+          </List>
+          <Divider />
+        </>
+      )}
     </>
   );
 };
