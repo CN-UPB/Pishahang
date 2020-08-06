@@ -107,7 +107,7 @@ services:
       - mongo
       - broker
     environment:
-      mongo_host: son-mongo
+      mongo_host: mongo
     networks:
       - pishanet
     ports:
