@@ -5,14 +5,23 @@ import { useModal } from "react-modal-hook";
 
 import { UserForm, UserFormProps } from "../components/forms/UserForm";
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
+import { LocalUser, User } from "../models/User";
+import { useStateRef } from "./useStateRef";
 
 /**
  * A generic user data form dialog that can be used to add or edit users.
  *
- * @param userFormProps The props for the underlying `UserForm` component
+ * @param onSubmit Async function that is invoked when the submit button is clicked. The dialog will
+ * be closed afterwards if it returns true, and will remain open otherwise.
+ *
  */
-export function useUserDialog(userFormProps: Omit<UserFormProps, "formikRef">) {
+export function useUserDialog(
+  buttonText: string,
+  onSubmit: (values: LocalUser) => Promise<boolean>,
+  hideIsAdminSwitch: boolean = false
+) {
   const formikRef = React.useRef<FormikValues>();
+  const [initialValues, setInitialValues, initialValuesRef] = useStateRef<User>();
 
   const submit = () => {
     formikRef.current.handleSubmit();
@@ -20,8 +29,8 @@ export function useUserDialog(userFormProps: Omit<UserFormProps, "formikRef">) {
 
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
-      dialogId="add-user-dialog"
-      dialogTitle={"Add a user"}
+      dialogId="user-dialog"
+      dialogTitle={buttonText + " user "}
       open={open}
       onExited={onExited}
       onClose={hideDialog}
@@ -32,16 +41,29 @@ export function useUserDialog(userFormProps: Omit<UserFormProps, "formikRef">) {
             Cancel
           </Button>
           <Button variant="contained" onClick={submit} color="primary">
-            Add
+            {buttonText}
           </Button>
         </>
       }
     >
       <Box marginBottom={2}>
-        <UserForm formikRef={formikRef} {...userFormProps}></UserForm>
+        <UserForm
+          formikRef={formikRef}
+          onSubmit={async (values) => {
+            if (await onSubmit(values)) {
+              hideDialog();
+            }
+          }}
+          initialValues={initialValuesRef.current}
+          hideIsAdminSwitch={hideIsAdminSwitch}
+        />
       </Box>
     </GenericDialog>
   ));
 
-  return showDialog;
+  // return showDialog;
+  return function showUserEditorDialog(initialValues?: User) {
+    setInitialValues(initialValues);
+    showDialog();
+  };
 }

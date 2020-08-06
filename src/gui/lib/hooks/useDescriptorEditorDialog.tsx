@@ -6,7 +6,7 @@ import { useModal } from "react-modal-hook";
 
 import { GenericDialog } from "../components/layout/dialogs/GenericDialog";
 import { TextDialog } from "../components/layout/dialogs/TextDialog";
-import { Descriptor } from "../models/Descriptor";
+import { Descriptor, DescriptorContent } from "../models/Descriptor";
 import { useThunkDispatch } from "../store";
 import { updateDescriptor } from "../store/thunks/descriptors";
 import { convertJsonToYaml } from "../util/yaml";
@@ -19,7 +19,7 @@ const DescriptorEditor = dynamic(import("../components/content/DescriptorEditor"
 export function useDescriptorEditorDialog(): (string) => void {
   //contains the data of the description form, if any changes were made
   const [formData, setFormData, formDataRef] = useStateRef<string>("");
-  const [descriptor, setDescriptor, descriptorRef] = useStateRef<Descriptor>("");
+  const [descriptor, setDescriptor, descriptorRef] = useStateRef<Descriptor>();
   const dispatch = useThunkDispatch();
   let hasDataChanged: boolean = false;
 
@@ -45,7 +45,7 @@ export function useDescriptorEditorDialog(): (string) => void {
     if (hasDataChanged) {
       //save something only if changes are made
       hideDialog();
-      let descriptorContent = yaml.safeLoad(formDataRef.current);
+      let descriptorContent = yaml.safeLoad(formDataRef.current) as DescriptorContent;
       await dispatch(
         updateDescriptor(descriptorContent, descriptorRef.current.id, {
           showErrorInfoDialog: true,
@@ -58,7 +58,7 @@ export function useDescriptorEditorDialog(): (string) => void {
   };
 
   /**
-   * Function to
+   * Function to ask closing confirmation
    */
   function confirmClose() {
     if (hasDataChanged) {

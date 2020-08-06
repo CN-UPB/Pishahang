@@ -1,6 +1,7 @@
-import { Box, FormControlLabel, Grid, Switch } from "@material-ui/core";
+import { Box, FormControlLabel, Grid } from "@material-ui/core";
 import { Field, Form, Formik, FormikValues } from "formik";
-import { TextField } from "formik-material-ui";
+import { Switch, TextField } from "formik-material-ui";
+import { pick } from "lodash";
 import * as React from "react";
 import * as yup from "yup";
 
@@ -30,7 +31,7 @@ export const UserForm: React.FunctionComponent<UserFormProps> = ({
   const areInitialValuesSet = typeof initialValues !== "undefined";
   initialValues = {
     ...defaultFormValues,
-    ...initialValues,
+    ...pick(initialValues, ["username", "fullName", "email", "isAdmin", "password"]),
   };
 
   const validationSchema: yup.ObjectSchema<LocalUser> = yup.object().shape({
