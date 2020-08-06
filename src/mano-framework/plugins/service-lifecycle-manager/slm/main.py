@@ -2,12 +2,16 @@ import logging
 from typing import Dict
 
 from appcfg import get_config
-from mongoengine import connect
+from mongoengine import DoesNotExist, connect
 
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 from slm import version
-from slm.exceptions import DeployRequestValidationError, InstantiationError
+from slm.exceptions import (
+    DeployRequestValidationError,
+    InstantiationError,
+    TerminationError,
+)
 from slm.slm import ServiceLifecycleManager
 from slm.util import create_status_message
 
@@ -17,6 +21,8 @@ LOG.setLevel(logging.DEBUG)
 
 config = get_config(__name__)
 
+MONGO_HOST = config["mongo"]
+
 
 class ServiceLifecycleManagerPlugin(ManoBasePlugin):
     """
@@ -25,8 +31,8 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
 
     def __init__(self, *args, **kwargs):
         # Connect to MongoDB
-        LOG.debug("Connecting to MongoDB at %s", config["mongo"])
-        connect(host=config["mongo"])
+        LOG.debug(f"Connecting to MongoDB at {MONGO_HOST}")
+        connect(host=MONGO_HOST)
         LOG.info("Connected to MongoDB")
 
         # Map service ids to ServiceLifecycleManager instances
@@ -38,6 +44,9 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
         super().declare_subscriptions()
         self.conn.register_async_endpoint(
             self.on_service_instance_create, "service.instances.create"
+        )
+        self.conn.register_async_endpoint(
+            self.on_service_instance_terminate, "service.instance.terminate"
         )
 
     def on_lifecycle_start(self, message: Message):
@@ -66,4 +75,30 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
             )
 
         except (DeployRequestValidationError, InstantiationError) as e:
+            return create_status_message(error=e)
+
+    async def on_service_instance_terminate(self, message: Message):
+        """
+        Destory a service instance
+        """
+
+        service_id = message.payload["instance_id"]
+
+        try:
+            if service_id in self.managers:
+                manager = self.managers[service_id]
+            else:
+                try:
+                    manager = ServiceLifecycleManager.from_database(
+                        service_id, self.conn
+                    )
+                except DoesNotExist:
+                    raise TerminationError(
+                        f"A service with instance id {service_id} is not known to the SLM"
+                    )
+
+            await manager.terminate()
+            return create_status_message(status="TERMINATED")
+
+        except TerminationError as e:
             return create_status_message(error=e)

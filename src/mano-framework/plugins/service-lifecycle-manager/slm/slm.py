@@ -82,6 +82,14 @@ class ServiceLifecycleManager:
 
         return cls(service, conn)
 
+    @classmethod
+    def from_database(cls, service_instance_id: str, conn: AsyncioBrokerConnection):
+        """
+        Recreates a `ServiceLifecycleManager` from a MongoDB document. Raises a
+        `mongoengine.DoesNotExist` if no document exists for the given service instance.
+        """
+        return cls(Service.objects.get(id=service_instance_id), conn)
+
     @property
     def service_id(self):
         return str(self.service.id)
@@ -126,6 +134,31 @@ class ServiceLifecycleManager:
         # start_monitoring
 
         self.logger.info("Instantiation succeeded")
+
+    async def terminate(self):
+        self.logger.info("Terminating")
+
+        # stop_monitoring
+        # # wan_deconfigure
+        # # vnf_unchain
+        # vnfs_stop
+
+        await self._destroy_vnfs()
+
+        # if self.services[serv_id]["service"]["ssm"]:
+        #     terminate_ssms
+
+        # for vnf in self.services[serv_id]["function"]:
+        #     if vnf["fsm"] is not None:
+        #         terminate_fsms
+        #         break
+
+        # update_records_to_terminated
+
+        # Delete the service document from MongoDB
+        self.service.delete()
+
+        self.logger.info("Termination succeeded")
 
     async def _fetch_topology(self) -> List[dict]:
         """
@@ -208,42 +241,43 @@ class ServiceLifecycleManager:
         )
 
     async def _deploy_vnfs(self):
+        # Map VNFD flavors to topics
+        topics_map = {
+            "openstack": topics.MANO_DEPLOY,
+            "kubernetes": topics.MANO_CS_DEPLOY,
+        }
+
         for function in self.service.functions:
-            self.logger.info("Requesting the deployment of VNF %s", function.id)
+            self.logger.info(f"Requesting the deployment of VNF {function.id}")
 
-            shared_message = {
-                "id": str(function.instance_id),
-                "vim_uuid": str(function.vim),
-                "serv_id": self.service_id,
-            }
             flavor = function.descriptor["descriptor_flavor"]
-            if flavor == "openstack":
-                response_future = self.conn.call(
-                    topics.MANO_DEPLOY, {**shared_message, "vnfd": function.descriptor},
-                )
-            elif flavor == "kubernetes":
-                response_future = self.conn.call(
-                    topics.MANO_CS_DEPLOY,
-                    {**shared_message, "csd": function.descriptor},
-                )
-            else:
+            try:
+                topic = topics_map[flavor]
+            except KeyError:
                 raise InstantiationError(
-                    'The SLM does not support function descriptor flavor "{}".'.format(
-                        flavor
-                    )
+                    f'The SLM does not support VNFD flavor "{flavor}".'
                 )
 
-            response = (await response_future).payload
+            response = (
+                await self.conn.call(
+                    topic,
+                    {
+                        "function_instance_id": str(function.instance_id),
+                        "service_instance_id": self.service_id,
+                        "vim_id": str(function.vim),
+                        "vnfd": function.descriptor,
+                    },
+                )
+            ).payload
 
             raise_on_error_response(
                 response,
                 InstantiationError,
                 self.logger,
-                "Deployment of VNF %s failed",
-                function.id,
+                f"Deployment of VNF {function.id} failed",
             )
 
-            self.logger.info("VNF %s deployed successfully", function.id)
+            self.logger.info(f"VNF {function.id} deployed successfully")
             # TODO store record from response["vnfr"]
 
     async def _destroy_vnfs(self):
