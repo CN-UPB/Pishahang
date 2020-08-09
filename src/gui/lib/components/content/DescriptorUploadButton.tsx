@@ -28,9 +28,16 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
     [[progressEvent, file]]: FileReaderInput.Result[]
   ) => {
     const contentString = await file.text();
-    let content: DescriptorContent;
     try {
-      content = yaml.safeLoad(contentString);
+      const content = yaml.safeLoad(contentString) as DescriptorContent;
+      const reply = await dispatch(
+        uploadDescriptor(descriptorType, content, contentString, {
+          successSnackbarMessage: "Descriptor successfully uploaded",
+        })
+      );
+      if (reply.success) {
+        await onUploaded();
+      }
     } catch {
       dispatch(
         showInfoDialog({
@@ -41,15 +48,6 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
         })
       );
       return;
-    }
-
-    const reply = await dispatch(
-      uploadDescriptor(descriptorType, content, contentString, {
-        successSnackbarMessage: "Descriptor successfully uploaded",
-      })
-    );
-    if (reply.success) {
-      await onUploaded();
     }
   };
 
