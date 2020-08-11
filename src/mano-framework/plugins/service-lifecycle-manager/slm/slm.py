@@ -124,9 +124,7 @@ class ServiceLifecycleManager:
             await self._deploy_vnfs()
             # vnfs_start
             # vnf_chain
-
             await self._setup_records()
-
             # wan_configure
             # start_monitoring
         except InstantiationError as inst_error:
@@ -146,8 +144,8 @@ class ServiceLifecycleManager:
         self.logger.info("Terminating")
 
         # stop_monitoring
-        # # wan_deconfigure
-        # # vnf_unchain
+        # wan_deconfigure
+        # vnf_unchain
         # vnfs_stop
 
         await self._destroy_vnfs()
@@ -160,7 +158,7 @@ class ServiceLifecycleManager:
         #         terminate_fsms
         #         break
 
-        # update_records_to_terminated
+        await self._teardown_records()
 
         # Delete the service document from MongoDB
         self.service.delete()
@@ -285,7 +283,6 @@ class ServiceLifecycleManager:
             )
 
             self.logger.info(f"VNF {function.id} deployed successfully")
-            # TODO store record from response["vnfr"]
 
     async def _destroy_vnfs(self):
         response = (
@@ -319,25 +316,34 @@ class ServiceLifecycleManager:
 
         return record
 
+    async def _set_record_status(self, endpoint: str, status: str):
+        """
+        Updates a records' status field to a given status
+        """
+        version = (await run_sync(repository.get, endpoint))["version"]
+        await run_sync(
+            repository.patch,
+            endpoint,
+            {"status": status, "version": str(int(version) + 1)},
+        )
+
+    async def _set_function_records_status(self, status: str):
+        """
+        Updates the function records' status fields to `status`
+        """
+        for function in self.service.functions:
+            await self._set_record_status(
+                f"records/functions/{function.instance_id}", status
+            )
+
     async def _setup_records(self):
         """
         Updates the function records' statuses to "normal operation"; creates and stores
         a network service record
         """
         try:
-            self.logger.info("Updating function records")
-            for function in self.service.functions:
-                endpoint = f"records/functions/{function.instance_id}"
-                vnfr = await run_sync(repository.get, endpoint)
-
-                await run_sync(
-                    repository.patch,
-                    endpoint,
-                    {
-                        "status": "normal operation",
-                        "version": str(int(vnfr["version"]) + 1),
-                    },
-                )
+            self.logger.info("Updating status of function records")
+            await self._set_function_records_status("normal operation")
 
             self.logger.info("Storing service record")
             record = self._generate_service_record(status="normal operation")
@@ -348,3 +354,16 @@ class ServiceLifecycleManager:
             raise InstantiationError(
                 f"Error while writing records to repository: {str(e)}"
             )
+
+    async def _teardown_records(self):
+        """
+        Sets the status of the service and function records to "terminated".
+        """
+        try:
+            self.logger.info("Updating record statusses")
+            await self._set_function_records_status("terminated")
+            await self._set_record_status(self._record_endpoint, "terminated")
+        except RequestException as e:
+            if isinstance(e, HTTPError):
+                e.args += (e.response.json(),)
+            raise TerminationError(f"Error updating records: {str(e)}")
