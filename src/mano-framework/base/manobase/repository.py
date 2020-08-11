@@ -15,7 +15,7 @@ TIMEOUT = 5  # seconds
 Resource = Union[dict, List[dict]]
 
 
-def post(endpoint: str, data: Resource):
+def post(endpoint: str, data: Resource) -> Resource:
     """
     Sends a POST request to the given repository endpoint with the provided data and
     raises a `requests.RequestException` on error.
@@ -24,12 +24,12 @@ def post(endpoint: str, data: Resource):
         endpoint: The endpoint URL relative to the repository root URL, without a leading slash
         data: The data to be sent to the repository
     """
-    response = requests.post(f"{repository_url}/{endpoint}", json=data, timeout=TIMEOUT)
+    response = requests.post(repository_url + endpoint, json=data, timeout=TIMEOUT)
     response.raise_for_status()
     return response.json()
 
 
-def put(endpoint: str, data: Resource):
+def put(endpoint: str, data: Resource) -> Resource:
     """
     Sends a PUT request to the given repository endpoint with the provided data and
     raises a `requests.RequestException` on error.
@@ -38,7 +38,21 @@ def put(endpoint: str, data: Resource):
         endpoint: The endpoint URL relative to the repository root URL, without a leading slash
         data: The data to be sent to the repository
     """
-    response = requests.put(f"{repository_url}/{endpoint}", json=data, timeout=TIMEOUT)
+    response = requests.put(repository_url + endpoint, json=data, timeout=TIMEOUT)
+    response.raise_for_status()
+    return response.json()
+
+
+def patch(endpoint: str, data: dict) -> Resource:
+    """
+    Sends a PATCH request to the given repository endpoint with the provided data and
+    raises a `requests.RequestException` on error.
+
+    Args:
+        endpoint: The endpoint URL relative to the repository root URL, without a leading slash
+        data: A dict of data to be patched for the provided resource
+    """
+    response = requests.patch(repository_url + endpoint, json=data, timeout=TIMEOUT)
     response.raise_for_status()
     return response.json()
 
@@ -51,12 +65,12 @@ def get(endpoint: str) -> Resource:
     Args:
         endpoint: The endpoint URL relative to the repository root URL, without a leading slash
     """
-    response = requests.get(f"{repository_url}/{endpoint}", timeout=TIMEOUT)
+    response = requests.get(repository_url + endpoint, timeout=TIMEOUT)
     response.raise_for_status()
     return response.json()
 
 
-def delete(endpoint: str):
+def delete(endpoint: str) -> Resource:
     """
     Sends a DELETE request to the given repository endpoint and raises a
     `requests.RequestException` on error.
@@ -65,7 +79,7 @@ def delete(endpoint: str):
         endpoint: The endpoint URL relative to the repository root URL, without a leading slash
         data: The data to be sent to the repository
     """
-    response = requests.delete(f"{repository_url}/{endpoint}", timeout=TIMEOUT)
+    response = requests.delete(repository_url + endpoint, timeout=TIMEOUT)
     response.raise_for_status()
     return response.json()
 
