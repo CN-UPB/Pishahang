@@ -1,9 +1,10 @@
 // Based on https://github.com/mui-org/material-ui/blob/master/examples/nextjs-with-typescript/pages/_document.tsx
 
-import theme from "../lib/theme";
 import { ServerStyleSheets } from "@material-ui/styles";
 import NextDocument, { Head, Main, NextScript } from "next/document";
 import * as React from "react";
+
+import theme from "../lib/theme";
 
 class Document extends NextDocument {
   render() {
@@ -11,10 +12,6 @@ class Document extends NextDocument {
       <html lang="en">
         <Head>
           <meta charSet="utf-8" />
-          <meta
-            name="viewport"
-            content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
-          />
           {/* PWA primary color */}
           <meta name="theme-color" content={theme.palette.primary.main} />
           <link
@@ -31,7 +28,7 @@ class Document extends NextDocument {
   }
 }
 
-Document.getInitialProps = async ctx => {
+Document.getInitialProps = async (ctx) => {
   // Resolution order
   //
   // On the server:
@@ -60,7 +57,7 @@ Document.getInitialProps = async ctx => {
 
   ctx.renderPage = () =>
     originalRenderPage({
-      enhanceApp: App => props => sheets.collect(<App {...props} />),
+      enhanceApp: (App) => (props) => sheets.collect(<App {...props} />),
     });
 
   const initialProps = await NextDocument.getInitialProps(ctx);
