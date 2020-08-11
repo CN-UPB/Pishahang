@@ -1,10 +1,15 @@
+import asyncio
 import logging
-from typing import List
+from copy import deepcopy
+from typing import Callable, List
 from uuid import uuid4
 
+from requests import RequestException
+from requests.exceptions import HTTPError
 from voluptuous import ALLOW_EXTRA, All, Length, MultipleInvalid, Required, Schema
 
 import slm.topics as topics
+from manobase import repository
 from manobase.messaging import AsyncioBrokerConnection, Message
 from slm.exceptions import (
     DeployRequestValidationError,
@@ -37,9 +42,7 @@ class ServiceLifecycleManager:
 
         def process(self, msg, kwargs):
             return (
-                "ServiceLifecycleManager(service_id: {}): {:s}".format(
-                    self.extra["service_instance_id"], msg
-                ),
+                f"ServiceLifecycleManager(service_id: {self.extra['service_instance_id']}): {msg:s}",
                 kwargs,
             )
 
@@ -116,22 +119,23 @@ class ServiceLifecycleManager:
 
         try:
             await self._deploy_vnfs()
+            # vnfs_start
+            # vnf_chain
+
+            await self._setup_records()
+
+            # wan_configure
+            # start_monitoring
         except InstantiationError as inst_error:
+            # Rollback the instantiation
             try:
                 await self._destroy_vnfs()
             except TerminationError as term_error:
                 # Add the termination error to the instantiation error's message
                 inst_error.add_error(term_error)
+
+            self.logger.info("Instantiation failed", exc_info=inst_error)
             raise inst_error
-
-        # vnfs_start
-        # cs_deploy
-        # vnf_chain
-
-        # store_nsr
-
-        # wan_configure
-        # start_monitoring
 
         self.logger.info("Instantiation succeeded")
 
@@ -291,10 +295,65 @@ class ServiceLifecycleManager:
             response, TerminationError, self.logger, "Termination failed"
         )
 
-    async def _rollback_instantiation(self):
-        # Terminate service instance
-        await self._destoy()
+    async def _run_sync(self, function: Callable, *args, **kwargs):
+        """
+        Async method to run a synchronous function in an executor thread
+        """
+        return await asyncio.get_running_loop().run_in_executor(
+            None, function, *args, **kwargs
+        )
 
-        # Kill the SSMs and FSMs
-        # terminate_ssms
-        # terminate_fsms
+    def _generate_service_record(self, status: str) -> dict:
+        """
+        Generates the service's Network Service Record and returns it
+        """
+        descriptor: dict = self.service.descriptor
+        record = deepcopy(descriptor)
+        record.update(
+            {
+                "id": self.service_id,
+                "status": status,
+                "version": "1",
+                "descriptor_reference": descriptor["id"],
+                "network_functions": [
+                    {"vnfr_id": str(function.instance_id)}
+                    for function in self.service.functions
+                ],
+            }
+        )
+
+        return record
+
+    @property
+    def _record_endpoint(self):
+        return f"records/services/{self.service_id}"
+
+    async def _setup_records(self):
+        """
+        Updates the function records' statuses to "normal operation"; creates and stores
+        a network service record
+        """
+        try:
+            self.logger.info("Updating function records")
+            for function in self.service.functions:
+                endpoint = f"records/functions/{function.instance_id}"
+                vnfr = await self._run_sync(repository.get, endpoint)
+
+                await self._run_sync(
+                    repository.patch,
+                    endpoint,
+                    {
+                        "status": "normal operation",
+                        "version": str(int(vnfr["version"]) + 1),
+                    },
+                )
+
+            self.logger.info("Storing service record")
+            record = self._generate_service_record(status="normal operation")
+            await self._run_sync(repository.post, "records/services", record)
+        except RequestException as e:
+            if isinstance(e, HTTPError):
+                e.args += (e.response.json(),)
+            raise InstantiationError(
+                f"Error while writing records to repository: {str(e)}"
+            )

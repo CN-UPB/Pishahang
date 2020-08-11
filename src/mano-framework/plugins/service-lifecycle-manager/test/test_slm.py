@@ -196,3 +196,7 @@ async def test_destroy_vnfs(
     ):
         with pytest.raises(TerminationError, match="failed"):
             await manager._destroy_vnfs()
+
+
+def test_generate_record(manager: ServiceLifecycleManager, snapshot):
+    assert manager._generate_service_record("request status") == snapshot
