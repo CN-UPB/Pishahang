@@ -1,5 +1,6 @@
+import asyncio
 from time import time
-from typing import Type, Union
+from typing import Callable, Type, Union
 
 
 def create_status_message(
@@ -52,3 +53,12 @@ def raise_on_error_response(
             logger.info(*log_args)
             logger.debug("Error: %s", message)
         raise exception_class(message)
+
+
+async def run_sync(function: Callable, *args, **kwargs):
+    """
+    Async method to run a synchronous function in an executor thread
+    """
+    return await asyncio.get_running_loop().run_in_executor(
+        None, function, *args, **kwargs
+    )

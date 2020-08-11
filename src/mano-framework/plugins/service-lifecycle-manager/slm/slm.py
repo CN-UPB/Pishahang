@@ -1,7 +1,6 @@
-import asyncio
 import logging
 from copy import deepcopy
-from typing import Callable, List
+from typing import List
 from uuid import uuid4
 
 from requests import RequestException
@@ -18,7 +17,7 @@ from slm.exceptions import (
     TerminationError,
 )
 from slm.models import Function, Service
-from slm.util import get_vm_image_id, raise_on_error_response
+from slm.util import get_vm_image_id, raise_on_error_response, run_sync
 
 DEPLOY_REQUEST_SCHEMA = Schema(
     {Required("nsd"): dict, Required("vnfds"): All(list, Length(min=1))},
@@ -96,6 +95,10 @@ class ServiceLifecycleManager:
     @property
     def service_id(self):
         return str(self.service.id)
+
+    @property
+    def _record_endpoint(self):
+        return f"records/services/{self.service_id}"
 
     async def instantiate(self):
         self.logger.info("Instantiating")
@@ -295,14 +298,6 @@ class ServiceLifecycleManager:
             response, TerminationError, self.logger, "Termination failed"
         )
 
-    async def _run_sync(self, function: Callable, *args, **kwargs):
-        """
-        Async method to run a synchronous function in an executor thread
-        """
-        return await asyncio.get_running_loop().run_in_executor(
-            None, function, *args, **kwargs
-        )
-
     def _generate_service_record(self, status: str) -> dict:
         """
         Generates the service's Network Service Record and returns it
@@ -324,10 +319,6 @@ class ServiceLifecycleManager:
 
         return record
 
-    @property
-    def _record_endpoint(self):
-        return f"records/services/{self.service_id}"
-
     async def _setup_records(self):
         """
         Updates the function records' statuses to "normal operation"; creates and stores
@@ -337,9 +328,9 @@ class ServiceLifecycleManager:
             self.logger.info("Updating function records")
             for function in self.service.functions:
                 endpoint = f"records/functions/{function.instance_id}"
-                vnfr = await self._run_sync(repository.get, endpoint)
+                vnfr = await run_sync(repository.get, endpoint)
 
-                await self._run_sync(
+                await run_sync(
                     repository.patch,
                     endpoint,
                     {
@@ -350,7 +341,7 @@ class ServiceLifecycleManager:
 
             self.logger.info("Storing service record")
             record = self._generate_service_record(status="normal operation")
-            await self._run_sync(repository.post, "records/services", record)
+            await run_sync(repository.post, "records/services", record)
         except RequestException as e:
             if isinstance(e, HTTPError):
                 e.args += (e.response.json(),)
