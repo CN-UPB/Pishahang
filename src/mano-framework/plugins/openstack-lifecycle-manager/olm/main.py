@@ -192,7 +192,7 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         LOG.info("Function instance create request received.")
         payload = message.payload
         corr_id = message.correlation_id
-        func_id = payload["id"]
+        func_id = payload["function_instance_id"]
 
         # Add the function to the ledger
         self.add_function_to_ledger(payload, corr_id, func_id, message.topic)
@@ -482,9 +482,6 @@ class OpenStackLifecycleManager(ManoBasePlugin):
 
         msg_for_smr = {"VNFD": self.functions[func_id]["vnfd"], "UUID": func_id}
 
-        if self.functions[func_id]["private_key"]:
-            msg_for_smr["private_key"] = self.functions[func_id]["private_key"]
-
         LOG.info(
             "Function %s: Keys in message for FSM instant: %s",
             func_id,
@@ -546,13 +543,11 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         function = self.functions[func_id]
 
         outg_message = {
-            "vnfd": {**function["vnfd"], "instance_uuid": function["id"]},
-            "vim_uuid": function["vim_uuid"],
+            "function_instance_id": function["id"],
             "service_instance_id": function["serv_id"],
+            "vim_id": function["vim_uuid"],
+            "vnfd": function["vnfd"],
         }
-
-        if "public_key" in function:
-            outg_message["public_key"] = function["public_key"]
 
         corr_id = str(uuid.uuid4())
         self.functions[func_id]["act_corr_id"] = corr_id
@@ -866,8 +861,8 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             "topic": topic,  # Topic of the call
             "orig_corr_id": corr_id,
             "payload": payload,
-            "serv_id": payload["serv_id"],  # Service uuid that this function belongs to
-            "vim_uuid": payload["vim_uuid"],
+            "serv_id": payload["service_instance_id"],
+            "vim_uuid": payload["vim_id"],
             "schedule": [],
             # Create the FSM dict if FSMs are defined in VNFD:
             "fsm": tools.get_fsm_from_vnfd(payload["vnfd"]),
@@ -880,8 +875,6 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             "act_corr_id": None,
             "message": None,
             "error": None,
-            "public_key": payload["public_key"],
-            "private_key": payload["private_key"],
         }
 
         return func_id
