@@ -10,6 +10,10 @@ services:
   repository:
     build: ./src/repository
 
+  # Gatekeeper
+  gatekeeper:
+    build: ./src/gatekeeper
+
   # GUI
   gui:
     build: ./src/gui

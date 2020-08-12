@@ -101,7 +101,6 @@ jobs:
 
     - name: gatekeeper
       <<: *python_job_config
-      script: *python_test_command # The Docker image is not configured yet
       env:
         - SERVICE_NAME=gatekeeper
         - COMPONENT_DIR=src/gatekeeper

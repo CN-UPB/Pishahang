@@ -98,14 +98,24 @@ services:
     ports:
       - "5000:5000"
 
+  # Gatekeeper
+  gatekeeper:
+    image: pishahang/gatekeeper:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - mongo
+      - broker
+    networks:
+      - pishanet
+    ports:
+      - "5555:5555"
+
   # GUI
   gui:
     image: pishahang/gui:${PISHAHANG_VERSION}
     restart: always
-    # depends_on:
-    #   - gatekeeper
-    networks:
-      - pishanet
+    depends_on:
+      - gatekeeper
 
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
