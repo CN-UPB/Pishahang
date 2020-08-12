@@ -22,8 +22,6 @@ virtual_deployment_units:
       memory:
         size: 128
         size_unit: "MiB"
-      cpu:
-        vcpus: 0.1
     scale_in_out:
       minimum: 2
       maximum: 5
