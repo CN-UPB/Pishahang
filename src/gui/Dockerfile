@@ -1,5 +1,5 @@
 # Base image
-FROM node:12-alpine as base
+FROM node:14-alpine as base
 
 # https://github.com/MrRio/jsPDF/issues/2208
 RUN apk update && apk add --no-cache bash git openssh
@@ -26,8 +26,11 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci
 
+COPY server.js ./
+COPY public ./public
+
 # Copy built files
-COPY --from=builder .next ./
+COPY --from=builder .next ./.next
 
 USER node
 EXPOSE 3000
