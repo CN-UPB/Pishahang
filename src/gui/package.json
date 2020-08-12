@@ -1,0 +1,118 @@
+{
+  "name": "pishahang-gui",
+  "version": "1.0.0",
+  "description": "GUI for Pishahang",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development PORT=3000 node server.js",
+    "build": "next build",
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "npm run test -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CN-UPB/pg-entangle.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CN-UPB/pg-entangle/issues"
+  },
+  "homepage": "https://github.com/CN-UPB/pg-entangle#readme",
+  "dependencies": {
+    "@emotion/core": "^10.0.28",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "axios": "^0.19.2",
+    "formik": "^2.1.5",
+    "formik-material-ui": "^3.0.0-alpha.0",
+    "i": "^0.3.6",
+    "js-yaml": "^3.14.0",
+    "lodash": "^4.17.19",
+    "material-table": "^1.68.0",
+    "material-ui-icons": "^1.0.0-beta.36",
+    "next": "^9.5.1",
+    "next-redux-cookie-wrapper": "^1.1.3",
+    "react": "^16.13.1",
+    "react-ace": "^8.1.0",
+    "react-dom": "^16.13.1",
+    "react-file-reader-input": "^2.0.0",
+    "react-modal-hook": "^2.0.0",
+    "react-redux": "^7.2.1",
+    "recharts": "^2.0.0-beta.5",
+    "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-saga": "^1.1.3",
+    "redux-thunk": "^2.3.0",
+    "reselect": "^4.0.0",
+    "swr": "0.3.0",
+    "typesafe-actions": "5.1.0",
+    "utility-types": "^3.10.0",
+    "yup": "^0.29.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.9",
+    "@types/js-yaml": "^3.12.5",
+    "@types/lodash": "^4.14.159",
+    "@types/node": "^14.0.27",
+    "@types/react": "^16.9.45",
+    "@types/react-file-reader-input": "^2.0.0",
+    "@types/react-redux": "^7.1.9",
+    "@types/yup": "^0.29.4",
+    "cross-env": "^7.0.2",
+    "eslint": "^7.6.0",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-react-hooks": "^4.0.8",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^1.0.5",
+    "husky": "^4.2.5",
+    "import-sort-style-module": "^6.0.0",
+    "jest": "^26.2.2",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "prettier-plugin-import-sort": "^0.0.4",
+    "redux-saga-test-plan": "^4.0.0-rc.3",
+    "ts-jest": "^26.1.4",
+    "typescript": "^3.9.7"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "printWidth": 100
+  },
+  "importSort": {
+    ".ts, .tsx": {
+      "style": "module",
+      "parser": "typescript"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.ts(x)": "prettier --write"
+  },
+  "eslint": {
+    "parserOptions": {
+      "ecmaVersion": 2017
+    },
+    "env": {
+      "es6": true
+    },
+    "extends": [
+      "plugin:jest/recommended",
+      "plugin:jest/style"
+    ],
+    "plugins": [
+      "react-hooks",
+      "jest"
+    ],
+    "rules": {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn"
+    }
+  }
+}
