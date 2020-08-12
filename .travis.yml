@@ -4,6 +4,8 @@ _docker_compose_setup_commands: &docker_compose_setup_commands
 
 _docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && docker-compose build $BUILD_SERVICES
 
+_python_test_command: &python_test_command cd $COMPONENT_DIR && poetry install -v && poetry run pytest
+
 _python_job_config: &python_job_config
   language: python
   python: "3.8"
@@ -96,6 +98,14 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/plugins/specific-manager-registry
         - REQUIRED_MICROSERVICES="broker mongo pluginmanager"
         - BUILD_SERVICES="mano-base specific-manager-registry"
+
+    - name: gatekeeper
+      <<: *python_job_config
+      script: *python_test_command # The Docker image is not configured yet
+      env:
+        - SERVICE_NAME=gatekeeper
+        - COMPONENT_DIR=src/gatekeeper
+        - BUILD_SERVICES="mano-base gatekeeper"
 
   fast_finish: true
   allow_failures:
