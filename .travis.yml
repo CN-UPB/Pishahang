@@ -23,6 +23,18 @@ jobs:
       node_js: lts/*
       before_install: cd src/schemas
 
+    - name: gui
+      language: node_js
+      node_js: 14
+      before_install:
+        - *docker_compose_setup_commands
+        - cd src/gui
+      script:
+        - npm test
+        - *docker_compose_build_command
+      env:
+        - BUILD_SERVICES=gui
+
     - name: manobase
       <<: *python_job_config
       env:
