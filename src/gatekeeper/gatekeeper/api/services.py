@@ -3,6 +3,7 @@ from typing import List
 
 import connexion
 from connexion.exceptions import ProblemException
+from manobase.messaging import Message
 from mongoengine.errors import DoesNotExist
 
 from gatekeeper.app import broker
@@ -14,7 +15,6 @@ from gatekeeper.exceptions import (
 from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
 from gatekeeper.models.services import Service, ServiceInstance
 from gatekeeper.util.mongoengine_custom_json import to_custom_dict
-from manobase.messaging import Message
 
 logger = logging.getLogger(__name__)
 

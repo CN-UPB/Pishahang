@@ -2,8 +2,8 @@
 Utilities for pishahang-internal messaging
 """
 
-from manobase.messaging import ManoBrokerRequestResponseConnection
 from connexion import ProblemException
+from manobase.messaging import ManoBrokerRequestResponseConnection
 
 
 class ConnexionBrokerConnection(ManoBrokerRequestResponseConnection):

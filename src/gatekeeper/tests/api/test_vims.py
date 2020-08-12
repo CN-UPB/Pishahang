@@ -1,9 +1,8 @@
 from uuid import uuid4
 
-from pytest_voluptuous import S
-
 from manobase.messaging import ManoBrokerRequestResponseConnection as Connection
 from manobase.messaging import Message
+from pytest_voluptuous import S
 
 
 def testAddVim(api, broker: Connection, reraise):

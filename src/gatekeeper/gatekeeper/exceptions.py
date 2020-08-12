@@ -1,6 +1,5 @@
-from mongoengine.errors import NotUniqueError
-
 from connexion.exceptions import BadRequestProblem, ProblemException
+from mongoengine.errors import NotUniqueError
 
 
 class NotFoundError(ProblemException):

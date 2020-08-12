@@ -5,13 +5,13 @@ import yaml
 from appcfg import get_config
 from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token, create_refresh_token
+from manobase.messaging.request_response import ManoBrokerRequestResponseConnection
 from werkzeug.datastructures import Headers
 
 from gatekeeper.app import app
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
 from gatekeeper.models.services import Service
 from gatekeeper.models.users import User
-from manobase.messaging.request_response import ManoBrokerRequestResponseConnection
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 

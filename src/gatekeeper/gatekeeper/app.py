@@ -3,17 +3,16 @@ import secrets
 import time
 
 import appcfg
+import connexion
 import redis
 from amqpstorm import AMQPConnectionError
 from flask_jwt_extended import JWTManager
 from flask_mongoengine import MongoEngine
 from flask_redis import FlaskRedis
 
-import connexion
 from gatekeeper.models.users import User
 from gatekeeper.util.flask import MongoEngineJSONEncoder
 from gatekeeper.util.messaging import ConnexionBrokerConnection
-from manobase.messaging.request_response import ManoBrokerRequestResponseConnection
 
 logger = logging.getLogger("gatekeeper.app")
 

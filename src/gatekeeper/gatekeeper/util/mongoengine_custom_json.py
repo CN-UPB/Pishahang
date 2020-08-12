@@ -1,12 +1,12 @@
+import json
 from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Union
 
 from bson import json_util
 from mongoengine.base import BaseDocument
+from mongoengine.fields import EmbeddedDocumentField, ListField, ReferenceField
 from mongoengine.queryset import QuerySet
-from mongoengine.fields import ListField, EmbeddedDocumentField, ReferenceField
-import json
 
 
 class CustomJsonRules(IntEnum):
