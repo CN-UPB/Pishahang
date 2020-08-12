@@ -11,12 +11,12 @@ flask = "^1.1.2"
 connexion = { extras = ["swagger-ui"], version = "^2.7.0" }
 requests = "^2.23.0"
 mongoengine = "^0.20.0"
+wheel = "^0.34.2" # Required for the installation of flask-mongoengine
 flask-mongoengine = "^0.9.5"
 flask-redis = "^0.4.0"
 flask-jwt-extended = "^3.24.1"
 fakeredis = "^1.4.0"
 jsonschema = "^3.2.0"
-wheel = "^0.34.2"
 manobase = { path = "../mano-framework/base" }
 appcfg = { extras = ["yaml"], version = "^1.1.0" }
 stringcase = "^1.2.0"
