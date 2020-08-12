@@ -8,6 +8,8 @@ version: "2.2.2"
 
 virtual_deployment_units:
   - id: "vdu01"
+    vm_image: "https://images.example.org/vm2"
+    vm_image_format: "raw"
     resource_requirements:
       cpu:
         vcpus: 1
