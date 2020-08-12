@@ -10,6 +10,10 @@ services:
   repository:
     build: ./src/repository
 
+  # GUI
+  gui:
+    build: ./src/gui
+
   # MANO framework -------------------------------------------------------------
   # Base
   mano-base:
@@ -57,4 +61,5 @@ services:
 
   # Monitoring – Probe
   monitor-probe:
+    {}
     # build: ./monitor/ ?

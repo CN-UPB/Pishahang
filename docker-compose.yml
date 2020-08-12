@@ -98,6 +98,15 @@ services:
     ports:
       - "5000:5000"
 
+  # GUI
+  gui:
+    image: pishahang/gui:${PISHAHANG_VERSION}
+    restart: always
+    # depends_on:
+    #   - gatekeeper
+    networks:
+      - pishanet
+
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
   pluginmanager:
