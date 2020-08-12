@@ -103,8 +103,8 @@ services:
     image: pishahang/gatekeeper:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - mongo
       - broker
+      - mongo
     networks:
       - pishanet
     ports:
@@ -123,8 +123,8 @@ services:
     image: pishahang/mano-pluginmanager:${PISHAHANG_VERSION}
     restart: always
     depends_on:
-      - mongo
       - broker
+      - mongo
     environment:
       mongo_host: mongo
     networks:
@@ -138,6 +138,8 @@ services:
     restart: always
     depends_on:
       - broker
+      - pluginmanager
+      - mongo
       - repository
       - monitor-manager
     environment:
@@ -151,6 +153,7 @@ services:
     restart: always
     depends_on:
       - broker
+      - pluginmanager
       - repository
       - monitor-manager
     environment:
@@ -164,6 +167,7 @@ services:
     restart: always
     depends_on:
       - broker
+      - pluginmanager
     environment:
       broker_name: broker
     networks:
@@ -177,6 +181,7 @@ services:
     restart: always
     depends_on:
       - broker
+      - pluginmanager
     networks:
       - pishanet
 
@@ -186,8 +191,9 @@ services:
     restart: always
     depends_on:
       - broker
-      - monitor-manager
+      - pluginmanager
       - repository
+      - monitor-manager
     networks:
       - pishanet
 
