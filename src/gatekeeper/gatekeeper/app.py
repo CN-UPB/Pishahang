@@ -14,7 +14,7 @@ from gatekeeper.models.users import User
 from gatekeeper.util.flask import MongoEngineJSONEncoder
 from gatekeeper.util.messaging import ConnexionBrokerConnection
 
-logger = logging.getLogger("gatekeeper.app")
+logger = logging.getLogger(__name__)
 
 config = appcfg.get_config(__name__)
 
