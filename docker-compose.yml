@@ -6,19 +6,6 @@ networks:
     external: false
 
 services:
-  # PostgreSQL database engine
-  postgres:
-    image: ntboes/postgres-uuid #sonatanfv/son-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: ${GTK_DB_NAME}
-      POSTGRES_USER: ${GTK_DB_USER}
-      POSTGRES_PASSWORD: ${GTK_DB_PASS}
-    networks:
-      pishanet:
-        aliases:
-          - son-postgres
-
   # MongoDB
   mongo:
     image: mongo
