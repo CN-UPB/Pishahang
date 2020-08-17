@@ -18,10 +18,8 @@ services:
       pishanet:
         aliases:
           - son-postgres
-    ports:
-      - 5432:5432
 
-  # MongoDB (used by Monitory)
+  # MongoDB
   mongo:
     image: mongo
     restart: always
@@ -29,8 +27,6 @@ services:
       pishanet:
         aliases:
           - son-mongo
-    ports:
-      - 27017:27017
 
   # RedisDB for the gatekeeper
   redis:
@@ -40,8 +36,6 @@ services:
       pishanet:
         aliases:
           - son-redis
-    ports:
-      - 6379:6379
 
   # PostgreSQL database engine for monitoring
   monitor-postgres:
@@ -57,8 +51,6 @@ services:
         aliases:
           - postgsql
           - son-monitor-postgres
-    ports:
-      - 5433:5432
 
   # RabbitMQ
   broker:
@@ -70,9 +62,6 @@ services:
       pishanet:
         aliases:
           - son-broker
-    ports:
-      - 5672:5672
-      - 15672:15672
 
   # Influxdb for monitoring
   monitor-influxdb:
@@ -84,8 +73,6 @@ services:
           - influxdb
           - influx
           - son-monitor-influxdb
-    ports:
-      - 8086:8086
 
   # Repository
   repository:
@@ -95,8 +82,6 @@ services:
       - mongo
     networks:
       - pishanet
-    ports:
-      - "5000:5000"
 
   # Gatekeeper
   gatekeeper:
@@ -107,8 +92,6 @@ services:
       - mongo
     networks:
       - pishanet
-    ports:
-      - "5555:5555"
 
   # GUI
   gui:
@@ -129,8 +112,6 @@ services:
       mongo_host: mongo
     networks:
       - pishanet
-    ports:
-      - "8001:8001"
 
   # Service Lifecycle Management Plugin
   service-lifecycle-manager:
@@ -207,8 +188,6 @@ services:
         aliases:
           - pushgateway
           - son-monitor-pushgateway
-    ports:
-      - "9091:9091"
 
   # Monitoring – Prometheus
   monitor-prometheus:
@@ -237,9 +216,6 @@ services:
       pishanet:
         aliases:
           - son-monitor-manager
-    ports:
-      - "8000:8000"
-      - "8888:8888"
 
   # Monitoring – Probe
   monitor-probe:
