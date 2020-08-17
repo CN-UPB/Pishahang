@@ -2,10 +2,30 @@
 version: "3.3"
 
 networks:
+  # Network to interconnect internal components
   pishanet:
     external: false
 
+  # Network to connect client-facing components to traefik
+  web:
+    external: false
+
 services:
+  # Reverse proxy for GUI and gatekeeper
+  traefik:
+    image: "traefik:v2.2"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    networks:
+      - web
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
   # MongoDB
   mongo:
     image: mongo
@@ -79,6 +99,11 @@ services:
       - mongo
     networks:
       - pishanet
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gatekeeper.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.gatekeeper.entrypoints=web"
 
   # GUI
   gui:
@@ -86,6 +111,12 @@ services:
     restart: always
     depends_on:
       - gatekeeper
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gui.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.gui.entrypoints=web"
 
   # MANO framework -------------------------------------------------------------
   # Plugin Manager
