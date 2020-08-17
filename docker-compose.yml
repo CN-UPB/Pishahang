@@ -97,6 +97,7 @@ services:
     depends_on:
       - broker
       - mongo
+      - redis
     networks:
       - pishanet
       - web
