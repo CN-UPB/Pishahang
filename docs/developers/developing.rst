@@ -119,7 +119,7 @@ It implements comfortable utility classes for AMQP messaging and a plugin base c
 Linting and Code Formatting
 ---------------------------
 
-All python projects are configured to use flake8 for linting and Black for code formatting.
+All python projects are configured to use flake8 for linting and Black and isort for code formatting.
 It is advisable to configure your editor to run these tools within the virtual environment that Poetry provides.
 
 
@@ -129,19 +129,25 @@ Setup with Visual Studio Code
 -----------------------------
 
 If you use Visual Studio Code, here's the basic setup:
-Within the root of the Pishahang repository, create a folder ``.vscode`` and add a ``settings.json`` with the following contents (if the file already exists, just add the properties to it):
+Within each python project that you open (the folder that contains the respective ``pyproject.toml`` file), create a ``.vscode`` directory and add a ``settings.json`` with the following contents (if the file already exists, just add the properties to it):
 
 .. code-block:: json
 
     {
-      "python.linting.flake8Enabled": true,
+      "python.pythonPath": ".venv/bin/python",
+      "python.testing.unittestEnabled": false,
+      "python.testing.nosetestsEnabled": false,
+      "python.testing.pytestEnabled": true,
       "python.linting.pylintEnabled": false,
-      "python.formatting.provider": "black"
+      "python.linting.flake8Enabled": true,
+      "python.linting.enabled": true,
+      "python.sortImports.args": ["-rc"],
+      "[python]": {
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        }
+      }
     }
-
-Once you open Visual Studio Code in the root directory of the python project you want to edit, you can press `F1`, run "Python: Select Interpreter", and select the virtual environment created by Poetry (``./.venv/bin/python``).
-
-Alternatively, if you did not yet run ``poetry install``, you can do it now and Visual Studio Code will ask you something like "We noticed a new virtual environment has been created. Do you want to select it for the workspace folder?", which you can accept then.
 
 Copyright Notice
 ================
