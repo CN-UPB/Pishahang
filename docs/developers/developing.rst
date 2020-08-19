@@ -100,9 +100,9 @@ An easy way to do so is using ``pipx``:
         poetry config virtualenvs.in-project true
     
     before you follow the next paragraph.
-    This way, Visual Studio Code will automatically detect the virtual environments created by Poetry.
+    This way, Visual Studio Code will detect the virtual environments created by Poetry.
 
-Once Poetry itself is installed, you can open the python project of interest (the folder in which pyproject.toml is located) in a terminal and issue ``poetry install``.
+Once Poetry itself is installed, you can open the Python project of interest (the folder in which ``pyproject.toml`` is located) in a terminal and issue ``poetry install``.
 This will create a virtual environment for the project and install the specified dependencies into it.
 The project's microservice can then be started locally using ``poetry run start`` (because ``pyproject.toml`` defines a ``start`` script).
 Make sure to stop the corresponding container beforehand, so it does not run in parallel to your local microservice instance.
@@ -143,6 +143,7 @@ Within each python project that you open (the folder that contains the respectiv
       "python.linting.enabled": true,
       "python.sortImports.args": ["-rc"],
       "[python]": {
+        "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.organizeImports": true
         }
