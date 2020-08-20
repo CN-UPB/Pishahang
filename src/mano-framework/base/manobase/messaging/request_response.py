@@ -35,7 +35,7 @@ from uuid import uuid4
 
 from .base import ManoBrokerConnection, Message
 
-LOG = logging.getLogger("manobase:messaging:request-response")
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 

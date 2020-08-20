@@ -2739,13 +2739,7 @@ class ServiceLifecycleManager(ManoBasePlugin):
 def main():
     """
     Entry point to start plugin.
-    :return:
     """
-    # reduce messaging log level to have a nicer output for this plugin
-    logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-    logging.getLogger("manobase:plugin").setLevel(logging.INFO)
-    #    logging.getLogger("amqp-storm").setLevel(logging.DEBUG)
-    # create our service lifecycle manager
     ServiceLifecycleManager()
 
 

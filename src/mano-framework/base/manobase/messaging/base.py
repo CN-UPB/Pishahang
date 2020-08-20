@@ -43,7 +43,7 @@ from appcfg import get_config
 amqp_config = get_config(__name__)["amqp"]
 
 logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
-LOG = logging.getLogger("manobase:messaging:base")
+LOG = logging.getLogger(__name__)
 
 # For connections with is_loopback=True:
 

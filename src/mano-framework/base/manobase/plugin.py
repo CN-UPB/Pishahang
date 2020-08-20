@@ -37,7 +37,7 @@ from amqpstorm import AMQPConnectionError
 from manobase.messaging import AsyncioBrokerConnection, Message
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("manobase:plugin")
+LOG = logging.getLogger(__name__)
 
 
 class ManoBasePlugin:
