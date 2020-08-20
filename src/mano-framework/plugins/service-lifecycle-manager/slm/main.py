@@ -38,7 +38,7 @@ class ServiceLifecycleManagerPlugin(ManoBasePlugin):
         # Map service ids to ServiceLifecycleManager instances
         self.managers: Dict[str, ServiceLifecycleManager] = {}
 
-        super().__init__(*args, version=version, start_running=False, **kwargs)
+        super().__init__(*args, version=version, **kwargs)
 
     def declare_subscriptions(self):
         super().declare_subscriptions()

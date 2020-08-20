@@ -86,10 +86,7 @@ def test_registration_and_heartbeat(connection: Connection, reraise):
     )
 
     plugin = ManoBasePlugin(
-        use_loopback_connection=True,
-        start_running=False,
-        version="1.2.3",
-        description="Test Plugin",
+        use_loopback_connection=True, version="1.2.3", description="Test Plugin",
     )
 
     try:

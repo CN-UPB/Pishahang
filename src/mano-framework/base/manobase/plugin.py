@@ -60,7 +60,6 @@ class ManoBasePlugin:
         description=None,
         auto_register=True,
         wait_for_registration=True,
-        start_running=True,
         auto_heartbeat_rate=0.5,
         use_loopback_connection=False,
         fake_registration=False,
@@ -112,9 +111,6 @@ class ManoBasePlugin:
         if auto_heartbeat_rate > 0:
             self._start_heartbeats(auto_heartbeat_rate)
 
-        if start_running:
-            self.run()
-
     def __del__(self):
         """
         Actions done when plugin is destroyed.
@@ -156,14 +152,6 @@ class ManoBasePlugin:
             self.on_plugin_status_update,  # call back method
             "platform.management.plugin.status",
         )
-
-    def run(self):
-        """
-        To be overwritten by subclass
-        """
-        # go into infinity loop (we could do anything here)
-        while True:
-            time.sleep(1)
 
     def on_lifecycle_start(self, message: Message):
         """

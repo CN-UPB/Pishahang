@@ -17,7 +17,7 @@ def slm_plugin():
     A running SLM plugin instance that uses a loopback broker connection
     """
     adaptor = ServiceLifecycleManager(
-        use_loopback_connection=True, fake_registration=True, start_running=False
+        use_loopback_connection=True, fake_registration=True
     )
     yield adaptor
     adaptor.conn.close()
