@@ -1,46 +1,77 @@
 import logging
-import warnings
-from collections import defaultdict
 from threading import Lock
-from typing import Dict, List, Set, Tuple, Type, Union
-from uuid import UUID
+from typing import Dict, List, Type
 
 from vim_adaptor.models.function import FunctionInstance
+from vim_adaptor.models.service import ServiceInstance
 from vim_adaptor.models.vims import BaseVim
 
+LOGGER = logging.getLogger(__name__)
 
-class FunctionInstanceManagerFactory:
+
+class BaseFactory:
+    """
+    Common base class for factory classes
+    """
+
     def __init__(self):
-        # Map function instance ids to their manager objects:
-        self._managers: Dict[str, "FunctionInstanceManager"] = {}
+        # Map instance ids to objects
+        self._instances: Dict[str, "FunctionInstanceManager"] = {}
 
-        # Map function instance ids to Dicts that map (manager class, vim id) tuples to
-        # `ServiceInstanceHandler`s:
-        self._service_instance_handlers: Dict[
-            str,
-            Dict[
-                Tuple[Type["FunctionInstanceManager"], str],
-                Set["ServiceInstanceHandler"],
-            ],
-        ] = defaultdict(dict)
+        # Map arbitrary identifiers to classes:
+        self._classes: Dict[str, Type] = {}
 
-        # Map manager types to manager classes:
-        self._manager_classes: Dict[str, Type["FunctionInstanceManager"]] = {}
+        # Lock to make object creation thread-safe
+        self._instances_lock = Lock()
 
-        self._lock = Lock()
-
-    def register_manager_type(self, manager_class: Type["FunctionInstanceManager"]):
+    def register_class(
+        self, identifier: str, instance_class: Type,
+    ):
         """
-        Registers a manager type at the factory. The FunctionInstanceManager subclass
-        provided as `manager_class` can then be referred to via the class'
-        `manager_type` string.
+        Registers a class with an arbitrary identifier
         """
-        self._manager_classes[manager_class.manager_type] = manager_class
+        self._classes[identifier] = instance_class
 
-    def create_manager(
+    def create_instance(self, identifier: str, instance_id: str, args=(), kwargs={}):
+        """
+        Creates an instance of the class that was registered with the provided
+        `identifier`. `instance_id` has to be a unique string that identifies the new
+        instance.
+        """
+        with self._instances_lock:
+            instance = self._classes[identifier](self, *args, **kwargs)
+            self._instances[instance_id] = instance
+
+        return instance
+
+    def get_instance(self, instance_id: str):
+        """
+        Returns an instance by its id or raises a KeyError if no instance exists for
+        the provided id.
+        """
+        return self._instances[instance_id]
+
+    def _on_instance_destroyed(self, instance_id: str):
+        """
+        Invoked by instances when they are destroyed
+        """
+
+        with self._instances_lock:
+            return self._instances.pop(instance_id)
+
+
+class FunctionInstanceManagerFactory(BaseFactory):
+    """
+    A factory for `FunctionInstanceManager` objects that uses VIM types as identifiers
+    for `FunctionInstanceManager` subclasses and persists the data provided to
+    `create_instance` in a `FunctionInstance` document. The `get_instance` method
+    recreates `FunctionInstanceManager` objects by their corresponding
+    `FunctionInstance` document on demand.
+    """
+
+    def create_instance(
         self,
-        manager_type: str,
-        vim: BaseVim,
+        vim_id: str,
         function_instance_id: str,
         function_id: str,
         service_instance_id: str,
@@ -50,19 +81,21 @@ class FunctionInstanceManagerFactory:
         Creates a FunctionInstanceManager for the first time and stores a
         FunctionInstance document in the database. Make sure to call this method only
         once per function instance and use `get_manager` to retrieve it at a later time.
-        Raises a `TerraformException` if terraform fails to initialize.
+        Raises a `VimNotFoundException` if a VIM with the provided ID does not exist.
 
         Args:
-            manager_type: str,
-            vim: The VIM object representing the VIM that the function instance manager shall use
-            function_instance_id: The uuid of the function instance the manager belongs to
-            function_id: The uuid of the function the manager belongs to
-            service_instance_id: The uuid of the service instance the manager belongs to
-            descriptor: The descriptor of the network function that the manager will control
+            vim_id: The VIM id of the VIM that the function instance manager refers to
+            function_instance_id
+            function_id
+            service_instance_id
+            descriptor: The descriptor of the network function that the manager will
+                deploy
         """
+
+        vim = BaseVim.get_by_id(vim_id)
+
         function_instance = FunctionInstance(
             id=function_instance_id,
-            manager_type=manager_type,
             vim=vim,
             function_id=function_id,
             service_instance_id=service_instance_id,
@@ -70,169 +103,74 @@ class FunctionInstanceManagerFactory:
         )
         function_instance.save()
 
-        manager = self._instantiate_manager(manager_type, function_instance)
-        return manager
+        return super().create_instance(
+            identifier=vim.type,
+            instance_id=function_instance_id,
+            args=(function_instance,),
+        )
 
-    def get_manager(self, function_instance_id: Union[str, UUID]):
+    def get_instance(self, instance_id: str):
         """
-        Retrieves a FunctionInstanceManager by the id of its function instance. If the
+        Retrieves a `FunctionInstanceManager` by the id of its function instance. If the
         manager has not been created during this program execution, the corresponding
         FunctionInstance document is fetched from the database and a manager instance is
         re-created. Throws a `mongoengine.DoesNotExist` exception if no manager has
         previously been created for the given function instance id.
         """
-        if function_instance_id in self._managers:
-            return self._managers[function_instance_id]
-
-        function_instance: FunctionInstance = FunctionInstance.objects.get(
-            id=function_instance_id
-        )
-        return self._instantiate_manager(
-            function_instance.manager_type, function_instance, is_recreation=True
-        )
-
-    def _instantiate_manager(
-        self,
-        manager_type: str,
-        function_instance: FunctionInstance,
-        is_recreation=False,
-    ):
-        manager_class = self._manager_classes[manager_type]
-        service_instance_id = str(function_instance.service_instance_id)
-        vim = function_instance.vim
-
-        with self._lock:
-            # Create the `ServiceInstanceHandler`s for the VIM if they are not yet
-            # present
-            if not self._are_service_handlers_instantiated(
-                manager_class, service_instance_id, str(vim.id)
-            ):
-                handlers = self._instantiate_service_handlers(
-                    manager_class, service_instance_id, vim
-                )
-
-                if not is_recreation:
-                    for handler in handlers:
-                        handler.on_init()
-
-            manager = manager_class(function_instance, self)
-            self._managers[str(function_instance.id)] = manager
-            return manager
-
-    def _get_service_handlers(
-        self,
-        manager_class: Type["FunctionInstanceManager"],
-        service_instance_id: str,
-        vim_id: str,
-        remove=False,
-    ) -> Set["ServiceInstanceHandler"]:
-        handlers_by_manager_and_vim = self._service_instance_handlers[
-            service_instance_id
-        ]
-        handlers = handlers_by_manager_and_vim[manager_class, vim_id]
-
-        if remove:
-            self._service_instance_handlers.pop(service_instance_id)
-
-        return handlers
-
-    def _are_service_handlers_instantiated(
-        self,
-        manager_class: Type["FunctionInstanceManager"],
-        service_instance_id: str,
-        vim_id: str,
-    ):
         try:
-            self._get_service_handlers(manager_class, service_instance_id, vim_id)
-            return True
+            return super().get_instance(instance_id)
         except KeyError:
-            return False
+            function_instance: FunctionInstance = FunctionInstance.objects.get(
+                id=instance_id
+            )
+            return super().create_instance(
+                identifier=function_instance.vim.type,
+                instance_id=instance_id,
+                args=(function_instance,),
+            )
 
-    def _instantiate_service_handlers(
-        self,
-        manager_class: Type["FunctionInstanceManager"],
-        service_instance_id: str,
-        vim: BaseVim,
-    ) -> Set["ServiceInstanceHandler"]:
-        handlers = {
-            handler_class(manager_class, service_instance_id, vim)
-            for handler_class in manager_class.service_instance_handlers
-        }
-
-        self._service_instance_handlers[service_instance_id][
-            manager_class, str(vim.id)
-        ] = handlers
-
-        return handlers
-
-    def _on_manager_destroyed(self, manager: "FunctionInstanceManager"):
+    def _on_instance_destroyed(self, instance_id: "FunctionInstanceManager"):
         """
         Invoked by the `FunctionInstanceManager` base class on destruction of a
-        FunctionInstanceManager instance.
+        FunctionInstanceManager instance. Deletes the FunctionInstance document from the
+        database.
         """
-        function_instance = manager.function_instance
-        function_instance_id = str(function_instance.id)
-        manager_class = manager.__class__
-        vim_id = str(function_instance.vim.id)
-
-        with self._lock:
-            function_instance.delete()
-            self._managers.pop(function_instance_id)
-
-            # If this was the last manager for a manager type, service instance, and
-            # vim, call `on_destroy()` on the service handlers
-            if self.count_managers(manager_class, function_instance_id, vim_id) == 0:
-                for handler in self._get_service_handlers(
-                    manager_class,
-                    str(function_instance.service_instance_id),
-                    vim_id,
-                    remove=True,
-                ):
-                    handler.on_destroy()
-
-    def count_managers(
-        self,
-        manager_class: Type["FunctionInstanceManager"],
-        service_instance_id: Union[str, UUID],
-        vim_id: Union[str, UUID],
-    ) -> int:
-        """
-        Returns the number of `FunctionInstanceManager`s of a given
-        `FunctionInstanceManager` subclass that exist for a specified
-        `service_instance_id` and `vim_id`.
-        """
-        # Hide a deprecation warning until it gets fixed in MongoEngine:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-
-            return FunctionInstance.objects(
-                manager_type=manager_class.manager_type,
-                service_instance_id=service_instance_id,
-                vim=vim_id,
-            ).count()
+        super()._on_instance_destroyed(instance_id).function_instance.delete()
 
 
 class FunctionInstanceManager:
     """
     A FunctionInstanceManager is responsible for deploying and destroying a network
     function instance based on a `FunctionInstance` document. `FunctionInstanceManager`s
-    are handed out by a `FunctionInstanceManagerFactory` instance.
+    are handed out by an `FunctionInstanceManagerFactory` instance.
     """
+
+    class LoggerAdapter(logging.LoggerAdapter):
+        """
+        Logger adapter to prepend function instance details to log messages
+        """
+
+        def process(self, msg, kwargs):
+            instance: FunctionInstance = self.extra["function_instance"]
+            return (
+                (
+                    f"FunctionInstanceManager(Function: {instance.descriptor['name']},"
+                    f" Service: {instance.service_instance_id},"
+                    f" VIM: {instance.vim.name} ({instance.vim.id})): {msg:s}"
+                ),
+                kwargs,
+            )
 
     service_instance_handlers: List["ServiceInstanceHandler"] = []
 
-    # A string that identifies this class at the FunctionInstanceManagerFactory
-    manager_type: str
-
     def __init__(
         self,
-        function_instance: FunctionInstance,
         factory: FunctionInstanceManagerFactory,
+        function_instance: FunctionInstance,
     ):
         """
         Initializes a FunctionInstanceManager. Do not call this yourself; use the
-        `FunctionInstanceManagerFactory` instance at `vim_adaptor.managers.factory`
-        instead.
+        `FunctionInstanceManagerFactory` instance at `vim_adaptor.managers.factory` instead.
 
         Args:
             function_instance: The FunctionInstance document the FunctionInstanceManager
@@ -243,21 +181,14 @@ class FunctionInstanceManager:
         self.function_instance = function_instance
         self._factory = factory
 
-        self.logger = logging.getLogger(
-            "{}.{}(Function: {} ({}), Service: {}, VIM: {} ({}))".format(
-                type(self).__module__,
-                type(self).__name__,
-                function_instance.descriptor["name"],
-                function_instance.id,
-                function_instance.service_instance_id,
-                function_instance.vim.name,
-                function_instance.vim.id,
-            )
+        self.logger = self.LoggerAdapter(
+            LOGGER, {"function_instance": function_instance}
         )
 
     def deploy(self):
         """
-        Deploys the network function managed by this FunctionInstanceManager.
+        Deploys the network function managed by this FunctionInstanceManager and returns
+        the corresponding record as a dict.
         """
         pass
 
@@ -265,67 +196,148 @@ class FunctionInstanceManager:
         """
         Destroys the network function managed by this FunctionInstanceManager.
         """
-        self._factory._on_manager_destroyed(self)
+        self._factory._on_instance_destroyed(str(self.function_instance.id))
+
+
+class ServiceInstanceHandlerFactory(BaseFactory):
+    """
+    A factory for `ServiceInstanceHandler` objects that uses VIM types as identifiers
+    for `ServiceInstanceHandler` subclasses and persists the data provided to
+    `create_service_instance_handlers` in a `ServiceInstance` document.
+
+    Note:
+
+        Only the `create_service_instance_handlers` and
+        `teardown_service_instance_handlers` methods are meant to be used publically.
+    """
+
+    def create_service_instance_handlers(
+        self,
+        service_instance_id: str,
+        vims: List[BaseVim],
+        vim_details: Dict[str, dict],
+    ):
+        """
+        Given a `service_instance_id`, a list of VIMs and a `vim_details` dict that maps
+        vim id strings to details dicts, creates the corresponding
+        `ServiceInstanceHandler` objects and calls their `on_setup()` methods.
+        """
+        service_instance = ServiceInstance(
+            id=service_instance_id, vims=vims, vim_details=vim_details
+        )
+        service_instance.save()
+
+        for handler in self._create_service_instance_handlers(service_instance):
+            handler.on_setup()
+
+    def _create_service_instance_handlers(
+        self, service_instance: ServiceInstance
+    ) -> List["ServiceInstanceHandler"]:
+        return [
+            self.create_instance(
+                vim.type,
+                f"{service_instance.id}.{vim.id}",
+                kwargs={
+                    "service_instance_id": str(service_instance.id),
+                    "vim": vim,
+                    "details": service_instance.vim_details[str(vim.id)],
+                },
+            )
+            for vim in service_instance.vims
+        ]
+
+    def teardown_service_instance_handlers(self, service_instance_id):
+        """
+        Calls the `on_teardown()` methods of all `ServiceInstanceHandler`s of the
+        service specified by the provided `service_instance_id`. If no
+        `ServiceInstanceHandler`s exist for that service but a corresponding
+        ServiceInstance document is found in the database, the `ServiceInstanceHandler`s
+        are recreated first. Otherwise, a `mongoengine.DoesNotExist` exception is
+        raised.
+        """
+        service_instance = ServiceInstance.objects.get(id=service_instance_id)
+
+        try:
+            handlers = [
+                self.get_instance(f"{service_instance_id}.{vim.id}")
+                for vim in service_instance.vims
+            ]
+        except KeyError:
+            handlers = self._create_service_instance_handlers(service_instance)
+
+        for handler in handlers:
+            handler.on_teardown()
+
+        service_instance.delete()
 
 
 class ServiceInstanceHandler:
     """
     A ServiceInstanceHandler is responsible to handle tasks related to service creation
-    and destruction given a service id. It does so by implementing the two methods
-    `on_init` and `on_destroy`. This enables the implementation of per-service, per-vim,
-    per-function-instance-manager-type setup and teardown tasks.
+    and destruction given a service id, a VIM id, and an optional dict with additional
+    information specific to that service and vim (such as required VM images). It does
+    so by implementing the two methods `on_setup` and `on_teardown`. This enables the
+    implementation of per-service, per-vim setup and teardown tasks.
 
-    `ServiceInstanceHandler`s are not supposed to be instantiated manually. Instead, the
-    desired subclasses of `ServiceInstanceHandler` can be specified as a list in a
-    `FunctionInstanceManager`'s `service_instance_handlers` class attribute. The
-    `FunctionInstanceManagerFactory` will then instantiate the ServiceInstanceHandlers
-    and invoke their methods accordingly. The reason behind the mapping of
-    `FunctionInstanceManager`s to `ServiceInstanceHandler`s is that a service instance
-    can include function instances on multiple VIMs, where dedicated per-service setup
-    and teardown tasks may be required per VIM.
+    `ServiceInstanceHandler`s are instantiated per-service, per-vim by a
+    `ServiceInstanceHandlerFactory`.
     """
+
+    class LoggerAdapter(logging.LoggerAdapter):
+        """
+        Logger adapter to prepend service instance details to log messages
+        """
+
+        def process(self, msg, kwargs):
+            vim: BaseVim = self.extra["vim"]
+            return (
+                (
+                    f"ServiceInstanceHandler("
+                    f"Service: {self.extra['service_instance_id']},"
+                    f" VIM: {vim.name} ({vim.id})): {msg:s}"
+                ),
+                kwargs,
+            )
 
     def __init__(
         self,
-        manager_class: Type[FunctionInstanceManager],
-        service_instance_id: Union[str, UUID],
+        factory: ServiceInstanceHandlerFactory,
+        service_instance_id: str,
         vim: BaseVim,
+        details: dict,
     ):
         """
         Initializes a ServiceInstanceHandler.
 
         Args:
-            manager_class
+            factory
             service_instance_id
             vim: The Vim document representing the VIM that this ServiceInstanceHandler
                 is responsible for
+            details: A dict with additional details
         """
-        self.manager_class = manager_class
+        self._factory = factory
         self.service_instance_id = str(service_instance_id)
         self.vim = vim
+        self.details = details
 
-        self.logger = logging.getLogger(
-            "{}.{}(Service Instance Id: {}, VIM: {} ({}))".format(
-                type(self).__module__,
-                type(self).__name__,
-                service_instance_id,
-                vim.name,
-                vim.id,
-            )
+        self.logger = self.LoggerAdapter(
+            LOGGER, {"service_instance_id": self.service_instance_id, "vim": self.vim}
         )
 
-    def on_init(self):
+    def on_setup(self):
         """
-        Is invoked by the `FunctionInstanceManagerFactory` when the first
-        `FunctionInstanceManager` of a given service instance on a given VIM is
-        created.
+        Is invoked when
+        `ServiceInstanceHandlerFactory.create_service_instance_handlers()` is called.
         """
         self.logger.info("Initializing")
 
-    def on_destroy(self):
+    def on_teardown(self):
         """
-        Is invoked by the `FunctionInstanceManagerFactory` when all
-        `FunctionInstanceManager`s of a given service instance on a given VIM have been
-        deleted.
+        Is invoked when
+        `ServiceInstanceHandlerFactory.teardown_service_instance_handlers()` is called.
         """
         self.logger.info("Destroying")
+        self._factory._on_instance_destroyed(
+            f"{self.service_instance_id}.{self.vim.id}"
+        )

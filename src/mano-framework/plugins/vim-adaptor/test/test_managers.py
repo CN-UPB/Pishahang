@@ -9,9 +9,11 @@ from vim_adaptor.managers.base import (
     FunctionInstanceManager,
     FunctionInstanceManagerFactory,
     ServiceInstanceHandler,
+    ServiceInstanceHandlerFactory,
 )
 from vim_adaptor.managers.terraform import TerraformFunctionInstanceManager
-from vim_adaptor.models.vims import BaseVim
+from vim_adaptor.models.service import ServiceInstance
+from vim_adaptor.models.vims import BaseVim, VimType
 
 config = get_config("vim_adaptor")
 
@@ -20,21 +22,22 @@ def uuid_string():
     return str(uuid4())
 
 
-def test_manager_factory(mongo_connection, mocker):
-    mocker.patch(__name__ + ".ServiceInstanceHandler")
+@pytest.fixture
+def vim(mongo_connection):
+    vim = BaseVim(name="MyVIM", country="country", city="city", type="aws")
+    vim.save()
+    yield vim
+    vim.delete()
 
-    FunctionInstanceManager.manager_type = "test"
-    FunctionInstanceManager.service_instance_handlers = [ServiceInstanceHandler]
+
+def test_manager_factory(mongo_connection, mocker, vim):
 
     def create_factory():
         factory = FunctionInstanceManagerFactory()
-        factory.register_manager_type(FunctionInstanceManager)
+        factory.register_class(VimType.AWS.value, FunctionInstanceManager)
         return factory
 
     factory = create_factory()
-
-    vim = BaseVim(name="MyVIM", country="country", city="city", type="aws")
-    vim.save()
 
     function_instance_id = uuid_string()
     function_id = uuid_string()
@@ -42,9 +45,8 @@ def test_manager_factory(mongo_connection, mocker):
     descriptor = {"name": "descriptor-name"}
 
     # Test manager creation
-    manager = factory.create_manager(
-        manager_type="test",
-        vim=vim,
+    manager = factory.create_instance(
+        vim_id=str(vim.id),
         function_instance_id=function_instance_id,
         function_id=function_id,
         service_instance_id=service_instance_id,
@@ -59,70 +61,30 @@ def test_manager_factory(mongo_connection, mocker):
     assert descriptor == function_instance.descriptor
 
     # Test manager retrieval
-    assert manager is factory.get_manager(function_instance_id)
-
-    def get_service_instance_handler(factory: FunctionInstanceManagerFactory):
-        handlers = factory._get_service_handlers(
-            FunctionInstanceManager, service_instance_id, str(vim.id)
-        )
-        assert 1 == len(handlers)
-        return list(handlers)[0]
-
-    # Verify that a ServiceInstanceHandler has been created and that `on_init()` has
-    # been called on it
-    handler = get_service_instance_handler(factory)
-    handler.on_init.assert_called_once()
-    handler.reset_mock()  # Because the same handler Mock will be returned the next time
+    assert manager is factory.get_instance(function_instance_id)
 
     # Create another factory and test manager re-creation
     factory2 = create_factory()
-    manager2 = factory2.get_manager(function_instance_id)
+    manager2 = factory2.get_instance(function_instance_id)
     assert function_instance == manager2.function_instance
-
-    # The other factory should also have recreated the ServiceInstanceHandler, but
-    # without calling `on_init()`
-    get_service_instance_handler(factory2).on_init.assert_not_called()
-
-    # Test manager counting
-    assert 1 == factory.count_managers(
-        FunctionInstanceManager, service_instance_id, vim.id
-    )
 
     # Test manager deletion
     manager.destroy()
 
-    # `on_destroy()` should have been called on the service instance handler
-    handler.on_destroy.assert_called_once()
-
-    # The references of all service instance handlers should have been deleted
-    assert (
-        function_instance.service_instance_id not in factory._service_instance_handlers
-    )
-
     with pytest.raises(DoesNotExist):
-        factory.get_manager(function_instance_id)
-
-    # Count managers again
-    assert 0 == factory.count_managers(
-        FunctionInstanceManager, service_instance_id, vim.id
-    )
+        factory.get_instance(function_instance_id)
 
 
-def test_terraform_manager(mongo_connection, mocker, fs):
+def test_terraform_manager(mongo_connection, mocker, fs, vim):
     wrapper_class_mock = mocker.patch("vim_adaptor.managers.terraform.TerraformWrapper")
 
-    TerraformFunctionInstanceManager.manager_type = "terraform"
     TerraformFunctionInstanceManager.templates = Path("/my-template-dir/template.tf")
 
     factory = FunctionInstanceManagerFactory()
-    factory.register_manager_type(TerraformFunctionInstanceManager)
+    factory.register_class(VimType.AWS.value, TerraformFunctionInstanceManager)
 
-    vim = BaseVim(name="MyVIM", country="country", city="city", type="aws")
-    vim.save()
-
-    manager = factory.create_manager(
-        manager_type="terraform",
-        vim=vim,
+    manager = factory.create_instance(
+        vim_id=str(vim.id),
         function_instance_id=uuid_string(),
         function_id=uuid_string(),
         service_instance_id=uuid_string(),
@@ -148,3 +110,32 @@ def test_terraform_manager(mongo_connection, mocker, fs):
     manager.terraform.destroy.assert_not_called()
     manager.destroy()
     manager.terraform.apply.assert_called_once()
+
+
+def test_service_instance_handler_factory(mongo_connection, mocker, vim):
+    for method in ["on_setup", "on_teardown"]:
+        mocker.patch(f"vim_adaptor.managers.base.ServiceInstanceHandler.{method}")
+
+    def create_factory():
+        factory = ServiceInstanceHandlerFactory()
+        factory.register_class(VimType.AWS.value, ServiceInstanceHandler)
+        return factory
+
+    factory1 = create_factory()
+
+    service_instance_id = uuid_string()
+    factory1.create_service_instance_handlers(
+        service_instance_id, [vim], {str(vim.id): {"key": "value"}}
+    )
+
+    instance = factory1.get_instance(f"{service_instance_id}.{vim.id}")
+    instance.on_setup.assert_called_once()
+    instance.on_teardown.assert_not_called()
+
+    # Test ServiceInstanceHandler recreation on teardown with another factory
+
+    factory2 = create_factory()
+    factory2.teardown_service_instance_handlers(service_instance_id)
+
+    with pytest.raises(DoesNotExist):
+        ServiceInstance.objects.get(id=service_instance_id)

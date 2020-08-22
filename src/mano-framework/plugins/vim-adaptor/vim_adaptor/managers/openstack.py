@@ -12,10 +12,6 @@ from vim_adaptor.util import convert_size
 
 
 class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
-    class OpenStackServiceInstanceHandler(ServiceInstanceHandler):
-        pass
-
-    manager_type = "openstack"
 
     templates = list((TEMPLATE_BASE_PATH / "openstack").iterdir())
 
@@ -57,3 +53,32 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
                 memory.pop("size_unit", None)
 
         return ctx
+
+    def deploy(self) -> dict:
+        """
+        Deploys the network function and returns an OpenStack function record
+        """
+        super().deploy()
+
+        # Once needed, we can use this to get resource-specific data from terraform:
+        # resources = self._tf_show()["values"]["root_module"]["resources"]
+
+        instance = self.function_instance
+        record = {
+            **instance.descriptor,
+            "id": str(instance.id),
+            "version": "1",
+            "status": "normal operation",
+            "descriptor_reference": str(instance.function_id),
+            "parent_ns": str(instance.service_instance_id),
+        }
+
+        for vdu in record["virtual_deployment_units"]:
+            # vdu["number_of_instances"] = (
+            #     vdu["scale_in_out"]["minimum"]
+            #     if "scale_in_out" in vdu and "minimum" in vdu["scale_in_out"]
+            #     else 1
+            # )
+            vdu["vim_id"] = str(instance.vim.id)
+
+        return record

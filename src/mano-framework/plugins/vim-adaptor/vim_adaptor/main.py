@@ -83,12 +83,7 @@ class VimAdaptor(ManoBasePlugin):
         self.conn.register_async_endpoint(
             self.prepare_infrastructure, "infrastructure.service.prepare"
         )
-        self.conn.register_async_endpoint(
-            self.deploy_kubernetes_function, "infrastructure.cloud_service.deploy"
-        )
-        self.conn.register_async_endpoint(
-            self.deploy_openstack_function, "infrastructure.function.deploy"
-        )
+        self.conn.register_async_endpoint(self.deploy, "infrastructure.function.deploy")
 
         # Termination
         self.conn.register_async_endpoint(
@@ -193,39 +188,23 @@ class VimAdaptor(ManoBasePlugin):
         # TODO What exactly should this do?
         return create_completed_response()
 
-    def deploy_kubernetes_function(self, message: Message):
+    def deploy(self, message: Message):
         payload = message.payload
 
         try:
             manager = manager_factory.create_function_manager(
-                vim_id=payload["vim_uuid"],
-                function_instance_id=payload["csd"]["instance_uuid"],
-                function_id=payload["csd"]["uuid"],
-                service_instance_id=payload["service_instance_id"],
-                descriptor=payload["csd"],
-            )
-            return create_completed_response({"csr": manager.deploy()})
-        except (VimNotFoundException, TerraformException) as e:
-            return create_error_response(str(e))
-
-    def deploy_openstack_function(self, message: Message):
-        payload = message.payload
-
-        try:
-            manager = manager_factory.create_function_manager(
-                vim_id=payload["vim_uuid"],
-                function_instance_id=payload["vnfd"]["instance_uuid"],
-                function_id=payload["vnfd"]["uuid"],
+                vim_id=payload["vim_id"],
+                function_instance_id=payload["function_instance_id"],
+                function_id=payload["vnfd"]["id"],
                 service_instance_id=payload["service_instance_id"],
                 descriptor=payload["vnfd"],
             )
-            manager.deploy()
             return create_completed_response({"vnfr": manager.deploy()})
         except (VimNotFoundException, TerraformException) as e:
             return create_error_response(str(e))
 
     def remove_service(self, message: Message):
-        service_instance_id = message.payload["instance_uuid"]
+        service_instance_id = message.payload["service_instance_id"]
         LOG.info("Removing service %s", service_instance_id)
 
         try:
