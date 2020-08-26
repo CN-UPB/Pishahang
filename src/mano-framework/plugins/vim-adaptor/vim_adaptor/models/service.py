@@ -8,7 +8,7 @@ from vim_adaptor.models.vims import BaseVim
 
 class ServiceInstance(Document):
     """
-    Document class to store
+    Document class to store data related to a service instance
     """
 
     id = UUIDField(primary_key=True)
@@ -16,5 +16,5 @@ class ServiceInstance(Document):
 
     vims = ListField(ReferenceField(BaseVim))
 
-    # A dict that mapps VIM ids to their details dicts
+    # A dict that maps VIM ids to their details dicts
     vim_details = DictField(required=True)

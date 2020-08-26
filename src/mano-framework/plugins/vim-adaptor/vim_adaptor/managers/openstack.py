@@ -2,29 +2,39 @@ from copy import deepcopy
 
 import bitmath
 
-from vim_adaptor.managers.base import ServiceInstanceHandler
 from vim_adaptor.managers.terraform import (
     TEMPLATE_BASE_PATH,
     TerraformFunctionInstanceManager,
+    TerraformServiceInstanceHandler,
 )
 from vim_adaptor.models.vims import OpenStackVim
 from vim_adaptor.util import convert_size
 
 
+def get_tf_vars_by_vim(vim: OpenStackVim):
+    return {
+        "auth_url": "http://{}/identity".format(vim.address),
+        "tenant_id": vim.tenant.id,
+        "username": vim.username,
+        "password": vim.password,
+        "network_id": vim.tenant.external_network_id,
+        "router_id": vim.tenant.external_network_id,
+    }
+
+
+TEMPLATE_PATH = TEMPLATE_BASE_PATH / "openstack"
+SHARED_TEMPLATES = [
+    (TEMPLATE_PATH / filename).with_suffix(".tf")
+    for filename in ["main", "var", "data"]
+]
+
+
 class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
 
-    templates = list((TEMPLATE_BASE_PATH / "openstack").iterdir())
+    templates = SHARED_TEMPLATES + [TEMPLATE_PATH / "function.tf"]
 
     def _get_tf_vars(self):
-        vim: OpenStackVim = self.function_instance.vim
-        return {
-            "auth_url": "http://{}/identity".format(vim.address),
-            "tenant_id": vim.tenant.id,
-            "username": vim.username,
-            "password": vim.password,
-            "network_id": vim.tenant.external_network_id,
-            "router_id": vim.tenant.external_network_id,
-        }
+        return get_tf_vars_by_vim(self.function_instance.vim)
 
     def _get_template_context(self):
         ctx = super()._get_template_context()
@@ -82,3 +92,10 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
             vdu["vim_id"] = str(instance.vim.id)
 
         return record
+
+
+class OpenStackServiceInstanceHandler(TerraformServiceInstanceHandler):
+    templates = SHARED_TEMPLATES + [TEMPLATE_PATH / "service.tf"]
+
+    def _get_tf_vars(self):
+        return get_tf_vars_by_vim(self.vim)

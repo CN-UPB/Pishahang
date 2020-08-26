@@ -1,13 +1,12 @@
-# Per-function-instance virtual network
-resource "openstack_networking_network_v2" "network" {
-  name = "{{ descriptor.name }}-{{ function_instance_id }}"
-  admin_state_up = "true"
+# Get per-service virtual network
+data "openstack_networking_network_v2" "service_network" {
+  name = "{{ service_instance_id }}"
 }
 
 # Per-function-instance virtual network subnet
 resource "openstack_networking_subnet_v2" "subnet" {
   name = "{{ descriptor.name }}-{{ function_instance_id }}-subnet"
-  network_id = openstack_networking_network_v2.network.id
+  network_id = data.openstack_networking_network_v2.service_network.id
   subnetpool_id = data.openstack_networking_subnetpool_v2.IPv4.id
   prefix_length = 28 # 16 IPv4 adresses for the function instance subnet
 }
@@ -36,7 +35,7 @@ resource "openstack_networking_subnet_v2" "subnet" {
   {% for cp in vdu.connection_points %}
     resource "openstack_networking_port_v2" "{{ vdu.id }}-{{ cp.id }}" {
       name           = "{{ cp.id }}"
-      network_id     = openstack_networking_network_v2.network.id
+      network_id     = data.openstack_networking_network_v2.service_network.id
       admin_state_up = "true"
 
       fixed_ip {

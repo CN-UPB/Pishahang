@@ -337,7 +337,7 @@ class ServiceInstanceHandler:
         Is invoked when
         `ServiceInstanceHandlerFactory.teardown_service_instance_handlers()` is called.
         """
-        self.logger.info("Destroying")
+        self.logger.info("Tearing down")
         self._factory._on_instance_destroyed(
             f"{self.service_instance_id}.{self.vim.id}"
         )

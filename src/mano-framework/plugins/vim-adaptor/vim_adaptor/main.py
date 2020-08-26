@@ -32,7 +32,7 @@ from vim_adaptor.exceptions import (
     VimConnectionError,
     VimNotFoundException,
 )
-from vim_adaptor.managers import factory as manager_factory
+from vim_adaptor.managers import function_manager_factory, service_handler_factory
 from vim_adaptor.models.function import FunctionInstance
 from vim_adaptor.models.vims import (
     AwsVimSchema,
@@ -185,14 +185,22 @@ class VimAdaptor(ManoBasePlugin):
         return create_completed_response()
 
     def prepare_infrastructure(self, message: Message):
-        # TODO What exactly should this do?
-        return create_completed_response()
+        request = message.payload
+        try:
+            service_handler_factory.create_service_instance_handlers(
+                request["instance_id"],
+                [BaseVim.objects.get(id=id) for id, _ in request["vims"].items()],
+                request["vims"],
+            )
+            return create_completed_response()
+        except (VimNotFoundException, TerraformException) as e:
+            return create_error_response(str(e))
 
     def deploy(self, message: Message):
         payload = message.payload
 
         try:
-            manager = manager_factory.create_function_manager(
+            manager = function_manager_factory.create_instance(
                 vim_id=payload["vim_id"],
                 function_instance_id=payload["function_instance_id"],
                 function_id=payload["vnfd"]["id"],
@@ -211,7 +219,9 @@ class VimAdaptor(ManoBasePlugin):
             for function_instance in FunctionInstance.objects(
                 service_instance_id=service_instance_id
             ):
-                manager_factory.get_function_manager(function_instance.id).destroy()
+                function_manager_factory.get_instance(
+                    str(function_instance.id)
+                ).destroy()
 
             return create_completed_response()
         except TerraformException as e:
