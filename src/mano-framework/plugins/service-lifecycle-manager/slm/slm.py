@@ -207,8 +207,6 @@ class ServiceLifecycleManager:
     async def _prepare_infrastructure(self):
         self.logger.info("Requesting IA to prepare the infrastructure")
 
-        mapping = {"instance_id": self.service_id}
-
         # Map VIM ids to vim details
         vims = {}
 
@@ -216,13 +214,14 @@ class ServiceLifecycleManager:
             vim_id = function.vim
 
             if vim_id not in vims:
-                vims[vim_id] = {"id": vim_id, "vm_images": []}
+                vims[vim_id] = {}
 
-            # TODO Differentiate by descriptor type once available (only OpenStack
-            # function descriptors need vm_images)
             descriptor = function.descriptor
-            vims[vim_id]["vm_images"].append(
-                [
+            if descriptor["descriptor_flavor"] == "openstack":
+                if "vm_images" not in vims[vim_id]:
+                    vims[vim_id]["vm_images"] = []
+
+                vims[vim_id]["vm_images"] += [
                     {
                         "id": get_vm_image_id(descriptor, vdu),
                         "url": vdu["vm_image"],
@@ -231,12 +230,13 @@ class ServiceLifecycleManager:
                     for vdu in descriptor["virtual_deployment_units"]
                     if "vm_image" in vdu
                 ]
-            )
-
-        mapping["vims"] = list(vims.values())
 
         # Request preparation from IA
-        response = (await self.conn.call(topics.IA_PREPARE, mapping)).payload
+        response = (
+            await self.conn.call(
+                topics.IA_PREPARE, {"instance_id": self.service_id, "vims": vims}
+            )
+        ).payload
 
         raise_on_error_response(
             response,

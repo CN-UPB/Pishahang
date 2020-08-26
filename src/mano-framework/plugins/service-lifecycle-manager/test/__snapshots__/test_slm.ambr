@@ -188,33 +188,26 @@
 # name: test_prepare_infrastructure
   <class 'dict'> {
     'instance_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
-    'vims': <class 'list'> [
-      <class 'dict'> {
-        'id': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
+    'vims': <class 'dict'> {
+      '87ecdc7c-665a-475a-b4f7-f053706ceb70': <class 'dict'> {
         'vm_images': <class 'list'> [
-          <class 'list'> [
-            <class 'dict'> {
-              'id': 'eu.sonata-nfv_firewall-vnf_0.2_vdu01',
-              'md5': None,
-              'url': 'http://registry.sonata-nfv.eu/html/files/VM_images/sonata-VM-2ports.qcow',
-            },
-          ],
-          <class 'list'> [
-            <class 'dict'> {
-              'id': 'eu.sonata-nfv_iperf-vnf_0.2_vdu01',
-              'md5': None,
-              'url': 'file:///docker_files/iperf/Dockerfile',
-            },
-          ],
-          <class 'list'> [
-            <class 'dict'> {
-              'id': 'eu.sonata-nfv_tcpdump-vnf_0.2_vdu01',
-              'md5': None,
-              'url': 'file:///docker_files/tcpdump/Dockerfile',
-            },
-          ],
+          <class 'dict'> {
+            'id': 'eu.sonata-nfv_firewall-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'http://registry.sonata-nfv.eu/html/files/VM_images/sonata-VM-2ports.qcow',
+          },
+          <class 'dict'> {
+            'id': 'eu.sonata-nfv_iperf-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'file:///docker_files/iperf/Dockerfile',
+          },
+          <class 'dict'> {
+            'id': 'eu.sonata-nfv_tcpdump-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'file:///docker_files/tcpdump/Dockerfile',
+          },
         ],
       },
-    ],
+    },
   }
 ---
