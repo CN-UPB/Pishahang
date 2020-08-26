@@ -10,6 +10,7 @@ services:
   # Reverse proxy for GUI and gatekeeper
   traefik:
     image: "traefik:v2.2"
+    restart: always
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
