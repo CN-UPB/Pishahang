@@ -5,7 +5,7 @@ from gatekeeper.exceptions import InternalServerError, PluginNotFoundError
 
 config = get_config(__name__)
 
-PLUGINMANAGER_API_URL = config["internalApis"]["pluginmanager"]
+PLUGINMANAGER_API_URL = config["apis"]["pluginmanager"]
 
 
 def _getPluginById(id):
