@@ -64,8 +64,7 @@ class VimAdaptor(ManoBasePlugin):
         connect(host=config["mongo"])
         LOG.info("Connected to MongoDB")
 
-        kwargs.update({"version": "0.1.0", "start_running": False})
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, version="0.1.0", **kwargs)
 
     def declare_subscriptions(self):
         super().declare_subscriptions()
