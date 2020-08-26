@@ -180,6 +180,15 @@ services:
       - repository
       - monitor-manager
 
+  # Vim Adaptor
+  vim-adaptor:
+    image: pishahang/mano-plugin-vim-adaptor:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - broker
+      - mongo
+      - pluginmanager
+
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:

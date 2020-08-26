@@ -78,6 +78,10 @@ services:
   kubernetes-lifecycle-manager:
     build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
+  # VIM Adaptor
+  vim-adaptor:
+    build: ./src/mano-framework/plugins/vim-adaptor
+
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:

@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "vim-adaptor"
+version = "0.1.0"
+description = "Pishahang VIM Adaptor"
+authors = ["Pishahang <pishahang@noreply.github.com>"]
+license = "apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+manobase = { path = "../../base" }
+mongoengine = "^0.20.0"
+python_terraform = "^0.10.1"
+jinja2 = "^2.11.2"
+appcfg = { extras = ["yaml"], version = "^1.0.0" }
+marshmallow-mongoengine = "^0.11.0"
+marshmallow = "2.x.x"
+wrapt = "^1.12.1"
+python-novaclient = "^17.0.0"
+kubernetes = "^11.0.0"
+bitmath = "^1.3.3"
+openstacksdk = "^0.48.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.4.1"
+flake8 = "^3.7.9"
+black = "^19.10b0"
+mongomock = "^3.19.0"
+pytest-env = "^0.6.2"
+pytest-mock = "^3.1.0"
+pyfakefs = "^4.0.2"
+pytest-voluptuous = "^1.1.0"
+pytest-watch = "^4.2.0"
+isort = "^5.4.2"
+
+[tool.poetry.scripts]
+start = "vim_adaptor.main:main"
+
+[tool.isort] # black-compatible isort rules
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
