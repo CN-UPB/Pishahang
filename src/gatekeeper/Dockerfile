@@ -10,4 +10,4 @@ COPY . ./
 
 EXPOSE 5555
 
-CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5555", "gatekeeper.app:app"]
+CMD ["poetry", "run", "gunicorn", "--worker-tmp-dir=/dev/shm", "--workers=2", "--threads=4", "--worker-class=gthread", "-b", "0.0.0.0:5555", "gatekeeper.app:app"]
