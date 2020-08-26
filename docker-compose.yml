@@ -2,10 +2,6 @@
 version: "3.3"
 
 networks:
-  # Network to interconnect internal components
-  pishanet:
-    external: false
-
   # Network to connect client-facing components to traefik
   web:
     external: false
@@ -31,7 +27,7 @@ services:
     image: mongo
     restart: always
     networks:
-      pishanet:
+      default:
         aliases:
           - son-mongo
 
@@ -40,7 +36,7 @@ services:
     image: redis
     restart: always
     networks:
-      pishanet:
+      default:
         aliases:
           - son-redis
 
@@ -54,7 +50,7 @@ services:
       POSTGRES_PASSWORD: ${MON_DB_PASS}
     command: postgres -p 5433
     networks:
-      pishanet:
+      default:
         aliases:
           - postgsql
           - son-monitor-postgres
@@ -66,7 +62,7 @@ services:
     environment:
       RABBITMQ_CONSOLE_LOG: new
     networks:
-      pishanet:
+      default:
         aliases:
           - son-broker
 
@@ -75,7 +71,7 @@ services:
     image: pishahang/monitor-influxdb
     restart: always
     networks:
-      pishanet:
+      default:
         aliases:
           - influxdb
           - influx
@@ -87,8 +83,6 @@ services:
     restart: always
     depends_on:
       - mongo
-    networks:
-      - pishanet
 
   # Gatekeeper
   gatekeeper:
@@ -99,7 +93,7 @@ services:
       - mongo
       - redis
     networks:
-      - pishanet
+      - default
       - web
     labels:
       - "traefik.enable=true"
@@ -129,8 +123,6 @@ services:
       - mongo
     environment:
       mongo_host: mongo
-    networks:
-      - pishanet
 
   # Service Lifecycle Management Plugin
   service-lifecycle-manager:
@@ -144,8 +136,6 @@ services:
       - monitor-manager
     environment:
       url_monitoring_server: http://monitor-manager:8000/api/v1/
-    networks:
-      - pishanet
 
   # OpenStack Lifecycle Manager
   openstack-lifecycle-manager:
@@ -158,8 +148,6 @@ services:
       - monitor-manager
     environment:
       url_monitoring_server: http://monitor-manager:8000/api/v1/
-    networks:
-      - pishanet
 
   # Specific Manager Registry (SMR)
   specific-manager-registry:
@@ -170,8 +158,6 @@ services:
       - pluginmanager
     environment:
       broker_name: broker
-    networks:
-      - pishanet
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -182,8 +168,6 @@ services:
     depends_on:
       - broker
       - pluginmanager
-    networks:
-      - pishanet
 
   # Kubernetes Lifecycle Manager
   kubernetes-lifecycle-manager:
@@ -194,8 +178,6 @@ services:
       - pluginmanager
       - repository
       - monitor-manager
-    networks:
-      - pishanet
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
@@ -203,7 +185,7 @@ services:
     image: pishahang/monitor-pushgateway:${PISHAHANG_VERSION}
     restart: always
     networks:
-      pishanet:
+      default:
         aliases:
           - pushgateway
           - son-monitor-pushgateway
@@ -218,7 +200,7 @@ services:
       RABBIT_URL: broker:5672
       EMAIL_PASS: czBuQHRAX21vbl9zeXNfMTY=
     networks:
-      pishanet:
+      default:
         aliases:
           - prometheus
           - son-monitor-prometheus
@@ -232,7 +214,7 @@ services:
     image: pishahang/monitor-manager:${PISHAHANG_VERSION}
     restart: always
     networks:
-      pishanet:
+      default:
         aliases:
           - son-monitor-manager
 
@@ -251,6 +233,6 @@ services:
       - /:/rootfs:ro
       - /proc:/myhost/proc
     networks:
-      pishanet:
+      default:
         aliases:
           - son-monitor-probe
