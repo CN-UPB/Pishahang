@@ -97,6 +97,7 @@ services:
       - web
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=pishahang_web"
       - "traefik.http.routers.gatekeeper.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.gatekeeper.entrypoints=web"
 
