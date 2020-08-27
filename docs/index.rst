@@ -10,6 +10,7 @@ Joint Orchestration of Network Function Chains and Distributed Cloud Application
    :glob:
 
    users/installation/*
+   users/usage
 
 .. toctree::
    :maxdepth: 2
