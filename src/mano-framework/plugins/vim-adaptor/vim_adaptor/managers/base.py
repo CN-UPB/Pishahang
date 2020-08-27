@@ -233,18 +233,26 @@ class ServiceInstanceHandlerFactory(BaseFactory):
     def _create_service_instance_handlers(
         self, service_instance: ServiceInstance
     ) -> List["ServiceInstanceHandler"]:
-        return [
-            self.create_instance(
-                vim.type,
-                f"{service_instance.id}.{vim.id}",
-                kwargs={
-                    "service_instance_id": str(service_instance.id),
-                    "vim": vim,
-                    "details": service_instance.vim_details[str(vim.id)],
-                },
-            )
-            for vim in service_instance.vims
-        ]
+        handlers = []
+
+        for vim in service_instance.vims:
+            try:
+                handlers.append(
+                    self.create_instance(
+                        vim.type,
+                        f"{service_instance.id}.{vim.id}",
+                        kwargs={
+                            "service_instance_id": str(service_instance.id),
+                            "vim": vim,
+                            "details": service_instance.vim_details[str(vim.id)],
+                        },
+                    )
+                )
+            except KeyError:
+                # Not every VIM needs to have a ServiceInstanceHandler associated with it.
+                pass
+
+        return handlers
 
     def teardown_service_instance_handlers(self, service_instance_id):
         """
@@ -258,11 +266,14 @@ class ServiceInstanceHandlerFactory(BaseFactory):
         service_instance = ServiceInstance.objects.get(id=service_instance_id)
 
         try:
-            handlers = [
-                self.get_instance(f"{service_instance_id}.{vim.id}")
-                for vim in service_instance.vims
-            ]
+            handlers = []
+            for vim in service_instance.vims:
+                if vim.type in self._classes:
+                    handlers.append(
+                        self.get_instance(f"{service_instance_id}.{vim.id}")
+                    )
         except KeyError:
+            # Handler has not yet been created during current application run
             handlers = self._create_service_instance_handlers(service_instance)
 
         for handler in handlers:
