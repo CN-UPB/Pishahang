@@ -30,7 +30,16 @@ from vim_adaptor.main import VimAdaptor
 from vim_adaptor.models.vims import AwsVim, BaseVim
 
 
-def test_add_vim(adaptor: VimAdaptor, connection: Connection):
+@pytest.fixture
+def mocked_aws_resource_utilization(mocker):
+    mocker.patch(
+        "vim_adaptor.models.vims.AwsVim.get_resource_utilization"
+    ).return_value = {}
+
+
+def test_add_vim(
+    adaptor: VimAdaptor, connection: Connection, mocked_aws_resource_utilization
+):
     def add_vim(payload: dict):
         response = connection.call_sync(
             "infrastructure.management.compute.add", payload
@@ -94,7 +103,12 @@ def example_vim():
     )
 
 
-def test_list_vims(adaptor: VimAdaptor, connection: Connection, example_vim: AwsVim):
+def test_list_vims(
+    adaptor: VimAdaptor,
+    connection: Connection,
+    example_vim: AwsVim,
+    mocked_aws_resource_utilization,
+):
     BaseVim.objects.delete()
 
     def list_vims():
