@@ -132,22 +132,7 @@ class VimAdaptor(ManoBasePlugin):
             try:
                 resource_utilization = vim.get_resource_utilization()
             except VimConnectionError:
-                resource_utilization = {
-                    "cores_total": 0,
-                    "cores_used": 0,
-                    "memory_total": 0,
-                    "memory_used": 0,
-                }
-
-            # TODO: Remove this once get_resource_utilization is implemented for all vim types
-            except NotImplementedError:
-                resource_utilization = {
-                    "cores_total": 4,
-                    "cores_used": 0,
-                    "memory_total": 32000,
-                    "memory_used": 0,
-                }
-
+                resource_utilization = None
             vims.append(
                 {
                     "id": str(vim.id),
@@ -155,7 +140,7 @@ class VimAdaptor(ManoBasePlugin):
                     "country": vim.country,
                     "city": vim.city,
                     "type": vim.type,
-                    **resource_utilization,
+                    "resource_utilization": resource_utilization,
                 }
             )
 

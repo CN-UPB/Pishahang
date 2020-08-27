@@ -92,14 +92,14 @@ class PlacementPlugin(ManoBasePlugin):
         descriptor = payload["nsd"]
         functions = payload["functions"]
 
-        placement = self.placement(descriptor, functions, topology)
+        placement = self.place(descriptor, functions, topology)
 
         LOG.info("Sending placement response for service: %s", payload["serv_id"])
         LOG.debug("Placement: %s", placement)
 
         return {"mapping": placement}
 
-    def placement(self, descriptor, functions, topology):
+    def place(self, descriptor, functions, topology):
         """
         This is the default placement algorithm that is used if the SLM
         is responsible to perform the placement
@@ -113,18 +113,28 @@ class PlacementPlugin(ManoBasePlugin):
             needed_cpu = vdu[0]["resource_requirements"]["cpu"]["vcpus"]
             needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
 
+            vim_found = False
             for vim in topology:
                 if vim["type"] == function["descriptor_flavor"]:
-                    if needed_cpu <= (
-                        vim["cores_total"] - vim["cores_used"]
-                    ) and needed_mem <= (vim["memory_total"] - vim["memory_used"]):
-                        mapping[function["id"]] = {"vim": vim["id"]}
-                        vim["cores_used"] = vim["cores_used"] + needed_cpu
-                        vim["memory_used"] = vim["memory_used"] + needed_mem
-                        break
+                    if vim["type"] == "aws":
+                        vim_found = True
+                    else:
+                        ru = vim["resource_utilization"]
+                        cores = ru["cores"]
+                        memory = ru["memory"]
+                        if needed_cpu <= (
+                            cores["total"] - cores["used"]
+                        ) and needed_mem <= (memory["total"] - memory["used"]):
+                            vim_found = True
+                            cores["used"] += needed_cpu
+                            memory["used"] += needed_mem
 
-        # Check if all VNFs and CSs have been mapped
-        if len(mapping.keys()) == len(functions):
+                if vim_found:
+                    mapping[function["id"]] = {"vim": vim["id"]}
+                    break
+
+        # Check if all VNFs have been mapped
+        if len(mapping) == len(functions):
             return mapping
         else:
             LOG.info("Placement was not possible")

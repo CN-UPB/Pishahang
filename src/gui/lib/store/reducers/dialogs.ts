@@ -1,5 +1,6 @@
 import { createReducer } from "typesafe-actions";
 
+import { VimType } from "../../models/Vim";
 import { formatDate } from "../../util/time";
 import {
   resetInfoDialog,
@@ -142,10 +143,16 @@ const reducer = createReducer(initialState)
         ["Country", vim.country],
         ["City", vim.city],
         ["Type", vim.type],
-        ["Cores total", vim.coresTotal.toString()],
-        ["Cores used", vim.coresUsed.toString()],
-        ["Memory total", vim.memoryTotal.toString()],
-        ["Memory used", vim.memoryUsed.toString()],
+        ...((vim.type == VimType.Aws
+          ? []
+          : !vim.resourceUtilization
+          ? ["Resource utilization", "Currently not available"]
+          : [
+              ["Cores total", vim.resourceUtilization.cores.total.toString()],
+              ["Cores used", vim.resourceUtilization.cores.used.toString()],
+              ["Memory total", vim.resourceUtilization.memory.total.toString()],
+              ["Memory used", vim.resourceUtilization.memory.used.toString()],
+            ]) as [string, string][]),
       ],
       isVisible: true,
     },

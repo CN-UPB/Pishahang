@@ -70,10 +70,11 @@ def get_resource_utilization(vim: KubernetesVim):
                         )
 
         return {
-            "cores_total": cores_total,
-            "cores_used": round(cores_used, 3),
-            "memory_total": math.floor(memory_total.value),
-            "memory_used": math.ceil(memory_used.value),
+            "cores": {"used": round(cores_used, 3), "total": cores_total},
+            "memory": {
+                "used": math.ceil(memory_used.value),
+                "total": math.floor(memory_total.value),
+            },
         }
 
     except (ApiException, MaxRetryError) as e:

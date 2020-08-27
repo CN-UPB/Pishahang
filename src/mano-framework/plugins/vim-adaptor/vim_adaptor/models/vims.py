@@ -88,6 +88,11 @@ class AwsVim(BaseVim):
     access_key = StringField(required=True)
     secret_key = StringField(required=True)
 
+    def get_resource_utilization(self):
+        from vim_adaptor.resource_utilization.aws import get_resource_utilization
+
+        return get_resource_utilization(self)
+
 
 class AwsVimSchema(ModelSchema):
     class Meta:

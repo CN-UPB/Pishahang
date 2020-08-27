@@ -20,9 +20,7 @@ config = appcfg.get_config(__name__)
 
 # Create the application instance
 app = connexion.FlaskApp(
-    __name__,
-    specification_dir="../specification/",
-    options=config["connexion"]["options"],
+    __name__, specification_dir="../", options=config["connexion"]["options"],
 )
 
 # Set flask environment, if ENV variable is set

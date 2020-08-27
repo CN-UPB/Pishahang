@@ -893,16 +893,23 @@ components:
       items:
         $ref: "#/components/schemas/ServiceInstance"
 
+    ResourceUsageData:
+      type: "object"
+      required:
+        - used
+        - total
+      properties:
+        used:
+          type: number
+        total:
+          type: number
     BaseVim:
       required:
         - id
         - name
         - country
         - city
-        - coresTotal
-        - coresUsed
-        - memoryTotal
-        - memoryUsed
+        - resourceUtilization
       properties:
         id:
           type: string
@@ -914,18 +921,25 @@ components:
           type: string
         city:
           type: string
-        coresTotal:
-          type: number
+        resourceUtilization:
           readOnly: true
-        coresUsed:
-          type: number
-          readOnly: true
-        memoryTotal:
-          type: number
-          readOnly: true
-        memoryUsed:
-          type: number
-          readOnly: true
+          nullable: true # In case of VIM connection error
+          oneOf:
+            # OpenStack, Kubernetes
+            - type: object
+              required:
+                - cores
+                - memory
+              additionalProperties: false
+              properties:
+                cores:
+                  $ref: "#/components/schemas/ResourceUsageData"
+                memory:
+                  $ref: "#/components/schemas/ResourceUsageData"
+            # AWS (empty object)
+            - type: object
+              additionalProperties: false
+
     OpenStackVim:
       allOf:
         - $ref: "#/components/schemas/BaseVim"

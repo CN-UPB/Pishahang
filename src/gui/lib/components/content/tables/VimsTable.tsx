@@ -6,12 +6,24 @@ import { ApiDataEndpoint } from "../../../api/endpoints";
 import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmationDialog";
 import { useAddVimDialog } from "../../../hooks/useAddVimDialog";
 import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
-import { RetrievedVim } from "../../../models/Vim";
+import { ResourceUsageData, RetrievedVim, VimType } from "../../../models/Vim";
 import { useThunkDispatch } from "../../../store";
 import { showVimInfoDialog } from "../../../store/actions/dialogs";
 import { deleteVim } from "../../../store/thunks/vims";
 import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 import { VimTypeIconField } from "./fields/VimTypeIconField";
+
+const formatResourceUsageData = (vim: RetrievedVim, resourceFieldName: string, unit?: string) => {
+  if (vim.type == VimType.Aws) return "N/A";
+  const usage: ResourceUsageData = vim.resourceUtilization[resourceFieldName];
+  return `${usage.used}/${usage.total}` + (unit ? ` ${unit}` : "");
+};
+
+const projectResourceUsageData = (vim: RetrievedVim, resourceFieldName: string) => {
+  if (vim.type == VimType.Aws) return 0;
+  const usage: ResourceUsageData = vim.resourceUtilization[resourceFieldName];
+  return usage.total - usage.used;
+};
 
 export const VimsTable: React.FunctionComponent = () => {
   const dispatch = useThunkDispatch();
@@ -47,13 +59,13 @@ export const VimsTable: React.FunctionComponent = () => {
         { title: "City", field: "city" },
         {
           title: "Core Usage",
-          render: (vim) => vim.coresUsed + "/" + vim.coresTotal,
-          customSort: (vim) => vim.coresTotal - vim.coresUsed,
+          render: (vim) => formatResourceUsageData(vim, "cores"),
+          customSort: (vim) => projectResourceUsageData(vim, "cores"),
         },
         {
           title: "Memory Usage",
-          render: (vim) => vim.memoryUsed + "/" + vim.memoryTotal + " MB",
-          customSort: (vim) => vim.memoryTotal - vim.memoryUsed,
+          render: (vim) => formatResourceUsageData(vim, "memory", "MB"),
+          customSort: (vim) => projectResourceUsageData(vim, "memory"),
         },
       ]}
       actions={[

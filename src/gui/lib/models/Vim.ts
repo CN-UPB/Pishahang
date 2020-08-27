@@ -15,16 +15,23 @@ export interface BaseVim {
   type: VimType;
 }
 
+export type ResourceUsageData = {
+  used: number;
+  total: number;
+};
+
 /**
  * A VIM object as handed out by the API
  */
-export interface RetrievedVim extends BaseVim {
-  id: string;
-  coresTotal: number;
-  coresUsed: number;
-  memoryTotal: number;
-  memoryUsed: number;
-}
+export type RetrievedVim = BaseVim & { id: string } & (
+    | { type: VimType.Aws; resourceUtilization: {} }
+    | {
+        resourceUtilization: {
+          cores: ResourceUsageData;
+          memory: ResourceUsageData;
+        };
+      }
+  );
 
 export interface OpenStackSpecificVimFields {
   address: string;
