@@ -23,6 +23,5 @@ partner consortium (www.sonata-nfv.eu).
 
 from placement.placement import main
 
-
 if __name__ == "__main__":
     main()
