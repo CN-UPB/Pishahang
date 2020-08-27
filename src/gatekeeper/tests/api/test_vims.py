@@ -1,8 +1,9 @@
 from uuid import uuid4
 
+from pytest_voluptuous import S
+
 from manobase.messaging import ManoBrokerRequestResponseConnection as Connection
 from manobase.messaging import Message
-from pytest_voluptuous import S
 
 
 def testAddVim(api, broker: Connection, reraise):
@@ -106,10 +107,8 @@ def testGetVims(api, broker: Connection):
                 "country": "country",
                 "city": "city",
                 "type": "type",
-                "cores_total": 4,
-                "cores_used": 3,
-                "memory_total": 2,
-                "memory_used": 1,
+                "cores": {"total": 4, "used": 3},
+                "memory": {"total": 2, "used": 1},
             }
         ],
         "infrastructure.management.compute.list",
@@ -124,9 +123,7 @@ def testGetVims(api, broker: Connection):
             "country": "country",
             "city": "city",
             "type": "type",
-            "coresTotal": 4,
-            "coresUsed": 3,
-            "memoryTotal": 2,
-            "memoryUsed": 1,
+            "cores": {"total": 4, "used": 3},
+            "memory": {"total": 2, "used": 1},
         }
     ] == response.get_json()
