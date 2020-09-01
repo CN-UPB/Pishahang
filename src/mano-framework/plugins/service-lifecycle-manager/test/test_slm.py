@@ -1,5 +1,4 @@
 from pathlib import Path
-from test.util import simple_async_endpoint
 from uuid import UUID, uuid4
 
 import pytest
@@ -8,6 +7,7 @@ from syrupy.matchers import path_type
 
 from manobase.messaging import AsyncioBrokerConnection as Connection
 from manobase.messaging import Message
+from manobase.messaging.util import simple_async_endpoint
 from slm import topics
 from slm.exceptions import InstantiationError, PlacementError, TerminationError
 from slm.slm import ServiceLifecycleManager

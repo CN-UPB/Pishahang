@@ -1,8 +1,12 @@
+"""
+Messaging-related utilities
+"""
+
 from contextlib import contextmanager
 from typing import Any, Callable
 
-from manobase.messaging import AsyncioBrokerConnection as Connection
-from manobase.messaging import Message
+from . import AsyncioBrokerConnection as Connection
+from . import Message
 
 
 @contextmanager

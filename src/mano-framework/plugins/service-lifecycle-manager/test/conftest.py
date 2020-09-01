@@ -1,11 +1,11 @@
 from contextlib import contextmanager
-from test.util import async_endpoint
 
 import pytest
 from appcfg import get_config
 from mongoengine.connection import connect
 
 from manobase.messaging import AsyncioBrokerConnection, Message
+from manobase.messaging.util import async_endpoint
 from slm.slm import ServiceLifecycleManager
 
 config = get_config("slm")
