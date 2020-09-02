@@ -42,10 +42,8 @@ export const DrawerContent: React.FunctionComponent = () => {
   return (
     <>
       <List>
-        <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"}></LinkedListItem>
-        {isUserAdmin && (
-          <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"}></LinkedListItem>
-        )}
+        <LinkedListItem text={"Dashboard"} icon={Dashboard} href={"/"} />
+        {isUserAdmin && <LinkedListItem text={"VIMs"} icon={Settings} href={"/vims"} />}
       </List>
 
       <Divider />
@@ -55,9 +53,7 @@ export const DrawerContent: React.FunctionComponent = () => {
           text={"Service Descriptors"}
           icon={AccountTreeRounded}
           href={"/descriptors/service"}
-        ></LinkedListItem>
-      </List>
-      <List>
+        />
         <ListItem button onClick={toggleDescriptorsExpanded}>
           <ListItemIcon>
             <Dns />
@@ -66,43 +62,28 @@ export const DrawerContent: React.FunctionComponent = () => {
           {descriptorsExpanded ? <ExpandLess /> : <ExpandMore />}
         </ListItem>
       </List>
+
       <Collapse in={descriptorsExpanded} timeout="auto" unmountOnExit>
         <List component="div" disablePadding className={classes.nestedList}>
-          <LinkedListItem
-            text={"OpenStack"}
-            icon={Computer}
-            href={"/descriptors/openstack"}
-          ></LinkedListItem>
-          <LinkedListItem
-            text={"Kubernetes"}
-            icon={WebAsset}
-            href={"/descriptors/kubernetes"}
-          ></LinkedListItem>
-          <LinkedListItem text={"AWS"} icon={WebAsset} href={"/descriptors/aws"}></LinkedListItem>
+          <LinkedListItem text={"OpenStack"} icon={Computer} href={"/descriptors/openstack"} />
+          <LinkedListItem text={"Kubernetes"} icon={WebAsset} href={"/descriptors/kubernetes"} />
+          <LinkedListItem text={"AWS"} icon={WebAsset} href={"/descriptors/aws"} />
         </List>
       </Collapse>
 
       <Divider />
 
       <List>
-        <LinkedListItem
-          text={"Services"}
-          icon={ScatterPlotRounded}
-          href={"/services"}
-        ></LinkedListItem>
-      </List>
+        <LinkedListItem text={"Services"} icon={ScatterPlotRounded} href={"/services"} />
 
-      {isUserAdmin && (
-        <List>
-          <LinkedListItem text={"Plugins"} icon={Dvr} href={"/monitor"}></LinkedListItem>
-        </List>
-      )}
+        {isUserAdmin && <LinkedListItem text={"Plugins"} icon={Dvr} href={"/monitor"} />}
+      </List>
 
       <Divider />
       {isUserAdmin && (
         <>
           <List>
-            <LinkedListItem text={"Users"} icon={Group} href={"/users"}></LinkedListItem>
+            <LinkedListItem text={"Users"} icon={Group} href={"/users"} />
           </List>
           <Divider />
         </>
