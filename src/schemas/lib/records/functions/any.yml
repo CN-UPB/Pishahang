@@ -4,3 +4,4 @@ description: "Schema for any network function record using the oneOf keyword"
 oneOf:
   - $ref: "openstack.yml"
   - $ref: "kubernetes.yml"
+  - $ref: "aws.yml"

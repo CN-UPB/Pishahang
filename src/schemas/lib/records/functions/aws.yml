@@ -1,0 +1,75 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "Pishahang AWS function record schema"
+
+allOf:
+  - $ref: "../../descriptors/functions/aws.yml"
+  - $ref: "./record-mixin.yml"
+  - type: "object"
+    properties:
+      virtual_deployment_units:
+        type: "array"
+        items:
+          type: "object"
+          required:
+            - vim_id
+          properties:
+            number_of_instances:
+              description: "The number of instances of this VDU element."
+              type: "integer"
+              minimum: 0
+            vim_id:
+              description: "Identifier of the VIM this replica is running at."
+            arn:
+              description: "list of ARNs of instances"
+              type: "string"
+            availability_zone:
+              description: "list of availability zones of instances"
+              type: "string"
+            credit_specification:
+              description: "list of credit specification of instances"
+              type: "string"
+            ebs_block_device_volume_ids:
+              description: "list of volume IDs of EBS block devices of instances"
+              type: "string"
+            ids:
+              description: "list of ids of instances"
+              type: "string"
+            instance_state:
+              description: "list of instance states of instance"
+              type: "string"
+            ipv6_addresses:
+              description: "list of assigned IPv6 adresses of instances"
+              type: "string"
+            key_name:
+              description: "list of key names of instances"
+              type: "string"
+            password_data:
+              description: "list of base-64 encoded encrypted password data for the instance"
+              type: "string"
+            placement_group:
+              description: "list of placement groups of instaces"
+              type: "string"
+            primary_network_interface_id:
+              description: "list of IDs of primary network interface of instaces"
+              type: "string"
+            private_ip:
+              description: "list of private IP addresses assigned to the instances"
+              type: "string"
+            public_ip:
+              description: "list of public IP adresses assigned to the instance, if applicable"
+              type: "string"
+            root_block_device_volume_ids:
+              description: "list of volume IDs of root block devices of instances"
+              type: "string"
+            security_groups:
+              description: "list of associated security groups of instances"
+              type: "string"
+            subnet_id:
+              description: "list of tags of instances"
+              type: "string"
+            volume_tags:
+              description: "list of tags of volumes of instances"
+              type: "string"
+            vpc_security_group_ids:
+              description: "list of associated security groups of instances, if running in non-default VPC"
+              type: "string"
