@@ -198,7 +198,9 @@
     "descriptor_flavor",
     "descriptor_type",
     "descriptor_version",
+    "id",
     "name",
+    "status",
     "vendor",
     "version",
     "virtual_deployment_units"
@@ -608,16 +610,16 @@
       }
     },
     "id": {
-      "description": "The UUID of the cloud service record.",
+      "description": "The UUID of the VNF record",
       "type": "string",
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
     },
     "status": {
-      "description": "The current status of the CS",
+      "description": "The current status of the VNF",
       "ref": "../../commons.yml#/definitions/execution_status"
     },
     "descriptor_reference": {
-      "description": "Reference to the CSD used to instantiate this CS.",
+      "description": "ID of the descriptor used to instantiate the VNF that this record belongs to",
       "type": "string",
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
     },

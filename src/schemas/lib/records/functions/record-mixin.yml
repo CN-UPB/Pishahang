@@ -1,0 +1,32 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+# A mixin schema that defines common attributes of VNF records and can be merged
+# into other schemas using allOf
+
+required:
+  - id
+  - status
+
+properties:
+  id:
+    description: "The UUID of the VNF record"
+    type: "string"
+    pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+  version:
+    description: "The version of the VNF record. Can be used to track changes"
+    type: "string"
+    pattern: "^[0-9]+$"
+
+  status:
+    description: "The current status of the VNF"
+    ref: "../../commons.yml#/definitions/execution_status"
+
+  descriptor_reference:
+    description: "ID of the descriptor used to instantiate the VNF that this record belongs to"
+    type: "string"
+    pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+  parent_ns:
+    description: "Reference to records of network service (nsr:id) that this CS instance is part of."
+    type: "string"
+    pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"

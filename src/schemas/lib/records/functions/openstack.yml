@@ -3,40 +3,13 @@ description: "The core schema for SONATA network function records."
 
 allOf:
   - $ref: "../../descriptors/functions/openstack.yml"
+  - $ref: "./record-mixin.yml"
   - type: "object"
-    required:
-      - id
-      - status
     properties:
-      id:
-        description: "The UUID of the function record."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-
-      version:
-        description: "The version of the function record. Can be used to track changes."
-        type: "string"
-        pattern: "^[0-9]+$"
-
-      status:
-        description: "The current status of the VNF"
-        oneOf:
-          - $ref: "../../commons.yml#/definitions/execution_status"
-
-      descriptor_reference:
-        description: "Reference to the VNFD used to instanciate this VNF."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-
       deployment_favour:
         description: "Reference to the selected deployment flavour (vnfd:deployment_flavour:id)."
         type: "string"
         pattern: "^[A-Za-z0-9\\-_.:]+$"
-
-      parent_ns:
-        description: "Reference to records of network service (nsr:id) that this VNF instance is part of."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
       virtual_deployment_units:
         type: "array"

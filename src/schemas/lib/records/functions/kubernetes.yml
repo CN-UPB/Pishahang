@@ -3,32 +3,9 @@ description: "Pishahang Kubernetes function record schema"
 
 allOf:
   - $ref: "../../descriptors/functions/kubernetes.yml"
+  - $ref: "./record-mixin.yml"
   - type: "object"
     properties:
-      id:
-        description: "The UUID of the cloud service record."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-
-      version:
-        description: "The version of the cloud service record. Can be used to track changes."
-        type: "string"
-        pattern: "^[0-9]+$"
-
-      status:
-        description: "The current status of the CS"
-        ref: "../../commons.yml#/definitions/execution_status"
-
-      descriptor_reference:
-        description: "Reference to the CSD used to instantiate this CS."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-
-      parent_ns:
-        description: "Reference to records of network service (nsr:id) that this CS instance is part of."
-        type: "string"
-        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-
       virtual_deployment_units:
         type: "array"
         items:
