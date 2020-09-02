@@ -27,12 +27,20 @@ partner consortium (www.sonata-nfv.eu).
 """
 
 from flm_base.plugin import FunctionLifecycleManagerBasePlugin
+from klm import version
 
 
 class KubernetesLifecycleManager(FunctionLifecycleManagerBasePlugin):
     """
     Kubernetes Function Lifecycle Manager Plugin
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            version=version,
+            description="Kubernetes Function Lifecycle Manager Plugin",
+            **kwargs
+        )
 
     northbound_topics = {
         **FunctionLifecycleManagerBasePlugin.northbound_topics,
