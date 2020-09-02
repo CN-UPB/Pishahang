@@ -2,7 +2,7 @@ _docker_compose_setup_commands: &docker_compose_setup_commands
   - ./generate-env.sh 127.0.0.1 localhost
   - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi
 
-_docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && docker-compose build $BUILD_SERVICES
+_docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && for service in $BUILD_SERVICES; do docker-compose build "$service"; done
 
 _python_test_command: &python_test_command cd $COMPONENT_DIR && poetry install -v && poetry run pytest
 
