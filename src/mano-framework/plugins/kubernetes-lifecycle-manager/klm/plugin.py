@@ -26,23 +26,19 @@ acknowledge the contributions of their colleagues of the SONATA
 partner consortium (www.sonata-nfv.eu).
 """
 
+from flm_base.plugin import FunctionLifecycleManagerBasePlugin
 
-def cserviceid_from_corrid(ledger, corr_id):
+
+class KubernetesLifecycleManager(FunctionLifecycleManagerBasePlugin):
     """
-    This method returns the cloud service uuid based on a correlation id.
-    It is used for responses from different modules that use the
-    correlation id as reference instead of the cloud service id.
-
-    :param serv_dict: The ledger of functions
-    :param corr_id: The correlation id
+    Kubernetes Function Lifecycle Manager Plugin
     """
 
-    for cservice_id in ledger.keys():
-        if isinstance(ledger[cservice_id]["act_corr_id"], list):
-            if str(corr_id) in ledger[cservice_id]["act_corr_id"]:
-                break
-        else:
-            if ledger[cservice_id]["act_corr_id"] == str(corr_id):
-                break
+    northbound_topics = {
+        **FunctionLifecycleManagerBasePlugin.northbound_topics,
+        "deploy": "mano.function.kubernetes.deploy",
+    }
 
-    return cservice_id
+
+def main():
+    KubernetesLifecycleManager()

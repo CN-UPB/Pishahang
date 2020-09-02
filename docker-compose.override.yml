@@ -52,6 +52,11 @@ services:
       context: ./src
       dockerfile: mano-framework/base/Dockerfile
 
+  # FLM base
+  flm-base:
+    image: pishahang/mano-plugin-flm-base:${PISHAHANG_VERSION}
+    build: ./src/mano-framework/plugins/function-lifecycle-manager-base
+
   # Plugin Manager
   pluginmanager:
     build: ./src/mano-framework/pluginmanager

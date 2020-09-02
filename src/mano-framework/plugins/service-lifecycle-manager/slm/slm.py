@@ -249,7 +249,7 @@ class ServiceLifecycleManager:
         # Map VNFD flavors to topics
         topics_map = {
             "openstack": topics.MANO_DEPLOY,
-            "kubernetes": topics.MANO_CS_DEPLOY,
+            "kubernetes": topics.MANO_DEPLOY_KUBERNETES,
         }
 
         for function in self.service.functions:

@@ -60,13 +60,20 @@ jobs:
         - REQUIRED_MICROSERVICES="broker mongo"
         - BUILD_SERVICES="mano-base pluginmanager"
 
+    - name: flm-base
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=flm-base
+        - COMPONENT_DIR=src/mano-framework/function-lifecycle-management-base
+        - BUILD_SERVICES=mano-base
+
     - name: klm
       <<: *python_job_config
-      script: *docker_compose_build_command # There are no tests :(
+      script: *docker_compose_build_command # No tests here, they are in flm-base
       env:
         - SERVICE_NAME=kubernetes-lifecycle-manager
         - COMPONENT_DIR=src/mano-framework/plugins/kubernetes-lifecycle-manager
-        - BUILD_SERVICES="mano-base kubernetes-lifecycle-manager"
+        - BUILD_SERVICES="mano-base flm-base kubernetes-lifecycle-manager"
 
     - name: olm
       <<: *python_job_config

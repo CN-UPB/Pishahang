@@ -1,4 +1,4 @@
-FROM pishahang/mano-base
+FROM pishahang/mano-plugin-flm-base
 
 WORKDIR /mano-framework/plugins/kubernetes-lifecycle-manager
 

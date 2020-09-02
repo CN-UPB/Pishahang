@@ -1,22 +1,23 @@
 [tool.poetry]
-name = "klm"
+name = "flm-base"
 version = "1.0.0"
-description = "Kubernetes Lifecycle Manager"
-authors = ["Pishahang <pishahang@noreply.github.com>"]
+description = "Generic Function Lifecycle Manager Base Plugin"
+authors = []
 license = "apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-flm_base = { path = "../function-lifecycle-manager-base" }
+manobase = { path = "../../base" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
 flake8 = "^3.7.9"
 black = "^19.10b0"
-isort = "^5.4.2"
-
-[tool.poetry.scripts]
-start = "klm.__main__:main"
+isort = "^5.2.2"
+pytest-asyncio = "^0.14.0"
+pytest-reraise = "^1.0.3"
+pytest-mock = "^3.3.1"
+pytest-voluptuous = "^1.2.0"
 
 [tool.isort] # black-compatible isort rules
 multi_line_output = 3

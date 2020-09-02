@@ -179,7 +179,6 @@ services:
       - broker
       - pluginmanager
       - repository
-      - monitor-manager
 
   # Vim Adaptor
   vim-adaptor:
