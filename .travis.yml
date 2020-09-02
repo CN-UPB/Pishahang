@@ -15,7 +15,7 @@ _python_job_config: &python_job_config
     - pip install poetry
   before_script: *docker_compose_setup_commands
   script:
-    - cd $COMPONENT_DIR && poetry install --no-root -v && poetry run pytest
+    - *python_test_command
     - *docker_compose_build_command
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
       env:
         - SERVICE_NAME=flm-base
         - COMPONENT_DIR=src/mano-framework/plugins/function-lifecycle-manager-base
-        - BUILD_SERVICES=mano-base
+        - BUILD_SERVICES="mano-base flm-base"
 
     - name: klm
       <<: *python_job_config
