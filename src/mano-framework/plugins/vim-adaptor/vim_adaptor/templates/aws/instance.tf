@@ -1,5 +1,4 @@
 resource "aws_instance" "fpga" {
-
 	ami           = "${var.ami_instance_id}"
 	instance_type = "${var.instance_type}"
 
