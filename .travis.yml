@@ -64,7 +64,7 @@ jobs:
       <<: *python_job_config
       env:
         - SERVICE_NAME=flm-base
-        - COMPONENT_DIR=src/mano-framework/function-lifecycle-management-base
+        - COMPONENT_DIR=src/mano-framework/plugins/function-lifecycle-manager-base
         - BUILD_SERVICES=mano-base
 
     - name: klm
