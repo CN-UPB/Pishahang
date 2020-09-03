@@ -109,35 +109,42 @@ class PlacementPlugin(ManoBasePlugin):
         mapping = {}
 
         for function in functions:
-            vdu = function["virtual_deployment_units"]
-            needed_cpu = vdu[0]["resource_requirements"]["cpu"]["vcpus"]
-            needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
+            flavor = function["descriptor_flavor"]
+            vim_id = None
 
-            vim_found = False
-            for vim in topology:
-                if vim["type"] == function["descriptor_flavor"]:
+            # AWS
+            if flavor == "aws":
+                for vim in topology:
                     if vim["type"] == "aws":
-                        vim_found = True
-                    else:
-                        ru = vim["resource_utilization"]
-                        cores = ru["cores"]
-                        memory = ru["memory"]
-                        if needed_cpu <= (
-                            cores["total"] - cores["used"]
-                        ) and needed_mem <= (memory["total"] - memory["used"]):
-                            vim_found = True
-                            cores["used"] += needed_cpu
-                            memory["used"] += needed_mem
+                        vim_id = vim["id"]
+                        break
 
-                if vim_found:
-                    mapping[function["id"]] = {"vim": vim["id"]}
-                    break
+            # OpenStack or Kubernetes
+            else:
+                vdu = function["virtual_deployment_units"]
+                needed_cpu = vdu[0]["resource_requirements"]["cpu"]["vcpus"]
+                needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
 
-        # Check if all VNFs have been mapped
-        if len(mapping) == len(functions):
-            return mapping
-        else:
-            LOG.info("Placement was not possible")
+                for vim in topology:
+                    ru = vim["resource_utilization"]
+                    cores = ru["cores"]
+                    memory = ru["memory"]
+                    if needed_cpu <= (
+                        cores["total"] - cores["used"]
+                    ) and needed_mem <= (memory["total"] - memory["used"]):
+                        cores["used"] += needed_cpu
+                        memory["used"] += needed_mem
+
+                        vim_id = vim["id"]
+                        break
+
+            if vim_id is None:
+                LOG.info("Placement was not possible")
+                return None
+            else:
+                mapping[function["id"]] = {"vim": vim_id}
+
+        return mapping
 
 
 def main():
