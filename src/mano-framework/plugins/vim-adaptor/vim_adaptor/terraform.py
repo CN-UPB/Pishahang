@@ -149,7 +149,7 @@ class TerraformWrapper:
         )  # No vars here, they are included in the plan already
 
     @terraform_method(return_json=True)
-    def show(self):
+    def show(self) -> dict:
         """
         Runs `terraform show` and returns the parsed JSON output
         """

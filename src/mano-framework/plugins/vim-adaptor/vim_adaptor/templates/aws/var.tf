@@ -1,27 +1,11 @@
-variable "ami_instance_id"{
+variable "access_key" {
 	type = "string"
-	default = "ami-0ef50ac7ce95adb40"
 }
 
-variable "access_key_var"{
+variable "secret_key" {
 	type = "string"
-	default = ""
 }
 
-variable "secret_key_var"{
+variable "region" {
 	type = "string"
-	default = ""
-}
-
-variable "instance_name"{
-	type = "string"
-	default = "fpga_service"
-}
-variable "instance_type"{
-	type = "string"
-	default = "t2.micro"
-}
-variable "region"{
-	type = "string"
-	default = "eu-central-1"
 }

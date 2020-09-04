@@ -154,7 +154,8 @@ class FunctionInstanceManager:
             instance: FunctionInstance = self.extra["function_instance"]
             return (
                 (
-                    f"FunctionInstanceManager(Function: {instance.descriptor['name']},"
+                    f"FunctionInstanceManager(Function: {instance.descriptor['name']}"
+                    f" ({instance.id}),"
                     f" Service: {instance.service_instance_id},"
                     f" VIM: {instance.vim.name} ({instance.vim.id})): {msg:s}"
                 ),

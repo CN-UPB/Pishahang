@@ -250,6 +250,7 @@ class ServiceLifecycleManager:
         topics_map = {
             "openstack": topics.MANO_DEPLOY,
             "kubernetes": topics.MANO_DEPLOY_KUBERNETES,
+            "aws": topics.MANO_DEPLOY_AWS,
         }
 
         for function in self.service.functions:

@@ -118,8 +118,6 @@ class VimAdaptor(ManoBasePlugin):
         # Try to get the resource utilization, fail if it does not work
         try:
             vim.get_resource_utilization()
-        except NotImplementedError:
-            pass
         except VimConnectionError as e:
             return create_error_response(str(e))
 

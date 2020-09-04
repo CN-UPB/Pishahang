@@ -1,3 +1,4 @@
+from vim_adaptor.managers.aws import AwsFunctionInstanceManager
 from vim_adaptor.managers.base import (
     FunctionInstanceManagerFactory,
     ServiceInstanceHandlerFactory,
@@ -16,6 +17,7 @@ function_manager_factory.register_class(
 function_manager_factory.register_class(
     VimType.OPENSTACK.value, OpenStackFunctionInstanceManager
 )
+function_manager_factory.register_class(VimType.AWS.value, AwsFunctionInstanceManager)
 
 service_handler_factory = ServiceInstanceHandlerFactory()
 service_handler_factory.register_class(
