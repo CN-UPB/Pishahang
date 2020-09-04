@@ -9,10 +9,9 @@ class InstantiationError(Exception):
 
     def add_error(self, e: Exception):
         """
-        Stringify a provided exception and add it to the error message of the
-        instantiation error.
+        Add the provided exception to the args of the instantiation error.
         """
-        self.message += "\n" + str(e)
+        self.args += (e,)
 
 
 class TerminationError(Exception):
