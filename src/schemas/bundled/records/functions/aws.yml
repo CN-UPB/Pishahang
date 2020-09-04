@@ -434,66 +434,42 @@ properties:
                 description: Value of the env variable
                 type: string
         number_of_instances:
-          description: The number of instances of this VDU element.
+          description: The number of instances of this VDU element
           type: integer
           minimum: 0
         vim_id:
-          description: Identifier of the VIM this replica is running at.
+          description: ID of the VIM this replica is running at
         arn:
-          description: list of ARNs of instances
+          description: The instance's ARN
           type: string
         availability_zone:
-          description: list of availability zones of instances
+          description: The availability zone in which the instance is deployed
           type: string
-        credit_specification:
-          description: list of credit specification of instances
-          type: string
-        ebs_block_device_volume_ids:
-          description: list of volume IDs of EBS block devices of instances
-          type: string
-        ids:
-          description: list of ids of instances
+        instance_id:
+          description: EC2 instance ID
           type: string
         instance_state:
-          description: list of instance states of instance
+          description: Instance state
           type: string
         ipv6_addresses:
-          description: list of assigned IPv6 adresses of instances
-          type: string
-        key_name:
-          description: list of key names of instances
-          type: string
-        password_data:
-          description: list of base-64 encoded encrypted password data for the instance
-          type: string
-        placement_group:
-          description: list of placement groups of instaces
-          type: string
+          description: List of assigned IPv6 adresses
+          type: array
+          items:
+            type: string
         primary_network_interface_id:
-          description: list of IDs of primary network interface of instaces
+          description: ID of the instance's primary network interface
           type: string
         private_ip:
-          description: list of private IP addresses assigned to the instances
+          description: The private IP address of the instance
+          type: string
+        public_dns:
+          description: The public DNS name of the instance
           type: string
         public_ip:
-          description: 'list of public IP adresses assigned to the instance, if applicable'
-          type: string
-        root_block_device_volume_ids:
-          description: list of volume IDs of root block devices of instances
-          type: string
-        security_groups:
-          description: list of associated security groups of instances
+          description: The public IP address of the instance
           type: string
         subnet_id:
-          description: list of tags of instances
-          type: string
-        volume_tags:
-          description: list of tags of volumes of instances
-          type: string
-        vpc_security_group_ids:
-          description: >-
-            list of associated security groups of instances, if running in
-            non-default VPC
+          description: The ID of the instance's subnet
           type: string
   id:
     description: The UUID of the VNF record
