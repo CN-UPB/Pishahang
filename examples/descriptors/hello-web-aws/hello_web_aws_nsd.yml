@@ -1,0 +1,11 @@
+descriptor_type: service
+descriptor_version: "1.0"
+vendor: de.upb.cs
+name: hello-web-aws
+version: "0.2"
+author: Dennis Meier
+network_functions:
+  - vnf_id: hello-web-1
+    vnf_vendor: de.upb.cs
+    vnf_name: hello-web-aws
+    vnf_version: "0.2"

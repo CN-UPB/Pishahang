@@ -1,0 +1,13 @@
+descriptor_type: function
+descriptor_flavor: aws
+descriptor_version: "1.0"
+vendor: de.upb.cs
+name: hello-web-aws
+version: "0.2"
+author: Dennis Meier
+description: Deploy a hello-world instance on AWS
+virtual_deployment_units:
+  - id: hello-web-1
+    name: hello-web
+    ami: ami-0ef50ac7ce95adb40
+    instance_type: t2.micro
