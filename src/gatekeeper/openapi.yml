@@ -1003,6 +1003,7 @@ components:
             - type
             - accessKey
             - secretKey
+            - region
           properties:
             type:
               type: string
@@ -1010,6 +1011,8 @@ components:
             accessKey:
               type: string
             secretKey:
+              type: string
+            region:
               type: string
     AnyVim:
       oneOf:

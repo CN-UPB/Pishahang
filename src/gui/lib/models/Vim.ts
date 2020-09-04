@@ -54,6 +54,7 @@ export interface KubernetesSpecificVimFields {
 export interface AwsSpecificVimFields {
   accessKey: string;
   secretKey: string;
+  region: string;
 }
 
 /**

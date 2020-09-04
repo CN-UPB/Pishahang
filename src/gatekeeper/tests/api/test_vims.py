@@ -21,6 +21,7 @@ def testAddVim(api, broker: Connection, reraise):
             "type": "aws",
             "accessKey": "access key",
             "secretKey": "secret key",
+            "region": "region",
         },
         "kubernetes": {
             **baseVimData,

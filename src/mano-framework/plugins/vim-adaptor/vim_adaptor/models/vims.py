@@ -87,6 +87,7 @@ class KubernetesVimSchema(ModelSchema):
 class AwsVim(BaseVim):
     access_key = StringField(required=True)
     secret_key = StringField(required=True)
+    region = StringField(required=True)
 
     def get_resource_utilization(self):
         from vim_adaptor.resource_utilization.aws import get_resource_utilization

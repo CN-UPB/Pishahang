@@ -68,6 +68,9 @@ const AwsFields: React.FunctionComponent = () => (
     <Grid item xs={6}>
       <Field component={TextField} name="aws.secretKey" label="Secret Key" />
     </Grid>
+    <Grid item xs={12}>
+      <Field component={TextField} name="aws.region" label="Region" />
+    </Grid>
   </>
 );
 
@@ -89,6 +92,7 @@ const validationSchema = yup.object().shape({
     then: yup.object({
       accessKey: yup.string().required("Required"),
       secretKey: yup.string().required("Required"),
+      region: yup.string().required("Required"),
     }),
   }),
 
@@ -124,6 +128,7 @@ const initialFormValues: VimFormValues = {
   aws: {
     accessKey: "",
     secretKey: "",
+    region: "",
   },
   kubernetes: {
     address: "",
