@@ -17,14 +17,11 @@ for descriptorType, filename in [
     (DescriptorType.SERVICE, "service/service"),
     (DescriptorType.OPENSTACK, "functions/openstack"),
     (DescriptorType.KUBERNETES, "functions/kubernetes"),
+    (DescriptorType.AWS, "functions/aws"),
 ]:
     with (DESCRIPTOR_SCHEMA_DIR / filename).with_suffix(".json").open() as schema:
         schemaMap[descriptorType.value] = json.load(schema)
 
 
 def validateDescriptor(type: str, descriptor: dict):
-    if type == DescriptorType.AWS.value:
-        # No schema for AWS descriptors yet
-        return
-
     return jsonschema.validate(descriptor, schemaMap[type])
