@@ -1714,11 +1714,6 @@ oneOf:
                 A unique identifier of this VDU within the scope of this VNF
                 descriptor.
               type: string
-            region:
-              description: >-
-                Region in which the ami will run. The AMI is different in each
-                region!
-              type: string
             instance_type:
               description: Instance type e.g. t2.mirco
             ami:
