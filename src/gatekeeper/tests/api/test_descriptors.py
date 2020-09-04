@@ -101,10 +101,10 @@ def testDuplicateNames(api, exampleServiceDescriptor, exampleOpenStackDescriptor
     exampleServiceDescriptor["version"] = "0.0.0"
     assert 201 == addDescriptor("service", exampleServiceDescriptor)
 
-    # (vendor, version, name) should be unique across descriptor types
-    for key in ["vendor", "name", "version"]:
-        exampleOpenStackDescriptor[key] = exampleServiceDescriptor[key]
-
+    # (descriptor_type, vendor, version, name) should be unique
+    assert 201 == addDescriptor(
+        DescriptorType.OPENSTACK.value, exampleOpenStackDescriptor
+    )
     assert 400 == addDescriptor(
         DescriptorType.OPENSTACK.value, exampleOpenStackDescriptor
     )

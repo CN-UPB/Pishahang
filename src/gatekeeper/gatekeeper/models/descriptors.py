@@ -34,14 +34,16 @@ class DescriptorContent(DynamicEmbeddedDocument):
     Embedded document class to hold a descriptor's content
     """
 
+    descriptor_type = StringField(required=True)
     descriptor_version = StringField(required=True)
     vendor = StringField(required=True)
     name = StringField(required=True)
     version = StringField(required=True)
 
     def __str__(self):
-        return 'Descriptor(vendor="{}", name="{}", version="{}")'.format(
-            self.vendor, self.name, self.version
+        return (
+            f'Descriptor(descriptor_type="{self.descriptor_type}", '
+            f'vendor="{self.vendor}", name="{self.name}", version="{self.version}")'
         )
 
 
@@ -64,7 +66,12 @@ class Descriptor(BaseDescriptorMixin, UuidDocument, TimestampsDocument):
     meta = {
         "indexes": [
             {
-                "fields": ("content.vendor", "content.name", "content.version"),
+                "fields": (
+                    "content.descriptor_type",
+                    "content.vendor",
+                    "content.name",
+                    "content.version",
+                ),
                 "unique": True,
             }
         ]

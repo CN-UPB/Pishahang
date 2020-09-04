@@ -3,7 +3,6 @@ from typing import List
 
 import connexion
 from connexion.exceptions import ProblemException
-from manobase.messaging import Message
 from mongoengine.errors import DoesNotExist
 
 from gatekeeper.app import broker
@@ -15,6 +14,7 @@ from gatekeeper.exceptions import (
 from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
 from gatekeeper.models.services import Service, ServiceInstance
 from gatekeeper.util.mongoengine_custom_json import to_custom_dict
+from manobase.messaging import Message
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,10 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             name = function["vnf_name"]
             version = function["vnf_version"]
             referencedDescriptor = Descriptor.objects(
-                content__vendor=vendor, content__name=name, content__version=version,
+                content__descriptor_type="function",
+                content__vendor=vendor,
+                content__name=name,
+                content__version=version,
             ).get()
 
             if referencedDescriptor.id not in referencedDescriptorIds:
@@ -73,10 +76,11 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
                 status=400,
                 title="Missing Dependency",
                 detail=(
-                    "{} contains reference to missing "
-                    'Descriptor(vendor="{}",name="{}",version="{}"). '
-                    "Please upload that descriptor and try again."
-                ).format(descriptor.content, vendor, name, version),
+                    f"{descriptor.content} contains reference to missing "
+                    f'Descriptor(descriptor_type="function", vendor="{vendor}", '
+                    f'name="{name}",version="{version}"). '
+                    f"Please upload that descriptor and try again."
+                ),
             )
 
     return referencedDescriptors
