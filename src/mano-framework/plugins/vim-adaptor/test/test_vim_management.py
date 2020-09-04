@@ -87,6 +87,7 @@ def test_add_vim(
             "city": "my city",
             "access_key": "access key",
             "secret_key": "secret key",
+            "region": "region",
         }
     )
 
@@ -100,6 +101,7 @@ def example_vim():
         city="my city",
         access_key="access key",
         secret_key="secret key",
+        region="region",
     )
 
 
