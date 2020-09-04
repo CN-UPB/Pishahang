@@ -180,6 +180,15 @@ services:
       - pluginmanager
       - repository
 
+  # AWS Lifecycle Manager
+  aws-lifecycle-manager:
+    image: pishahang/mano-plugin-aws-lifecycle-manager:${PISHAHANG_VERSION}
+    restart: always
+    depends_on:
+      - broker
+      - pluginmanager
+      - repository
+
   # Vim Adaptor
   vim-adaptor:
     image: pishahang/mano-plugin-vim-adaptor:${PISHAHANG_VERSION}

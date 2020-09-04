@@ -83,6 +83,10 @@ services:
   kubernetes-lifecycle-manager:
     build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
+  # AWS Lifecycle Manager
+  aws-lifecycle-manager:
+    build: ./src/mano-framework/plugins/aws-lifecycle-manager
+
   # VIM Adaptor
   vim-adaptor:
     build: ./src/mano-framework/plugins/vim-adaptor
