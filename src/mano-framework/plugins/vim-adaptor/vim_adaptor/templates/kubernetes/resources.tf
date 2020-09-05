@@ -84,7 +84,7 @@ resource "kubernetes_deployment" "{{ vdu.id }}-{{ function_instance_id }}" {
 resource "kubernetes_service" "{{ vdu.id }}-{{ function_instance_id }}" {
   metadata {
     {% if vdu.name != null %}
-      name = "{{ vdu.name }}"
+      name = "{{ vdu.name }}-{{ function_instance_id }}"
     {% else %}
       name = "{{ vdu.id }}-{{ function_instance_id }}"
     {% endif %}
