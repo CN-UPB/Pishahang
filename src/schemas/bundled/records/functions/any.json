@@ -440,7 +440,7 @@
               "vm_image",
               "vm_image_format"
             ],
-            "additionalProperties": false,
+            "additionalProperties": true,
             "properties": {
               "description": {
                 "description": "An arbitrary description of the VDU:",
@@ -801,6 +801,85 @@
                     "type": "integer",
                     "minimum": 0,
                     "default": 1
+                  }
+                }
+              },
+              "vdu_reference": {
+                "description": "The reference to the VDU (vnfd:vdu:id) used to instantiate this element:",
+                "type": "string"
+              },
+              "number_of_instances": {
+                "description": "The number of instances of this VDU element.",
+                "type": "integer",
+                "minimum": 0
+              },
+              "vnfc_instance": {
+                "description": "Additional information distinct for each VNFC instance created based on this VDU.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "Unique name within the namespace of this VNF instance.",
+                      "type": "string"
+                    },
+                    "vim_id": {
+                      "description": "Identifier of the VIM this VNFC is running at.",
+                      "type": "string"
+                    },
+                    "vc_id": {
+                      "description": "Identifier of the virtualization container or VM running on the VIM.",
+                      "type": "string"
+                    },
+                    "connection_points": {
+                      "description": "The connection points of this VNFC. Connects the VDU to other VDUs or the external world.",
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "interface",
+                          "type"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "id": {
+                            "description": "A VNF-unique id of the connection point. Can be used for references.",
+                            "type": "string"
+                          },
+                          "interface": {
+                            "description": "The type of connection point, such as a virtual port, a virtual NIC address, a physical port, a physcial NIC address, or the endpoint of a VPN tunnel.",
+                            "oneOf": [
+                              {
+                                "enum": [
+                                  "ethernet",
+                                  "ipv4",
+                                  "ipv6"
+                                ]
+                              }
+                            ]
+                          },
+                          "type": {
+                            "description": "The type of the connection point with respect to its visibility in the service platform",
+                            "oneOf": [
+                              {
+                                "enum": [
+                                  "internal",
+                                  "external",
+                                  "management"
+                                ]
+                              }
+                            ]
+                          },
+                          "virtual_link_reference": {
+                            "description": "A reference to a virtual link, i.e. the virtual_links:id.",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }

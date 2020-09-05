@@ -434,7 +434,7 @@
           "vm_image",
           "vm_image_format"
         ],
-        "additionalProperties": false,
+        "additionalProperties": true,
         "properties": {
           "description": {
             "description": "An arbitrary description of the VDU:",
