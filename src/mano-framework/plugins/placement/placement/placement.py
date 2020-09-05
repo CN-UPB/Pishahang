@@ -126,6 +126,9 @@ class PlacementPlugin(ManoBasePlugin):
                 needed_mem = vdu[0]["resource_requirements"]["memory"]["size"]
 
                 for vim in topology:
+                    if vim["type"] != flavor:
+                        continue
+
                     ru = vim["resource_utilization"]
                     cores = ru["cores"]
                     memory = ru["memory"]
