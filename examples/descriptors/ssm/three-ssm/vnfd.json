@@ -1,4 +1,6 @@
 {
+  "descriptor_type": "function",
+  "descriptor_flavor": "openstack",
   "descriptor_version": "vnfd-schema-01",
   "description": "Dummy VNF with 3 FSMs",
   "name": "dummy-vm-vnf-3",

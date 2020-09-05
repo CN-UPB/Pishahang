@@ -1,22 +1,24 @@
----
+descriptor_type: service
 descriptor_version: "1.0"
 vendor: "eu.sonata-nfv.service-descriptor"
-name: "image-serving"
+name: social-network
 version: "1.0"
 author: "Tobias Dierich"
-description: "Static Image Serving Example."
-
-cloud_services:
-- service_id: "static-images"
-  service_vendor: "eu.sonata-nfv.cloud-service-descriptor"
-  service_name: "static-images"
-  service_version: "1.0"
+description: "HumHub Social Network."
 
 network_functions:
-- vnf_id: "squid-cache"
-  vnf_vendor: "eu.sonata-nfv.vnf-descriptor"
-  vnf_name: "squid-cache"
-  vnf_version: "1.0"
+  - vnf_id: "social-network"
+    vnf_vendor: "eu.sonata-nfv.cloud-service-descriptor"
+    vnf_name: "social-network"
+    vnf_version: "1.0"
+  - vnf_id: "squid-cache"
+    vnf_vendor: "eu.sonata-nfv.vnf-descriptor"
+    vnf_name: "squid-cache"
+    vnf_version: "1.0"
+  - vnf_id: "snort-id"
+    vnf_vendor: "eu.sonata-nfv.vnf-descriptor"
+    vnf_name: "snort-id"
+    vnf_version: "1.0"
 
 connection_points:
   - id: "mgmt"
@@ -34,11 +36,17 @@ virtual_links:
     connectivity_type: "E-LAN"
     connection_points_reference:
       - "squid-cache:mgmt"
+      - "snort-id:mgmt"
       - "mgmt"
-  - id: "input-2-cache"
+  - id: "input-2-snort"
     connectivity_type: "E-Line"
     connection_points_reference:
       - "input"
+      - "snort-id:input"
+  - id: "snort-2-cache"
+    connectivity_type: "E-Line"
+    connection_points_reference:
+      - "snort-id:output"
       - "squid-cache:input"
   - id: "cache-2-output"
     connectivity_type: "E-Line"
@@ -49,7 +57,7 @@ virtual_links:
 forwarding_graphs:
   - fg_id: "ns:fg01"
     number_of_endpoints: 2
-    number_of_virtual_links: 2
+    number_of_virtual_links: 3
     constituent_vnfs:
       - "squid-cache"
     network_forwarding_paths:
@@ -58,9 +66,13 @@ forwarding_graphs:
         connection_points:
           - connection_point_ref: "input"
             position: 1
-          - connection_point_ref: "squid-cache:input"
+          - connection_point_ref: "snort-id:input"
             position: 2
-          - connection_point_ref: "squid-cache:output"
+          - connection_point_ref: "snort-id:output"
             position: 3
-          - connection_point_ref: "output"
+          - connection_point_ref: "squid-cache:input"
             position: 4
+          - connection_point_ref: "squid-cache:output"
+            position: 5
+          - connection_point_ref: "output"
+            position: 6

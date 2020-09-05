@@ -1,4 +1,5 @@
 {
+  "descriptor_type": "service",
   "descriptor_version": "1.0",
   "vendor": "eu.sonata-nfv.service-descriptor",
   "name": "smr-tester-0",
