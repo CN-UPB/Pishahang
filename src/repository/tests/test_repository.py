@@ -8,7 +8,6 @@ from pytest_voluptuous import S
 from voluptuous.validators import All, Contains
 from werkzeug.test import Client
 
-
 config = get_config("repository")
 
 RESOURCES = {
