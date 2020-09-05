@@ -1,7 +1,7 @@
 descriptor_type: service
 descriptor_version: "1.0"
 vendor: eu.sonata-nfv.service-descriptor
-name: ICMP-forwarder
+name: icmp-forwarder
 version: "1.0"
 author: Hadi Razzaghi
 description: ICMP forwarder; consists of CN- and VM-based VNFs
