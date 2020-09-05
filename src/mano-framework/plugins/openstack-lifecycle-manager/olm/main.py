@@ -31,17 +31,17 @@ import logging
 import time
 import uuid
 
-import requests
 import yaml
+from requests.exceptions import RequestException
 
 import manobase.messaging as messaging
+from manobase import repository
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 from olm import helpers as tools
 from olm import topics as t
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("olm")
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
@@ -359,7 +359,7 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             return
 
         LOG.info("Function instance scale request received.")
-        payload = yaml.load(payload)
+        payload = message.payload
         func_id = payload["vnf_id"]
 
         # recreate the ledger
@@ -597,34 +597,18 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         """
 
         function = self.functions[func_id]
-
-        # Build the record
-        vnfr = tools.build_vnfr(function["ia_vnfr"], function["vnfd"])
+        vnfr = function["ia_vnfr"]
         self.functions[func_id]["vnfr"] = vnfr
-        LOG.info(yaml.dump(vnfr))
 
         # Store the record
-        url = t.VNFR_REPOSITORY_URL + "vnf-instances"
-        vnfr_response = requests.post(url, json=vnfr, timeout=1.0)
-        LOG.info("Storing VNFR on %s", url)
+        LOG.info("Storing VNFR")
         LOG.debug("VNFR: %s", vnfr)
-
-        if vnfr_response.status_code == 200:
-            LOG.info("VNFR storage accepted.")
-        # If storage fails, add error code and message to rply to gk
-        else:
-            error = {
-                "http_code": vnfr_response.status_code,
-                "message": vnfr_response.json(),
-            }
-            self.functions[func_id]["error"] = error
-            LOG.info("vnfr to repo failed: %s", error)
-        # except:
-        #     error = {'http_code': '0',
-        #              'message': 'Timeout contacting VNFR server'}
-        #     LOG.info('time-out on vnfr to repo')
-
-        return
+        try:
+            repository.post("records/functions", vnfr)
+            LOG.info("VNFR storage accepted")
+        except RequestException as e:
+            self.functions[func_id]["error"] = str(e)
+            LOG.info("VNFR storage failed: %s", e)
 
     def update_vnfr_after_scale(self, func_id):
         """
@@ -636,43 +620,18 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         # is added, other fields of the record might need upates
         # as well
 
-        error = None
         vnfr = self.functions[func_id]["vnfr"]
-        vnfr_id = func_id
 
-        # Updating version number
-        old_version = int(vnfr["version"])
-        cur_version = old_version + 1
-        vnfr["version"] = str(cur_version)
-
-        # Updating the record
-        vnfr["id"] = vnfr_id
-        del vnfr["uuid"]
-        del vnfr["updated_at"]
-        del vnfr["created_at"]
-
-        # Put it
-        url = t.VNFR_REPOSITORY_URL + "vnf-instances/" + vnfr_id
-
-        LOG.info("Service %s: VNFR update: %s", serv_id, url)
-
+        # Update the version number
         try:
-            vnfr_resp = requests.put(url, json=vnfr, timeout=1.0)
-            vnfr_resp_json = str(vnfr_resp.json())
-
-            if vnfr_resp.status_code == 200:
-                msg = ": VNFR update accepted for " + vnfr_id
-                LOG.info("Service %s%s", serv_id, msg)
-            else:
-                msg = ": VNFR update not accepted: " + vnfr_resp_json
-                LOG.info("Service %s%s", serv_id, msg)
-                error = {"http_code": vnfr_resp.status_code, "message": vnfr_resp_json}
-        except:
-            error = {"http_code": "0", "message": "Timeout when contacting VNFR repo"}
-
-        if error is not None:
-            LOG.info("record update failed: %s", error)
-            self.functions[func_id]["error"] = error
+            repository.patch(
+                f"records/functions/{func_id}",
+                {"version": str(int(vnfr["version"]) + 1)},
+            )
+            LOG.info(f"VNFR update accepted for VNF {func_id}")
+        except RequestException as e:
+            LOG.info(f"VNFR update not accepted for VNFR {func_id}: {e}")
+            self.functions[func_id]["error"] = str(e)
             self.flm_error(func_id)
 
     def inform_slm_on_deployment(self, func_id):
