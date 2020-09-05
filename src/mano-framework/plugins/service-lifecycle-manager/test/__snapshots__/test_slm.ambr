@@ -192,16 +192,19 @@
       '87ecdc7c-665a-475a-b4f7-f053706ceb70': <class 'dict'> {
         'vm_images': <class 'list'> [
           <class 'dict'> {
+            'format': 'qcow2',
             'id': 'eu.sonata-nfv_firewall-vnf_0.2_vdu01',
             'md5': None,
             'url': 'http://registry.sonata-nfv.eu/html/files/VM_images/sonata-VM-2ports.qcow',
           },
           <class 'dict'> {
+            'format': 'docker',
             'id': 'eu.sonata-nfv_iperf-vnf_0.2_vdu01',
             'md5': None,
             'url': 'file:///docker_files/iperf/Dockerfile',
           },
           <class 'dict'> {
+            'format': 'docker',
             'id': 'eu.sonata-nfv_tcpdump-vnf_0.2_vdu01',
             'md5': None,
             'url': 'file:///docker_files/tcpdump/Dockerfile',

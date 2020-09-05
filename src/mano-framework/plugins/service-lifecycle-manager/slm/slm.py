@@ -225,10 +225,10 @@ class ServiceLifecycleManager:
                     {
                         "id": get_vm_image_id(descriptor, vdu),
                         "url": vdu["vm_image"],
+                        "format": vdu["vm_image_format"],
                         "md5": vdu["vm_image_md5"] if "vm_image_md5" in vdu else None,
                     }
                     for vdu in descriptor["virtual_deployment_units"]
-                    if "vm_image" in vdu
                 ]
 
         # Request preparation from IA
