@@ -13,12 +13,12 @@ from vim_adaptor.util import convert_size
 
 def get_tf_vars_by_vim(vim: OpenStackVim):
     return {
-        "auth_url": "http://{}/identity".format(vim.address),
+        "auth_url": f"http://{vim.address}/identity",
         "tenant_id": vim.tenant.id,
         "username": vim.username,
         "password": vim.password,
-        "network_id": vim.tenant.external_network_id,
-        "router_id": vim.tenant.external_network_id,
+        "external_network_id": vim.tenant.external_network_id,
+        "external_router_id": vim.tenant.external_network_id,
     }
 
 
@@ -70,8 +70,11 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
         """
         super().deploy()
 
-        # Once needed, we can use this to get resource-specific data from terraform:
-        # resources = self._tf_show()["values"]["root_module"]["resources"]
+        # We do not assemble all fields of the record here, as many of them do not seem
+        # to be relevant. Chaining-relevant data (such as port IDs) can be extracted
+        # from the output of `terraform show`, which can be retrieved like this:
+
+        # resources = self.terraform.show()["values"]["root_module"]["resources"]
 
         instance = self.function_instance
         record = {
@@ -84,12 +87,7 @@ class OpenStackFunctionInstanceManager(TerraformFunctionInstanceManager):
         }
 
         for vdu in record["virtual_deployment_units"]:
-            # vdu["number_of_instances"] = (
-            #     vdu["scale_in_out"]["minimum"]
-            #     if "scale_in_out" in vdu and "minimum" in vdu["scale_in_out"]
-            #     else 1
-            # )
-            vdu["vim_id"] = str(instance.vim.id)
+            vdu["number_of_instances"] = 1
 
         return record
 
