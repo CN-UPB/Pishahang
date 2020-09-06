@@ -33,8 +33,8 @@ from typing import Dict
 import requests
 import yaml
 
-import slm.slm_helpers as tools
-import slm.slm_topics as t
+import slm.old.helpers as tools
+import slm.old.topics as t
 from manobase.messaging import ManoBrokerRequestResponseConnection, Message
 from manobase.plugin import ManoBasePlugin
 
