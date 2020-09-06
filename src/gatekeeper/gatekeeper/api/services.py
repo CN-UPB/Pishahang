@@ -1,19 +1,23 @@
 import logging
 from typing import List
+from uuid import uuid4
 
 import connexion
 from connexion.exceptions import ProblemException
 from mongoengine.errors import DoesNotExist
+from requests.exceptions import RequestException
 
 from gatekeeper.app import broker
 from gatekeeper.exceptions import (
     DescriptorNotFoundError,
+    InternalServerError,
     ServiceInstanceNotFoundError,
     ServiceNotFoundError,
 )
 from gatekeeper.models.descriptors import Descriptor, DescriptorSnapshot, DescriptorType
 from gatekeeper.models.services import Service, ServiceInstance
 from gatekeeper.util.mongoengine_custom_json import to_custom_dict
+from manobase import repository
 from manobase.messaging import Message
 
 logger = logging.getLogger(__name__)
@@ -87,7 +91,9 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
 
 
 def _createDescriptorSnapshot(descriptor: Descriptor) -> DescriptorSnapshot:
-    return DescriptorSnapshot(**{field: descriptor[field] for field in descriptor})
+    snapshot = DescriptorSnapshot(**{field: descriptor[field] for field in descriptor})
+    snapshot.id = str(uuid4())  # Generate a new ID for the snapshot
+    return snapshot
 
 
 def addService(body):
@@ -106,7 +112,7 @@ def addService(body):
                 ),
             )
 
-        # Create and save service document with descriptor snapshots
+        # Create service document with descriptor snapshots
         service = Service(
             descriptor=_createDescriptorSnapshot(serviceDescriptor),
             vendor=serviceDescriptor.content.vendor,
@@ -117,6 +123,26 @@ def addService(body):
                 for descriptor in _getReferencedDescriptors(serviceDescriptor)
             ],
         )
+
+        # Store the descriptors in the repository
+        try:
+            repository.post(
+                "descriptors/services",
+                {
+                    **to_custom_dict(service.descriptor.content),
+                    "id": str(service.descriptor.id),
+                },
+            )
+            for descriptor in service.functionDescriptors:
+                repository.post(
+                    "descriptors/functions",
+                    {**to_custom_dict(descriptor.content), "id": str(descriptor.id)},
+                )
+        except RequestException as e:
+            raise InternalServerError(
+                detail=f"Failed to store descriptors in repository: {e}"
+            )
+
         service.save()
         return service, 201
     except DoesNotExist:
@@ -138,6 +164,16 @@ def deleteServiceById(id):
                 "The service has {:d} active instances that need to be terminated "
                 "before the service can be deleted."
             ).format(activeInstances),
+        )
+
+    # Delete the descriptors from the repository
+    try:
+        repository.delete(f"descriptors/services/{service.descriptor.id}")
+        for descriptor in service.functionDescriptors:
+            repository.delete(f"descriptors/functions/{descriptor.id}")
+    except RequestException as e:
+        raise InternalServerError(
+            detail=f"Failed to delete descriptors from repository: {e}"
         )
 
     for instance in service.instances:

@@ -1,7 +1,17 @@
 from gatekeeper.models.descriptors import DescriptorType
 
 
-def testOnboarding(api, getDescriptorFixture):
+class EqualsEverything:
+    def __eq__(self, other):
+        return True
+
+
+doesNotMatter = EqualsEverything()
+
+
+def testOnboarding(api, getDescriptorFixture, mocker):
+    repository = mocker.patch("gatekeeper.api.services.repository")
+
     def uploadDescriptor(type, content):
         response = api.post(
             "/api/v3/descriptors", json={"type": type, "content": content}
@@ -16,20 +26,26 @@ def testOnboarding(api, getDescriptorFixture):
     vnfDescriptors = [
         uploadDescriptor(
             DescriptorType.OPENSTACK.value,
-            getDescriptorFixture("onboarding/vnf-{}.yml".format(i)),
+            getDescriptorFixture(f"onboarding/vnf-{i}.yml"),
         )
         for i in range(1, 3)
     ]
 
-    def onboardServiceDescriptorById(id: str):
+    def onboardServiceById(id: str):
         response = api.post("/api/v3/services", json={"id": id})
         return response.status_code, response.get_json()
 
-    assert 400 == onboardServiceDescriptorById(vnfDescriptors[0]["id"])[0]
+    assert 400 == onboardServiceById(vnfDescriptors[0]["id"])[0]
 
-    # Onboard service descriptor
-    status, service = onboardServiceDescriptorById(serviceDescriptor["id"])
+    # Onboard service
+    status, service = onboardServiceById(serviceDescriptor["id"])
     assert 201 == status
+    repository.post.assert_called()
+
+    # Ignore the ids in the following comparisons
+    service["descriptor"]["id"] = doesNotMatter
+    for d in service["functionDescriptors"]:
+        d["id"] = doesNotMatter
 
     assert service["descriptor"] == serviceDescriptor
     assert service["functionDescriptors"] == vnfDescriptors
@@ -37,8 +53,8 @@ def testOnboarding(api, getDescriptorFixture):
     for attribute in ["vendor", "name", "version"]:
         assert service[attribute] == serviceDescriptor["content"][attribute]
 
-    # Onboard service descriptor again – should work
-    assert 201 == onboardServiceDescriptorById(serviceDescriptor["id"])[0]
+    # Onboard service again – should work
+    assert 201 == onboardServiceById(serviceDescriptor["id"])[0]
 
     # Delete the first VNF descriptor
     assert (
@@ -46,7 +62,7 @@ def testOnboarding(api, getDescriptorFixture):
     )
 
     # Try to onboard service descriptor with missing referenced VNF descriptor – should fail
-    assert 400 == onboardServiceDescriptorById(serviceDescriptor["id"])[0]
+    assert 400 == onboardServiceById(serviceDescriptor["id"])[0]
 
 
 def testGetEndpoints(api, exampleService):
@@ -62,9 +78,12 @@ def testGetEndpoints(api, exampleService):
     assert exampleService == response.get_json()
 
 
-def testDelete(api, exampleService):
+def testDelete(api, exampleService, mocker):
+    repository = mocker.patch("gatekeeper.api.services.repository")
+
     response = api.delete("/api/v3/services/" + exampleService["id"])
     assert 200 == response.status_code
     assert exampleService == response.get_json()
+    repository.delete.assert_called()
 
     assert [] == api.get("/api/v3/services").get_json()
