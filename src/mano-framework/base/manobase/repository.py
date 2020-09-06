@@ -2,7 +2,7 @@
 Helper functions to access the repository microservice
 """
 
-from typing import Callable, List, Union
+from typing import List, Union
 
 import requests
 from appcfg import get_config
@@ -70,32 +70,13 @@ def get(endpoint: str) -> Resource:
     return response.json()
 
 
-def delete(endpoint: str) -> Resource:
+def delete(endpoint: str):
     """
     Sends a DELETE request to the given repository endpoint and raises a
     `requests.RequestException` on error.
 
     Args:
         endpoint: The endpoint URL relative to the repository root URL, without a leading slash
-        data: The data to be sent to the repository
     """
     response = requests.delete(repository_url + endpoint, timeout=TIMEOUT)
     response.raise_for_status()
-    return response.json()
-
-
-def update(endpoint: str, updater: Callable[[Resource], Resource]) -> Resource:
-    """
-    Retrieves the resource from `endpoint`, calls the provided `updater` function and
-    sends a PUT request with the return value from the `updater` function to the
-    endpoint. On error, a `requests.RequestException` is raised.
-
-    Args:
-        endpoint: The endpoint URL relative to the repository root URL, without a leading slash
-        updater: A callback function that will be invoked with the data retrieved from the endpoint and returns the updated data that will be sent in a PUT request
-
-    Returns: The updated resource as returned by the `updater` function
-    """
-    resource = updater(get(endpoint))
-    put(endpoint, resource)
-    return resource
