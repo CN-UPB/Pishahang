@@ -1,19 +1,16 @@
 import json
 import logging
 import shutil
+import subprocess
 from os import environ
 from pathlib import Path
-from typing import Any, Dict, List
+from threading import Lock
+from typing import Any, Dict, List, Tuple
 
-import wrapt
 from appcfg import get_config
 from jinja2 import Template
-from python_terraform import IsFlagged, Terraform
 
 from vim_adaptor.exceptions import TerraformException
-
-# Hide warnings of python_terraform – we raise exceptions instead.
-logging.getLogger("python_terraform").setLevel(logging.ERROR)
 
 # Remove hints from terraform output
 environ["TF_IN_AUTOMATION"] = "true"
@@ -27,40 +24,10 @@ TERRAFORM_BIN_PATH: Path = Path(__file__).parents[1] / "terraform"
 TERRAFORM_WORKDIR = Path(config["terraform_workdir"])
 
 
-def terraform_method(return_json=False):
-    """
-    A decorator factory to decorate a method that returns a python_terraform
-    `return_code, stdout, stderr` tuple such that it raises and logs a
-    TerraformException if return_code is not 0. If `return_json` is set to ``True``,
-    `stdout` will be parsed as JSON and the resulting object will be returned from the
-    decorated method.
-    """
-
-    @wrapt.decorator
-    def decorator(wrapped, instance: "TerraformWrapper", args, kwargs):
-
-        return_code, stdout, stderr = wrapped(*args, **kwargs)
-        if return_code != 0:
-            exception = TerraformException(return_code, stdout, stderr)
-            instance._logger.error(
-                "Terraform invocation failed (exit code %d): ",
-                return_code,
-                exc_info=exception,
-            )
-            raise exception
-
-        if not return_json:
-            return return_code, stdout, stderr
-
-        # Parse stdout as JSON
-        return json.loads(stdout)
-
-    return decorator
-
-
 class TerraformWrapper:
     """
-    Wraps Terraform template rendering (using Jinja2) and Terraform invocations
+    Wraps Terraform template rendering (using Jinja2) and Terraform invocations for a
+    specified working directory
     """
 
     _logger = logging.Logger(__name__ + ".TerraformWrapper")
@@ -87,15 +54,46 @@ class TerraformWrapper:
         self._context = context
         self._tf_vars = tf_vars
 
-        workdir.mkdir(parents=True, exist_ok=True)
+        self._invocation_lock = Lock()
 
-        self._terraform = Terraform(
-            working_dir=workdir.as_posix(),
-            terraform_bin_path=TERRAFORM_BIN_PATH.as_posix(),
-        )
+        workdir.mkdir(parents=True, exist_ok=True)
 
         self.render_templates(templates, context, workdir)
         self.init()
+
+    def _invoke(
+        self, subcommand, *args: Tuple[str], vars: Dict[str, str] = None
+    ) -> subprocess.CompletedProcess:
+        """
+        Invokes terraform with the provided arguments and variables and returns a
+        `subprocess.CompletedProcess` object. Raises a `TerraformException` on error.
+        """
+        with self._invocation_lock:
+            if vars is not None:
+                args = [
+                    '-var="{}={}"'.format(key, str(value).replace('"', '\\"'))
+                    for key, value in vars.items()
+                ] + list(args)
+
+            result = subprocess.run(
+                " ".join([TERRAFORM_BIN_PATH.as_posix(), subcommand, *args]),
+                cwd=self.workdir,
+                shell=True,
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+
+            if result.returncode != 0:
+                exception = TerraformException(result.returncode, result.stdout)
+                self._logger.error(
+                    "Terraform invocation failed (exit code %d): ",
+                    result.returncode,
+                    exc_info=exception,
+                )
+                raise exception
+
+            return result
 
     @classmethod
     def render_templates(
@@ -120,54 +118,51 @@ class TerraformWrapper:
         # Remove working directory
         shutil.rmtree(self.workdir)
 
-    @terraform_method()
     def init(self):
         """
         Runs `terraform init`
         """
         self._logger.debug("Running `terraform init`")
-        return self._terraform.init(var=self._tf_vars, input=False)
+        return self._invoke(
+            "init",
+            "-no-color",
+            "-input=false",
+            "-reconfigure",
+            "-backend=true",
+            vars=self._tf_vars,
+        )
 
-    @terraform_method()
     def plan(self):
         """
         Runs `terraform plan`
         """
         self._logger.debug("Running `terraform plan`")
-        return self._terraform.plan(
-            var=self._tf_vars, out="tfplan", input=False, detailed_exitcode=None
+        return self._invoke(
+            "plan", "-no-color", "-input=false", "-out=tfplan", vars=self._tf_vars
         )
 
-    @terraform_method()
     def apply(self):
         """
         Runs `terraform apply`
         """
         self._logger.debug("Running `terraform apply`")
-        return self._terraform.apply(
-            var=None, dir_or_plan="tfplan", input=False, auto_approve=IsFlagged,
+
+        return self._invoke(
+            "apply", "-no-color", "-input=false", "-auto-approve", "tfplan",
         )  # No vars here, they are included in the plan already
 
-    @terraform_method(return_json=True)
     def show(self) -> dict:
         """
         Runs `terraform show` and returns the parsed JSON output
         """
         self._logger.debug("Running `terraform show`")
-        return self._terraform.cmd("show", no_color=IsFlagged, json=IsFlagged)
+        return json.loads(self._invoke("show", "-no-color", "-json").stdout)
 
-    @terraform_method()
     def destroy(self):
         """
         Runs `terraform destroy`
         """
         self._logger.debug("Running `terraform destroy`")
-        return self._terraform.destroy(var=self._tf_vars, input=False)
-
-    @terraform_method()
-    def state_rm(self, resource: str):
-        """
-        Runs `terraform state rm <resource>`
-        """
-        self._logger.debug("Running `terraform state rm {}`".format(resource))
-        return self._terraform.cmd("state rm", resource)
+        return self._invoke(
+            "destroy", "-no-color", "-input=false", "-force", vars=self._tf_vars
+        )

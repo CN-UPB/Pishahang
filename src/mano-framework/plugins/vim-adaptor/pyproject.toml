@@ -9,12 +9,10 @@ license = "apache-2.0"
 python = "^3.7"
 manobase = { path = "../../base" }
 mongoengine = "^0.20.0"
-python_terraform = "^0.10.1"
 jinja2 = "^2.11.2"
 appcfg = { extras = ["yaml"], version = "^1.0.0" }
 marshmallow-mongoengine = "^0.11.0"
 marshmallow = "2.x.x"
-wrapt = "^1.12.1"
 python-novaclient = "^17.0.0"
 kubernetes = "^11.0.0"
 bitmath = "^1.3.3"
