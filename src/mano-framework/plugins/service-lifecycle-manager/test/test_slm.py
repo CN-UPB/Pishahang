@@ -156,13 +156,14 @@ async def test_prepare_infrastructure(
 
 
 @pytest.mark.asyncio
-async def test_deploy_vnfs(
+async def test_deploy_vnf(
     manager: ServiceLifecycleManager,
     connection: Connection,
     fetched_placement,
     snapshot_endpoint,
 ):
     topic = topics.MANO_DEPLOY
+    function = manager.service.functions[0]
 
     # Should send requests that match their snapshots
     with snapshot_endpoint(
@@ -170,14 +171,14 @@ async def test_deploy_vnfs(
         response={"request_status": "COMPLETED", "vnfr": {"key": "value"}},
         matcher=path_type(mapping={"vnfd": (dict,)}, strict=True),
     ):
-        await manager._deploy_vnfs()
+        await manager._deploy_vnf(function)
 
     # Should raise errors from the IA
     with simple_async_endpoint(
         connection, topic, {"request_status": "ERROR", "message": "failed"}
     ):
         with pytest.raises(InstantiationError, match="failed"):
-            await manager._deploy_vnfs()
+            await manager._deploy_vnf(function)
 
 
 @pytest.mark.asyncio

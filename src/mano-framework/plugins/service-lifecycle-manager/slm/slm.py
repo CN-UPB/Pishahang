@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from copy import deepcopy
 from typing import List
@@ -245,7 +246,7 @@ class ServiceLifecycleManager:
             "Preparation of infrastructure failed",
         )
 
-    async def _deploy_vnfs(self):
+    async def _deploy_vnf(self, function: Function):
         # Map VNFD flavors to topics
         topics_map = {
             "openstack": topics.MANO_DEPLOY,
@@ -253,37 +254,46 @@ class ServiceLifecycleManager:
             "aws": topics.MANO_DEPLOY_AWS,
         }
 
-        for function in self.service.functions:
-            self.logger.info(f"Requesting the deployment of VNF {function.id}")
+        self.logger.info(f"Requesting the deployment of VNF {function.id}")
 
-            flavor = function.descriptor["descriptor_flavor"]
-            try:
-                topic = topics_map[flavor]
-            except KeyError:
-                raise InstantiationError(
-                    f'The SLM does not support VNFD flavor "{flavor}".'
-                )
-
-            response = (
-                await self.conn.call(
-                    topic,
-                    {
-                        "function_instance_id": str(function.instance_id),
-                        "service_instance_id": self.service_id,
-                        "vim_id": str(function.vim),
-                        "vnfd": function.descriptor,
-                    },
-                )
-            ).payload
-
-            raise_on_error_response(
-                response,
-                InstantiationError,
-                self.logger,
-                f"Deployment of VNF {function.id} failed",
+        flavor = function.descriptor["descriptor_flavor"]
+        try:
+            topic = topics_map[flavor]
+        except KeyError:
+            raise InstantiationError(
+                f'The SLM does not support VNFD flavor "{flavor}".'
             )
 
-            self.logger.info(f"VNF {function.id} deployed successfully")
+        response = (
+            await self.conn.call(
+                topic,
+                {
+                    "function_instance_id": str(function.instance_id),
+                    "service_instance_id": self.service_id,
+                    "vim_id": str(function.vim),
+                    "vnfd": function.descriptor,
+                },
+            )
+        ).payload
+
+        raise_on_error_response(
+            response,
+            InstantiationError,
+            self.logger,
+            f"Deployment of VNF {function.id} failed",
+        )
+
+        self.logger.info(f"VNF {function.id} deployed successfully")
+
+    async def _deploy_vnfs(self):
+        # Deploy all functions concurrently and wait for all of them to finish
+        for result in await asyncio.gather(
+            *[self._deploy_vnf(function) for function in self.service.functions],
+            return_exceptions=True,
+        ):
+            # Raise the first exception that we face in the result list
+            if isinstance(result, Exception):
+                raise result
 
     async def _destroy_vnfs(self):
         response = (
@@ -333,9 +343,12 @@ class ServiceLifecycleManager:
         Updates the function records' status fields to `status`
         """
         for function in self.service.functions:
-            await self._set_record_status(
-                f"records/functions/{function.instance_id}", status
-            )
+            try:
+                await self._set_record_status(
+                    f"records/functions/{function.instance_id}", status
+                )
+            except RequestException:
+                pass
 
     async def _setup_records(self):
         """
