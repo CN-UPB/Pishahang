@@ -95,14 +95,10 @@ class TerraformServiceInstanceHandler(ServiceInstanceHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Workdir common to all functions of the service
-        self.shared_workdir = TERRAFORM_WORKDIR / self.service_instance_id
-
-        # Workdir for per-vim resources only
-        self.workdir = self.shared_workdir / str(self.vim.id)
-
         self.terraform = TerraformWrapper(
-            workdir=self.workdir,
+            workdir=(
+                TERRAFORM_WORKDIR / self.service_instance_id / f"vim-{self.vim.id}"
+            ),  # Workdir for per-vim resources
             templates=self.templates,
             context=self._get_template_context(),
             tf_vars=self._get_tf_vars(),
@@ -125,4 +121,5 @@ class TerraformServiceInstanceHandler(ServiceInstanceHandler):
 
         self.terraform.destroy()
         self.terraform.remove_workdir()
-        self.shared_workdir.rmdir()  # Remove service instance working directory
+
+        self.logger.info("Teardown succeeded")

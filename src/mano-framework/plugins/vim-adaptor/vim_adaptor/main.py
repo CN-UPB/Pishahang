@@ -41,6 +41,7 @@ from vim_adaptor.models.vims import (
     OpenStackVimSchema,
     VimType,
 )
+from vim_adaptor.terraform import TERRAFORM_WORKDIR
 from vim_adaptor.util import create_completed_response, create_error_response
 
 logging.basicConfig(level=logging.INFO)
@@ -197,17 +198,35 @@ class VimAdaptor(ManoBasePlugin):
         service_instance_id = message.payload["service_instance_id"]
         LOG.info("Removing service %s", service_instance_id)
 
-        try:
-            for function_instance in FunctionInstance.objects(
-                service_instance_id=service_instance_id
-            ):
+        exceptions = []
+
+        # Destroy function instances
+        for function_instance in FunctionInstance.objects(
+            service_instance_id=service_instance_id
+        ):
+            try:
                 function_manager_factory.get_instance(
                     str(function_instance.id)
                 ).destroy()
+            except TerraformException as e:
+                exceptions.append(e)
 
-            return create_completed_response()
+        # Teardown service instance handlers
+        try:
+            service_handler_factory.teardown_service_instance_handlers(
+                service_instance_id
+            )
         except TerraformException as e:
-            return create_error_response(str(e))
+            exceptions.append(e)
+
+        # Remove the working directory if it is empty
+        (TERRAFORM_WORKDIR / service_instance_id).rmdir()
+
+        return (
+            create_completed_response()
+            if len(exceptions) == 0
+            else create_error_response(str(exceptions))
+        )
 
 
 def main():
