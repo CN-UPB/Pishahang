@@ -4,38 +4,38 @@ from gatekeeper.exceptions import DescriptorNotFoundError, DuplicateDescriptorEr
 from gatekeeper.models.descriptors import Descriptor, DescriptorType
 
 
-def getDescriptorsByType(type: DescriptorType):
+def getDescriptorsByType(user, type: DescriptorType):
     """
     Returns all descriptors of a given type.
     """
-    return Descriptor.objects(type=type)
+    return Descriptor.objects(userId=user, type=type)
 
 
-def getDescriptorById(id):
+def getDescriptorById(user, id):
     """
     Returns a given descriptor by its ID, or a 404 error if no descriptor matching the
     given id exists.
     """
     try:
-        return Descriptor.objects(id=id).get()
+        return Descriptor.objects(userId=user, id=id).get()
     except DoesNotExist:
         raise DescriptorNotFoundError()
 
 
-def addDescriptor(body):
+def addDescriptor(user, body):
     try:
-        return Descriptor(**body).save(), 201
+        return Descriptor(**body, userId=user).save(), 201
     except NotUniqueError:
         raise DuplicateDescriptorError()
 
 
-def updateDescriptor(id, body):
+def updateDescriptor(user, id, body):
     """
     Updates a given descriptor's content by its ID, or returns a 404 error if no
     descriptor matching the given id exists.
     """
     try:
-        descriptor: Descriptor = Descriptor.objects(id=id).get()
+        descriptor: Descriptor = Descriptor.objects(userId=user, id=id).get()
         descriptor.content = body["content"]
         descriptor.save()
         return descriptor
@@ -45,13 +45,13 @@ def updateDescriptor(id, body):
         raise DuplicateDescriptorError()
 
 
-def deleteDescriptorById(id):
+def deleteDescriptorById(user, id):
     """
     Deletes a descriptor by its ID, or returns a 404 error if no descriptor matching the
     given id exists.
     """
     try:
-        descriptor = Descriptor.objects(id=id).get()
+        descriptor = Descriptor.objects(userId=user, id=id).get()
         descriptor.delete()
         return descriptor
     except DoesNotExist:

@@ -14,7 +14,12 @@ from mongoengine import (
 )
 
 from gatekeeper.exceptions import InvalidDescriptorContentError
-from gatekeeper.models.base import TimestampsDocument, UuidDocument, UuidMixin
+from gatekeeper.models.base import (
+    TimestampsDocument,
+    UserIdMixin,
+    UuidDocument,
+    UuidMixin,
+)
 from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
 
 
@@ -47,7 +52,7 @@ class DescriptorContent(DynamicEmbeddedDocument):
         )
 
 
-class BaseDescriptorMixin:
+class BaseDescriptorMixin(UserIdMixin):
     """
     Document mixin for descriptors.
     """
@@ -67,6 +72,7 @@ class Descriptor(BaseDescriptorMixin, UuidDocument, TimestampsDocument):
         "indexes": [
             {
                 "fields": (
+                    "userId",
                     "content.descriptor_type",
                     "content.vendor",
                     "content.name",

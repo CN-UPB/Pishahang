@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from mongoengine import DateTimeField, Document, UUIDField
 
-from gatekeeper.util.mongoengine_custom_json import makeHttpDatetime
+from gatekeeper.util.mongoengine_custom_json import CustomJsonRules, makeHttpDatetime
 
 
 class CreatedAtMixin:
@@ -59,5 +59,13 @@ class UuidDocument(UuidMixin, Document):
     Abstract `Document` subclass that defines a primary-key `id` field containing an auto-generated
     UUID
     """
+
     meta = {"abstract": True}
 
+
+class UserIdMixin:
+    """
+    Document mixin that defines a `userId` field to hold a user's UUID
+    """
+
+    userId = UUIDField(required=True, custom_json=CustomJsonRules.HIDDEN)

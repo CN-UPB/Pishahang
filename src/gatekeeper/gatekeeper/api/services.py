@@ -26,22 +26,22 @@ SERVICE_CREATION_TOPIC = "service.instances.create"
 SERVICE_TERMINATION_TOPIC = "service.instance.terminate"
 
 
-def getServices():
-    return Service.objects()
+def getServices(user):
+    return Service.objects(userId=user)
 
 
-def _getServiceByIdOrFail(id: str) -> Service:
+def _getServiceByIdOrFail(userId, serviceId: str) -> Service:
     try:
-        return Service.objects.get(id=id)
+        return Service.objects.get(userId=userId, id=serviceId)
     except DoesNotExist:
         raise ServiceNotFoundError()
 
 
-def getServiceById(id):
-    return _getServiceByIdOrFail(id)
+def getServiceById(user, id):
+    return _getServiceByIdOrFail(user, id)
 
 
-def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
+def _getReferencedDescriptors(userId: str, descriptor: Descriptor) -> List[Descriptor]:
     """
     Given a service descriptor, returns a list of all descriptors referenced by the
     service descriptor or raises a connexion `ProblemException` with a user-friendly
@@ -65,6 +65,7 @@ def _getReferencedDescriptors(descriptor: Descriptor) -> List[Descriptor]:
             name = function["vnf_name"]
             version = function["vnf_version"]
             referencedDescriptor = Descriptor.objects(
+                userId=userId,
                 content__descriptor_type="function",
                 content__vendor=vendor,
                 content__name=name,
@@ -96,12 +97,15 @@ def _createDescriptorSnapshot(descriptor: Descriptor) -> DescriptorSnapshot:
     return snapshot
 
 
-def addService(body):
+def addService(user, body):
     """
-    Onboards a service descriptor by its ID, adding a new service.
+    Onboards a service descriptor (by its ID) and the referenced function descriptors,
+    adding a new service.
     """
     try:
-        serviceDescriptor: Descriptor = Descriptor.objects.get(id=body["id"])
+        serviceDescriptor: Descriptor = Descriptor.objects.get(
+            userId=user, id=body["id"]
+        )
         if serviceDescriptor.type != DescriptorType.SERVICE.value:
             return connexion.problem(
                 400,
@@ -114,13 +118,14 @@ def addService(body):
 
         # Create service document with descriptor snapshots
         service = Service(
+            userId=user,
             descriptor=_createDescriptorSnapshot(serviceDescriptor),
             vendor=serviceDescriptor.content.vendor,
             name=serviceDescriptor.content.name,
             version=serviceDescriptor.content.version,
             functionDescriptors=[
                 _createDescriptorSnapshot(descriptor)
-                for descriptor in _getReferencedDescriptors(serviceDescriptor)
+                for descriptor in _getReferencedDescriptors(user, serviceDescriptor)
             ],
         )
 
@@ -149,8 +154,8 @@ def addService(body):
         raise DescriptorNotFoundError(status="400")
 
 
-def deleteServiceById(id):
-    service = _getServiceByIdOrFail(id)
+def deleteServiceById(user, id):
+    service = _getServiceByIdOrFail(user, id)
 
     activeInstances = 0
     for instance in service.instances:
@@ -186,13 +191,13 @@ def deleteServiceById(id):
 # Service instances
 
 
-def getServiceInstances(serviceId):
-    service = _getServiceByIdOrFail(serviceId)
+def getServiceInstances(user, serviceId):
+    service = _getServiceByIdOrFail(user, serviceId)
     return service.instances
 
 
-def instantiateService(serviceId):
-    service = _getServiceByIdOrFail(serviceId)
+def instantiateService(user, serviceId):
+    service = _getServiceByIdOrFail(user, serviceId)
 
     # Send instantiation message
     validationReply = broker.call_sync(
@@ -219,6 +224,7 @@ def instantiateService(serviceId):
         )
 
     instance = ServiceInstance(
+        userId=user,
         status=validationReply.payload["status"],
         correlationId=validationReply.correlation_id,
     )
@@ -255,10 +261,12 @@ def instantiateService(serviceId):
     return instance
 
 
-def terminateServiceInstance(serviceId, instanceId):
-    _getServiceByIdOrFail(serviceId)
+def terminateServiceInstance(user, serviceId, instanceId):
+    _getServiceByIdOrFail(user, serviceId)
     try:
-        instance: ServiceInstance = ServiceInstance.objects.get(id=instanceId)
+        instance: ServiceInstance = ServiceInstance.objects.get(
+            userId=user, id=instanceId
+        )
     except DoesNotExist:
         raise ServiceInstanceNotFoundError()
 
