@@ -242,13 +242,13 @@ services:
 
   # Monitoring – Probe
   monitor-probe:
-    image: sonatanfv/son-monitor-probe:${SONATA_VERSION}
+    image: sonatanfv/son-monitor-probe
     restart: always
     privileged: true
     depends_on:
       - monitor-pushgateway
     environment:
-      NODE_NAME: ${HOSTNAME}
+      NODE_NAME: localhost
       PROM_SRV: http://monitor-pushgateway:9091/metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

@@ -1,5 +1,5 @@
 _docker_compose_setup_commands: &docker_compose_setup_commands
-  - ./generate-env.sh 127.0.0.1 localhost
+  - cp .env.template .env
   - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi
 
 _docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && for service in $BUILD_SERVICES; do docker-compose build "$service"; done
