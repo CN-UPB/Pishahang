@@ -93,6 +93,9 @@ services:
       - broker
       - mongo
       - redis
+    environment:
+      INITIAL_USERNAME: ${INITIAL_USERNAME}
+      INITIAL_PASSWORD: ${INITIAL_PASSWORD}
     networks:
       - default
       - web

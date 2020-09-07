@@ -2,8 +2,5 @@ databases:
   mongo: mongodb://mongo:27017/gatekeeper
   redis: redis://redis:6379/gatekeeper
 
-broker:
-  host: amqp://guest:guest@broker:5672/%2F
-
 apis:
   pluginmanager: http://pluginmanager:8001/api/plugins
