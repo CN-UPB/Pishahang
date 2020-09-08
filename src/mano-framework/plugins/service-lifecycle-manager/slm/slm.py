@@ -21,7 +21,12 @@ from slm.models import Function, Service
 from slm.util import get_vm_image_id, raise_on_error_response, run_sync
 
 DEPLOY_REQUEST_SCHEMA = Schema(
-    {Required("nsd"): dict, Required("vnfds"): All(list, Length(min=1))},
+    {
+        Required("nsd"): dict,
+        Required("vnfds"): All(list, Length(min=1)),
+        Required("ingresses"): [str],
+        Required("egresses"): [str],
+    },
     extra=ALLOW_EXTRA,
 )
 

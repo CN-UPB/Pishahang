@@ -37,7 +37,12 @@ def deploy_request():
     """
     The payload of a deploy request message like the gatekeeper sends it.
     """
-    return {"nsd": SERVICE_DESCRIPTOR, "vnfds": FUNCTION_DESCRIPTORS}
+    return {
+        "nsd": SERVICE_DESCRIPTOR,
+        "vnfds": FUNCTION_DESCRIPTORS,
+        "ingresses": [],
+        "egresses": [],
+    }
 
 
 @pytest.fixture

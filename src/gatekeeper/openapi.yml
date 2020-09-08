@@ -570,6 +570,9 @@ paths:
       tags:
         - Services
       summary: Instantiate a service
+      description: >
+        Requests the instantiation of the specified service, optionally providing lists of
+        ingresses and egresses.
       operationId: gatekeeper.api.services.instantiateService
       parameters:
         - name: serviceId
@@ -579,6 +582,21 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ingresses:
+                  type: array
+                  items:
+                    type: string
+                egresses:
+                  type: array
+                  items:
+                    type: string
       responses:
         "201":
           description: >

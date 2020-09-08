@@ -196,15 +196,15 @@ def getServiceInstances(user, serviceId):
     return service.instances
 
 
-def instantiateService(user, serviceId):
+def instantiateService(user, serviceId, body):
     service = _getServiceByIdOrFail(user, serviceId)
 
     # Send instantiation message
     validationReply = broker.call_sync(
         SERVICE_CREATION_TOPIC,
         {
-            "ingresses": [],
-            "egresses": [],
+            "ingresses": body["ingresses"] if "ingresses" in body else [],
+            "egresses": body["egresses"] if "egresses" in body else [],
             "nsd": {
                 **to_custom_dict(service.descriptor.content),
                 "id": str(service.descriptor.id),

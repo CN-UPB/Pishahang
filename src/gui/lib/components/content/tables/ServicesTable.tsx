@@ -6,10 +6,11 @@ import { mutate } from "swr";
 import { ApiDataEndpoint } from "../../../api/endpoints";
 import { useGenericConfirmationDialog } from "../../../hooks/genericConfirmationDialog";
 import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
+import { useInstantiationDialog } from "../../../hooks/useInstantiationDialog";
 import { Service } from "../../../models/Service";
 import { useThunkDispatch } from "../../../store";
-import { showServiceInfoDialog } from "../../../store/actions/dialogs";
-import { deleteService, instantiateService } from "../../../store/thunks/services";
+import { showServiceInfoDialog, showSnackbar } from "../../../store/actions/dialogs";
+import { deleteService } from "../../../store/thunks/services";
 import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 import { ServiceInstancesTable } from "./ServiceInstancesTable";
 
@@ -18,13 +19,12 @@ export const ServicesTable: React.FunctionComponent = () => {
   const dispatch = useThunkDispatch();
   const swr = useAuthorizedSWR(ApiDataEndpoint.Services, { revalidateOnFocus: false });
 
-  const instantiate = async (id: string) => {
-    const reply = await dispatch(instantiateService(id));
-    if (reply.success) {
-      // Trigger SWR revalidation of instances to update the corresponding table
-      mutate(`services/${id}/instances`);
-    }
+  const onInstantiationRequestSucceeded = async (service: Service) => {
+    // Trigger SWR revalidation of instances to update the corresponding table
+    mutate(`services/${service.id}/instances`);
+    dispatch(showSnackbar("Instantiation request made"));
   };
+  const showInstantiationDialog = useInstantiationDialog(onInstantiationRequestSucceeded);
 
   const showDeleteDialog = useGenericConfirmationDialog(
     "Delete service?",
@@ -57,7 +57,7 @@ export const ServicesTable: React.FunctionComponent = () => {
         (service) => ({
           tooltip: "Instantiate " + service.name,
           icon: (props) => <PlayCircleOutline htmlColor={theme.palette.success.main} {...props} />,
-          onClick: (event, service: Service) => instantiate(service.id),
+          onClick: (event, service: Service) => showInstantiationDialog(service),
         }),
         (service) => ({
           tooltip: "Delete " + service.name,

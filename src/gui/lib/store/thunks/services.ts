@@ -32,9 +32,14 @@ export function deleteService(id: string, apiThunkOptions?: ApiThunkOptions) {
  *
  * @param id The ID of the service to be instantiated
  */
-export function instantiateService(id: string, apiThunkOptions?: ApiThunkOptions) {
+export function instantiateService(
+  id: string,
+  ingresses: string[],
+  egresses: string[],
+  apiThunkOptions?: ApiThunkOptions
+) {
   return callApiEnhanced<ServiceInstance>(
-    { method: "POST", url: getApiUrl(`services/${id}/instances`) },
+    { method: "POST", url: getApiUrl(`services/${id}/instances`), data: { ingresses, egresses } },
     apiThunkOptions
   );
 }
