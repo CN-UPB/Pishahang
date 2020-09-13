@@ -1,3 +1,5 @@
+import { Console } from "console";
+
 import { Add, DeleteForeverRounded, Edit } from "@material-ui/icons";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -52,7 +54,6 @@ export const UsersTable: React.FunctionComponent = () => {
   const showEditUserDialog = useUserDialog(
     "Update",
     async (userData) => {
-      console.log(userData);
       const reply = await dispatch(updateUser(currentlyEditedUserRef.current.id, userData));
       if (reply.success) {
         swr.revalidate();

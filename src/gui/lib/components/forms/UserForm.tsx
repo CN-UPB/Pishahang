@@ -1,4 +1,4 @@
-import { Box, FormControlLabel, Grid } from "@material-ui/core";
+import { Box, Checkbox, FormControlLabel, Grid } from "@material-ui/core";
 import { Field, Form, Formik, FormikValues } from "formik";
 import { Switch, TextField } from "formik-material-ui";
 import { pick } from "lodash";
@@ -69,7 +69,7 @@ export const UserForm: React.FunctionComponent<UserFormProps> = ({
             <Grid item xs={12} container justify="center">
               <Box marginTop={2}>
                 <FormControlLabel
-                  control={<Field component={Switch} name="isAdmin" />}
+                  control={<Field component={Switch} name="isAdmin" type="checkbox" />}
                   label="Grant admin rights?"
                 />
               </Box>
