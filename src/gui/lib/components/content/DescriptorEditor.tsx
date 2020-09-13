@@ -1,25 +1,27 @@
+import "ace-builds/src-min-noconflict/ace";
+import "ace-builds/src-noconflict/mode-yaml";
+import "ace-builds/src-noconflict/theme-github";
+
+import * as React from "react";
 import AceEditor from "react-ace";
 
-const textEditor = props => (
-  <div>
-    <AceEditor
-      mode={props.lan}
-      theme={props.theme}
-      onChange={props.onChange}
-      onLoad={props.onLoad}
-      defaultValue={props.defaultValue}
-      value={props.value}
-      name="UNIQUE_ID_OF_DIV"
-      wrapEnabled={true}
-      editorProps={{
-        $blockScrolling: true,
-      }}
-      highlightActiveLine={true}
-      fontSize={21}
-      height="500px"
-      width="500px"
-    />
-  </div>
+type Props = {
+  onChange: (content: string) => any;
+  value: string;
+};
+
+const textEditor: React.FunctionComponent<Props> = (props) => (
+  <AceEditor
+    {...props}
+    mode="yaml"
+    theme="github"
+    name="descriptor-editor-ace"
+    wrapEnabled={true}
+    highlightActiveLine={true}
+    fontSize={21}
+    width="inherit"
+    maxLines={Infinity}
+  />
 );
 
 export default textEditor;

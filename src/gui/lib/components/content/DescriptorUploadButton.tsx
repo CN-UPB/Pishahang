@@ -2,11 +2,10 @@
 import { jsx } from "@emotion/core";
 import { useTheme } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
-import yaml from "js-yaml";
 import * as React from "react";
 import FileReaderInput from "react-file-reader-input";
 
-import { DescriptorContent, DescriptorType } from "../../models/Descriptor";
+import { DescriptorType } from "../../models/Descriptor";
 import { useThunkDispatch } from "../../store";
 import { showInfoDialog } from "../../store/actions/dialogs";
 import { uploadDescriptor } from "../../store/thunks/descriptors";
@@ -29,9 +28,8 @@ export const DescriptorUploadButton: React.FunctionComponent<Props> = ({
   ) => {
     const contentString = await file.text();
     try {
-      const content = yaml.safeLoad(contentString) as DescriptorContent;
       const reply = await dispatch(
-        uploadDescriptor(descriptorType, content, contentString, {
+        uploadDescriptor(descriptorType, contentString, {
           successSnackbarMessage: "Descriptor successfully uploaded",
         })
       );

@@ -1,3 +1,5 @@
+import yaml from "js-yaml";
+
 import { getApiUrl } from "../../api/index";
 import { Descriptor } from "../../models/Descriptor";
 import { DescriptorContent } from "../../models/Descriptor";
@@ -10,12 +12,15 @@ import { ApiThunkOptions } from "./auth";
  */
 export function uploadDescriptor(
   type: DescriptorType,
-  content: DescriptorContent,
   contentString: string,
   apiThunkOptions?: ApiThunkOptions
 ) {
   return callApiEnhanced<Descriptor>(
-    { method: "POST", url: getApiUrl("descriptors"), data: { content, contentString, type } },
+    {
+      method: "POST",
+      url: getApiUrl("descriptors"),
+      data: { content: yaml.safeLoad(contentString) as DescriptorContent, contentString, type },
+    },
     apiThunkOptions
   );
 }
@@ -44,12 +49,16 @@ export function deleteDescriptor(id: string, apiThunkOptions?: ApiThunkOptions) 
  * Return a thunk action that updates a descriptor with the given id
  */
 export function updateDescriptor(
-  content: DescriptorContent,
   id: string,
+  contentString: string,
   apiThunkOptions?: ApiThunkOptions
 ) {
   return callApiEnhanced<Descriptor>(
-    { method: "PUT", url: getApiUrl("descriptors/" + id), data: { content } },
+    {
+      method: "PUT",
+      url: getApiUrl("descriptors/" + id),
+      data: { content: yaml.safeLoad(contentString) as DescriptorContent, contentString },
+    },
     apiThunkOptions
   );
 }

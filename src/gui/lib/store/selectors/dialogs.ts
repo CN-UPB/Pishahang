@@ -10,3 +10,6 @@ export const selectInfoDialogIsVisible = (state: RootState) => state.dialogs.inf
 export const selectTableDialogTitle = (state: RootState) => state.dialogs.tableDialog.title;
 export const selectTableDialogContent = (state: RootState) => state.dialogs.tableDialog.content;
 export const selectTableDialogIsVisible = (state: RootState) => state.dialogs.tableDialog.isVisible;
+
+export const selectDescriptorEditorDialog = (state: RootState) =>
+  state.dialogs.descriptorEditorDialog;

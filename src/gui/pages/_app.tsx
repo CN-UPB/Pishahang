@@ -11,6 +11,7 @@ import { Provider } from "react-redux";
 import { TransitionGroup } from "react-transition-group";
 import { RootState } from "StoreTypes";
 
+import { DescriptorEditorDialog } from "../lib/components/layout/dialogs/DescriptorEditorDialog";
 import { GlobalInfoDialog } from "../lib/components/layout/dialogs/GlobalInfoDialog";
 import { GlobalTableDialog } from "../lib/components/layout/dialogs/GlobalTableDialog";
 import { GlobalSnackbar } from "../lib/components/layout/GlobalSnackbar";
@@ -55,6 +56,7 @@ class App extends NextApp<ReduxWrapperAppProps<RootState>> {
             <CssBaseline />
             <ModalProvider container={TransitionGroup}>
               <Component {...pageProps} />
+              <DescriptorEditorDialog />
             </ModalProvider>
             <GlobalSnackbar />
             <GlobalInfoDialog />

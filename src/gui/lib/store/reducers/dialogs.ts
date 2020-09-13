@@ -1,7 +1,14 @@
 import { createReducer } from "typesafe-actions";
 
+import { Descriptor } from "./../../models/Descriptor";
+import { ApiDataEndpoint } from "../../api/endpoints";
 import { VimType } from "../../models/Vim";
 import { formatDate } from "../../util/time";
+import {
+  resetDescriptorEditorDialog,
+  setDescriptorEditorDialogContentString,
+  showDescriptorEditorDialog,
+} from "./../actions/dialogs";
 import {
   resetInfoDialog,
   resetTableDialog,
@@ -33,6 +40,18 @@ export type GlobalState = Readonly<{
     content: [string, string][];
     isVisible: boolean;
   };
+
+  /** Descriptor editor dialog */
+  descriptorEditorDialog: {
+    isVisible: boolean;
+    descriptor: Descriptor;
+
+    /** The endpoint from which the descriptor was fetched (will be used to trigger SWR revalidation) */
+    endpoint: ApiDataEndpoint;
+
+    /** The current content text (may differ from the descriptor text) */
+    currentContentString: string;
+  };
 }>;
 
 const initialState: GlobalState = {
@@ -51,6 +70,13 @@ const initialState: GlobalState = {
     title: "",
     content: [],
     isVisible: false,
+  },
+
+  descriptorEditorDialog: {
+    isVisible: false,
+    descriptor: null,
+    endpoint: null,
+    currentContentString: "",
   },
 };
 
@@ -162,6 +188,33 @@ const reducer = createReducer(initialState)
     tableDialog: {
       // Leaving the title and content in place so they do not disappear prior to dialog fadeout
       ...state.tableDialog,
+      isVisible: false,
+    },
+  }))
+
+  // Descriptor editor dialog
+  .handleAction(showDescriptorEditorDialog, (state, { payload: { descriptor, endpoint } }) => ({
+    ...state,
+    descriptorEditorDialog: {
+      isVisible: true,
+      descriptor,
+      endpoint,
+      currentContentString: descriptor.contentString,
+    },
+  }))
+  .handleAction(setDescriptorEditorDialogContentString, (state, { payload: contentString }) => ({
+    ...state,
+    descriptorEditorDialog: {
+      ...state.descriptorEditorDialog,
+      currentContentString: contentString,
+    },
+  }))
+  .handleAction(resetDescriptorEditorDialog, (state, action) => ({
+    ...state,
+    descriptorEditorDialog: {
+      descriptor: null,
+      endpoint: null,
+      currentContentString: state.descriptorEditorDialog.currentContentString, // To avoid content flashes
       isVisible: false,
     },
   }));

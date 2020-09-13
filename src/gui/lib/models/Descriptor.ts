@@ -25,4 +25,5 @@ export interface DescriptorContent {
 export interface Descriptor extends BaseEntity {
   type: DescriptorType;
   content: DescriptorContent;
+  contentString: string;
 }

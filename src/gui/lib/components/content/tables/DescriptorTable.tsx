@@ -5,10 +5,13 @@ import * as React from "react";
 import { ApiDataEndpoint } from "../../../api/endpoints";
 import { useAuthorizedSWR } from "../../../hooks/useAuthorizedSWR";
 import { useDescriptorDeleteDialog } from "../../../hooks/useDescriptorDeleteDialog";
-import { useDescriptorEditorDialog } from "../../../hooks/useDescriptorEditorDialog";
 import { Descriptor, DescriptorType } from "../../../models/Descriptor";
 import { useThunkDispatch } from "../../../store";
-import { showDescriptorInfoDialog, showInfoDialog } from "../../../store/actions/dialogs";
+import {
+  showDescriptorEditorDialog,
+  showDescriptorInfoDialog,
+  showInfoDialog,
+} from "../../../store/actions/dialogs";
 import { onboardServiceDescriptor } from "../../../store/thunks/services";
 import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 import { DescriptorUploadButton } from "../DescriptorUploadButton";
@@ -43,7 +46,6 @@ export const DescriptorTable: React.FunctionComponent<Props> = ({ descriptorType
   const theme = useTheme();
   const dispatch = useThunkDispatch();
   const swr = useAuthorizedSWR(endpoint);
-  const showDescriptorEditorDialog = useDescriptorEditorDialog();
   const showDescriptorDeleteDialog = useDescriptorDeleteDialog(swr.revalidate);
 
   const onboard = async (descriptorId: string) => {
@@ -75,16 +77,15 @@ export const DescriptorTable: React.FunctionComponent<Props> = ({ descriptorType
           icon: (props) => <QueueRounded htmlColor={theme.palette.secondary.main} {...props} />,
           onClick: () => onboard(descriptor.id),
         }),
-        {
+        (descriptor) => ({
           tooltip: "Info",
           icon: (props) => <Info htmlColor={theme.palette.primary.main} {...props} />,
-          onClick: (event, descriptor: Descriptor) =>
-            dispatch(showDescriptorInfoDialog(descriptor)),
-        },
+          onClick: () => dispatch(showDescriptorInfoDialog(descriptor)),
+        }),
         (descriptor) => ({
           tooltip: "Edit " + descriptor.content.name,
           icon: (props) => <Edit htmlColor={theme.palette.success.main} {...props} />,
-          onClick: () => showDescriptorEditorDialog(descriptor),
+          onClick: () => dispatch(showDescriptorEditorDialog({ descriptor, endpoint })),
         }),
         (descriptor) => ({
           tooltip: "Delete " + descriptor.content.name,
