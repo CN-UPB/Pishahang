@@ -384,6 +384,11 @@ paths:
               properties:
                 content:
                   $ref: "#/components/schemas/DescriptorContent"
+                contentString:
+                  type: string
+                  description: >
+                    The content of the descriptor as a string.
+                    It will not be used by the gatekeeper but stored for later client-side usage.
       responses:
         "200":
           description: The descriptor was successfully updated.
@@ -856,7 +861,6 @@ components:
           required:
             - type
             - content
-
           properties:
             type:
               $ref: "#/components/schemas/DescriptorType"
@@ -864,7 +868,9 @@ components:
               $ref: "#/components/schemas/DescriptorContent"
             contentString:
               type: string
-              description: Need some thoughts!!
+              description: >
+                The content of the descriptor as a string.
+                It will not be used by the gatekeeper, but stored for later client-side usage.
     Descriptors:
       type: "array"
       items:

@@ -37,6 +37,10 @@ def updateDescriptor(user, id, body):
     try:
         descriptor: Descriptor = Descriptor.objects(userId=user, id=id).get()
         descriptor.content = body["content"]
+
+        if "contentString" in body:
+            descriptor.contentString = body["contentString"]
+
         descriptor.save()
         return descriptor
     except DoesNotExist:

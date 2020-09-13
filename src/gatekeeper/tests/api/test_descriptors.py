@@ -25,7 +25,8 @@ def testCrud(api, type, exampleServiceDescriptor, exampleOpenStackDescriptor):
 
     # POST new descriptor
     descriptor = api.post(
-        "/api/v3/descriptors", json={"type": type, "content": descriptorContent}
+        "/api/v3/descriptors",
+        json={"type": type, "content": descriptorContent, "contentString": "test"},
     ).get_json()
     assert descriptorKeys <= set(descriptor)
 
@@ -41,11 +42,12 @@ def testCrud(api, type, exampleServiceDescriptor, exampleOpenStackDescriptor):
 
     updatedDesriptor = api.put(
         "/api/v3/descriptors/" + descriptor["id"],
-        json={"type": type, "content": descriptorContent},
+        json={"content": descriptorContent, "contentString": "test2"},
     ).get_json()
     assert updatedDesriptor["id"] == descriptor["id"]
     assert updatedDesriptor != descriptor
     assert updatedDesriptor["content"]["name"] == newDescriptorName
+    assert updatedDesriptor["contentString"] == "test2"
     assert descriptorKeys <= set(updatedDesriptor)
 
     assert [updatedDesriptor] == getDescriptors()
