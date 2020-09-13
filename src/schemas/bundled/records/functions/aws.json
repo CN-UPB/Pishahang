@@ -346,7 +346,6 @@
           "ami",
           "id",
           "instance_type",
-          "region",
           "vim_id"
         ],
         "additionalProperties": true,

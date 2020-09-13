@@ -2045,7 +2045,6 @@
             "required": [
               "id",
               "ami",
-              "region",
               "instance_type"
             ],
             "additionalProperties": true,
