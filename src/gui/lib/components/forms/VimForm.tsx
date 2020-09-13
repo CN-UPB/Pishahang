@@ -52,7 +52,12 @@ const KubernetesFields: React.FunctionComponent = () => (
       <Field component={TextField} name="kubernetes.port" label="Port" type="number" />
     </Grid>
     <Grid item xs={12}>
-      <Field component={TextField} name="kubernetes.serviceToken" label="Service Token" />
+      <Field
+        component={TextField}
+        name="kubernetes.serviceToken"
+        type="password"
+        label="Service Token"
+      />
     </Grid>
     <Grid item xs={12}>
       <Field component={TextField} name="kubernetes.ccc" label="Cluster CA Certificate" />
@@ -63,10 +68,10 @@ const KubernetesFields: React.FunctionComponent = () => (
 const AwsFields: React.FunctionComponent = () => (
   <>
     <Grid item xs={6}>
-      <Field component={TextField} name="aws.accessKey" label="Access Key" />
+      <Field component={TextField} name="aws.accessKey" type="password" label="Access Key" />
     </Grid>
     <Grid item xs={6}>
-      <Field component={TextField} name="aws.secretKey" label="Secret Key" />
+      <Field component={TextField} name="aws.secretKey" type="password" label="Secret Key" />
     </Grid>
     <Grid item xs={12}>
       <Field component={TextField} name="aws.region" label="Region" />
