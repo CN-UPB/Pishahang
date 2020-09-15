@@ -1,8 +1,10 @@
+from gatekeeper.api.auth import adminOnly
 from gatekeeper.app import broker
 from gatekeeper.exceptions import InternalServerError
 from gatekeeper.util.casing import camelcaseDictKeys, snakecaseDictKeys
 
 
+@adminOnly
 def getVims():
     """
     Return the list of VIMs
@@ -13,6 +15,7 @@ def getVims():
     ]
 
 
+@adminOnly
 def deleteVim(id: str):
     """
     Delete a VIM by id
@@ -24,6 +27,7 @@ def deleteVim(id: str):
         raise InternalServerError(detail=response["message"])
 
 
+@adminOnly
 def addVim(body: dict):
     response = broker.call_sync(
         "infrastructure.management.compute.add", snakecaseDictKeys(body)

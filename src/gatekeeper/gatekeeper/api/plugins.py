@@ -1,6 +1,7 @@
 import requests
 from appcfg import get_config
 
+from gatekeeper.api.auth import adminOnly
 from gatekeeper.exceptions import InternalServerError, PluginNotFoundError
 
 config = get_config(__name__)
@@ -27,11 +28,13 @@ def _getPluginById(id):
     return plugin
 
 
+@adminOnly
 def getPlugins():
     pluginIds = requests.get(PLUGINMANAGER_API_URL).json()
     return [_getPluginById(id) for id in pluginIds]
 
 
+@adminOnly
 def getPluginById(id):
     return _getPluginById(id)
 
@@ -50,11 +53,13 @@ def _validateRequestStatus(status, pluginId):
         )
 
 
+@adminOnly
 def shutdownPluginById(id):
     status = requests.delete(PLUGINMANAGER_API_URL + "/" + id).status_code
     _validateRequestStatus(status, id)
 
 
+@adminOnly
 def changePluginStateById(id, body):
     status = requests.put(
         "{}/{}/lifecycle".format(PLUGINMANAGER_API_URL, id),
