@@ -44,13 +44,18 @@ def getUser(id):
 
 
 @adminOnly
-def updateUser(id, body):
+def updateUser(id, body, user: str):
+    # Is an admin editing their own account?
+    isOwnAccount = id == user
+
     try:
         user: User = User.objects(id=id).get()
         user.username = body["username"]
-        user.isAdmin = body["isAdmin"]
         user.email = body["email"]
         user.fullName = body["fullName"]
+
+        if not isOwnAccount:  # Prevent loss of privileges
+            user.isAdmin = body["isAdmin"]
 
         if body["password"] != "":
             user.setPassword(body["password"])
