@@ -16,7 +16,8 @@ import { useStateRef } from "./useStateRef";
  *
  */
 export function useUserDialog(
-  buttonText: string,
+  title: string,
+  submitButtonText: string,
   onSubmit: (values: LocalUser) => Promise<boolean>,
   hideIsAdminSwitch: boolean = false
 ) {
@@ -30,7 +31,7 @@ export function useUserDialog(
   const [showDialog, hideDialog] = useModal(({ in: open, onExited }) => (
     <GenericDialog
       dialogId="user-dialog"
-      dialogTitle={buttonText + " user "}
+      dialogTitle={title}
       open={open}
       onExited={onExited}
       onClose={hideDialog}
@@ -41,7 +42,7 @@ export function useUserDialog(
             Cancel
           </Button>
           <Button variant="contained" onClick={submit} color="primary">
-            {buttonText}
+            {submitButtonText}
           </Button>
         </>
       }

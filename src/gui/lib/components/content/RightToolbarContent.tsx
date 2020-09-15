@@ -20,11 +20,12 @@ export const RightToolbarContent: React.FunctionComponent<React.HTMLAttributes<H
   const user = useSelector(selectUser);
 
   const showEditUserDialog = useUserDialog(
+    "Update User Profile",
     "Update",
     async (userData) => {
       const reply = await dispatch(updateUser(user.id, userData));
       if (reply.success) {
-        fetchUser();
+        dispatch(fetchUser());
       }
       return reply.success;
     },
@@ -34,9 +35,9 @@ export const RightToolbarContent: React.FunctionComponent<React.HTMLAttributes<H
   return (
     <div {...props}>
       <Typography noWrap style={{ alignSelf: "center", marginRight: theme.spacing(1) }}>
-        {user && user.username}
+        {user && user.fullName}
       </Typography>
-      <Tooltip title="Profile" arrow>
+      <Tooltip title="Edit profile" arrow>
         <IconButton color={"inherit"} onClick={() => showEditUserDialog(user)}>
           <PersonIcon />
         </IconButton>

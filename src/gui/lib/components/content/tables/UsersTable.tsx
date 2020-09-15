@@ -1,5 +1,3 @@
-import { Console } from "console";
-
 import { Add, DeleteForeverRounded, Edit } from "@material-ui/icons";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -19,7 +17,7 @@ import { SwrDataTable } from "../../layout/tables/SwrDataTable";
 export const UsersTable: React.FunctionComponent = () => {
   const dispatch = useThunkDispatch();
   const swr = useAuthorizedSWR(ApiDataEndpoint.Users);
-  const [currentlyEditedUser, setCurrentlyEditedUser, currentlyEditedUserRef] = useStateRef<User>();
+  const [, setCurrentlyEditedUser, currentlyEditedUserRef] = useStateRef<User>();
   const currentUserId = useSelector(selectUserId);
 
   const showDeleteUserDialog = useGenericConfirmationDialog(
@@ -40,6 +38,7 @@ export const UsersTable: React.FunctionComponent = () => {
 
   const showAddUserDialog = useUserDialog(
     "Add User",
+    "Add user",
     async (user) => {
       const reply = await dispatch(
         addUser(user, { successSnackbarMessage: "User successfully added" })
@@ -51,7 +50,9 @@ export const UsersTable: React.FunctionComponent = () => {
     },
     false
   );
+
   const showEditUserDialog = useUserDialog(
+    "Edit user",
     "Update",
     async (userData) => {
       const reply = await dispatch(updateUser(currentlyEditedUserRef.current.id, userData));
@@ -84,8 +85,16 @@ export const UsersTable: React.FunctionComponent = () => {
           isFreeAction: true,
         },
         (user) => ({
-          tooltip: "Edit " + user.username,
-          icon: (props) => <Edit htmlColor={theme.palette.success.main} {...props} />,
+          disabled: user.id === currentUserId,
+          tooltip: user.id === currentUserId ? "" : "Edit " + user.username,
+          icon: (props) => (
+            <Edit
+              htmlColor={
+                user.id === currentUserId ? theme.palette.grey : theme.palette.success.main
+              }
+              {...props}
+            />
+          ),
           onClick: () => {
             setCurrentlyEditedUser(user);
             showEditUserDialog(user);
