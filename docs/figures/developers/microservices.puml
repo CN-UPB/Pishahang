@@ -28,25 +28,18 @@ package "MANO Framework" {
     VIM ..> OpenStack
     VIM ..> Kubernetes
 
+    [OLM / KLM / ALM] as FLM
+    FLM --> VIM
+    FLM ..> Repository
+
     [Placement]
-    Placement --> VIM
-
-    [OLM]
-    OLM --> VIM
-
-    [KLM]
-    KLM --> VIM
-
-    [ALM]
-    ALM --> VIM
 
     ' SLM
     [SLM]
     SLM ..> Repository
     SLM --> Placement
-    SLM --> OLM
-    SLM --> KLM
-    SLM --> ALM
+    SLM --> VIM
+    SLM --> FLM
     Gatekeeper --> SLM
   }
 
