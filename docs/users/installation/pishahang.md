@@ -31,13 +31,8 @@ On any other machine or in production, follow the official installation instruct
 git clone https://github.com/CN-UPB/Pishahang.git && cd Pishahang
 ```
 
-After that, find out your installation machine's public IP (the one that the Pishahang GUI should be available at), and run
-
-```bash
-./generate-env.sh <PUBLIC_IP>
-```
-
-This creates a local .env file that will be used by Docker Compose.
+After that, copy the `.env.template` file to `.env` (e.g., `cp .env.template .env`)
+The `.env` file will be used by Docker Compose and contains initial user data and passwords, as well as the Pishahang version.
 
 ### Start Pishahang
 
@@ -50,4 +45,5 @@ sudo docker-compose up -d
 
 ## Verify installation
 
-Open your browser and navigate to `http://public_ip`. Log in using the username `pishahang` and password `1234`. If the installation was successful, you should now see the dashboard of the service platform.
+Open your browser and navigate to `http://<public_ip>`.
+Log in using the username `pishahang` and password `1234`.
