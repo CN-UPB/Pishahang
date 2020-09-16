@@ -155,29 +155,39 @@ Workflows
 =========
 
 Service Instantiation
-----------------------
+---------------------
 
-.. uml:: ../figures/developers/service_instantiation.puml
-    :caption: Pishahang Service Instatiation
+.. uml:: ../figures/developers/workflows/service_instantiation.puml
+    :caption: Service Instatiation
     :align: center
 
 VNF Deployment
----------------
+--------------
 
-.. uml:: ../figures/developers/vnf_deploy.puml
-    :caption: Deploying a VNF
+.. uml:: ../figures/developers/workflows/vnf_deploy.puml
+    :caption: VNF Deployment
     :align: center
 
 VNF Termination
-----------------
+---------------
 
-.. uml:: ../figures/developers/vnf_termination.puml
-    :caption: Terminating a VNF
+.. note::
+
+    For some unknown reason, VNF termination via OLM/KLM/ALM is currently not implemented.
+    Instead, the VIM adaptor directly destroys the VNFs of a service instance on behalf of the SLM.
+
+.. uml:: ../figures/developers/workflows/vnf_termination.puml
+    :caption: VNF Termination
     :align: center
 
 Service Termination
---------------------
+-------------------
 
-.. uml:: ../figures/developers/service_termination.puml
+.. note::
+
+    For some unknown reason, VNF termination is currently not implemented as depicted.
+    Instead, the VIM adaptor directly destroys the VNFs of a service instance on behalf of the SLM.
+
+.. uml:: ../figures/developers/workflows/service_termination.puml
     :caption: Service Termination
     :align: center

@@ -1,0 +1,33 @@
+@startuml Service Termination
+
+participant Gatekeeper
+participant SLM
+participant SMR
+participant "Placement Plugin" as Placement
+participant "OLM/KLM/ALM" as FLM
+participant "VIM Adaptor" as VIM
+
+
+Gatekeeper -> SLM: Request service termination
+
+SLM -> SLM: Terminate the monitoring
+
+SLM -> VIM: Deconfigure WAN
+VIM --> SLM
+
+SLM -> VIM: Deconfigure SFC 
+VIM --> SLM
+
+loop for every VNF
+SLM -> FLM:Terminate VNF request
+FLM --> SLM
+end
+
+SLM -> SMR: Terminate SSMs
+SMR --> SLM
+
+SLM -> SLM: Update records
+
+SLM --> Gatekeeper
+
+@enduml
