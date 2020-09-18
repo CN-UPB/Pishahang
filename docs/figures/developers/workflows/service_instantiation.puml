@@ -1,0 +1,45 @@
+@startuml Service Instantiation
+
+participant Gatekeeper
+participant SLM
+participant SMR
+participant "Placement Plugin" as Placement
+participant "OLM/KLM/ALM" as FLM
+participant "VIM Adaptor" as VIM
+
+Gatekeeper -> SLM: Request service instantiation
+SLM -> SLM: Validate Request
+SLM --> Gatekeeper: Validation result
+
+SLM -> SMR: Onborad SSM (If specified in NSD)
+SMR --> SLM
+
+SLM -> SMR: Instantiate SSM
+SMR --> SLM
+
+SLM -> VIM: Request Vim topology
+VIM --> SLM
+
+SLM -> Placement: Request placement
+Placement --> SLM
+
+SLM -> VIM: Service prepare request
+VIM --> SLM
+
+loop for every VNFD
+SLM -> FLM: VNF deploy request
+FLM --> SLM
+end
+
+SLM -> VIM: Request SFC
+VIM --> SLM
+
+SLM -> VIM: Request WAN 
+VIM --> SLM
+
+SLM -> SLM: Store data
+SLM -> SLM: Inform Monitor Manager
+
+SLM --> Gatekeeper: Inform with result of workflow
+
+@enduml

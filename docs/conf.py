@@ -18,6 +18,8 @@ author = "Pishahang"
 extensions = [
     "recommonmark",
     "sphinx.ext.extlinks",
+    "sphinxcontrib.plantuml",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -29,6 +31,10 @@ templates_path = ["_templates"]
 exclude_patterns = ["_build", "package", "Thumbs.db", ".DS_Store", ".venv"]
 
 extlinks = {"sourcefile": ("https://github.com/CN-UPB/Pishahang/blob/master/%s", "")}
+
+plantuml_output_format = "svg_img"
+
+highlight_language = "none"
 
 
 # -- Options for HTML output -------------------------------------------------

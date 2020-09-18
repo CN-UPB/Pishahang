@@ -100,9 +100,9 @@ An easy way to do so is using ``pipx``:
         poetry config virtualenvs.in-project true
     
     before you follow the next paragraph.
-    This way, Visual Studio Code will automatically detect the virtual environments created by Poetry.
+    This way, Visual Studio Code will detect the virtual environments created by Poetry.
 
-Once Poetry itself is installed, you can open the python project of interest (the folder in which pyproject.toml is located) in a terminal and issue ``poetry install``.
+Once Poetry itself is installed, you can open the Python project of interest (the folder in which ``pyproject.toml`` is located) in a terminal and issue ``poetry install``.
 This will create a virtual environment for the project and install the specified dependencies into it.
 The project's microservice can then be started locally using ``poetry run start`` (because ``pyproject.toml`` defines a ``start`` script).
 Make sure to stop the corresponding container beforehand, so it does not run in parallel to your local microservice instance.
@@ -119,7 +119,7 @@ It implements comfortable utility classes for AMQP messaging and a plugin base c
 Linting and Code Formatting
 ---------------------------
 
-All python projects are configured to use flake8 for linting and Black for code formatting.
+All python projects are configured to use flake8 for linting and Black and isort for code formatting.
 It is advisable to configure your editor to run these tools within the virtual environment that Poetry provides.
 
 
@@ -129,16 +129,80 @@ Setup with Visual Studio Code
 -----------------------------
 
 If you use Visual Studio Code, here's the basic setup:
-Within the root of the Pishahang repository, create a folder ``.vscode`` and add a ``settings.json`` with the following contents (if the file already exists, just add the properties to it):
+Within each python project that you open (the folder that contains the respective ``pyproject.toml`` file), create a ``.vscode`` directory and add a ``settings.json`` with the following contents (if the file already exists, just add the properties to it):
 
 .. code-block:: json
 
     {
-      "python.linting.flake8Enabled": true,
+      "python.pythonPath": ".venv/bin/python",
+      "python.testing.unittestEnabled": false,
+      "python.testing.nosetestsEnabled": false,
+      "python.testing.pytestEnabled": true,
       "python.linting.pylintEnabled": false,
-      "python.formatting.provider": "black"
+      "python.linting.flake8Enabled": true,
+      "python.linting.enabled": true,
+      "python.sortImports.args": ["-rc"],
+      "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        }
+      }
     }
 
-Once you open Visual Studio Code in the root directory of the python project you want to edit, you can press `F1`, run "Python: Select Interpreter", and select the virtual environment created by Poetry (``./.venv/bin/python``).
+Copyright Notice
+================
 
-Alternatively, if you did not yet run ``poetry install``, you can do it now and Visual Studio Code will ask you something like "We noticed a new virtual environment has been created. Do you want to select it for the workspace folder?", which you can accept then.
+Source files that were created for Pishahang should include the following copyright notice at the top:
+
+::
+
+    Copyright (c) 2017 Pishahang
+    ALL RIGHTS RESERVED.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    Neither the name of Pishahang, nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+
+On modifications of source files from the SONATA project, the existing SONATA copyright notice can be changed to the following:
+
+::
+
+    Copyright (c) 2015 SONATA-NFV, 2017 Pishahang
+    ALL RIGHTS RESERVED.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    Neither the name of the SONATA-NFV, Pishahang,
+    nor the names of its contributors may be used to endorse or promote
+    products derived from this software without specific prior written
+    permission.
+
+    Parts of this work have been performed in the framework of the SONATA project,
+    funded by the European Commission under Grant number 671517 through
+    the Horizon 2020 and 5G-PPP programmes. The authors would like to
+    acknowledge the contributions of their colleagues of the SONATA
+    partner consortium (www.sonata-nfv.eu).
