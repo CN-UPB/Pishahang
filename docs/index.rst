@@ -10,6 +10,7 @@ Joint Orchestration of Network Function Chains and Distributed Cloud Application
    :glob:
 
    users/installation/*
+   users/usage
 
 .. toctree::
    :maxdepth: 2
@@ -18,4 +19,3 @@ Joint Orchestration of Network Function Chains and Distributed Cloud Application
    developers/developing
    developers/microservices
    developers/apis
-

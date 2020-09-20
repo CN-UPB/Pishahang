@@ -35,7 +35,7 @@ from uuid import uuid4
 
 from .base import ManoBrokerConnection, Message
 
-LOG = logging.getLogger("manobase:messaging:request-response")
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
@@ -110,7 +110,7 @@ class ManoBrokerRequestResponseConnection(ManoBrokerConnection):
         result = {} if result is None else result
 
         # Specify headers
-        reply_headers = request.headers
+        reply_headers = request.headers if request.headers is not None else {}
         reply_headers.setdefault("key", None)
         reply_headers["type"] = "response"
 

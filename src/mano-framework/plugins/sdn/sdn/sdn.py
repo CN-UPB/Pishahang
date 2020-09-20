@@ -42,7 +42,7 @@ SDN_CONTROLLER_ADDRESS = "131.234.250.207"
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("pish-mano-sdn")
 LOG.setLevel(logging.DEBUG)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
+logging.getLogger("manobase.messaging").setLevel(logging.INFO)
 
 context = zmq.Context()
 socket = context.socket(zmq.REQ)

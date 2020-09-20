@@ -1,0 +1,23 @@
+databases:
+  mongo: mongodb://localhost:27017/gatekeeper
+  redis: redis://localhost:6379/gatekeeper
+
+apis:
+  pluginmanager: http://localhost:8001/api/plugins
+
+initialUserData:
+  username: pishahang
+  password: "1234"
+  isAdmin: true
+  fullName: "Admin"
+  email: "pishahang@example.org"
+
+jwt:
+  accessTokenLifetime: 900 # 15 min
+  refreshTokenLifetime: 604800 # 7 days
+
+connexion:
+  validateResponses: false
+  options:
+    swagger_ui_config:
+      showExtensions: true

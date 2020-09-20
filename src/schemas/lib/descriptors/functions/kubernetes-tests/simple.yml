@@ -1,4 +1,7 @@
+descriptor_type: "function"
 descriptor_version: "2.0"
+descriptor_flavor: "kubernetes"
+
 vendor: "eu.sonata-nfv.cloud-service-descriptor"
 name: "hello-web"
 version: "0.2"
@@ -14,6 +17,8 @@ virtual_deployment_units:
         port: 8080
         target_port: 8080
     resource_requirements:
+      cpu:
+        vcpus: 0.1
       memory:
         size: 128
         size_unit: "MiB"

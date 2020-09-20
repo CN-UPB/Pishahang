@@ -37,7 +37,7 @@ from amqpstorm import AMQPConnectionError
 from manobase.messaging import AsyncioBrokerConnection, Message
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("manobase:plugin")
+LOG = logging.getLogger(__name__)
 
 
 class ManoBasePlugin:
@@ -55,19 +55,18 @@ class ManoBasePlugin:
 
     def __init__(
         self,
-        name="son-plugin",
+        name=None,
         version=None,
         description=None,
         auto_register=True,
         wait_for_registration=True,
-        start_running=True,
         auto_heartbeat_rate=0.5,
         use_loopback_connection=False,
         fake_registration=False,
     ):
         """
         Performs plugin initialization steps, e.g., connection setup
-        :param name: Plugin name prefix
+        :param name: Plugin name (defaults to `self.__class__.__name__`)
         :param version: Plugin version
         :param description: A description string
         :param auto_register: Automatically register on init
@@ -76,7 +75,7 @@ class ManoBasePlugin:
         :param use_loopback_connection: For unit testing: Whether to set up the connection with `is_loopback=True`
         :param fake_registration: For unit testing: Whether to fake the registration process without a real PluginManager instance involved
         """
-        self.name = "%s.%s" % (name, self.__class__.__name__)
+        self.name = name or self.__class__.__name__
         self.version = version
         self.description = description
         self.uuid: str = None  # uuid given by plugin manager on registration
@@ -109,10 +108,8 @@ class ManoBasePlugin:
                 self._wait_for_registration()
 
         # Start hearbeat mechanism
-        self._start_heartbeats(auto_heartbeat_rate)
-
-        if start_running:
-            self.run()
+        if auto_heartbeat_rate > 0:
+            self._start_heartbeats(auto_heartbeat_rate)
 
     def __del__(self):
         """
@@ -130,8 +127,6 @@ class ManoBasePlugin:
         :param rate: rate of heartbeat notifications
         :return:
         """
-        if rate <= 0:
-            return
 
         def run():
             while True:
@@ -157,14 +152,6 @@ class ManoBasePlugin:
             self.on_plugin_status_update,  # call back method
             "platform.management.plugin.status",
         )
-
-    def run(self):
-        """
-        To be overwritten by subclass
-        """
-        # go into infinity loop (we could do anything here)
-        while True:
-            time.sleep(1)
 
     def on_lifecycle_start(self, message: Message):
         """

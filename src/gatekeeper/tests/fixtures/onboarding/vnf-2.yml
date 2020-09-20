@@ -1,0 +1,18 @@
+descriptor_version: "1.0"
+descriptor_type: "function"
+descriptor_flavor: "openstack"
+
+vendor: "test.fixture.onboarding"
+name: "vnf-2"
+version: "2.2.2"
+
+virtual_deployment_units:
+  - id: "vdu01"
+    vm_image: "https://images.example.org/vm2"
+    vm_image_format: "raw"
+    resource_requirements:
+      cpu:
+        vcpus: 1
+      memory:
+        size: 1
+        size_unit: "GB"

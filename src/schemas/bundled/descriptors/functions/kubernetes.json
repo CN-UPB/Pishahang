@@ -195,6 +195,8 @@
   },
   "type": "object",
   "required": [
+    "descriptor_flavor",
+    "descriptor_type",
     "descriptor_version",
     "name",
     "vendor",
@@ -202,6 +204,14 @@
     "virtual_deployment_units"
   ],
   "properties": {
+    "descriptor_type": {
+      "description": "The type of the descriptor",
+      "enum": [
+        "service",
+        "function"
+      ],
+      "const": "function"
+    },
     "descriptor_version": {
       "description": "The version of the descriptor definition",
       "type": "string",
@@ -272,6 +282,10 @@
         ]
       }
     },
+    "descriptor_flavor": {
+      "description": "The flavor of the function descriptor",
+      "const": "kubernetes"
+    },
     "monitoring_rules": {
       "type": "array",
       "items": {
@@ -338,7 +352,8 @@
           "id",
           "service_image",
           "service_type",
-          "service_ports"
+          "service_ports",
+          "resource_requirements"
         ],
         "additionalProperties": true,
         "properties": {
@@ -404,6 +419,10 @@
           "resource_requirements": {
             "description": "The requirements of a node that hosts this network function.",
             "type": "object",
+            "required": [
+              "cpu",
+              "memory"
+            ],
             "additionalProperties": false,
             "properties": {
               "cpu": {
@@ -416,7 +435,7 @@
                 "properties": {
                   "vcpus": {
                     "description": "The number of (virtualized) CPU cores.",
-                    "type": "integer",
+                    "type": "number",
                     "exclusiveMinimum": 0
                   }
                 }

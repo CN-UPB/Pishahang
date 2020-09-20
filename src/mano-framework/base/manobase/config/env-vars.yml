@@ -1,0 +1,5 @@
+amqp:
+  host: BROKER_HOST
+  exchange: BROKER_EXCHANGE
+
+repository_url: REPOSITORY_URL

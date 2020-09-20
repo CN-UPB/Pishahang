@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "The core scheme for RECUSRIVE service descriptors (many details left out)",
+  "description": "Pishahang Service Descriptor Schema",
   "definitions": {
     "connection_point_types": {
       "enum": [
@@ -19,12 +19,21 @@
   },
   "type": "object",
   "required": [
+    "descriptor_type",
     "descriptor_version",
     "vendor",
     "name",
     "version"
   ],
   "properties": {
+    "descriptor_type": {
+      "description": "The type of the descriptor",
+      "enum": [
+        "service",
+        "function"
+      ],
+      "const": "service"
+    },
     "descriptor_version": {
       "description": "The version of the descriptor definition",
       "type": "string",
@@ -197,45 +206,6 @@
           },
           "description": {
             "description": "A longer description of the network function.",
-            "type": "string"
-          }
-        }
-      }
-    },
-    "cloud_services": {
-      "description": "The cloud services that a part of this network service.",
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "types": "object",
-        "required": [
-          "service_id",
-          "service_vendor",
-          "service_name",
-          "service_version"
-        ],
-        "properties": {
-          "service_id": {
-            "description": "A unique identifier of this cloud service within the scope if this NS descriptor.",
-            "type": "string"
-          },
-          "service_vendor": {
-            "description": "The vendor id identifies the CS descriptor uniquely across all cloud service descriptors.",
-            "type": "string",
-            "pattern": "^[a-z0-9\\-_.]+$"
-          },
-          "service_name": {
-            "description": "The name of the cloud service description.",
-            "type": "string",
-            "pattern": "^[a-z0-9\\-_.]+$"
-          },
-          "service_version": {
-            "description": "The version of the cloud service descriptor.",
-            "type": "string",
-            "pattern": "^(== |>= |<= |!= )?[0-9\\-_.]+$"
-          },
-          "description": {
-            "description": "A longer description of the cloud server.",
             "type": "string"
           }
         }

@@ -42,8 +42,8 @@ from manobase.messaging import (
     Message,
 )
 
-logging.getLogger("manobase:messaging").setLevel(logging.DEBUG)
-LOG = logging.Logger("manobase:messaging:test")
+logging.getLogger("manobase.messaging").setLevel(logging.DEBUG)
+LOG = logging.Logger(__name__)
 
 
 @pytest.fixture

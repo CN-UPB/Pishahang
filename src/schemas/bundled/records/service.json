@@ -3,6 +3,7 @@
   "description": "Pishahang service record schema",
   "type": "object",
   "required": [
+    "descriptor_type",
     "descriptor_version",
     "name",
     "status",
@@ -10,6 +11,13 @@
     "version"
   ],
   "properties": {
+    "descriptor_type": {
+      "description": "The type of the descriptor",
+      "enum": [
+        "service",
+        "function"
+      ]
+    },
     "descriptor_version": {
       "description": "The version of the descriptor definition",
       "type": "string",
@@ -189,26 +197,6 @@
         "properties": {
           "vnfr_id": {
             "description": "A unique identifier of the network function record within the scope of this NS instance.",
-            "type": "string",
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-          }
-        }
-      }
-    },
-    "cloud_services": {
-      "description": "The CS instances (actually their records), that are part of this network service instance.",
-      "type": "array",
-      "minItems": 0,
-      "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "required": [
-          "csr_id"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "csr_id": {
-            "description": "A unique identifier of the cloud service record within the scope of this NS instance.",
             "type": "string",
             "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
           }

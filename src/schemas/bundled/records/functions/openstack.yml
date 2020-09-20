@@ -3,16 +3,15 @@ description: The core schema for SONATA network function records.
 definitions:
   images_formats:
     enum:
-      - raw
+      - ami
+      - ari
+      - aki
       - vhd
       - vmdk
+      - raw
+      - qcow2
       - vdi
       - iso
-      - qcow2
-      - docker
-      - ova
-      - ovf
-      - bare
   connection_point_types:
     enum:
       - internal
@@ -160,6 +159,8 @@ definitions:
         default: 1
 type: object
 required:
+  - descriptor_flavor
+  - descriptor_type
   - descriptor_version
   - id
   - name
@@ -168,6 +169,12 @@ required:
   - version
   - virtual_deployment_units
 properties:
+  descriptor_type:
+    description: The type of the descriptor
+    enum:
+      - service
+      - function
+    const: function
   descriptor_version:
     description: The version of the descriptor definition
     type: string
@@ -218,6 +225,9 @@ properties:
             url:
               description: The URL to the licence file.
               type: string
+  descriptor_flavor:
+    description: The flavor of the function descriptor
+    const: openstack
   monitoring_rules:
     type: array
     items:
@@ -324,7 +334,9 @@ properties:
       required:
         - id
         - resource_requirements
-      additionalProperties: false
+        - vm_image
+        - vm_image_format
+      additionalProperties: true
       properties:
         description:
           description: 'An arbitrary description of the VDU:'
@@ -340,16 +352,15 @@ properties:
         vm_image_format:
           description: The format of the virtual machine image.
           enum:
-            - raw
+            - ami
+            - ari
+            - aki
             - vhd
             - vmdk
+            - raw
+            - qcow2
             - vdi
             - iso
-            - qcow2
-            - docker
-            - ova
-            - ovf
-            - bare
         vm_image_md5:
           description: An MD5 hash of the virtual machine image.
           type: string
@@ -634,6 +645,78 @@ properties:
               type: integer
               minimum: 0
               default: 1
+        vdu_reference:
+          description: >-
+            The reference to the VDU (vnfd:vdu:id) used to instantiate this
+            element:
+          type: string
+        number_of_instances:
+          description: The number of instances of this VDU element.
+          type: integer
+          minimum: 0
+        vnfc_instance:
+          description: >-
+            Additional information distinct for each VNFC instance created based
+            on this VDU.
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                description: Unique name within the namespace of this VNF instance.
+                type: string
+              vim_id:
+                description: Identifier of the VIM this VNFC is running at.
+                type: string
+              vc_id:
+                description: >-
+                  Identifier of the virtualization container or VM running on
+                  the VIM.
+                type: string
+              connection_points:
+                description: >-
+                  The connection points of this VNFC. Connects the VDU to other
+                  VDUs or the external world.
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - id
+                    - interface
+                    - type
+                  additionalProperties: false
+                  properties:
+                    id:
+                      description: >-
+                        A VNF-unique id of the connection point. Can be used for
+                        references.
+                      type: string
+                    interface:
+                      description: >-
+                        The type of connection point, such as a virtual port, a
+                        virtual NIC address, a physical port, a physcial NIC
+                        address, or the endpoint of a VPN tunnel.
+                      oneOf:
+                        - enum:
+                            - ethernet
+                            - ipv4
+                            - ipv6
+                    type:
+                      description: >-
+                        The type of the connection point with respect to its
+                        visibility in the service platform
+                      oneOf:
+                        - enum:
+                            - internal
+                            - external
+                            - management
+                    virtual_link_reference:
+                      description: >-
+                        A reference to a virtual link, i.e. the
+                        virtual_links:id.
+                      type: string
   connection_points:
     description: >-
       The connection points of the overall VNF, that connects the VNF to the
@@ -885,32 +968,28 @@ properties:
         flavor_id_ref:
           type: string
   id:
-    description: The UUID of the function record.
+    description: The UUID of the VNF record
     type: string
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   status:
     description: The current status of the VNF
-    oneOf:
-      - enum:
-          - failed
-          - normal operation
-          - degraded operation
-          - offline
-          - terminated
+    ref: ../../commons.yml#/definitions/execution_status
   descriptor_reference:
-    description: Reference to the VNFD used to instanciate this VNF.
+    description: >-
+      ID of the descriptor used to instantiate the VNF that this record belongs
+      to
+    type: string
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  parent_ns:
+    description: >-
+      Reference to records of network service (nsr:id) that this CS instance is
+      part of.
     type: string
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   deployment_favour:
     description: 'Reference to the selected deployment flavour (vnfd:deployment_flavour:id).'
     type: string
     pattern: '^[A-Za-z0-9\-_.:]+$'
-  parent_ns:
-    description: >-
-      Reference to records of network service (nsr:id) that this VNF instance is
-      part of.
-    type: string
-    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   vnf_address:
     type: array
     uniqueItems: true

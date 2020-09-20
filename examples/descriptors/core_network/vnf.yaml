@@ -1,0 +1,28 @@
+descriptor_type: function
+descriptor_flavor: openstack
+descriptor_version: vnfd-schema-01
+
+description: A VNF consisting of 1 VDU connected with two external VL for communicating with the OAI RAN. The VNF implements OAI-Core Network.
+name: oai_cn-vnf
+vendor: pishahang.vnf-descriptor
+version: "1.0"
+author: Hadi Razzaghi
+
+virtual_deployment_units:
+  - id: oai_cn
+    description: OAI-Core Network
+    vm_image: http://nitlab3.inf.uth.gr/images_vm/oai_cn.qcow2
+    vm_image_format: qcow2
+    resource_requirements:
+      cpu:
+        vcpus: 3
+      memory:
+        size: 3
+        size_unit: GB
+      storage:
+        size: 15
+        size_unit: GB
+    connection_points:
+      - id: eth0
+        interface: ipv4
+        type: external

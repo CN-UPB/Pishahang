@@ -1,0 +1,73 @@
+descriptor_type: function
+descriptor_flavor: kubernetes
+descriptor_version: "2.0"
+vendor: "eu.sonata-nfv.cloud-service-descriptor"
+name: "VNF_sink"
+version: "1.0"
+author: "Hadi Razzaghi Kouchaksaraei"
+description: >
+  Deploys a RTMP packet sinffer consist of MongoDB, RabbitMQ, RTMP packet sniffer, and RTMP packet recorder.
+virtual_deployment_units:
+  - id: "sniffer-1"
+    service_image: "pishahang/rtmp-sniffer"
+    service_name: "sniffer"
+    service_type: "LoadBalancer"
+    service_ports:
+      - name: "sniffer"
+        protocol: "TCP"
+        port: 80
+        target_port: 80
+    resource_requirements:
+      cpu:
+        vcpus: 0.1
+      memory:
+        size: 128
+        size_unit: "MiB"
+
+  - id: "recorder-1"
+    service_image: "pishahang/rtmp-recorder"
+    service_name: "recorder"
+    service_type: "LoadBalancer"
+    service_ports:
+      - name: "recorder"
+        protocol: "TCP"
+        port: 8001
+        target_port: 8001
+    resource_requirements:
+      cpu:
+        vcpus: 0.1
+      memory:
+        size: 128
+        size_unit: "MiB"
+
+  - id: "mongodb-1"
+    service_image: "mongo"
+    service_name: "mongodb"
+    service_type: "ClusterIP"
+    service_ports:
+      - name: "mongo"
+        protocol: "TCP"
+        port: 27017
+        target_port: 27017
+    resource_requirements:
+      cpu:
+        vcpus: 0.1
+      memory:
+        size: 128
+        size_unit: "MiB"
+
+  - id: "rabbitmq-1"
+    service_image: "rabbitmq:3-management"
+    service_name: "rabbitmq"
+    service_type: "ClusterIP"
+    service_ports:
+      - name: "rabbitmq"
+        protocol: "TCP"
+        port: 5672
+        target_port: 5672
+    resource_requirements:
+      cpu:
+        vcpus: 0.1
+      memory:
+        size: 128
+        size_unit: "MiB"

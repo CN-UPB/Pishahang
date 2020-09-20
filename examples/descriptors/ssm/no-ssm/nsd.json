@@ -1,0 +1,17 @@
+{
+  "descriptor_type": "service",
+  "descriptor_version": "1.0",
+  "vendor": "eu.sonata-nfv.service-descriptor",
+  "name": "smr-tester-0",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "description": "SMR tester with no ssm/fsm",
+  "network_functions": [
+    {
+      "vnf_id": "dummy-vm-0",
+      "vnf_vendor": "eu.sonata-nfv.vnf-descriptor",
+      "vnf_name": "dummy-vm-vnf-0",
+      "vnf_version": "1.0"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+amqp:
+  host: amqp://guest:guest@localhost:5672/%2F
+  exchange: son-kernel
+
+repository_url: http://localhost:5000/

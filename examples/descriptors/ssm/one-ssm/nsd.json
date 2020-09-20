@@ -1,0 +1,30 @@
+{
+  "descriptor_type": "service",
+  "descriptor_version": "1.0",
+  "vendor": "eu.sonata-nfv.service-descriptor",
+  "name": "SMR-tester-1",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "description": "SMR tester with one SSM and one FSM",
+  "network_functions": [
+    {
+      "vnf_id": "dummy-vm-1",
+      "vnf_vendor": "eu.sonata-nfv.vnf-descriptor",
+      "vnf_name": "dummy-vm-vnf-1",
+      "vnf_version": "1.0"
+    }
+  ],
+  "service_specific_managers": [
+    {
+      "id": "sonssmpsaplacement1",
+      "description": "PSA placement SSM.",
+      "image": "hadik3r/sonssmpsaplacement1",
+      "options": [
+        {
+          "key": "type",
+          "value": "myValue"
+        }
+      ]
+    }
+  ]
+}

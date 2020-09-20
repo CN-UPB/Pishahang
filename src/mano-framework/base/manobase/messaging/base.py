@@ -28,7 +28,6 @@ partner consortium (www.sonata-nfv.eu).
 
 import json
 import logging
-import os
 from collections import defaultdict
 from copy import deepcopy
 from queue import Queue
@@ -39,14 +38,12 @@ from uuid import uuid4
 import amqpstorm
 import yaml
 from amqpstorm.exception import AMQPConnectionError
+from appcfg import get_config
 
-logging.getLogger("amqpstorm.Channel").setLevel(logging.ERROR)
-LOG = logging.getLogger("manobase:messaging:base")
+amqp_config = get_config(__name__)["amqp"]
 
-# if we don't find a broker configuration in our ENV, we use this URL as default
-RABBITMQ_URL_FALLBACK = "amqp://guest:guest@localhost:5672/%2F"
-# if we don't find a broker configuration in our ENV, we use this exchange as default
-RABBITMQ_EXCHANGE_FALLBACK = "son-kernel"
+logging.getLogger("amqpstorm.channel").setLevel(logging.ERROR)
+LOG = logging.getLogger(__name__)
 
 # For connections with is_loopback=True:
 
@@ -188,16 +185,11 @@ class ManoBrokerConnection:
         application.
         """
         self.app_id = app_id
-        self.rabbitmq_url = (
-            url
-            if url is not None
-            else os.environ.get("broker_host", RABBITMQ_URL_FALLBACK)
-        )
+        self.rabbitmq_url = amqp_config["host"] if url is None else url
         self.rabbitmq_exchange = (
-            exchange
-            if exchange is not None
-            else os.environ.get("broker_exchange", RABBITMQ_EXCHANGE_FALLBACK)
+            amqp_config["exchange"] if exchange is None else exchange
         )
+
         self._is_loopback = is_loopback
 
         self._subscription_queue_by_tag: Dict[str, amqpstorm.queue.Queue] = {}

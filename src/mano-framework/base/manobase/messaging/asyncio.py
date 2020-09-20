@@ -31,7 +31,7 @@ from typing import Any, Callable, Coroutine, Dict, Set, Tuple, Union
 from .base import Message
 from .request_response import ManoBrokerRequestResponseConnection
 
-LOG = logging.getLogger("manobase:messaging:asyncio")
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 

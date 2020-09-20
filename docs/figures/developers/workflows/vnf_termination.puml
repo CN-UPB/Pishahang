@@ -1,0 +1,25 @@
+@startuml VNF Termination
+
+participant SLM
+participant "OLM/KLM/ALM" as FLM
+participant SMR
+participant "VIM Adaptor" as VIM
+participant "Repository" as Repo
+
+SLM -> FLM: VNF terminate request
+
+FLM -> VIM: VNF terminate request
+VIM --> FLM
+
+FLM -> FLM: Update Function Record
+FLM -> Repo: Store updated Function Record
+Repo --> FLM
+
+group OLM only
+FLM -> SMR: Terminate FSMs 
+SMR --> FLM
+end
+
+FLM --> SLM
+
+@enduml

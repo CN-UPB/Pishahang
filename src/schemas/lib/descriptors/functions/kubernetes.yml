@@ -19,6 +19,8 @@ allOf:
     required:
       - virtual_deployment_units
     properties:
+      descriptor_flavor:
+        const: "kubernetes"
       virtual_deployment_units:
         description: "The virtual deployment units (VDUs) of the cloud service."
         type: "array"
@@ -31,6 +33,7 @@ allOf:
             - service_image
             - service_type
             - service_ports
+            - resource_requirements
           additionalProperties: true # allow extensions in the record schema
           properties:
             description:
@@ -75,6 +78,9 @@ allOf:
               description: "The requirements of a node that hosts this network function."
               type: "object"
               additionalProperties: false
+              required:
+                - cpu
+                - memory
               properties:
                 cpu:
                   description: "All the requirements and parameters related to the (virtual) CPU."
@@ -85,7 +91,7 @@ allOf:
                   properties:
                     vcpus:
                       description: "The number of (virtualized) CPU cores."
-                      type: "integer"
+                      type: "number"
                       exclusiveMinimum: 0
                 memory:
                   type: "object"

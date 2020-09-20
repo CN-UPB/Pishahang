@@ -1,0 +1,7 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "Schema for any network function descriptor using the oneOf keyword"
+
+oneOf:
+  - $ref: "openstack.yml"
+  - $ref: "kubernetes.yml"
+  - $ref: "aws.yml"

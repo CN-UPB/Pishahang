@@ -1,0 +1,49 @@
+@startuml Microservices
+top to bottom direction
+skinparam componentStyle uml2
+
+[Repository]
+
+[Gatekeeper]
+
+[GUI]
+GUI ..> Gatekeeper
+
+cloud {
+  cloud "AWS"
+  cloud "Kubernetes"
+  cloud "OpenStack"
+}
+
+package "MANO Framework" {
+  [Pluginmanager]
+  Gatekeeper ..> Pluginmanager
+  Gatekeeper ..> Repository
+
+  package "Plugins" {
+    ' VIM Adapter
+    [VIM Adapter] as VIM
+    Gatekeeper --> VIM
+    VIM ..> AWS
+    VIM ..> OpenStack
+    VIM ..> Kubernetes
+
+    [OLM / KLM / ALM] as FLM
+    FLM --> VIM
+    FLM ..> Repository
+
+    [Placement]
+
+    ' SLM
+    [SLM]
+    SLM ..> Repository
+    SLM --> Placement
+    SLM --> VIM
+    SLM --> FLM
+    Gatekeeper --> SLM
+  }
+
+  Plugins <-> Pluginmanager
+}
+
+@enduml

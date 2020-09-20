@@ -2,13 +2,47 @@
 version: "3.3"
 
 services:
-  # Influxdb for monitoring
+  traefik:
+    ports:
+      - "8080:8080"
+
+  mongo:
+    ports:
+      - 27017:27017
+
+  redis:
+    ports:
+      - 6379:6379
+
+  monitor-postgres:
+    ports:
+      - 5433:5432
+
+  broker:
+    ports:
+      - 5672:5672
+      - 15672:15672
+
   monitor-influxdb:
     build: ./src/monitor/influxDB
+    ports:
+      - 8086:8086
 
-  # Repositories
-  catalogue-repos:
-    build: ./son-catalogue-repos
+  # Repository
+  repository:
+    build: ./src/repository
+    ports:
+      - 5000:5000
+
+  # Gatekeeper
+  gatekeeper:
+    build: ./src/gatekeeper
+    ports:
+      - "5555:5555"
+
+  # GUI
+  gui:
+    build: ./src/gui
 
   # MANO framework -------------------------------------------------------------
   # Base
@@ -18,9 +52,16 @@ services:
       context: ./src
       dockerfile: mano-framework/base/Dockerfile
 
+  # FLM base
+  flm-base:
+    image: pishahang/mano-plugin-flm-base:${PISHAHANG_VERSION}
+    build: ./src/mano-framework/plugins/function-lifecycle-manager-base
+
   # Plugin Manager
   pluginmanager:
     build: ./src/mano-framework/pluginmanager
+    ports:
+      - "8001:8001"
 
   # Service Lifecycle Management Plugin
   service-lifecycle-manager:
@@ -42,18 +83,20 @@ services:
   kubernetes-lifecycle-manager:
     build: ./src/mano-framework/plugins/kubernetes-lifecycle-manager
 
-  # SDN Plugin
-  sdn-plugin:
-    build: ./src/mano-framework/plugins/sdn
+  # AWS Lifecycle Manager
+  aws-lifecycle-manager:
+    build: ./src/mano-framework/plugins/aws-lifecycle-manager
 
   # VIM Adaptor
   vim-adaptor:
-    build: ./vim-adaptor
+    build: ./src/mano-framework/plugins/vim-adaptor
 
   # Monitoring -----------------------------------------------------------------
   # Monitoring Push Gateway
   monitor-pushgateway:
     build: ./src/monitor/pushgateway
+    ports:
+      - 9091:9091
 
   # Monitoring – Prometheus
   monitor-prometheus:
@@ -62,7 +105,11 @@ services:
   # Monitoring Manager
   monitor-manager:
     build: ./src/monitor/manager
+    ports:
+      - "8000:8000"
+      - "8888:8888"
 
   # Monitoring – Probe
   monitor-probe:
+    {}
     # build: ./monitor/ ?

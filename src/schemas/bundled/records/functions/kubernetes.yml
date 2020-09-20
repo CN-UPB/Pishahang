@@ -148,12 +148,22 @@ definitions:
         default: 1
 type: object
 required:
+  - descriptor_flavor
+  - descriptor_type
   - descriptor_version
+  - id
   - name
+  - status
   - vendor
   - version
   - virtual_deployment_units
 properties:
+  descriptor_type:
+    description: The type of the descriptor
+    enum:
+      - service
+      - function
+    const: function
   descriptor_version:
     description: The version of the descriptor definition
     type: string
@@ -204,6 +214,9 @@ properties:
             url:
               description: The URL to the licence file.
               type: string
+  descriptor_flavor:
+    description: The flavor of the function descriptor
+    const: kubernetes
   monitoring_rules:
     type: array
     items:
@@ -255,6 +268,7 @@ properties:
       type: object
       required:
         - id
+        - resource_requirements
         - service_image
         - service_ports
         - service_type
@@ -312,6 +326,9 @@ properties:
         resource_requirements:
           description: The requirements of a node that hosts this network function.
           type: object
+          required:
+            - cpu
+            - memory
           additionalProperties: false
           properties:
             cpu:
@@ -325,7 +342,7 @@ properties:
               properties:
                 vcpus:
                   description: The number of (virtualized) CPU cores.
-                  type: integer
+                  type: number
                   exclusiveMinimum: 0
             memory:
               type: object
@@ -450,11 +467,6 @@ properties:
               value:
                 description: Value of the env variable
                 type: string
-        vdu_reference:
-          description: >-
-            The reference to the VDU (csd:vdu:id) used to instantiate this
-            element.
-          type: string
         number_of_instances:
           description: The number of instances of this VDU element.
           type: integer
@@ -462,14 +474,16 @@ properties:
         vim_id:
           description: Identifier of the VIM this replica is running at.
   id:
-    description: The UUID of the cloud service record.
+    description: The UUID of the VNF record
     type: string
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   status:
-    description: The current status of the CS
+    description: The current status of the VNF
     ref: ../../commons.yml#/definitions/execution_status
   descriptor_reference:
-    description: Reference to the CSD used to instantiate this CS.
+    description: >-
+      ID of the descriptor used to instantiate the VNF that this record belongs
+      to
     type: string
     pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   parent_ns:

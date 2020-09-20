@@ -7,6 +7,5 @@ COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-root --no-dev --no-interaction
 
 COPY . ./
-RUN poetry install --no-dev --no-interaction
 
 CMD ["poetry", "run", "start"]

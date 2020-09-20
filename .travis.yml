@@ -1,8 +1,10 @@
 _docker_compose_setup_commands: &docker_compose_setup_commands
-  - ./generate-env.sh 127.0.0.1 localhost
+  - cp .env.template .env
   - if [ ! -z "$REQUIRED_MICROSERVICES" ]; then docker-compose up -d $REQUIRED_MICROSERVICES; fi
 
-_docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && docker-compose build $BUILD_SERVICES
+_docker_compose_build_command: &docker_compose_build_command cd $TRAVIS_BUILD_DIR && for service in $BUILD_SERVICES; do docker-compose build "$service"; done
+
+_python_test_command: &python_test_command cd $COMPONENT_DIR && poetry install -v && poetry run pytest
 
 _python_job_config: &python_job_config
   language: python
@@ -13,7 +15,7 @@ _python_job_config: &python_job_config
     - pip install poetry
   before_script: *docker_compose_setup_commands
   script:
-    - cd $COMPONENT_DIR && poetry install -v && poetry run pytest
+    - *python_test_command
     - *docker_compose_build_command
 
 jobs:
@@ -23,6 +25,18 @@ jobs:
       node_js: lts/*
       before_install: cd src/schemas
 
+    - name: gui
+      language: node_js
+      node_js: 14
+      before_install:
+        - *docker_compose_setup_commands
+        - cd src/gui
+      script:
+        - npm test
+        - *docker_compose_build_command
+      env:
+        - BUILD_SERVICES=gui
+
     - name: manobase
       <<: *python_job_config
       env:
@@ -30,6 +44,13 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/base
         - REQUIRED_MICROSERVICES=broker
         - BUILD_SERVICES=mano-base
+
+    - name: repository
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=repository
+        - COMPONENT_DIR=src/repository
+        - BUILD_SERVICES="mano-base repository"
 
     - name: pluginmanager
       <<: *python_job_config
@@ -39,13 +60,20 @@ jobs:
         - REQUIRED_MICROSERVICES="broker mongo"
         - BUILD_SERVICES="mano-base pluginmanager"
 
+    - name: flm-base
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=flm-base
+        - COMPONENT_DIR=src/mano-framework/plugins/function-lifecycle-manager-base
+        - BUILD_SERVICES="mano-base flm-base"
+
     - name: klm
       <<: *python_job_config
-      script: *docker_compose_build_command # There are no tests :(
+      script: *docker_compose_build_command # No tests here, they are in flm-base
       env:
         - SERVICE_NAME=kubernetes-lifecycle-manager
         - COMPONENT_DIR=src/mano-framework/plugins/kubernetes-lifecycle-manager
-        - BUILD_SERVICES="mano-base kubernetes-lifecycle-manager"
+        - BUILD_SERVICES="mano-base flm-base kubernetes-lifecycle-manager"
 
     - name: olm
       <<: *python_job_config
@@ -77,6 +105,20 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/plugins/specific-manager-registry
         - REQUIRED_MICROSERVICES="broker mongo pluginmanager"
         - BUILD_SERVICES="mano-base specific-manager-registry"
+
+    - name: gatekeeper
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=gatekeeper
+        - COMPONENT_DIR=src/gatekeeper
+        - BUILD_SERVICES="mano-base gatekeeper"
+
+    - name: vim-adaptor
+      <<: *python_job_config
+      env:
+        - SERVICE_NAME=vim-adaptor
+        - COMPONENT_DIR=src/mano-framework/plugins/vim-adaptor
+        - BUILD_SERVICES="mano-base vim-adaptor"
 
   fast_finish: true
   allow_failures:

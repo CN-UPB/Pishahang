@@ -1,0 +1,27 @@
+@startuml VNF Deployment
+
+participant SLM
+participant "OLM" as FLM
+participant SMR
+participant "VIM Adaptor" as VIM
+participant "Repository" as Repo
+
+SLM -> FLM: VNF deploy request
+
+group OLM only
+FLM -> SMR: Onboard FSM request
+SMR --> FLM
+
+FLM -> SMR: Instantiate FSM request
+SMR --> FLM
+end
+
+FLM -> VIM: VNF deploy request
+VIM --> FLM
+
+FLM -> Repo: Store Function Record
+Repo --> FLM
+
+FLM --> SLM
+
+@enduml

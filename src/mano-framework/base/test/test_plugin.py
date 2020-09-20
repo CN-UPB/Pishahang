@@ -20,16 +20,15 @@ without specific prior written permission.
 """
 
 from threading import Event
+from uuid import uuid4
 
 import pytest
 from pytest_voluptuous import S
-from voluptuous import In, All, Length
+from voluptuous import All, In, Length
 
 from manobase.messaging import ManoBrokerRequestResponseConnection as Connection
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
-
-from uuid import uuid4
 
 PLUGIN_UUID = str(uuid4())
 
@@ -87,10 +86,7 @@ def test_registration_and_heartbeat(connection: Connection, reraise):
     )
 
     plugin = ManoBasePlugin(
-        use_loopback_connection=True,
-        start_running=False,
-        version="1.2.3",
-        description="Test Plugin",
+        use_loopback_connection=True, version="1.2.3", description="Test Plugin",
     )
 
     try:

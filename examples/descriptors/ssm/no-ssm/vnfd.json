@@ -1,0 +1,38 @@
+{
+  "descriptor_type": "function",
+  "descriptor_flavor": "openstack",
+  "descriptor_version": "vnfd-schema-01",
+  "description": "Dummy VNF with no SSM/FSM",
+  "name": "dummy-vm-vnf-0",
+  "vendor": "eu.sonata-nfv.vnf-descriptor",
+  "version": "1.0",
+  "author": "Hadi Razzaghi",
+  "virtual_deployment_units": [
+    {
+      "id": "dummy-vm-0",
+      "description": "dummy VNF with no SSM/FSM",
+      "vm_image": "http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img",
+      "vm_image_format": "qcow2",
+      "resource_requirements": {
+        "cpu": {
+          "vcpus": 1
+        },
+        "memory": {
+          "size": 500,
+          "size_unit": "MB"
+        },
+        "storage": {
+          "size": 1,
+          "size_unit": "GB"
+        }
+      },
+      "connection_points": [
+        {
+          "id": "eth0",
+          "interface": "ipv4",
+          "type": "external"
+        }
+      ]
+    }
+  ]
+}

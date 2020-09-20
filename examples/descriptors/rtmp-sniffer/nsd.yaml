@@ -1,0 +1,13 @@
+descriptor_type: service
+descriptor_version: "1.0"
+vendor: "eu.sonata-nfv.service-descriptor"
+name: RTMP_sniffer
+version: "1.0"
+author: "Hadi Razzaghi Kouchaksaraei"
+description: "A service providing RTMP packet sniffer and recorder"
+
+network_functions:
+  - vnf_id: "VNF_sink"
+    vnf_vendor: "eu.sonata-nfv.cloud-service-descriptor"
+    vnf_name: "VNF_sink"
+    vnf_version: "1.0"

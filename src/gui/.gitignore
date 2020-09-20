@@ -1,0 +1,5 @@
+node_modules/
+.next/
+
+# Exclude lib/ which is contained in the top-level .gitignore file
+!lib/

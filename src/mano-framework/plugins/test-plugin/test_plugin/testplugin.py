@@ -35,9 +35,8 @@ import sys
 from manobase.plugin import ManoBasePlugin
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("manobase:messaging").setLevel(logging.INFO)
-logging.getLogger("manobase:plugin").setLevel(logging.DEBUG)
-LOG = logging.getLogger("plugin:test-plugin")
+logging.getLogger("manobase.plugin").setLevel(logging.DEBUG)
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
 
@@ -45,6 +44,7 @@ class TestPlugin(ManoBasePlugin):
     """
     This is the most simple plugin. It does nothing (except of registration etc.).
     """
+
     def __init__(self):
         # call super class to do all the messaging and registration overhead
         super(self.__class__, self).__init__(version="1.0-dev")
@@ -53,5 +53,6 @@ class TestPlugin(ManoBasePlugin):
 def main():
     TestPlugin()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

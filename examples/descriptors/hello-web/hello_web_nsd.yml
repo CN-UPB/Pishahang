@@ -1,0 +1,11 @@
+descriptor_type: service
+descriptor_version: "1.0"
+vendor: eu.sonata-nfv.service-descriptor
+name: hello-web
+version: "0.2"
+author: Tobias Dierich
+network_functions:
+  - vnf_id: hello-web
+    vnf_name: hello-web
+    vnf_vendor: eu.sonata-nfv.cloud-service-descriptor
+    vnf_version: "0.2"

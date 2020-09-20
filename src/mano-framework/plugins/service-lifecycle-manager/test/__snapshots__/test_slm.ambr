@@ -1,0 +1,200 @@
+# name: test_deploy_vnf
+  <class 'dict'> {
+    'function_instance_id': '6966dbff-de47-4ac7-9162-fe0d866a84ef',
+    'service_instance_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'vim_id': '87ecdc7c-665a-475a-b4f7-f053706ceb70',
+    'vnfd': <class 'BaseDict'>,
+  }
+---
+# name: test_destroy_vnfs
+  <class 'dict'> {
+    'service_instance_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+  }
+---
+# name: test_fetch_placement
+  <class 'dict'> {
+    'functions': <class 'list'>,
+    'nap': <class 'dict'> {
+    },
+    'nsd': <class 'BaseDict'>,
+    'serv_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'topology': <class 'list'> [
+    ],
+  }
+---
+# name: test_generate_record
+  <class 'BaseDict'> {
+    'author': 'Michael Bredel, NEC Labs Europe',
+    'connection_points': <class 'BaseList'> [
+      <class 'dict'> {
+        'id': 'ns:mgmt',
+        'type': 'interface',
+      },
+      <class 'dict'> {
+        'id': 'ns:input',
+        'type': 'interface',
+      },
+      <class 'dict'> {
+        'id': 'ns:output',
+        'type': 'interface',
+      },
+    ],
+    'description': '
+      "The network service descriptor for the SONATA demo,
+       comprising iperf, a firewall, and tcpdump."
+  
+    ',
+    'descriptor_flavor': 'openstack',
+    'descriptor_reference': '005606ed-be7d-4ce3-983c-847039e3a5a2',
+    'descriptor_type': 'function',
+    'descriptor_version': '2.0',
+    'forwarding_graphs': <class 'BaseList'> [
+      <class 'dict'> {
+        'constituent_virtual_links': <class 'list'> [
+          'mgmt',
+          'input-2-iperf',
+          'iperf-2-firewall',
+          'firewall-2-tcpdump',
+          'tcpdump-2-output',
+        ],
+        'constituent_vnfs': <class 'list'> [
+          'vnf_iperf',
+          'vnf_firewall',
+          'vnf_tcpdump',
+        ],
+        'fg_id': 'ns:fg01',
+        'network_forwarding_paths': <class 'list'> [
+          <class 'dict'> {
+            'connection_points': <class 'list'> [
+              <class 'dict'> {
+                'connection_point_ref': 'ns:input',
+                'position': 1,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_iperf:input',
+                'position': 2,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_iperf:output',
+                'position': 3,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_firewall:input',
+                'position': 4,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_firewall:output',
+                'position': 5,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_tcpdump:input',
+                'position': 6,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'vnf_tcpdump:output',
+                'position': 7,
+              },
+              <class 'dict'> {
+                'connection_point_ref': 'ns:output',
+                'position': 8,
+              },
+            ],
+            'fp_id': 'ns:fg01:fp01',
+            'policy': 'none',
+          },
+        ],
+        'number_of_endpoints': 2,
+        'number_of_virtual_links': 4,
+      },
+    ],
+    'id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'name': 'sonata-demo',
+    'network_functions': <class 'BaseList'> [
+      <class 'dict'> {
+        'vnfr_id': '6966dbff-de47-4ac7-9162-fe0d866a84ef',
+      },
+      <class 'dict'> {
+        'vnfr_id': '846bb1a4-0ed7-4d36-bf5d-bb704bcd3e36',
+      },
+      <class 'dict'> {
+        'vnfr_id': '7404913e-af2e-4309-ab03-f133866d1409',
+      },
+    ],
+    'status': 'request status',
+    'vendor': 'eu.sonata-nfv.service-descriptor',
+    'version': '1',
+    'virtual_links': <class 'BaseList'> [
+      <class 'dict'> {
+        'connection_points_reference': <class 'list'> [
+          'vnf_iperf:mgmt',
+          'vnf_firewall:mgmt',
+          'vnf_tcpdump:mgmt',
+          'ns:mgmt',
+        ],
+        'connectivity_type': 'E-LAN',
+        'id': 'mgmt',
+      },
+      <class 'dict'> {
+        'connection_points_reference': <class 'list'> [
+          'ns:input',
+          'vnf_iperf:input',
+        ],
+        'connectivity_type': 'E-Line',
+        'id': 'input-2-iperf',
+      },
+      <class 'dict'> {
+        'connection_points_reference': <class 'list'> [
+          'vnf_iperf:output',
+          'vnf_firewall:input',
+        ],
+        'connectivity_type': 'E-Line',
+        'id': 'iperf-2-firewall',
+      },
+      <class 'dict'> {
+        'connection_points_reference': <class 'list'> [
+          'vnf_firewall:output',
+          'vnf_tcpdump:input',
+        ],
+        'connectivity_type': 'E-Line',
+        'id': 'firewall-2-tcpdump',
+      },
+      <class 'dict'> {
+        'connection_points_reference': <class 'list'> [
+          'vnf_firewall:output',
+          'ns:output',
+        ],
+        'connectivity_type': 'E-Line',
+        'id': 'tcpdump-2-output',
+      },
+    ],
+  }
+---
+# name: test_prepare_infrastructure
+  <class 'dict'> {
+    'instance_id': 'f86d5ec7-1a93-404d-80d1-e696369f8318',
+    'vims': <class 'dict'> {
+      '87ecdc7c-665a-475a-b4f7-f053706ceb70': <class 'dict'> {
+        'vm_images': <class 'list'> [
+          <class 'dict'> {
+            'format': 'qcow2',
+            'id': 'eu.sonata-nfv_firewall-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'http://registry.sonata-nfv.eu/html/files/VM_images/sonata-VM-2ports.qcow',
+          },
+          <class 'dict'> {
+            'format': 'docker',
+            'id': 'eu.sonata-nfv_iperf-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'file:///docker_files/iperf/Dockerfile',
+          },
+          <class 'dict'> {
+            'format': 'docker',
+            'id': 'eu.sonata-nfv_tcpdump-vnf_0.2_vdu01',
+            'md5': None,
+            'url': 'file:///docker_files/tcpdump/Dockerfile',
+          },
+        ],
+      },
+    },
+  }
+---

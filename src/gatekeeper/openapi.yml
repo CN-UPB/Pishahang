@@ -1,0 +1,1188 @@
+openapi: 3.0.0
+
+info:
+  version: 1.0.0
+  title: Pishahang Gatekeeper API
+  description: The definition of the Gatekeeper's public API
+
+servers:
+  - url: /api/v3
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User management and authentication
+  - name: VIMs
+    description: VIM settings
+  - name: Descriptors
+    description: Descriptors that have been uploaded and can be edited or onboarded
+  - name: Services
+    description: Services (onboarded service descriptors), their function descriptors, and their instances
+  - name: Plugins
+    description: List MANO plugins and control their lifecycle states
+
+paths:
+  # Authentication =================================================================================
+
+  /auth:
+    post:
+      tags:
+        - Authentication
+      summary: Create a new access token
+      description:
+        Given a username and a password, returns an access token and a refresh token or fails with
+        error 401 if the credentials are invalid.
+      operationId: gatekeeper.api.auth.createTokenFromCredentials
+      security: []
+      requestBody:
+        description: The username and password to create a new access token with
+        content:
+          application/json:
+            schema:
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "pishahang"
+                password:
+                  type: string
+                  example: "1234"
+
+      responses:
+        "200":
+          description:
+            The provided credentials are valid and a new access token and refresh token have been
+            returned.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/AccessToken"
+                  - $ref: "#/components/schemas/RefreshToken"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    put:
+      tags:
+        - Authentication
+      summary: Refresh an access token
+      description:
+        Given a refresh token, returns a new access token or fails with error 401 if the given
+        refresh token is invalid.
+      operationId: gatekeeper.api.auth.refreshToken
+      security: []
+      requestBody:
+        description: The refresh token which was handed out by the `/auth` endpoint
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshToken"
+      responses:
+        "200":
+          description: The provided refresh token is valid and a new access token has been returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # Users ==========================================================================================
+
+  /users:
+    get:
+      tags:
+        - Authentication
+      summary: Get a list of registered users (admin-only)
+      description: Returns a list of all registered users
+      operationId: gatekeeper.api.users.getUsers
+      responses:
+        "200":
+          description: The list of users was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Authentication
+      summary: Add a user (admin-only)
+      operationId: gatekeeper.api.users.addUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: The user is successfully added
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /users/{id}:
+    get:
+      tags:
+        - Authentication
+      summary: Retrieve a single user (admin-only)
+      description: Returns a single user by its ID
+      operationId: gatekeeper.api.users.getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to be retrieved
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The requested user was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+    delete:
+      tags:
+        - Authentication
+      summary: Delete a user (admin-only)
+      operationId: gatekeeper.api.users.deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The user has been deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+    put:
+      tags:
+        - Authentication
+      summary: Update a given user (admin-only)
+      description:
+        Updates a given user's information. If the `password` field is empty, the user's password
+        won't be changed.
+      operationId: gatekeeper.api.users.updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to be updated
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: The user was successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /current-user:
+    get:
+      tags:
+        - Authentication
+      summary: Get the current user
+      description: Returns the user data of the currently logged-in user
+      operationId: gatekeeper.api.users.getCurrentUser
+      responses:
+        "200":
+          description: The current user was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    put:
+      tags:
+        - Authentication
+      summary: Update the user data of the current user
+      description:
+        Updates the current user's information. If the `password` field is empty, the
+        user's password won't be changed. Note that the `isAdmin` field, while required
+        due to a
+        [shortcoming](https://json-schema.org/understanding-json-schema/reference/combining.html#allof)
+        in JsonSchema, is ignored for this endpoint.
+      operationId: gatekeeper.api.users.updateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/User"
+
+      responses:
+        "200":
+          description: The user data was successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # Descriptors ====================================================================================
+
+  /descriptors:
+    get:
+      tags:
+        - Descriptors
+      summary: Get a list of descriptors
+      description: Returns a list of all descriptors of a specified type
+      operationId: gatekeeper.api.descriptors.getDescriptorsByType
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Specifies the descriptor type
+          schema:
+            $ref: "#/components/schemas/DescriptorType"
+      responses:
+        "200":
+          description: The list of descriptors was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptors"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Descriptors
+      summary: Upload a new descriptor
+      description: >
+        Adds a new descriptor to the database. Note: The combination of a descriptor's vendor, name,
+        and version have to be unique.
+      operationId: gatekeeper.api.descriptors.addDescriptor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Descriptor"
+      responses:
+        "201":
+          description: The descriptor was successfully added to the database.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /descriptors/{id}:
+    get:
+      tags:
+        - Descriptors
+      summary: Get a descriptor by its ID
+      operationId: gatekeeper.api.descriptors.getDescriptorById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the descriptor to be retrieved
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The descriptor was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    put:
+      tags:
+        - Descriptors
+      summary: Update a descriptor by its ID
+      description: Updates the content of the descriptor specified by the given ID
+      operationId: gatekeeper.api.descriptors.updateDescriptor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the descriptor to be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+              properties:
+                content:
+                  $ref: "#/components/schemas/DescriptorContent"
+                contentString:
+                  type: string
+                  description: >
+                    The content of the descriptor as a string.
+                    It will not be used by the gatekeeper but stored for later client-side usage.
+      responses:
+        "200":
+          description: The descriptor was successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Descriptors
+      summary: Delete a descriptor by its ID
+      description: Deletes the descriptor with the provided ID if it exists.
+      operationId: gatekeeper.api.descriptors.deleteDescriptorById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the descriptor to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The descriptor was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Descriptor"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # Services =======================================================================================
+
+  /services:
+    get:
+      tags:
+        - Services
+      summary: Get a list of available services
+      description: Returns a list of services available for instantiation
+      operationId: gatekeeper.api.services.getServices
+      responses:
+        "200":
+          description: The list of services was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Services"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Services
+      summary: Add a service by onboarding a service descriptor
+      description: >
+        Onboards a service descriptor by its ID, adding a new available service. Snapshots of the
+        service descriptor and all referenced descriptors are stored, which will be used for
+        instantiation. Later edits to the corresponding descriptors will not modify the snapshots.
+      operationId: gatekeeper.api.services.addService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: The service descriptor was successfully onboarded and can now be instantiated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /services/{id}:
+    get:
+      tags:
+        - Services
+      summary: Get a service by its ID
+      operationId: gatekeeper.api.services.getServiceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the service to be retrieved
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Details on the service were successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Services
+      summary: Delete a service by its ID
+      description: Deletes the service with the provided ID if it has no active instances.
+      operationId: gatekeeper.api.services.deleteServiceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the service to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The service was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # Service instances ==============================================================================
+
+  /services/{serviceId}/instances:
+    get:
+      tags:
+        - Services
+      summary: List the instances of a service
+      operationId: gatekeeper.api.services.getServiceInstances
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The service ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A list of service instances was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInstances"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Services
+      summary: Instantiate a service
+      description: >
+        Requests the instantiation of the specified service, optionally providing lists of
+        ingresses and egresses.
+      operationId: gatekeeper.api.services.instantiateService
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The service ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ingresses:
+                  type: array
+                  items:
+                    type: string
+                egresses:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: >
+            An instantiation request was successfully made, and the corresponding
+            ServiceInstance object was returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInstance"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /services/{serviceId}/instances/{instanceId}:
+    delete:
+      tags:
+        - Services
+      summary: Terminate a service instance
+      operationId: gatekeeper.api.services.terminateServiceInstance
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          description: The ID of the service that the instance belongs to
+          schema:
+            type: string
+            format: uuid
+        - name: instanceId
+          in: path
+          required: true
+          description: The ID of the service instance to be terminated
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: The service instance was successfully terminated.
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # VIMs ===========================================================================================
+
+  /vims:
+    get:
+      tags:
+        - VIMs
+      summary: Get a list of VIMs
+      operationId: gatekeeper.api.vims.getVims
+      responses:
+        "200":
+          description: The list of VIMs was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vims"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - VIMs
+      summary: Add a VIM
+      operationId: gatekeeper.api.vims.addVim
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnyVim"
+      responses:
+        "201":
+          description: The VIM was successfully added.
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /vims/{id}:
+    delete:
+      tags:
+        - VIMs
+      summary: Delete a VIM by its ID
+      description: Deletes the VIM with the provided ID if it exists.
+      operationId: gatekeeper.api.vims.deleteVim
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the VIM to be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The VIM was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vims"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  # Plugins ========================================================================================
+
+  /plugins:
+    get:
+      tags:
+        - Plugins
+      summary: Get the list of registered plugins
+      operationId: gatekeeper.api.plugins.getPlugins
+      responses:
+        "200":
+          description: The list of plugins was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plugins"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /plugins/{id}:
+    get:
+      tags:
+        - Plugins
+      summary: Get information about a single plugin
+      operationId: gatekeeper.api.plugins.getPluginById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin to return information about
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Information about the plugin was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plugin"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Plugins
+      summary: Shut down a plugin by its ID
+      operationId: gatekeeper.api.plugins.shutdownPluginById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin to be shut down
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: The shutdown request was successfully made.
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+  /plugins/{id}/lifecycle:
+    put:
+      tags:
+        - Plugins
+      summary: Manipulate the lifecycle state of a plugin
+      operationId: gatekeeper.api.plugins.changePluginStateById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the plugin whose state should be changed
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - targetState
+              properties:
+                targetState:
+                  type: string
+                  enum:
+                    - pause
+                    - start
+      responses:
+        "204":
+          description: The lifecycle manipulation request was successfully made.
+        "401":
+          $ref: "#/components/responses/Error401"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "500":
+          $ref: "#/components/responses/Error500"
+
+components:
+  schemas:
+    BaseEntity:
+      required:
+        - id
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          description: A randomly generated UUID
+          type: string
+          format: uuid
+          readOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    DescriptorType:
+      type: string
+      enum: [service, openStack, kubernetes, aws]
+    DescriptorContent:
+      type: object
+      example:
+        descriptor_version: "1.0"
+        vendor: "my.vendor"
+        name: "example-descriptor"
+        version: "1.0.0"
+    Descriptor:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - type
+            - content
+          properties:
+            type:
+              $ref: "#/components/schemas/DescriptorType"
+            content:
+              $ref: "#/components/schemas/DescriptorContent"
+            contentString:
+              type: string
+              description: >
+                The content of the descriptor as a string.
+                It will not be used by the gatekeeper, but stored for later client-side usage.
+    Descriptors:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Descriptor"
+
+    Service:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - descriptorSnapshots
+            - rootDescriptorId
+          properties:
+            descriptorSnapshots:
+              $ref: "#/components/schemas/Descriptors"
+            rootDescriptorId:
+              type: string
+              format: uuid
+            vendor:
+              type: string
+              example: "my.vendor"
+            name:
+              type: string
+              example: "my-service"
+            version:
+              type: string
+              example: "1.0"
+    Services:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Service"
+
+    ServiceInstance:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+    ServiceInstances:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/ServiceInstance"
+
+    ResourceUsageData:
+      type: "object"
+      required:
+        - used
+        - total
+      properties:
+        used:
+          type: number
+        total:
+          type: number
+    BaseVim:
+      required:
+        - id
+        - name
+        - country
+        - city
+        - resourceUtilization
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        resourceUtilization:
+          readOnly: true
+          nullable: true # In case of VIM connection error
+          oneOf:
+            # OpenStack, Kubernetes
+            - type: object
+              required:
+                - cores
+                - memory
+              additionalProperties: false
+              properties:
+                cores:
+                  $ref: "#/components/schemas/ResourceUsageData"
+                memory:
+                  $ref: "#/components/schemas/ResourceUsageData"
+            # AWS (empty object)
+            - type: object
+              additionalProperties: false
+
+    OpenStackVim:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - address
+            - tenant
+            - username
+            - password
+            - type
+          properties:
+            type:
+              type: string
+              enum: ["openstack"]
+            address:
+              type: string
+            tenant:
+              type: object
+              required:
+                - id
+                - externalNetworkId
+                - externalRouterId
+              properties:
+                id:
+                  type: string
+                externalNetworkId:
+                  type: string
+                externalRouterId:
+                  type: string
+            username:
+              type: string
+            password:
+              type: string
+    KubernetesVim:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - address
+            - port
+            - serviceToken
+            - ccc
+            - type
+          properties:
+            type:
+              type: string
+              enum: ["kubernetes"]
+            address:
+              type: string
+            port:
+              type: number
+            serviceToken:
+              type: string
+            ccc:
+              type: string
+    AwsVim:
+      allOf:
+        - $ref: "#/components/schemas/BaseVim"
+        - type: object
+          required:
+            - type
+            - accessKey
+            - secretKey
+            - region
+          properties:
+            type:
+              type: string
+              enum: ["aws"]
+            accessKey:
+              type: string
+            secretKey:
+              type: string
+            region:
+              type: string
+    AnyVim:
+      oneOf:
+        - $ref: "#/components/schemas/OpenStackVim"
+        - $ref: "#/components/schemas/KubernetesVim"
+        - $ref: "#/components/schemas/AwsVim"
+      discriminator:
+        propertyName: type
+        mapping:
+          openstack: "#/components/schemas/OpenStackVim"
+          kubernetes: "#/components/schemas/KubernetesVim"
+          aws: "#/components/schemas/AwsVim"
+    Vims:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/BaseVim"
+
+    User:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          required:
+            - username
+            - password
+            - isAdmin
+            - fullName
+            - email
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+              writeOnly: true
+            isAdmin:
+              type: boolean
+            fullName:
+              type: string
+            email:
+              type: string
+              format: email
+    Users:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/User"
+
+    AccessToken:
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+      properties:
+        accessToken:
+          type: string
+        accessTokenExpiresIn:
+          type: integer
+          readOnly: true
+    RefreshToken:
+      required:
+        - refreshToken
+        - refreshTokenExpiresIn
+      properties:
+        refreshToken:
+          type: string
+        refreshTokenExpiresIn:
+          type: integer
+          readOnly: true
+
+    Plugin:
+      required:
+        - id
+        - name
+        - version
+        - description
+        - state
+        - registeredAt
+        - lastHeartbeatAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+          enum:
+            - RUNNING
+            - PAUSED
+        registeredAt:
+          type: string
+          format: date-time
+        lastHeartbeatAt:
+          type: string
+          format: date-time
+    Plugins:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Plugin"
+
+    Message:
+      required:
+        - status
+        - detail
+      properties:
+        status:
+          type: integer
+        detail:
+          type: string
+
+  responses:
+    Error400:
+      description: The request is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+    Error401:
+      description: The access token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+    Error403:
+      description: The endpoint requires elevated privileges.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+    Error404:
+      description: The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+    Error500:
+      description: An unexpected error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Message"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: gatekeeper.api.auth.getTokenInfo

@@ -31,17 +31,17 @@ import logging
 import time
 import uuid
 
-import requests
 import yaml
+from requests.exceptions import RequestException
 
 import manobase.messaging as messaging
+from manobase import repository
 from manobase.messaging import Message
 from manobase.plugin import ManoBasePlugin
 from olm import helpers as tools
 from olm import topics as t
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("olm")
+LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
@@ -192,7 +192,7 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         LOG.info("Function instance create request received.")
         payload = message.payload
         corr_id = message.correlation_id
-        func_id = payload["id"]
+        func_id = payload["function_instance_id"]
 
         # Add the function to the ledger
         self.add_function_to_ledger(payload, corr_id, func_id, message.topic)
@@ -359,7 +359,7 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             return
 
         LOG.info("Function instance scale request received.")
-        payload = yaml.load(payload)
+        payload = message.payload
         func_id = payload["vnf_id"]
 
         # recreate the ledger
@@ -482,9 +482,6 @@ class OpenStackLifecycleManager(ManoBasePlugin):
 
         msg_for_smr = {"VNFD": self.functions[func_id]["vnfd"], "UUID": func_id}
 
-        if self.functions[func_id]["private_key"]:
-            msg_for_smr["private_key"] = self.functions[func_id]["private_key"]
-
         LOG.info(
             "Function %s: Keys in message for FSM instant: %s",
             func_id,
@@ -546,13 +543,11 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         function = self.functions[func_id]
 
         outg_message = {
-            "vnfd": {**function["vnfd"], "instance_uuid": function["id"]},
-            "vim_uuid": function["vim_uuid"],
+            "function_instance_id": function["id"],
             "service_instance_id": function["serv_id"],
+            "vim_id": function["vim_uuid"],
+            "vnfd": function["vnfd"],
         }
-
-        if "public_key" in function:
-            outg_message["public_key"] = function["public_key"]
 
         corr_id = str(uuid.uuid4())
         self.functions[func_id]["act_corr_id"] = corr_id
@@ -602,34 +597,18 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         """
 
         function = self.functions[func_id]
-
-        # Build the record
-        vnfr = tools.build_vnfr(function["ia_vnfr"], function["vnfd"])
+        vnfr = function["ia_vnfr"]
         self.functions[func_id]["vnfr"] = vnfr
-        LOG.info(yaml.dump(vnfr))
 
         # Store the record
-        url = t.VNFR_REPOSITORY_URL + "vnf-instances"
-        vnfr_response = requests.post(url, json=vnfr, timeout=1.0)
-        LOG.info("Storing VNFR on %s", url)
+        LOG.info("Storing VNFR")
         LOG.debug("VNFR: %s", vnfr)
-
-        if vnfr_response.status_code == 200:
-            LOG.info("VNFR storage accepted.")
-        # If storage fails, add error code and message to rply to gk
-        else:
-            error = {
-                "http_code": vnfr_response.status_code,
-                "message": vnfr_response.json(),
-            }
-            self.functions[func_id]["error"] = error
-            LOG.info("vnfr to repo failed: %s", error)
-        # except:
-        #     error = {'http_code': '0',
-        #              'message': 'Timeout contacting VNFR server'}
-        #     LOG.info('time-out on vnfr to repo')
-
-        return
+        try:
+            repository.post("records/functions", vnfr)
+            LOG.info("VNFR storage accepted")
+        except RequestException as e:
+            self.functions[func_id]["error"] = str(e)
+            LOG.info("VNFR storage failed: %s", e)
 
     def update_vnfr_after_scale(self, func_id):
         """
@@ -641,43 +620,18 @@ class OpenStackLifecycleManager(ManoBasePlugin):
         # is added, other fields of the record might need upates
         # as well
 
-        error = None
         vnfr = self.functions[func_id]["vnfr"]
-        vnfr_id = func_id
 
-        # Updating version number
-        old_version = int(vnfr["version"])
-        cur_version = old_version + 1
-        vnfr["version"] = str(cur_version)
-
-        # Updating the record
-        vnfr["id"] = vnfr_id
-        del vnfr["uuid"]
-        del vnfr["updated_at"]
-        del vnfr["created_at"]
-
-        # Put it
-        url = t.VNFR_REPOSITORY_URL + "vnf-instances/" + vnfr_id
-
-        LOG.info("Service %s: VNFR update: %s", serv_id, url)
-
+        # Update the version number
         try:
-            vnfr_resp = requests.put(url, json=vnfr, timeout=1.0)
-            vnfr_resp_json = str(vnfr_resp.json())
-
-            if vnfr_resp.status_code == 200:
-                msg = ": VNFR update accepted for " + vnfr_id
-                LOG.info("Service %s%s", serv_id, msg)
-            else:
-                msg = ": VNFR update not accepted: " + vnfr_resp_json
-                LOG.info("Service %s%s", serv_id, msg)
-                error = {"http_code": vnfr_resp.status_code, "message": vnfr_resp_json}
-        except:
-            error = {"http_code": "0", "message": "Timeout when contacting VNFR repo"}
-
-        if error is not None:
-            LOG.info("record update failed: %s", error)
-            self.functions[func_id]["error"] = error
+            repository.patch(
+                f"records/functions/{func_id}",
+                {"version": str(int(vnfr["version"]) + 1)},
+            )
+            LOG.info(f"VNFR update accepted for VNF {func_id}")
+        except RequestException as e:
+            LOG.info(f"VNFR update not accepted for VNFR {func_id}: {e}")
+            self.functions[func_id]["error"] = str(e)
             self.flm_error(func_id)
 
     def inform_slm_on_deployment(self, func_id):
@@ -866,8 +820,8 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             "topic": topic,  # Topic of the call
             "orig_corr_id": corr_id,
             "payload": payload,
-            "serv_id": payload["serv_id"],  # Service uuid that this function belongs to
-            "vim_uuid": payload["vim_uuid"],
+            "serv_id": payload["service_instance_id"],
+            "vim_uuid": payload["vim_id"],
             "schedule": [],
             # Create the FSM dict if FSMs are defined in VNFD:
             "fsm": tools.get_fsm_from_vnfd(payload["vnfd"]),
@@ -880,8 +834,6 @@ class OpenStackLifecycleManager(ManoBasePlugin):
             "act_corr_id": None,
             "message": None,
             "error": None,
-            "public_key": payload["public_key"],
-            "private_key": payload["private_key"],
         }
 
         return func_id
