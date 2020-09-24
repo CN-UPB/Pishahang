@@ -7,7 +7,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "Pishahang"
-copyright = "2020, Pishahang"
+copyright = "2017, Pishahang"
 author = "Pishahang"
 
 # -- General configuration ---------------------------------------------------
@@ -20,6 +20,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinxcontrib.plantuml",
     "sphinx_copybutton",
+    "sphinxcontrib.redoc",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -35,6 +36,19 @@ extlinks = {"sourcefile": ("https://github.com/CN-UPB/Pishahang/blob/master/%s",
 plantuml_output_format = "svg_img"
 
 highlight_language = "none"
+
+redoc = [
+    {
+        "name": "Pishahang Gatekeeper API",
+        "page": "developers/apis/gatekeeper",
+        "spec": "../src/gatekeeper/openapi.yml",
+        "opts": {
+            "required-props-first": True,
+            "expand-responses": ["200", "201", "204"],
+        },
+    },
+]
+redoc_uri = "https://cdn.jsdelivr.net/npm/redoc@2.0.0-rc.40/bundles/redoc.standalone.js"
 
 
 # -- Options for HTML output -------------------------------------------------

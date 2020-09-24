@@ -2,6 +2,15 @@
 API Documentation
 *****************
 
+Gatekeeper REST API
+===================
+
+The interactive documentation of the gatekeeper's HTTP REST API can be found on |gatekeeper_api_link|.
+
+.. |gatekeeper_api_link| raw:: html
+
+   <a href="./apis/gatekeeper.html" target="_blank">this page</a>
+
 AMQP Message Topics by Component
 ================================
 
