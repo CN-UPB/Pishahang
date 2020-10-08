@@ -120,6 +120,22 @@ jobs:
         - COMPONENT_DIR=src/mano-framework/plugins/vim-adaptor
         - BUILD_SERVICES="mano-base vim-adaptor"
 
+    # Build and push Docker images on each new tag
+    - stage: release
+      if: tag IS present
+      language: generic
+      script:
+        - *docker_compose_setup_commands
+        - export PISHAHANG_VERSION="$TRAVIS_TAG"
+        # Build base images first
+        - docker-compose build mano-base
+        - docker-compose build flm-base
+        # Build all images
+        - docker-compose build
+        # Push all images to Docker registry
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker-compose push
+
   fast_finish: true
   allow_failures:
     - name: smr # The tests have to be fixed yet
