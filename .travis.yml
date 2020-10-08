@@ -12,7 +12,7 @@ _python_job_config: &python_job_config
   cache:
     pip: true
   install:
-    - pip install poetry
+    - pip install poetry==1.0.10
   before_script: *docker_compose_setup_commands
   script:
     - *python_test_command

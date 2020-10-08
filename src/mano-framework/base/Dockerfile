@@ -4,7 +4,7 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y gcc libpq-dev git
 
 # Install poetry
-RUN pip install poetry
+RUN pip install poetry==1.0.10
 
 # We do not disable virtual environments for two reasons:
 # * `poetry install` messes with system dependencies when --no-dev is set
