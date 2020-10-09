@@ -126,14 +126,22 @@ jobs:
       language: generic
       script:
         - *docker_compose_setup_commands
-        - export PISHAHANG_VERSION="$TRAVIS_TAG"
+
+        # Tag built images as "latest"
+        - export PISHAHANG_VERSION=latest
         # Build base images first
         - docker-compose build mano-base
         - docker-compose build flm-base
         # Build all images
         - docker-compose build
-        # Push all images to Docker registry
+        # Push all "latest" images to the Docker registry
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker-compose push
+
+        # Tag all "latest" images with the current version tag (by re-building them using the cache)
+        - export PISHAHANG_VERSION="$TRAVIS_TAG"
+        - docker-compose build
+        # Push all version-tagged images to the Docker registry
         - docker-compose push
 
   fast_finish: true
